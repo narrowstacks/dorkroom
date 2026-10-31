@@ -282,26 +282,96 @@ describe('useDevelopmentTable', () => {
     expect(uuidsOf(result.current)).toEqual(['c3', 'c2', 'c1']);
   });
 
-  // Known bug, see #498: TanStack negates a sortingFn's result for descending
-  // sorts, so favorites sink to the bottom instead of staying first. Remove
-  // `.fails` when #498 is fixed.
-  it.fails('keeps favorites first on descending sorts (#498)', () => {
-    const rows = createMockRows();
-    const columns = createTestColumns();
-
-    const { result } = renderHook(() =>
-      useDevelopmentTable({
-        rows,
-        columns,
-        sorting: [{ id: 'combination.shootingIso', desc: true }],
-        onSortingChange: () => {},
-        pageIndex: 0,
-        onPageIndexChange: () => {},
-        isFavorite: (id) => id === 'c2',
-      })
+  const sortWithFavorites = (
+    id: string,
+    desc: boolean,
+    favorites: string[],
+    rows = createMockRows()
+  ) =>
+    uuidsOf(
+      renderHook(() =>
+        useDevelopmentTable({
+          rows,
+          columns: createTestColumns(),
+          sorting: [{ id, desc }],
+          onSortingChange: () => {},
+          pageIndex: 0,
+          onPageIndexChange: () => {},
+          isFavorite: (key) => favorites.includes(key),
+        })
+      ).result.current
     );
 
-    expect(uuidsOf(result.current)[0]).toBe('c2');
+  // Rows: c1 (ISO 400, 8 min, 68F), c2 (200, 10, 70), c3 (800, 6, 65).
+  // c2 is favorited, so it leads either way and the rest follow the column.
+  it.each([
+    ['ISO', 'combination.shootingIso', ['c2', 'c1', 'c3'], ['c2', 'c3', 'c1']],
+    ['time', 'combination.timeMinutes', ['c2', 'c3', 'c1'], ['c2', 'c1', 'c3']],
+    [
+      'temperature',
+      'combination.temperatureF',
+      ['c2', 'c3', 'c1'],
+      ['c2', 'c1', 'c3'],
+    ],
+  ])(
+    'keeps a favorite first on %s, both directions (#498)',
+    (_n, id, asc, desc) => {
+      expect(sortWithFavorites(id, false, ['c2'])).toEqual(asc);
+      expect(sortWithFavorites(id, true, ['c2'])).toEqual(desc);
+    }
+  );
+
+  it('keeps a favorite first on film and developer descending (#498)', () => {
+    const rows = createMockRows();
+    rows[0] = { ...rows[0], film: { ...mockFilm, brand: 'Kodak', name: 'A' } };
+    rows[1] = { ...rows[1], film: { ...mockFilm, brand: 'Fuji', name: 'B' } };
+    rows[2] = { ...rows[2], film: { ...mockFilm, brand: 'Ilford', name: 'C' } };
+    // Film labels: c1 Kodak, c2 Fuji, c3 Ilford. Favorite c2 leads; descending
+    // the rest are Kodak (c1) then Ilford (c3).
+    expect(sortWithFavorites('film', true, ['c2'], rows)).toEqual([
+      'c2',
+      'c1',
+      'c3',
+    ]);
+    expect(sortWithFavorites('film', false, ['c2'], rows)).toEqual([
+      'c2',
+      'c3',
+      'c1',
+    ]);
+
+    const devRows = createMockRows();
+    devRows[0] = {
+      ...devRows[0],
+      developer: { ...mockDeveloper, manufacturer: 'Kodak', name: 'D-76' },
+    };
+    devRows[1] = {
+      ...devRows[1],
+      developer: { ...mockDeveloper, manufacturer: 'Fuji', name: 'X' },
+    };
+    devRows[2] = {
+      ...devRows[2],
+      developer: { ...mockDeveloper, manufacturer: 'Ilford', name: 'DD-X' },
+    };
+    expect(sortWithFavorites('developer', true, ['c2'], devRows)).toEqual([
+      'c2',
+      'c1',
+      'c3',
+    ]);
+    expect(sortWithFavorites('developer', false, ['c2'], devRows)).toEqual([
+      'c2',
+      'c3',
+      'c1',
+    ]);
+  });
+
+  it('sorts several favorites among themselves in the chosen direction (#498)', () => {
+    // c1 (ISO 400) and c3 (800) are favorites; c2 (200) is not.
+    expect(
+      sortWithFavorites('combination.shootingIso', false, ['c1', 'c3'])
+    ).toEqual(['c1', 'c3', 'c2']);
+    expect(
+      sortWithFavorites('combination.shootingIso', true, ['c1', 'c3'])
+    ).toEqual(['c3', 'c1', 'c2']);
   });
 
   it('reports the next sorting state through onSortingChange', () => {
