@@ -303,6 +303,28 @@ export class CaptureView {
     );
   }
 
+  /**
+   * Stop every CSS animation and transition so repeat captures match.
+   * Looping ones are parked on their first frame; finite ones (entrances) are
+   * finished, since `animation: none` would drop their fill-forwards end state
+   * and could leave an element at its hidden starting style.
+   */
+  async freezeAnimations(): Promise<void> {
+    await this.call(
+      `function () {
+        for (const a of document.getAnimations()) {
+          if (a.effect?.getComputedTiming().iterations === Infinity) {
+            a.pause();
+            a.currentTime = 0;
+          } else {
+            a.finish();
+          }
+        }
+      }`,
+      []
+    );
+  }
+
   /** Block until web fonts have loaded, so no shot catches a fallback face. */
   async waitForFonts(): Promise<void> {
     await this.call(
@@ -319,8 +341,56 @@ export class CaptureView {
    * stays identical across backends.
    */
   async screenshotWebp(outPath: string, quality: number): Promise<void> {
+    await Bun.write(outPath, await this.screenshotWebpBytes(quality));
+  }
+
+  /** The same capture as screenshotWebp(), returned instead of written. */
+  async screenshotWebpBytes(quality: number): Promise<Uint8Array> {
     const png = await this.view.screenshot({ encoding: 'buffer' });
-    await new Bun.Image(png).webp({ quality }).write(outPath);
+    return new Bun.Image(png).webp({ quality }).bytes();
+  }
+
+  /**
+   * Count the pixels where any RGB channel differs by more than `tolerance`
+   * (0-255) between two encoded images, decoding both through the page's
+   * canvas. `Bun.Image` has no raw-pixel output, and the browser is already
+   * open. Returns -1 when the dimensions differ.
+   */
+  countChangedPixels(
+    a: Uint8Array,
+    b: Uint8Array,
+    mime: string,
+    tolerance: number
+  ): Promise<number> {
+    const toDataUrl = (bytes: Uint8Array) =>
+      `data:${mime};base64,${Buffer.from(bytes).toString('base64')}`;
+    return this.call<number>(
+      `async function (a, b, tolerance) {
+        const decode = async (src) => {
+          const img = new Image();
+          img.src = src;
+          await img.decode();
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          return ctx.getImageData(0, 0, canvas.width, canvas.height);
+        };
+        const [x, y] = await Promise.all([decode(a), decode(b)]);
+        if (x.width !== y.width || x.height !== y.height) return -1;
+        let changed = 0;
+        for (let i = 0; i < x.data.length; i += 4) {
+          if (
+            Math.abs(x.data[i] - y.data[i]) > tolerance ||
+            Math.abs(x.data[i + 1] - y.data[i + 1]) > tolerance ||
+            Math.abs(x.data[i + 2] - y.data[i + 2]) > tolerance
+          ) changed++;
+        }
+        return changed;
+      }`,
+      [toDataUrl(a), toDataUrl(b), tolerance]
+    );
   }
 
   close(): void {

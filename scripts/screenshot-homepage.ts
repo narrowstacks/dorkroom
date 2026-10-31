@@ -13,6 +13,13 @@ const HEIGHT = 918;
 // WebP quality 90 keeps UI text and gradients crisp while cutting the file to
 // roughly a tenth of the equivalent PNG.
 const WEBP_QUALITY = 90;
+// With animations frozen, repeat captures on one machine are byte-identical.
+// The tolerance covers drift between CI runner images (Chrome or font
+// updates); before the freeze, unchanged pages never moved a channel past
+// 19/255. A real change (even one edited word) moves hundreds of pixels well
+// past that, so only commit when enough pixels clear the tolerance.
+const NOISE_TOLERANCE = 40;
+const MIN_CHANGED_PIXELS = 100;
 const url = process.env.SCREENSHOT_URL;
 if (!url) {
   throw new Error(
@@ -40,8 +47,31 @@ try {
   // Wait for the hero panel (stable homepage element) and web fonts.
   await view.waitForVisible('.hero-grain', 30_000);
   await view.waitForFonts();
-  await view.screenshotWebp(outPath, WEBP_QUALITY);
-  console.log(`Saved ${outPath}`);
+  // The hero grain and the headline's grain and glow scroll their noise, so
+  // each capture caught a different offset. Their feTurbulence tiles use a
+  // fixed (default) seed, so frozen at frame 0 they match on every run.
+  await view.freezeAnimations();
+  const next = await view.screenshotWebpBytes(WEBP_QUALITY);
+
+  const current = Bun.file(outPath);
+  const changed = (await current.exists())
+    ? await view.countChangedPixels(
+        await current.bytes(),
+        next,
+        'image/webp',
+        NOISE_TOLERANCE
+      )
+    : -1;
+
+  // -1 means no previous image, or one of a different size: always write.
+  if (changed !== -1 && changed < MIN_CHANGED_PIXELS) {
+    console.log(
+      `Only ${changed} pixel(s) differ beyond capture noise; keeping ${outPath}.`
+    );
+  } else {
+    await Bun.write(outPath, next);
+    console.log(`Saved ${outPath} (${changed} pixel(s) changed).`);
+  }
 } finally {
   view.close();
 }

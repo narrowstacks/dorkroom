@@ -201,6 +201,16 @@ use the forms in `.github/ISSUE_TEMPLATE/`.
 Claude Code creates. Never apply `eas-build` unless an EAS build is intended:
 that label triggers builds. Don't invent new labels without asking.
 
+**The README homepage screenshot is opt-in.** The `Homepage Screenshot`
+workflow re-captures `resources/dorkroom-homepage.webp` only when the merged
+PR carries the **`home page`** label or a commit message (the PR title, for a
+squash merge) contains **`[screenshot]`**. Use the label for PRs whose subject
+is the home page itself; use `[screenshot]` when a PR elsewhere (a theme token,
+a shared component) visibly changes what the home page shows above the fold at
+desktop width. A shared component the home page merely renders is not a reason
+on its own. Even when opted in, the script skips the commit if the new capture
+is within capture noise of the old one.
+
 ## Git
 
 - Conventional commits, short messages
