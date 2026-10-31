@@ -538,7 +538,10 @@ export const useRecipeUrlState = (
       const newUrl = `${window.location.pathname}${
         searchString ? `?${searchString}` : ''
       }${window.location.hash ?? ''}`;
-      window.history.replaceState(null, '', newUrl);
+      // Keep the entry's state: the router's history key and index live
+      // there, and a fresh one would read as a new navigation (the
+      // /development route remounts the page on those).
+      window.history.replaceState(window.history.state, '', newUrl);
       // replaceState doesn't fire popstate — tell the store to re-read the URL.
       notifyUrlChanged();
     }, 300);

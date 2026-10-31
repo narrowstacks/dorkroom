@@ -8,6 +8,7 @@ import {
   useId,
   useState,
 } from 'react';
+import { isSearchShortcut, SEARCH_KEYSHORTCUTS } from './search-shortcut';
 
 const HINT_LABELS = {
   film: 'Film',
@@ -23,15 +24,6 @@ const HINT_LABELS = {
   camera_exposure: 'Camera',
 } as const satisfies Record<HomeSuggestionHint, string>;
 
-/** True when a key press lands in something the user is typing into. */
-function isTypingTarget(target: EventTarget | null): boolean {
-  return (
-    target instanceof HTMLElement &&
-    (target.isContentEditable ||
-      ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
-  );
-}
-
 interface SearchComboboxProps {
   /** The text box, so the page can return focus to it. */
   inputRef: RefObject<HTMLInputElement | null>;
@@ -43,13 +35,21 @@ interface SearchComboboxProps {
   /** First interest in searching (focus, pointer, key), to start loading data. */
   onIntent: () => void;
   placeholder: string;
+  /**
+   * The box stands on its own on the page (the home hero, the default):
+   * Escape with the list closed clears it, and an empty box shows the "/"
+   * key that focuses it. Off in the search dialog, where that Escape closes
+   * the dialog and the box already has focus.
+   */
+  standalone?: boolean;
 }
 
 /**
- * The home search box: a WAI-ARIA 1.2 combobox with a list of suggestions.
+ * The search box: a WAI-ARIA 1.2 combobox with a list of suggestions.
  * Arrow keys move through the list (focus stays in the box), Enter picks,
- * Escape closes the list or else clears the box, Tab closes it and moves on.
- * "/" anywhere on the page focuses the box.
+ * Escape closes the list or else clears the box (see `standalone`), Tab
+ * closes it and moves on. The search shortcut (Cmd+K, Ctrl+K, or "/" outside
+ * a text field) focuses the box.
  */
 export function SearchCombobox({
   inputRef,
@@ -59,6 +59,7 @@ export function SearchCombobox({
   onSelect,
   onIntent,
   placeholder,
+  standalone = true,
 }: SearchComboboxProps) {
   const listId = useId();
   const optionId = (index: number) => `${listId}-option-${index}`;
@@ -69,15 +70,7 @@ export function SearchCombobox({
 
   useEffect(() => {
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (
-        event.key !== '/' ||
-        event.metaKey ||
-        event.ctrlKey ||
-        event.altKey ||
-        isTypingTarget(event.target)
-      ) {
-        return;
-      }
+      if (!isSearchShortcut(event)) return;
       event.preventDefault();
       inputRef.current?.focus();
     };
@@ -131,7 +124,7 @@ export function SearchCombobox({
         if (expanded) {
           event.preventDefault();
           close();
-        } else if (value) {
+        } else if (value && standalone) {
           event.preventDefault();
           onChange('');
         }
@@ -161,6 +154,7 @@ export function SearchCombobox({
         aria-expanded={expanded}
         aria-controls={listId}
         aria-autocomplete="list"
+        aria-keyshortcuts={SEARCH_KEYSHORTCUTS}
         aria-activedescendant={
           expanded && activeIndex >= 0 ? optionId(activeIndex) : undefined
         }
@@ -196,14 +190,14 @@ export function SearchCombobox({
         >
           <X aria-hidden className="size-4" />
         </button>
-      ) : (
+      ) : standalone ? (
         <kbd
           aria-hidden
           className="pointer-events-none absolute right-4 top-1/2 hidden -translate-y-1/2 rounded-lg border border-[color:var(--color-border-secondary)] px-1.5 text-xs text-[color:var(--color-text-tertiary)] sm:block"
         >
           /
         </kbd>
-      )}
+      ) : null}
       <div
         id={listId}
         // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- combobox listbox pattern; a native <datalist> cannot show hints or follow aria-activedescendant

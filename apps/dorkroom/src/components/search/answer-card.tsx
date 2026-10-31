@@ -2,7 +2,7 @@ import type { BorderDiagram, HomeAnswer } from '@dorkroom/logic';
 import { cn } from '@dorkroom/ui';
 import { Link } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
-import { useId } from 'react';
+import { type MouseEventHandler, useId } from 'react';
 
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]';
@@ -25,7 +25,7 @@ function EaselDiagram({
       className="h-auto w-full max-w-[12rem] sm:max-w-[14rem]"
     >
       <rect
-        className="home-easel-paper"
+        className="search-easel-paper"
         x={0}
         y={0}
         width={diagram.paperW}
@@ -34,7 +34,7 @@ function EaselDiagram({
         strokeWidth={0.06}
       />
       <rect
-        className="home-easel-print"
+        className="search-easel-print"
         x={diagram.printX}
         y={diagram.printY}
         width={diagram.printW}
@@ -49,11 +49,18 @@ interface AnswerCardProps {
   answer: HomeAnswer;
   /** Label the card as an example rather than an answer to the visitor's query. */
   example?: string;
+  /** Called when the answer's link is clicked (the nav dialog closes on it). */
+  onNavigate?: MouseEventHandler<HTMLAnchorElement>;
   className?: string;
 }
 
-/** One answer from the home search: the number, how it was read, and where to go next. */
-export function AnswerCard({ answer, example, className }: AnswerCardProps) {
+/** One answer from the site search: the number, how it was read, and where to go next. */
+export function AnswerCard({
+  answer,
+  example,
+  onNavigate,
+  className,
+}: AnswerCardProps) {
   const titleId = useId();
   const diagram = answer.kind === 'border' ? answer.diagram : null;
   return (
@@ -176,6 +183,7 @@ export function AnswerCard({ answer, example, className }: AnswerCardProps) {
         <Link
           to={answer.link.target.to}
           search={answer.link.target.search}
+          onClick={onNavigate}
           className={cn(
             'inline-flex items-center gap-1 rounded-lg text-sm font-medium text-[color:var(--color-text-primary)] underline decoration-[color:var(--color-border-primary)] underline-offset-4 transition-colors hover:decoration-[color:var(--color-text-primary)]',
             focusRing

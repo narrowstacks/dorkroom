@@ -20,7 +20,7 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { parseSearch, stringifySearch } from '../../../routes/search-params';
 import { TRACKED_ROUTES } from '../../lib/analytics/tracked-events';
-import { HOME_SEARCH_SETTLE_MS } from '../../lib/analytics/use-home-search-analytics';
+import { SITE_SEARCH_SETTLE_MS } from '../../lib/analytics/use-site-search-analytics';
 import { HomePage } from '../home-page';
 
 // The page's numbers come through the real chain: useStats → apiClient.fetchStats
@@ -663,7 +663,7 @@ describe('HomePage', () => {
 
     const settle = () =>
       act(() => {
-        vi.advanceTimersByTime(HOME_SEARCH_SETTLE_MS + 50);
+        vi.advanceTimersByTime(SITE_SEARCH_SETTLE_MS + 50);
       });
 
     it('reports one settled search, never the query text, and never the example', async () => {

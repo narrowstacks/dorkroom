@@ -6,6 +6,7 @@ import {
 } from '@dorkroom/ui';
 import { Menu, X } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { MOBILE_FAB, MOBILE_FAB_EDGE } from './mobile-fab';
 import { usePresence } from './use-presence';
 
 interface MobileNavProps {
@@ -77,14 +78,16 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
           z-50 bottom sheets like <main>'s, so it never covers their fields.
           The drawer pads its bottom edge so the footer clears the toggle.
 
-          size-12 + this bottom offset is what __root.tsx's `<main>` reserves
-          `calc(env(safe-area-inset-bottom)+5rem)` of bottom padding for
-          (#345): resize this button and update that reservation to match. */}
+          Its size and offsets are MOBILE_FAB (./mobile-fab), shared with the
+          nav search button beside it; __root.tsx's `<main>` reserves
+          `calc(env(safe-area-inset-bottom)+5rem)` of bottom padding for them
+          (#345). */}
       <button
         ref={toggleButtonRef}
         type="button"
         className={cn(
-          'fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] flex size-12 items-center justify-center rounded-full shadow-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] sm:hidden',
+          MOBILE_FAB,
+          MOBILE_FAB_EDGE,
           isMobileMenuOpen ? 'z-[60]' : 'z-50'
         )}
         style={{
