@@ -1,6 +1,5 @@
 import {
   type HomeSearchResult,
-  type HomeSuggestion,
   searchHome,
   suggestHome,
   useDebounce,
@@ -10,6 +9,7 @@ import {
   type MouseEventHandler,
   useDeferredValue,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -17,6 +17,7 @@ import {
 import { useSiteSearchAnalytics } from '../../app/lib/analytics/use-site-search-analytics';
 import { AnswerCard } from './answer-card';
 import { ResultGroups } from './result-groups';
+import { resultSections } from './result-sections';
 import { SearchCombobox } from './search-combobox';
 import { PAGE_SEARCH_ID } from './search-shortcut';
 import { useSearchData } from './use-search-data';
@@ -106,10 +107,12 @@ interface SearchPanelProps {
 
 /**
  * The site search: a box that answers darkroom questions (a recipe time, a
- * border, a resize, a lens equivalent) and lists matching recipes, films,
- * developers and tools beside the answer. The home page's hero and the nav
- * bar's search dialog both render it. Recipe answers follow the visitor's
- * °C/°F setting, the stored unit /development reads too.
+ * border, a resize, a lens equivalent) and lists suggestions and matching
+ * recipes, films, developers and tools beside the answer. Those results are
+ * the box's options: the arrow keys move through them in reading order, and
+ * Enter opens the top one (or the one moved to). The home page's hero and
+ * the nav bar's search dialog both render it. Recipe answers follow the
+ * visitor's °C/°F setting, the stored unit /development reads too.
  */
 export function SearchPanel(props: SearchPanelProps) {
   return (
@@ -122,6 +125,12 @@ export function SearchPanel(props: SearchPanelProps) {
 function SearchPanelBody({ variant, onNavigate }: SearchPanelProps) {
   const inDialog = variant === 'dialog';
   const [query, setQuery] = useState('');
+  // The option the arrow keys moved to; null means the top one.
+  const [chosen, setChosen] = useState<string | null>(null);
+  // The active option is marked only while the box has focus, so it never
+  // looks like a second focused element.
+  const [focused, setFocused] = useState(false);
+  const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const { data, load, loadError } = useSearchData();
   // Results trail the keystrokes a little on slow devices; the box never does.
@@ -131,7 +140,11 @@ function SearchPanelBody({ variant, onNavigate }: SearchPanelProps) {
     () => searchHome(settledQuery, data, { temperatureUnit }),
     [settledQuery, data, temperatureUnit]
   );
-  const suggestions = useMemo(() => suggestHome(query, data), [query, data]);
+  // From the same query as the result, so the options never mix two queries.
+  const suggestions = useMemo(
+    () => suggestHome(settledQuery, data),
+    [settledQuery, data]
+  );
   useSiteSearchAnalytics(
     inDialog ? 'nav_search' : 'home_search',
     settledQuery,
@@ -153,11 +166,50 @@ function SearchPanelBody({ variant, onNavigate }: SearchPanelProps) {
   );
   const shown = searching ? result : EXAMPLE;
   const { answer, groups } = shown;
+  // The dialog's empty box shows only the Try chips: no example, no listbox.
   const showResults = searching || !inDialog;
+  const sections = resultSections(
+    groups,
+    searching ? suggestions : [],
+    `${listId}-`
+  );
+  const answerOptionId = `${listId}-answer`;
+  const answerLinkId = `${listId}-answer-link`;
+  // Only a query's results are options; the example's are plain links.
+  const options = searching
+    ? [
+        ...(answer ? [answerOptionId] : []),
+        ...sections.flatMap((section) => section.rows.map((row) => row.id)),
+      ]
+    : [];
+  // Enter opens the answer, else the first match; a suggestion only fills
+  // the box, so it is the top option only when nothing else is listed.
+  const firstMatch = sections.find((section) => section.key !== 'suggestions')
+    ?.rows[0]?.id;
+  const top = searching
+    ? answer
+      ? answerOptionId
+      : (firstMatch ?? options[0] ?? null)
+    : null;
+  const activeId = chosen !== null && options.includes(chosen) ? chosen : top;
+
+  const choose = (id: string) => {
+    setChosen(id);
+    // The answer's option is for screen readers; the eye follows the card's
+    // own link. jsdom has no scrollIntoView.
+    document
+      .getElementById(id === answerOptionId ? answerLinkId : id)
+      ?.scrollIntoView?.({ block: 'nearest' });
+  };
+
+  const changeQuery = (next: string) => {
+    setQuery(next);
+    setChosen(null);
+  };
 
   const fill = (next: string) => {
     load();
-    setQuery(next);
+    changeQuery(next);
     // A Try chip unmounts once the box has a query; keep keyboard users here.
     inputRef.current?.focus();
   };
@@ -170,11 +222,13 @@ function SearchPanelBody({ variant, onNavigate }: SearchPanelProps) {
       <SearchCombobox
         inputRef={inputRef}
         value={query}
-        onChange={setQuery}
-        suggestions={suggestions}
-        onSelect={(suggestion: HomeSuggestion) => fill(suggestion.query)}
+        onChange={changeQuery}
         onIntent={load}
-        hasAnswer={searching && result.answer !== null}
+        listId={listId}
+        options={options}
+        activeId={activeId}
+        onActiveChange={choose}
+        onFocusedChange={setFocused}
         placeholder="Ask: hp5 at 800 in dd-x"
         standalone={!inDialog}
       />
@@ -188,8 +242,10 @@ function SearchPanelBody({ variant, onNavigate }: SearchPanelProps) {
             <AnswerCard
               answer={answer}
               example={searching ? undefined : EXAMPLE_QUERY}
+              linkId={answerLinkId}
+              highlighted={focused && activeId === answerOptionId}
               onNavigate={onNavigate}
-              className={groups.length ? 'lg:col-span-7' : 'lg:col-span-12'}
+              className={sections.length ? 'lg:col-span-7' : 'lg:col-span-12'}
             />
           ) : null}
           {!answer && shown.pending ? (
@@ -197,7 +253,7 @@ function SearchPanelBody({ variant, onNavigate }: SearchPanelProps) {
               {pendingText(loadError)}
             </p>
           ) : null}
-          {!answer && !shown.pending && groups.length === 0 ? (
+          {!answer && !shown.pending && sections.length === 0 ? (
             <div className="flex flex-col gap-3 rounded-2xl border border-[color:var(--color-border-secondary)] bg-[color:var(--color-surface)] p-4 lg:col-span-12">
               <p className="text-sm text-[color:var(--color-text-secondary)]">
                 Nothing matches that yet. Name a film, a developer or a size, or
@@ -207,8 +263,25 @@ function SearchPanelBody({ variant, onNavigate }: SearchPanelProps) {
             </div>
           ) : null}
           <ResultGroups
-            groups={groups}
+            id={listId}
+            sections={sections}
+            onSuggest={(suggestion) => fill(suggestion.query)}
             onNavigate={onNavigate}
+            listbox={
+              searching
+                ? {
+                    activeId,
+                    highlight: focused,
+                    answer: answer
+                      ? {
+                          id: answerOptionId,
+                          name: `${answer.link.label}: ${answer.title}`,
+                          target: answer.link.target,
+                        }
+                      : null,
+                  }
+                : null
+            }
             className={
               answer || shown.pending ? 'lg:col-span-5' : 'lg:col-span-12'
             }

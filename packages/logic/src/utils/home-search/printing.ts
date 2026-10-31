@@ -21,10 +21,7 @@ import { exposureCalculatorLink } from '../../schemas/exposure-calculator.schema
 import { matCalculatorLink } from '../../schemas/mat-calculator.schema';
 import { resizeCalculatorLink } from '../../schemas/resize-calculator.schema';
 import { computePrintSize } from '../border-calculations';
-import {
-  calculateNewExposureTime,
-  formatExposureTime,
-} from '../exposure-calculations';
+import { calculateNewExposureTime } from '../exposure-calculations';
 import {
   calculateResizeExposure,
   matchesAspectRatio,
@@ -32,14 +29,16 @@ import {
 } from '../resize-calculations';
 import {
   type AnswerUnit,
+  ceilLength,
   fact,
   formatDims,
-  formatInches,
-  formatLength,
   formatLengthWithUnit,
+  formatPair,
+  formatSeconds,
   formatSize,
   formatTypedDims,
   formatTypedInches,
+  formatTypedSeconds,
   signed,
   trimNumber,
 } from './format';
@@ -153,6 +152,12 @@ interface EaselReading {
   /** A bare number too big to be an inch border, left out. */
   ignored: string | null;
   portrait: boolean;
+  /**
+   * How the orientation was given: a word ("portrait", "landscape"), the
+   * paper's own (ISO sizes stand upright), or neither (landscape, as the
+   * border calculator defaults).
+   */
+  orientation: 'typed' | 'paper' | null;
   /** Whether anything here reads as an easel question at all. */
   any: boolean;
   /** Words the reading does not explain (perhaps a film name). */
@@ -174,11 +179,15 @@ const EASEL_WORDS =
 
 /**
  * Read paper, negative and border out of a query. `nameNumbers` are numbers
- * that belong to a film or developer name in it ("delta 100"), never a border.
+ * that belong to a film or developer name in it ("delta 100"), never a
+ * border; `isoPaper` says the paper was named as an ISO size ("a4").
  */
 export function readEasel(
   text: string,
-  nameNumbers: ReadonlySet<string> = new Set()
+  {
+    nameNumbers = new Set(),
+    isoPaper = false,
+  }: { nameNumbers?: ReadonlySet<string>; isoPaper?: boolean } = {}
 ): EaselReading {
   let rest = text;
   let negative: Negative | null = null;
@@ -246,13 +255,17 @@ export function readEasel(
 
   const portrait = /\b(?:portrait|vertical)\b/.exec(rest);
   if (portrait) rest = blank(rest, portrait.index, portrait[0].length);
+  const landscape = /\b(?:landscape|horizontal)\b/.test(rest);
+  const typed = portrait !== null || landscape;
+  const upright = !typed && isoPaper && paper !== null;
 
   return {
     paper,
     negative,
     border,
     ignored,
-    portrait: portrait !== null,
+    portrait: portrait !== null || upright,
+    orientation: typed ? 'typed' : upright ? 'paper' : null,
     any: Boolean(paper || negative || (border && keyword)),
     unread: /[a-z]/.test(rest.replace(EASEL_WORDS, ' ')),
   };
@@ -272,6 +285,10 @@ export function borderAnswer(reading: EaselReading): BorderAnswer {
   const { portrait } = reading;
   const unit = easelUnit(reading);
   const alt: AnswerUnit = unit === 'in' ? 'cm' : 'in';
+  // The print is worked out for the minimum rounded up to a step the answer
+  // shows, so no border ever reads under the one asked for ("1.45" gives
+  // 1 1/2, never 1 7/16) and the print keeps the negative's shape.
+  const minBorder = ceilLength(border, unit);
 
   const paperW = portrait ? paper.short : paper.long;
   const paperH = portrait ? paper.long : paper.short;
@@ -280,7 +297,7 @@ export function borderAnswer(reading: EaselReading): BorderAnswer {
     paperH,
     portrait ? negative.h : negative.w,
     portrait ? negative.w : negative.h,
-    border
+    minBorder
   );
   const fits = printW > 0 && printH > 0;
 
@@ -303,7 +320,14 @@ export function borderAnswer(reading: EaselReading): BorderAnswer {
       text: `${borderText}${reading.border ? '' : ' (default)'}`,
       assumed: !reading.border,
     },
-    ...(portrait ? [{ text: 'portrait', assumed: false }] : []),
+    ...(reading.orientation
+      ? [
+          {
+            text: `${portrait ? 'portrait' : 'landscape'}${reading.orientation === 'paper' ? ' (as the paper stands)' : ''}`,
+            assumed: reading.orientation === 'paper',
+          },
+        ]
+      : []),
   ];
 
   const notes: string[] = [];
@@ -371,7 +395,7 @@ export function borderAnswer(reading: EaselReading): BorderAnswer {
           aspectRatio: negative.ratio,
           customAspectWidth: isCustomRatio ? negative.w : undefined,
           customAspectHeight: isCustomRatio ? negative.h : undefined,
-          minBorder: linkInches(border),
+          minBorder: linkInches(minBorder),
           isLandscape: !portrait,
           isRatioFlipped: portrait,
         }),
@@ -478,7 +502,6 @@ export function resizeAnswer(
     originalTime: seconds ?? 1,
   });
   const sameProportions = matchesAspectRatio(input);
-  const newSeconds = Number(newTime);
 
   const notes: string[] = [];
   if (seconds === null) {
@@ -521,9 +544,9 @@ export function resizeAnswer(
             caption: 'exposure factor',
           }
         : {
-            value: newTime,
-            unit: 's',
-            caption: `new exposure, from ${trimNumber(seconds, 1)}s${newSeconds >= 60 ? ` (${formatExposureTime(newSeconds)})` : ''}`,
+            value: formatSeconds(Number(newTime)),
+            unit: null,
+            caption: `new exposure, from ${formatTypedSeconds(seconds)}`,
           },
     facts: [
       fact('Change', `${signed(Number(stopsDifference))} stops`),
@@ -617,9 +640,9 @@ export function matAnswer(text: string): MatAnswer | null {
     ],
     figure: borders
       ? {
-          value: `${formatInches(winW)}×${formatInches(winH)}`,
+          value: formatPair(winW, winH, 'in'),
           unit: 'in',
-          caption: `window opening, ${formatLength(winW, 'cm')}×${formatLength(winH, 'cm')} cm`,
+          caption: `window opening, ${formatPair(winW, winH, 'cm')} cm`,
         }
       : null,
     facts: borders
@@ -725,18 +748,21 @@ export function stopsAnswer(seconds: number, stops: number): StopsAnswer {
   const stopText = `${signed(stops)} ${Math.abs(stops) === 1 ? 'stop' : 'stops'}`;
   return {
     kind: 'stops',
-    title: `${formatExposureTime(seconds)} ${stopText}`,
+    title: `${formatTypedSeconds(seconds)} ${stopText}`,
     badge: 'Stops',
     readAs: [],
     figure: {
-      value: formatExposureTime(newTime),
+      value: formatSeconds(newTime),
       unit: null,
       caption: 'new time',
     },
     facts: [
-      fact('Base time', formatExposureTime(seconds)),
+      fact('Base time', formatTypedSeconds(seconds)),
       fact('Change', stopText),
-      fact('Added time', `${signed(newTime - seconds, 1)}s`),
+      fact(
+        'Added time',
+        `${newTime < seconds ? '−' : '+'}${formatSeconds(Math.abs(newTime - seconds))}`
+      ),
     ],
     notes: [],
     footnote: 'Each stop doubles or halves the time.',

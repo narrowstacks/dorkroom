@@ -178,18 +178,44 @@ describe('nav search', () => {
     // No "/" key hint: the box already has focus, so "/" would type a slash.
     expect(dialog.querySelector('kbd')).toBeNull();
 
-    // Escape closes the suggestion list first, and keeps the query.
-    type('80mm');
-    expect(box()).toHaveAttribute('aria-expanded', 'true');
-    fireEvent.keyDown(box(), { key: 'Escape' });
+    // No options until something is typed.
     expect(box()).toHaveAttribute('aria-expanded', 'false');
-    expect(box()).toHaveValue('80mm');
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
 
-    // With the list closed, Escape closes the dialog (rather than clearing).
+    // With a query, one Escape closes the dialog rather than clearing the box.
+    type('80mm on 6x6');
+    await waitFor(() => expect(box()).toHaveAttribute('aria-expanded', 'true'));
     fireEvent.keyDown(box(), { key: 'Escape' });
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(headerSearchButton()).toHaveFocus();
+
+    // The next open starts afresh: an empty box and the Try chips.
+    fireEvent.click(headerSearchButton());
+    await findDialog();
+    await waitFor(() => expect(box()).toHaveFocus());
+    expect(box()).toHaveValue('');
+    expect(
+      within(screen.getByRole('dialog')).getByRole('button', {
+        name: 'tri-x 30s',
+      })
+    ).toBeInTheDocument();
+  });
+
+  it('opens the top result with Enter, and closes', async () => {
+    const router = await renderApp('/border');
+    fireEvent.click(headerSearchButton());
+    await findDialog();
+
+    type('16x20 mat 8x10');
+    await screen.findByRole('article', { name: /16×20 mat, 8×10 print/ });
+    // The answer is preselected, so Enter opens it.
+    const top = within(screen.getByRole('dialog')).getByRole('option', {
+      selected: true,
+    });
+    expect(box()).toHaveAttribute('aria-activedescendant', top.id);
+    fireEvent.keyDown(box(), { key: 'Enter' });
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/mat'));
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 
   it('opens with Ctrl+K or Cmd+K from anywhere, and with "/" outside a text field', async () => {
@@ -239,8 +265,9 @@ describe('nav search', () => {
     await findDialog();
 
     type('border');
+    // While there is a query the result rows are the box's options.
     fireEvent.click(
-      await within(screen.getByRole('dialog')).findByRole('link', {
+      await within(screen.getByRole('dialog')).findByRole('option', {
         name: /border calculator/i,
       })
     );

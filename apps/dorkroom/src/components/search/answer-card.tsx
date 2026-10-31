@@ -2,7 +2,8 @@ import type { BorderDiagram, HomeAnswer } from '@dorkroom/logic';
 import { cn } from '@dorkroom/ui';
 import { Link } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
-import { type MouseEventHandler, useId } from 'react';
+import { type MouseEventHandler, type ReactNode, useId } from 'react';
+import { activeOptionClass } from './result-sections';
 
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]';
@@ -45,10 +46,66 @@ function EaselDiagram({
   );
 }
 
+/**
+ * A fact's value, with a power written "t^1.54" set as a superscript. Screen
+ * readers hear "to the power" rather than a bare number run on.
+ */
+function FactValue({ value }: { value: string }) {
+  const power = /^(.*)\^([\d.]+)$/.exec(value);
+  if (!power) return value;
+  return (
+    <>
+      {power[1]}
+      <span className="sr-only"> to the power </span>
+      <sup>{power[2]}</sup>
+    </>
+  );
+}
+
+/**
+ * A figure's text with each fraction ("5⁄16") set in the body font, which
+ * draws it as a small diagonal fraction like the facts below; the display
+ * font would draw a full-size slash that runs into the whole number.
+ */
+function FigureValue({ value }: { value: string }) {
+  const parts: ReactNode[] = [];
+  let at = 0;
+  for (const match of value.matchAll(/\d+⁄\d+/g)) {
+    parts.push(
+      value.slice(at, match.index),
+      <span
+        key={match.index}
+        className="ml-[0.12em]"
+        style={{ fontFamily: 'var(--font-family-sans)' }}
+      >
+        {match[0]}
+      </span>
+    );
+    at = match.index + match[0].length;
+  }
+  parts.push(value.slice(at));
+  return parts;
+}
+
+/** Long figures step down a size, so the number stays on one line. */
+function figureSize(text: string): string {
+  if (text.length > 16) return 'text-2xl sm:text-4xl';
+  if (text.length > 12) return 'text-3xl sm:text-5xl';
+  if (text.length > 8) return 'text-4xl sm:text-5xl';
+  return 'text-5xl sm:text-6xl';
+}
+
 interface AnswerCardProps {
   answer: HomeAnswer;
   /** Label the card as an example rather than an answer to the visitor's query. */
   example?: string;
+  /** The link's element id, so the search box can scroll it into view. */
+  linkId?: string;
+  /**
+   * Mark the link as the search box's active option. The option itself sits
+   * in the results listbox for screen readers; this is what the eye follows.
+   */
+  highlighted?: boolean;
   /** Called when the answer's link is clicked (the nav dialog closes on it). */
   onNavigate?: MouseEventHandler<HTMLAnchorElement>;
   className?: string;
@@ -58,6 +115,8 @@ interface AnswerCardProps {
 export function AnswerCard({
   answer,
   example,
+  linkId,
+  highlighted = false,
   onNavigate,
   className,
 }: AnswerCardProps) {
@@ -120,14 +179,19 @@ export function AnswerCard({
       {answer.figure || diagram ? (
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           {answer.figure ? (
-            <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <p className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
               <span
-                className="text-5xl font-semibold leading-none tracking-tight text-[color:var(--color-text-primary)] sm:text-6xl"
+                className={cn(
+                  'whitespace-nowrap font-semibold leading-none tracking-tight text-[color:var(--color-text-primary)]',
+                  figureSize(
+                    `${answer.figure.value} ${answer.figure.unit ?? ''}`.trim()
+                  )
+                )}
                 style={{ fontFamily: 'var(--font-family-display)' }}
               >
-                {answer.figure.value}
+                <FigureValue value={answer.figure.value} />
                 {answer.figure.unit ? (
-                  <span className="ml-1 text-2xl font-normal text-[color:var(--color-text-secondary)]">
+                  <span className="ml-1 text-[0.4em] font-normal text-[color:var(--color-text-secondary)]">
                     {answer.figure.unit}
                   </span>
                 ) : null}
@@ -174,7 +238,7 @@ export function AnswerCard({
                     {fact.value}
                   </a>
                 ) : (
-                  fact.value
+                  <FactValue value={fact.value} />
                 )}
                 {fact.detail ? (
                   <span className="ml-1 text-xs font-normal text-[color:var(--color-text-tertiary)]">
@@ -200,9 +264,11 @@ export function AnswerCard({
         <Link
           to={answer.link.target.to}
           search={answer.link.target.search}
+          id={linkId}
           onClick={onNavigate}
           className={cn(
-            'inline-flex items-center gap-1 rounded-lg text-sm font-medium text-[color:var(--color-text-primary)] underline decoration-[color:var(--color-border-primary)] underline-offset-4 transition-colors hover:decoration-[color:var(--color-text-primary)]',
+            '-mx-1.5 inline-flex scroll-my-24 items-center gap-1 rounded-lg px-1.5 py-0.5 text-sm font-medium text-[color:var(--color-text-primary)] underline decoration-[color:var(--color-border-primary)] underline-offset-4 transition-colors hover:decoration-[color:var(--color-text-primary)]',
+            highlighted && activeOptionClass,
             focusRing
           )}
         >

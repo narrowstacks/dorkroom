@@ -155,6 +155,9 @@ const LINKED_PATHS = [
   '/privacy',
 ];
 
+/** The router the last `renderHomePage` made, to read where a link went. */
+let lastRouter: { state: { location: { pathname: string } } } | null = null;
+
 async function renderHomePage() {
   const rootRoute = createRootRoute({ component: Outlet });
   const indexRoute = createRoute({
@@ -181,6 +184,7 @@ async function renderHomePage() {
     defaultOptions: { queries: { retry: false } },
   });
 
+  lastRouter = router;
   render(
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
@@ -481,12 +485,20 @@ describe('HomePage', () => {
         'href',
         'https://www.ilfordphoto.com/amfile/file/download/file/1918/product/681/'
       );
+      const href =
+        '/development?film=ilford-hp5-plus&developer=ilford-dd-x&iso=800&dilution=1%2B4&recipe=e6d54f8d-c766-4cb2-a0b7-ae9ea02332fc';
       expect(
         within(answer).getByRole('link', { name: /open recipe/i })
-      ).toHaveAttribute(
-        'href',
-        '/development?film=ilford-hp5-plus&developer=ilford-dd-x&iso=800&dilution=1%2B4&recipe=e6d54f8d-c766-4cb2-a0b7-ae9ea02332fc'
-      );
+      ).toHaveAttribute('href', href);
+      // While there is a query the same link is the box's top option, named
+      // with the answer it opens.
+      expect(
+        screen.getByRole('option', {
+          name: 'Open recipe: Ilford HP5 Plus in Ilford DD-X',
+        })
+      ).toHaveAttribute('href', href);
+      // The pair's other recipes are listed once, not again as suggestions.
+      expect(screen.queryByRole('group', { name: 'Suggestions' })).toBeNull();
       expect(new Set(catalogRequests)).toEqual(
         new Set(['films', 'developers', 'combinations'])
       );
@@ -508,7 +520,10 @@ describe('HomePage', () => {
         )
       ).toBeInTheDocument();
       expect(
-        screen.getByRole('link', { name: /Ilford HP5 Plus/ })
+        within(screen.getByRole('group', { name: /^Film stocks/ })).getByRole(
+          'option',
+          { name: /Ilford HP5 Plus/ }
+        )
       ).toBeInTheDocument();
       // Screen readers hear the failure too, not "loading".
       await waitFor(
@@ -538,106 +553,162 @@ describe('HomePage', () => {
       expect(screen.queryByText(/No recipe for this pair/)).toBeNull();
     });
 
-    it('moves through suggestions with the keyboard and picks with Enter', async () => {
+    it('shows the example as plain links, not options', async () => {
       serveStats(() => statsResponse(STATS));
 
       await renderHomePage();
+
       expect(box()).toHaveAttribute('aria-expanded', 'false');
+      expect(box()).not.toHaveAttribute('aria-activedescendant');
+      expect(screen.queryByRole('listbox')).toBeNull();
+      expect(screen.queryByRole('option')).toBeNull();
+    });
+
+    it('moves through the answer, suggestions and matches with the keyboard', async () => {
+      serveStats(() => statsResponse(STATS));
+
+      await renderHomePage();
+      act(() => box().focus());
       type('8x10');
 
-      // "8x10" already answers, so typing leaves the list shut over it...
-      expect(
-        await screen.findByRole('article', {
-          name: '8×10 paper, 35mm negative',
-        })
-      ).toBeInTheDocument();
-      expect(box()).toHaveAttribute('aria-expanded', 'false');
-      // ...and ArrowDown opens it on the first suggestion.
-      key('ArrowDown');
-      const list = screen.getByRole('listbox', { name: 'Suggestions' });
+      const answer = await screen.findByRole('article', {
+        name: '8×10 paper, 35mm negative',
+      });
+      // No list over the answer: the results on the page are the options.
+      const list = screen.getByRole('listbox', { name: 'Search results' });
       expect(box()).toHaveAttribute('aria-expanded', 'true');
       expect(box()).toHaveAttribute('aria-controls', list.id);
-      const options = within(list).getAllByRole('option');
-      expect(options.map((o) => o.textContent)).toEqual([
+      const link = within(list).getByRole('option', {
+        name: 'Open in Border Calculator: 8×10 paper, 35mm negative',
+      });
+      expect(
+        within(answer).getByRole('link', { name: /open in border calculator/i })
+      ).toHaveAttribute('href', link.getAttribute('href'));
+      // The answer's link leads the options and is preselected, so Enter
+      // opens it.
+      expect(box()).toHaveAttribute('aria-activedescendant', link.id);
+      expect(link).toHaveAttribute('aria-selected', 'true');
+
+      const suggestions = within(list).getByRole('group', {
+        name: 'Suggestions',
+      });
+      expect(
+        within(suggestions)
+          .getAllByRole('option')
+          .map((o) => o.textContent)
+      ).toEqual([
         '8x10 35mm 1/2Border',
         '8x10 to 11x14 12sResize',
         '11x14 mat 8x10Mat',
       ]);
-      expect(box()).toHaveAttribute('aria-activedescendant', options[0].id);
-      expect(options[0]).toHaveAttribute('aria-selected', 'true');
-      key('ArrowDown');
-      key('ArrowDown');
-      key('ArrowDown'); // wraps to the first
-      expect(box()).toHaveAttribute('aria-activedescendant', options[0].id);
-      key('ArrowUp'); // and back to the last
-      expect(box()).toHaveAttribute('aria-activedescendant', options[2].id);
+      const tools = within(list).getByRole('group', { name: /^Tools/ });
+      const options = [
+        link,
+        ...within(suggestions).getAllByRole('option'),
+        ...within(tools).getAllByRole('option'),
+      ];
+      // The listbox's own order is the arrow keys' order.
+      expect(within(list).getAllByRole('option')).toEqual(options);
 
+      key('ArrowDown');
+      expect(box()).toHaveAttribute('aria-activedescendant', options[1].id);
+      expect(options[1]).toHaveAttribute('aria-selected', 'true');
+      expect(link).toHaveAttribute('aria-selected', 'false');
+      for (const _ of options.slice(1)) key('ArrowDown'); // wraps to the first
+      expect(box()).toHaveAttribute('aria-activedescendant', link.id);
+      key('ArrowUp'); // and back to the last
+      expect(box()).toHaveAttribute(
+        'aria-activedescendant',
+        options.at(-1)?.id
+      );
+      expect(document.activeElement).toBe(box());
+
+      // Enter on a suggestion fills the box.
+      for (const _ of options.slice(4)) key('ArrowUp');
+      expect(box()).toHaveAttribute('aria-activedescendant', options[3].id);
       key('Enter');
       expect(box()).toHaveValue('11x14 mat 8x10');
-      expect(box()).toHaveAttribute('aria-expanded', 'false');
       expect(
         await screen.findByRole('article', { name: '11×14 mat, 8×10 print' })
       ).toBeInTheDocument();
     });
 
-    it('opens the list while typing only until the query has an answer', async () => {
+    it('opens the top answer with Enter', async () => {
       serveStats(() => statsResponse(STATS));
 
-      await renderHomePage();
-      // "80mm" has no answer yet: the list opens to help finish it.
-      type('80mm');
-      expect(box()).toHaveAttribute('aria-expanded', 'true');
-      // "80mm on 6x6" answers: the list gets out of the answer's way.
+      const router = await renderHomePage().then(() => lastRouter);
       type('80mm on 6x6');
-      expect(
-        await screen.findByRole('article', {
-          name: '80mm on 6×6 as Full Frame',
-        })
-      ).toBeInTheDocument();
-      expect(box()).toHaveAttribute('aria-expanded', 'false');
-      // Escape with the list shut clears the box, as ever.
-      key('Escape');
-      expect(box()).toHaveValue('');
+      await screen.findByRole('article', { name: '80mm on 6×6 as Full Frame' });
+
+      key('Enter');
+      await waitFor(() =>
+        expect(router?.state.location.pathname).toBe('/lenses')
+      );
     });
 
-    it('opens the list on a tap on the focused box, for touch', async () => {
-      serveStats(() => statsResponse(STATS));
+    it('preselects the first match when there is no answer', async () => {
+      serveStats(() => statsResponse(STATS), { catalog: true });
 
       await renderHomePage();
-      type('8x10');
-      expect(
-        await screen.findByRole('article', {
-          name: '8×10 paper, 35mm negative',
-        })
-      ).toBeInTheDocument();
-      expect(box()).toHaveAttribute('aria-expanded', 'false');
-      // Touch has no arrow keys: a tap on the box it is typing in asks.
-      fireEvent.click(box());
-      expect(box()).toHaveAttribute('aria-expanded', 'true');
-      key('Escape');
-      expect(box()).toHaveAttribute('aria-expanded', 'false');
-      expect(box()).toHaveValue('8x10');
+      fireEvent.focus(box());
+      type('hp5 plus');
+
+      await screen.findByRole('group', { name: /^Film stocks/ });
+      expect(screen.queryByRole('article')).toBeNull();
+      // The film's suggestion would repeat its match, so only the match shows.
+      expect(screen.getAllByText('Ilford HP5 Plus')).toHaveLength(1);
+      // The first match, not a suggestion (which would only fill the box).
+      const list = screen.getByRole('listbox');
+      const suggestions = within(list).getByRole('group', {
+        name: 'Suggestions',
+      });
+      const first = within(list)
+        .getAllByRole('option')
+        .find((option) => !suggestions.contains(option));
+      expect(box()).toHaveAttribute('aria-activedescendant', first?.id);
     });
 
-    it('closes with Escape, then clears; Tab closes and moves on', async () => {
+    it('opens the top match with Enter when there is no answer', async () => {
+      serveStats(() => statsResponse(STATS), { catalog: true });
+
+      const router = await renderHomePage().then(() => lastRouter);
+      fireEvent.focus(box());
+      type('hp5 plus');
+      await screen.findByRole('group', { name: /^Film stocks/ });
+      const active = document.getElementById(
+        box().getAttribute('aria-activedescendant') ?? ''
+      );
+      expect(active).toHaveAttribute('href');
+
+      key('Enter');
+      expect(box()).toHaveValue('hp5 plus');
+      await waitFor(() =>
+        expect(router?.state.location.pathname).not.toBe('/')
+      );
+    });
+
+    it('leaves Enter to an input method that is composing', async () => {
+      serveStats(() => statsResponse(STATS));
+
+      const router = await renderHomePage().then(() => lastRouter);
+      type('80mm on 6x6');
+      await screen.findByRole('article', { name: '80mm on 6×6 as Full Frame' });
+
+      fireEvent.keyDown(box(), { key: 'Enter', isComposing: true });
+      expect(router?.state.location.pathname).toBe('/');
+    });
+
+    it('clears the box with Escape', async () => {
       serveStats(() => statsResponse(STATS));
 
       await renderHomePage();
       type('80mm');
       expect(box()).toHaveAttribute('aria-expanded', 'true');
-
-      key('Escape');
-      expect(box()).toHaveAttribute('aria-expanded', 'false');
-      expect(box()).toHaveValue('80mm');
-      key('Escape');
-      expect(box()).toHaveValue('');
-
-      type('80mm');
       key('ArrowDown');
-      key('Tab');
+      key('Escape');
+      expect(box()).toHaveValue('');
       expect(box()).toHaveAttribute('aria-expanded', 'false');
       expect(box()).not.toHaveAttribute('aria-activedescendant');
-      expect(box()).toHaveValue('80mm');
     });
 
     it('picks a suggestion with the mouse', async () => {
@@ -648,6 +719,22 @@ describe('HomePage', () => {
       fireEvent.click(screen.getByRole('option', { name: /80mm on 6x6/ }));
 
       expect(box()).toHaveValue('80mm on 6x6');
+      expect(box()).toHaveFocus();
+    });
+
+    it('sets a reciprocity power as a superscript', async () => {
+      serveStats(() => statsResponse(STATS), { catalog: true });
+
+      await renderHomePage();
+      fireEvent.focus(box());
+      type('hp5 30s');
+
+      const answer = await screen.findByRole('article', {
+        name: 'Ilford HP5 Plus for 30s metered',
+      });
+      const formula = within(answer).getByText('Formula').nextElementSibling;
+      expect(formula?.querySelector('sup')).toHaveTextContent('1.31');
+      expect(formula).toHaveTextContent('t to the power 1.31');
     });
 
     it('says up front when the EI asked for has no recipe', async () => {
@@ -734,10 +821,10 @@ describe('HomePage', () => {
 
       expect(box()).toHaveValue('12s +1/3');
       expect(box()).toHaveFocus();
-      expect(box()).toHaveAttribute('aria-expanded', 'false');
       expect(
         await screen.findByRole('article', { name: '12s +0.33 stops' })
       ).toBeInTheDocument();
+      expect(box()).toHaveAttribute('aria-expanded', 'true');
     });
   });
 

@@ -32,8 +32,10 @@ import {
   findIso,
   findTemperature,
   findTime,
+  namesIsoPaper,
   prepare,
   tokenize,
+  type TypedTemperature,
 } from './query';
 import { RELATED_TOOLS, toolsForTokens } from './tools';
 import type {
@@ -56,7 +58,7 @@ export interface QueryReading {
   /** The EI asked for: after "at", "@", "ei" or "iso", or see `bareEi`. */
   iso: number | null;
   dilution: ReturnType<typeof findDilution>;
-  celsius: number | null;
+  temperature: TypedTemperature | null;
   /** Words that could name a film or developer (no connectives). */
   tokens: string[];
   /**
@@ -69,6 +71,8 @@ export interface QueryReading {
   match: CatalogMatch;
   /** Numbers that belong to the film or developer named ("delta 100"). */
   nameNumbers: Set<string>;
+  /** An ISO paper ("a4") is named, so the paper stands portrait by default. */
+  isoPaper: boolean;
 }
 
 /** On the ISO third-stop series (100, 125, 160, 200, ...), to within rounding. */
@@ -133,7 +137,7 @@ export function readQuery(query: string, data: HomeSearchData): QueryReading {
     untimed,
     iso: iso?.iso ?? bareIso,
     dilution,
-    celsius: temperature?.celsius ?? null,
+    temperature: temperature?.temperature ?? null,
     tokens,
     words: tokenize(words),
     catalog,
@@ -141,6 +145,7 @@ export function readQuery(query: string, data: HomeSearchData): QueryReading {
     nameNumbers: new Set(
       tokens.filter((t, i) => /^\d+$/.test(t) && used.has(i))
     ),
+    isoPaper: namesIsoPaper(query),
   };
 }
 
@@ -158,7 +163,7 @@ export function calculatorAnswer(reading: QueryReading): HomeAnswer | null {
     const answer = resizeAnswer(resize, seconds);
     if (answer) return answer;
   }
-  const easel = readEasel(untimed, reading.nameNumbers);
+  const easel = readEasel(untimed, reading);
   const lens = readLens(untimed);
   // With paper in the query, a mm number is a border, unless "lens" says
   // otherwise or it could never fit on that paper as one.
@@ -209,7 +214,7 @@ function catalogAnswer(
       {
         iso: reading.iso,
         dilution: reading.dilution,
-        celsius: reading.celsius,
+        temperature: reading.temperature,
       },
       unit
     );
@@ -279,7 +284,8 @@ export function searchHome(
       reading.tokens,
       reading.match,
       reading.iso,
-      temperatureUnit
+      temperatureUnit,
+      answer?.kind === 'recipe' ? answer.link.target.search.recipe : undefined
     ),
     ...toolsGroup([
       ...(answer ? RELATED_TOOLS[answer.kind] : []),
