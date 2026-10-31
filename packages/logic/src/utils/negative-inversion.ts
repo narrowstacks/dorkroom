@@ -397,18 +397,21 @@ export function deriveCoefficients({
         ]
       : [0, 0, 0];
 
+  const contrast = Math.max(0.05, adj.contrast);
+  // The neutral offset cancels channel differences measured before contrast,
+  // but the offset is added after contrast multiplies them, so it scales too.
   return {
     filmType,
     base: normalizeBase(base, filmType),
     densityLow: [levels[0][0], levels[1][0], levels[2][0]],
     densityHigh: [levels[0][1], levels[1][1], levels[2][1]],
-    contrast: Math.max(0.05, adj.contrast),
+    contrast,
     offset:
       filmType === 'c41'
         ? [
-            colour[0] + neutral[0],
-            colour[1] + neutral[1],
-            colour[2] + neutral[2],
+            colour[0] + neutral[0] * contrast,
+            colour[1] + neutral[1] * contrast,
+            colour[2] + neutral[2] * contrast,
           ]
         : [0, 0, 0],
   };

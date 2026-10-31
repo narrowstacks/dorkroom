@@ -412,6 +412,44 @@ describe('C-41 conversion', () => {
     expect(b).toBeCloseTo(g, 2);
   });
 
+  it('neutral picker still makes the patch grey at other contrasts', () => {
+    const negative = makeNegative(ORANGE_MASK, [0.5, 0.62, 0.8]);
+    const { base, histograms } = convert(negative, 'c41');
+    // A clearly coloured patch, so the correction is large.
+    const sample = samplePatch(
+      negative,
+      negative.stepCentres[2],
+      negative.rowCentre,
+      5
+    );
+    if (!sample) throw new Error('sample missing');
+    for (const contrast of [0.6, 2]) {
+      const adjustments = { contrast, warmth: 0.5 };
+      const plain = deriveCoefficients({
+        filmType: 'c41',
+        base,
+        histograms,
+        adjustments,
+      });
+      const tinted = deriveCoefficients({
+        filmType: 'c41',
+        base,
+        histograms,
+        adjustments: { ...adjustments, warmth: 0 },
+        neutral: neutralOffset(
+          [sample[0] * 1.3, sample[1], sample[2] * 0.7],
+          plain
+        ),
+      });
+      const [r, g, b] = invertPixel(
+        [sample[0] * 1.3, sample[1], sample[2] * 0.7],
+        tinted
+      );
+      expect(r).toBeCloseTo(g, 2);
+      expect(b).toBeCloseTo(g, 2);
+    }
+  });
+
   it('neutral picker is a no-op for B&W', () => {
     const negative = makeNegative(BW_BASE, BW_GAMMA);
     const { coeffs } = convert(negative, 'bw');
