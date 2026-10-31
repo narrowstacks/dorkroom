@@ -64,19 +64,14 @@ export function DimensionInputGroup({
           placeholder={widthPlaceholder}
           min={min}
           max={max}
-          className="w-full rounded-lg border px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
+          className="w-full rounded-lg border border-secondary px-3 py-1.5 text-sm focus:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
           style={cssVars({
-            borderColor: 'var(--color-border-secondary)',
             backgroundColor: 'var(--color-surface-muted)',
             color: 'var(--color-text-primary)',
             '--tw-placeholder-color': 'var(--color-text-muted)',
             '--focus-border-color': 'var(--color-border-primary)',
           })}
-          onFocus={(e) => {
-            e.target.style.borderColor = 'var(--color-border-primary)';
-          }}
           onBlur={(e) => {
-            e.target.style.borderColor = 'var(--color-border-secondary)';
             const clamped = clampText(e.target.value, min, max);
             if (clamped !== null) onWidthChange(clamped);
             onWidthBlur?.();
@@ -101,19 +96,14 @@ export function DimensionInputGroup({
           placeholder={heightPlaceholder}
           min={min}
           max={max}
-          className="w-full rounded-lg border px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
+          className="w-full rounded-lg border border-secondary px-3 py-1.5 text-sm focus:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
           style={cssVars({
-            borderColor: 'var(--color-border-secondary)',
             backgroundColor: 'var(--color-surface-muted)',
             color: 'var(--color-text-primary)',
             '--tw-placeholder-color': 'var(--color-text-muted)',
             '--focus-border-color': 'var(--color-border-primary)',
           })}
-          onFocus={(e) => {
-            e.target.style.borderColor = 'var(--color-border-primary)';
-          }}
           onBlur={(e) => {
-            e.target.style.borderColor = 'var(--color-border-secondary)';
             const clamped = clampText(e.target.value, min, max);
             if (clamped !== null) onHeightChange(clamped);
             onHeightBlur?.();

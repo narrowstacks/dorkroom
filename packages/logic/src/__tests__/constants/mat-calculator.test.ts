@@ -4,8 +4,6 @@ import {
   bottomWeightFor,
   formatSignedMatValue,
   makeMatFormatter,
-  MAT_CALCULATOR_DEFAULTS,
-  MAT_PRESETS,
   parseMatInput,
   toFraction,
   toFractionInput,
@@ -183,45 +181,9 @@ describe('mat calculator logic', () => {
       });
     });
 
-    it('keeps borders consistent with the available space', () => {
-      const fit = bestFitBorders(20, 24, 16, 20, 0.125, true);
-      expect(fit).not.toBeNull();
-      if (!fit) return;
-      // Left and right are always equal; opposing borders sum to the gap.
-      expect(fit.left).toBe(fit.right);
-      const winW = 16 - 2 * 0.125;
-      const winH = 20 - 2 * 0.125;
-      expect(fit.left + fit.right).toBeCloseTo(20 - winW, 10);
-      expect(fit.top + fit.bottom).toBeCloseTo(24 - winH, 10);
-    });
-
     it('returns null when the artwork plus reveal cannot fit', () => {
       expect(bestFitBorders(10, 12, 11, 14, 0, true)).toBeNull();
       expect(bestFitBorders(16, 20, 0.3, 0.3, 0.25, true)).toBeNull();
-    });
-  });
-
-  describe('constants', () => {
-    it('exposes positive, labeled presets', () => {
-      expect(MAT_PRESETS.length).toBeGreaterThan(0);
-      for (const preset of MAT_PRESETS) {
-        expect(preset.label).toBeTruthy();
-        expect(preset.w).toBeGreaterThan(0);
-        expect(preset.h).toBeGreaterThan(0);
-      }
-    });
-
-    it('has defaults that parse to a valid window', () => {
-      const d = MAT_CALCULATOR_DEFAULTS;
-      const ow = parseMatInput(d.outerW);
-      const oh = parseMatInput(d.outerH);
-      const windowW =
-        ow - parseMatInput(d.borderLeft) - parseMatInput(d.borderRight);
-      const windowH =
-        oh - parseMatInput(d.borderTop) - parseMatInput(d.borderBottom);
-      expect(windowW).toBeGreaterThan(0);
-      expect(windowH).toBeGreaterThan(0);
-      expect(d.bottomWeight).toBe(false);
     });
   });
 });

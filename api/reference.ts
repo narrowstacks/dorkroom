@@ -1,4 +1,5 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest } from '@vercel/node';
+import { withEnvelope } from '../utils/requestEnvelope';
 
 /**
  * Interactive API reference (Scalar) for the public Dorkroom API.
@@ -20,16 +21,12 @@ function getSpecUrl(req: VercelRequest): string {
   return host.startsWith('api.') ? '/openapi.json' : '/api/openapi';
 }
 
-export default function handler(req: VercelRequest, res: VercelResponse): void {
-  if (req.method !== 'GET') {
-    res.setHeader('Allow', 'GET');
-    res.status(405).send('Method Not Allowed');
-    return;
-  }
+export default withEnvelope(
+  { name: 'reference', methods: ['GET'], cors: 'none' },
+  (req, res, ctx) => {
+    const specUrl = getSpecUrl(req);
 
-  const specUrl = getSpecUrl(req);
-
-  const html = `<!doctype html>
+    const html = `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -51,11 +48,8 @@ export default function handler(req: VercelRequest, res: VercelResponse): void {
   </body>
 </html>`;
 
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader(
-    'Cache-Control',
-    'public, max-age=300, stale-while-revalidate=600'
-  );
-  res.status(200).send(html);
-}
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    ctx.setCacheControl('public, max-age=300, stale-while-revalidate=600');
+    res.status(200).send(html);
+  }
+);

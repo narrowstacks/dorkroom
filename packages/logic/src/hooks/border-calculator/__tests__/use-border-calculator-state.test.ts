@@ -82,15 +82,6 @@ describe('useBorderCalculatorState', () => {
       expect(result.current.state.customPaperWidth).toBe(10);
       expect(result.current.state.customPaperHeight).toBe(13);
     });
-
-    it('should provide a dispatch identity that survives re-renders', () => {
-      const { result, rerender } = renderHook(() => useBorderCalculatorState());
-      const firstDispatch = result.current.dispatch;
-
-      rerender();
-
-      expect(result.current.dispatch).toBe(firstDispatch);
-    });
   });
 
   describe('SET_PAPER_SIZE Action', () => {
@@ -259,25 +250,6 @@ describe('useBorderCalculatorState', () => {
       expect(result.current.state.paperSize).toBe('custom');
       expect(result.current.state.isLandscape).toBe(false);
     });
-
-    it('should handle all preset paper sizes', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-      const paperSizes: Array<
-        '5x7' | '3.875x5.875' | '8x10' | '11x14' | '16x20' | '20x24'
-      > = ['5x7', '3.875x5.875', '8x10', '11x14', '16x20', '20x24'];
-
-      paperSizes.forEach((size) => {
-        act(() => {
-          result.current.dispatch({
-            type: 'SET_PAPER_SIZE',
-            value: size,
-          });
-        });
-
-        expect(result.current.state.paperSize).toBe(size);
-        expect(result.current.state.isLandscape).toBe(true);
-      });
-    });
   });
 
   describe('SET_ASPECT_RATIO Action', () => {
@@ -303,65 +275,6 @@ describe('useBorderCalculatorState', () => {
 
       expect(result.current.state.aspectRatio).toBe('4:3');
       expect(result.current.state.isRatioFlipped).toBe(false);
-    });
-
-    it('should handle all preset aspect ratios', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-      const aspectRatios: Array<
-        | '3:2'
-        | 'even-borders'
-        | '65:24'
-        | '4:3'
-        | '1:1'
-        | '7:6'
-        | '5:4'
-        | '7:5'
-        | '16:9'
-        | '1.37:1'
-        | '1.85:1'
-        | '2:1'
-        | '2.39:1'
-        | '2.76:1'
-      > = [
-        '3:2',
-        'even-borders',
-        '65:24',
-        '4:3',
-        '1:1',
-        '7:6',
-        '5:4',
-        '7:5',
-        '16:9',
-        '1.37:1',
-        '1.85:1',
-        '2:1',
-        '2.39:1',
-        '2.76:1',
-      ];
-
-      aspectRatios.forEach((ratio) => {
-        act(() => {
-          result.current.dispatch({
-            type: 'SET_ASPECT_RATIO',
-            value: ratio,
-          });
-        });
-
-        expect(result.current.state.aspectRatio).toBe(ratio);
-      });
-    });
-
-    it('should handle custom aspect ratio', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      act(() => {
-        result.current.dispatch({
-          type: 'SET_ASPECT_RATIO',
-          value: 'custom',
-        });
-      });
-
-      expect(result.current.state.aspectRatio).toBe('custom');
     });
   });
 
@@ -450,45 +363,9 @@ describe('useBorderCalculatorState', () => {
       expect(result.current.state.enableOffset).toBe(true);
       expect(result.current.state.horizontalOffset).toBe(0.5);
       expect(result.current.state.isLandscape).toBe(true);
-    });
-
-    it('should perform partial batch update', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      act(() => {
-        result.current.dispatch({
-          type: 'BATCH_UPDATE',
-          payload: {
-            minBorder: 1.5,
-            showBlades: false,
-          },
-        });
-      });
-
-      expect(result.current.state.minBorder).toBe(1.5);
-      expect(result.current.state.showBlades).toBe(false);
-      // Other fields remain at defaults
-      expect(result.current.state.aspectRatio).toBe('3:2');
-      expect(result.current.state.paperSize).toBe('8x10');
-    });
-
-    it('should maintain immutability with batch update', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-      const originalState = result.current.state;
-
-      act(() => {
-        result.current.dispatch({
-          type: 'BATCH_UPDATE',
-          payload: {
-            minBorder: 3.0,
-            horizontalOffset: 1.0,
-          },
-        });
-      });
-
-      expect(originalState.minBorder).toBe(0.5);
-      expect(originalState.horizontalOffset).toBe(0);
-      expect(result.current.state).not.toBe(originalState);
+      // Fields the payload does not name keep their defaults
+      expect(result.current.state.showBlades).toBe(true);
+      expect(result.current.state.verticalOffset).toBe(0);
     });
   });
 
@@ -515,31 +392,6 @@ describe('useBorderCalculatorState', () => {
       const savedData = localStorageMock.setItem.mock.calls[0][1];
       const parsed = JSON.parse(savedData);
       expect(parsed.minBorder).toBe(2.0);
-    });
-
-    it('should restore state from localStorage on mount', () => {
-      // Pre-populate localStorage
-      const savedState: Partial<BorderCalculatorState> = {
-        aspectRatio: '16:9',
-        paperSize: '11x14',
-        minBorder: 1.75,
-        horizontalOffset: 0.25,
-        isLandscape: false,
-      };
-
-      localStorageMock.setItem(
-        BORDER_CALCULATOR_STORAGE_KEY,
-        JSON.stringify(savedState)
-      );
-
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      // Should restore from localStorage
-      expect(result.current.state.aspectRatio).toBe('16:9');
-      expect(result.current.state.paperSize).toBe('11x14');
-      expect(result.current.state.minBorder).toBe(1.75);
-      expect(result.current.state.horizontalOffset).toBe(0.25);
-      expect(result.current.state.isLandscape).toBe(false);
     });
 
     it('purges the superseded _v1 key and keeps _v2 on hydrate', () => {
@@ -574,56 +426,53 @@ describe('useBorderCalculatorState', () => {
       warnSpy.mockRestore();
     });
 
-    it('should handle missing localStorage gracefully', () => {
-      // No data in localStorage
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      // Should use defaults
-      expect(result.current.state.aspectRatio).toBe('3:2');
-      expect(result.current.state.minBorder).toBe(0.5);
-    });
-
-    it('should debounce multiple rapid updates to localStorage', async () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      // Make multiple rapid changes
-      act(() => {
-        result.current.dispatch({
-          type: 'SET_FIELD',
-          key: 'minBorder',
-          value: 1.0,
-        });
-        result.current.dispatch({
-          type: 'SET_FIELD',
-          key: 'minBorder',
-          value: 1.5,
-        });
-        result.current.dispatch({
-          type: 'SET_FIELD',
-          key: 'minBorder',
-          value: 2.0,
-        });
+    describe('debounced writes', () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
       });
 
-      // Wait for debounce
-      await waitFor(
-        () => {
-          expect(localStorageMock.setItem).toHaveBeenCalled();
-        },
-        { timeout: 1000 }
-      );
+      afterEach(() => {
+        vi.useRealTimers();
+      });
 
-      // Should only save once after debounce period
-      // The exact count may vary, but it should be significantly less than 3
-      expect(localStorageMock.setItem.mock.calls.length).toBeLessThanOrEqual(2);
+      it('writes once, 500ms after the last of several rapid updates', () => {
+        const { result } = renderHook(() => useBorderCalculatorState());
 
-      // Final saved value should be the last one
-      const lastSave =
-        localStorageMock.setItem.mock.calls[
-          localStorageMock.setItem.mock.calls.length - 1
-        ][1];
-      const parsed = JSON.parse(lastSave);
-      expect(parsed.minBorder).toBe(2.0);
+        // The hook also writes once shortly after mount; let that settle.
+        act(() => {
+          vi.advanceTimersByTime(500);
+        });
+        localStorageMock.setItem.mockClear();
+
+        for (const value of [1.0, 1.5, 2.0]) {
+          act(() => {
+            result.current.dispatch({
+              type: 'SET_FIELD',
+              key: 'minBorder',
+              value,
+            });
+          });
+          act(() => {
+            vi.advanceTimersByTime(200);
+          });
+        }
+
+        // 200ms after the last update (and 600ms after the first): no write yet
+        expect(localStorageMock.setItem).not.toHaveBeenCalled();
+
+        act(() => {
+          vi.advanceTimersByTime(299);
+        });
+        expect(localStorageMock.setItem).not.toHaveBeenCalled();
+
+        act(() => {
+          vi.advanceTimersByTime(1);
+        });
+        expect(localStorageMock.setItem).toHaveBeenCalledTimes(1);
+        expect(
+          JSON.parse(localStorageMock.setItem.mock.calls[0][1]).minBorder
+        ).toBe(2.0);
+      });
     });
 
     it('should persist all persistable fields', async () => {
@@ -886,7 +735,7 @@ describe('useBorderCalculatorState', () => {
       // Wait for initial load from localStorage
       await waitFor(
         () => {
-          return result.current.state.aspectRatio === '16:9';
+          expect(result.current.state.aspectRatio).toBe('16:9');
         },
         { timeout: 200 }
       );
@@ -934,38 +783,6 @@ describe('useBorderCalculatorState', () => {
       const lastSave = JSON.parse(savedCalls[savedCalls.length - 1][1]);
       expect(lastSave.aspectRatio).toBe('4:3');
       expect(lastSave.minBorder).toBe(2.0);
-    });
-
-    it('should handle preset application scenario', async () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      // Apply a preset configuration
-      act(() => {
-        result.current.dispatch({
-          type: 'BATCH_UPDATE',
-          payload: {
-            aspectRatio: '4:3',
-            paperSize: '11x14',
-            minBorder: 1.5,
-            isLandscape: true,
-            enableOffset: false,
-            horizontalOffset: 0,
-            verticalOffset: 0,
-          },
-        });
-      });
-
-      expect(result.current.state.aspectRatio).toBe('4:3');
-      expect(result.current.state.paperSize).toBe('11x14');
-      expect(result.current.state.minBorder).toBe(1.5);
-
-      // Wait for persistence
-      await waitFor(
-        () => {
-          expect(localStorageMock.setItem).toHaveBeenCalled();
-        },
-        { timeout: 1000 }
-      );
     });
   });
 

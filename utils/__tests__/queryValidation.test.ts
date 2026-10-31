@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  MAX_LIMIT,
-  MAX_PARAM_LENGTH,
-  MIN_LIMIT,
-  validateAndSanitizeQuery,
-} from '../queryValidation';
+import { validateAndSanitizeQuery } from '../queryValidation';
 
 describe('queryValidation', () => {
   describe('validateAndSanitizeQuery', () => {
@@ -37,8 +32,8 @@ describe('queryValidation', () => {
     });
 
     it('should reject values exceeding maximum length', () => {
-      const longValue = 'a'.repeat(MAX_PARAM_LENGTH + 1);
-      const validValue = 'a'.repeat(MAX_PARAM_LENGTH);
+      const longValue = 'a'.repeat(201);
+      const validValue = 'a'.repeat(200);
 
       const query = {
         query: longValue,
@@ -56,11 +51,18 @@ describe('queryValidation', () => {
       const result1 = validateAndSanitizeQuery(query1, allowedParams);
       expect(result1.get('limit')).toBe('100');
 
+      // Both edges of the 1..1000 range: accepted at the edge, dropped past it
+      const atMin = validateAndSanitizeQuery({ limit: '1' }, allowedParams);
+      expect(atMin.get('limit')).toBe('1');
+
       const query2 = { limit: '0' };
       const result2 = validateAndSanitizeQuery(query2, allowedParams);
       expect(result2.get('limit')).toBeNull();
 
-      const query3 = { limit: String(MAX_LIMIT + 1) };
+      const atMax = validateAndSanitizeQuery({ limit: '1000' }, allowedParams);
+      expect(atMax.get('limit')).toBe('1000');
+
+      const query3 = { limit: '1001' };
       const result3 = validateAndSanitizeQuery(query3, allowedParams);
       expect(result3.get('limit')).toBeNull();
 
@@ -141,14 +143,6 @@ describe('queryValidation', () => {
       const query3 = { fuzzy: '1' };
       const result3 = validateAndSanitizeQuery(query3, allowedParams);
       expect(result3.get('fuzzy')).toBeNull();
-    });
-  });
-
-  describe('Constants', () => {
-    it('should have reasonable default values', () => {
-      expect(MAX_PARAM_LENGTH).toBe(200);
-      expect(MIN_LIMIT).toBe(1);
-      expect(MAX_LIMIT).toBe(1000);
     });
   });
 });

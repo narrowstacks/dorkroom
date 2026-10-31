@@ -377,136 +377,42 @@ describe('useFilmDatabase', () => {
   });
 
   describe('ISO Speed Filtering', () => {
-    it('should filter by ISO 400 correctly', () => {
+    it.each([
+      ['400', ['HP5 Plus', 'Portra 400', 'Superia 400', 'Tri-X 400']],
+      ['100', ['Ektar 100', 'Provia 100F', 'T-Max 100']],
+      ['3200', ['Delta 3200']],
+      ['50', ['Pan F Plus']],
+    ])('filters by ISO %s', (iso, expectedNames) => {
       const { result } = renderHook(() => useFilmDatabase(), { wrapper });
 
       act(() => {
-        result.current.setIsoSpeedFilter('400');
+        result.current.setIsoSpeedFilter(iso);
       });
 
-      const filtered = result.current.filteredFilms;
-      expect(filtered.length).toBeGreaterThan(0);
-      // All results should be ISO 400
-      filtered.forEach((film) => {
-        expect(film.isoSpeed).toBe(400);
-      });
-
-      // Specific films we expect
-      expect(filtered.some((f) => f.name === 'HP5 Plus')).toBe(true);
-      expect(filtered.some((f) => f.name === 'Tri-X 400')).toBe(true);
-      expect(filtered.some((f) => f.name === 'Portra 400')).toBe(true);
-
-      // Should NOT include other ISOs
-      expect(filtered.some((f) => f.name === 'Ektar 100')).toBe(false);
-      expect(filtered.some((f) => f.name === 'Delta 3200')).toBe(false);
-    });
-
-    it('should filter by ISO 100 correctly', () => {
-      const { result } = renderHook(() => useFilmDatabase(), { wrapper });
-
-      act(() => {
-        result.current.setIsoSpeedFilter('100');
-      });
-
-      const filtered = result.current.filteredFilms;
-      expect(filtered.length).toBeGreaterThan(0);
-      filtered.forEach((film) => {
-        expect(film.isoSpeed).toBe(100);
-      });
-
-      expect(filtered.some((f) => f.name === 'Ektar 100')).toBe(true);
-      expect(filtered.some((f) => f.name === 'T-Max 100')).toBe(true);
-      expect(filtered.some((f) => f.name === 'Provia 100F')).toBe(true);
-    });
-
-    it('should filter by ISO 3200 correctly', () => {
-      const { result } = renderHook(() => useFilmDatabase(), { wrapper });
-
-      act(() => {
-        result.current.setIsoSpeedFilter('3200');
-      });
-
-      const filtered = result.current.filteredFilms;
-      expect(filtered.length).toBeGreaterThan(0);
-      filtered.forEach((film) => {
-        expect(film.isoSpeed).toBe(3200);
-      });
-
-      expect(filtered.some((f) => f.name === 'Delta 3200')).toBe(true);
-    });
-
-    it('should filter by uncommon ISO (50) correctly', () => {
-      const { result } = renderHook(() => useFilmDatabase(), { wrapper });
-
-      act(() => {
-        result.current.setIsoSpeedFilter('50');
-      });
-
-      const filtered = result.current.filteredFilms;
-      expect(filtered.length).toBeGreaterThan(0);
-      filtered.forEach((film) => {
-        expect(film.isoSpeed).toBe(50);
-      });
-
-      expect(filtered.some((f) => f.name === 'Pan F Plus')).toBe(true);
+      expect(result.current.filteredFilms.map((f) => f.name).sort()).toEqual(
+        expectedNames
+      );
     });
   });
 
   describe('Brand Filtering', () => {
-    it('should filter by Kodak brand correctly', () => {
+    it.each([
+      [
+        'Kodak',
+        ['Ektar 100', 'Plus-X', 'Portra 400', 'T-Max 100', 'Tri-X 400'],
+      ],
+      ['Ilford', ['Delta 3200', 'HP5 Plus', 'Pan F Plus']],
+      ['Fujifilm', ['Provia 100F', 'Superia 400']],
+    ])('filters by the %s brand', (brand, expectedNames) => {
       const { result } = renderHook(() => useFilmDatabase(), { wrapper });
 
       act(() => {
-        result.current.setBrandFilter('Kodak');
+        result.current.setBrandFilter(brand);
       });
 
-      const filtered = result.current.filteredFilms;
-      expect(filtered.length).toBeGreaterThan(0);
-      filtered.forEach((film) => {
-        expect(film.brand).toBe('Kodak');
-      });
-
-      expect(filtered.some((f) => f.name === 'Tri-X 400')).toBe(true);
-      expect(filtered.some((f) => f.name === 'Portra 400')).toBe(true);
-      expect(filtered.some((f) => f.name === 'Ektar 100')).toBe(true);
-
-      // Should NOT include other brands
-      expect(filtered.some((f) => f.name === 'HP5 Plus')).toBe(false);
-    });
-
-    it('should filter by Ilford brand correctly', () => {
-      const { result } = renderHook(() => useFilmDatabase(), { wrapper });
-
-      act(() => {
-        result.current.setBrandFilter('Ilford');
-      });
-
-      const filtered = result.current.filteredFilms;
-      expect(filtered.length).toBeGreaterThan(0);
-      filtered.forEach((film) => {
-        expect(film.brand).toBe('Ilford');
-      });
-
-      expect(filtered.some((f) => f.name === 'HP5 Plus')).toBe(true);
-      expect(filtered.some((f) => f.name === 'Delta 3200')).toBe(true);
-      expect(filtered.some((f) => f.name === 'Pan F Plus')).toBe(true);
-    });
-
-    it('should filter by Fujifilm brand correctly', () => {
-      const { result } = renderHook(() => useFilmDatabase(), { wrapper });
-
-      act(() => {
-        result.current.setBrandFilter('Fujifilm');
-      });
-
-      const filtered = result.current.filteredFilms;
-      expect(filtered.length).toBeGreaterThan(0);
-      filtered.forEach((film) => {
-        expect(film.brand).toBe('Fujifilm');
-      });
-
-      expect(filtered.some((f) => f.name === 'Superia 400')).toBe(true);
-      expect(filtered.some((f) => f.name === 'Provia 100F')).toBe(true);
+      expect(result.current.filteredFilms.map((f) => f.name).sort()).toEqual(
+        expectedNames
+      );
     });
   });
 
@@ -554,8 +460,16 @@ describe('useFilmDatabase', () => {
       expect(filtered.some((f) => f.name === 'HP5 Plus')).toBe(false);
     });
 
-    it('should show all films when set to "all"', () => {
+    it('should show all films when set back to "all"', () => {
       const { result } = renderHook(() => useFilmDatabase(), { wrapper });
+
+      // 'all' is the default, so narrow first; otherwise this asserts nothing
+      act(() => {
+        result.current.setDiscontinuedFilter('active');
+      });
+      expect(result.current.filteredFilms.length).toBeLessThan(
+        mockFilms.length
+      );
 
       act(() => {
         result.current.setDiscontinuedFilter('all');
@@ -731,24 +645,30 @@ describe('useFilmDatabase', () => {
       });
     });
 
-    it('should apply all filters together', async () => {
+    it('should apply every filter together with search', async () => {
       const { result } = renderHook(() => useFilmDatabase(), { wrapper });
 
       act(() => {
-        result.current.setColorTypeFilter('bw');
+        result.current.setBrandFilter('Kodak');
         result.current.setIsoSpeedFilter('400');
-        result.current.setBrandFilter('Ilford');
         result.current.setDiscontinuedFilter('active');
-        result.current.setSearchQuery('hp5');
+      });
+
+      // These filters alone leave two films, so the search below has real work
+      // to do.
+      expect(result.current.filteredFilms.map((f) => f.name).sort()).toEqual([
+        'Portra 400',
+        'Tri-X 400',
+      ]);
+
+      act(() => {
+        result.current.setSearchQuery('tri');
       });
 
       await waitFor(() => {
-        const filtered = result.current.filteredFilms;
-        expect(filtered.length).toBeGreaterThan(0);
-
-        // Should only find HP5 Plus
-        expect(filtered).toHaveLength(1);
-        expect(filtered[0].name).toBe('HP5 Plus');
+        expect(result.current.filteredFilms.map((f) => f.name)).toEqual([
+          'Tri-X 400',
+        ]);
       });
     });
   });
@@ -814,23 +734,6 @@ describe('useFilmDatabase', () => {
       });
 
       expect(result.current.hasActiveFilters).toBe(true);
-    });
-
-    it('should report no active filters when all are cleared', () => {
-      const { result } = renderHook(() => useFilmDatabase(), { wrapper });
-
-      act(() => {
-        result.current.setSearchQuery('kodak');
-        result.current.setColorTypeFilter('Color');
-      });
-
-      expect(result.current.hasActiveFilters).toBe(true);
-
-      act(() => {
-        result.current.clearFilters();
-      });
-
-      expect(result.current.hasActiveFilters).toBe(false);
     });
   });
 

@@ -2,7 +2,7 @@ import type { SelectItem } from '@dorkroom/logic';
 import { ChevronDown, Search } from 'lucide-react';
 import { type FC, useState } from 'react';
 import { cn } from '../../lib/cn';
-import { cssVars, setStyles } from '../../lib/dom';
+import { cssVars } from '../../lib/dom';
 import { optionChangeHandler } from '../../lib/select-options';
 import { SearchableSelect } from '../searchable-select';
 import { Select } from '../select';
@@ -90,17 +90,9 @@ export const FilmFiltersMobile: FC<FilmFiltersMobileProps> = ({
         type="button"
         onClick={() => setIsCollapsed(!isCollapsed)}
         className={cn(
-          'flex w-full items-center justify-between p-4 text-left transition',
+          'flex w-full items-center justify-between p-4 text-left transition hover:bg-veil-30',
           isCollapsed ? 'rounded-2xl' : 'rounded-t-2xl'
         )}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor =
-            'rgba(var(--color-background-rgb), 0.3)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor =
-            'var(--collapsible-filters-bg-hover-leave, transparent)';
-        }}
       >
         <div>
           <div className="flex items-center gap-3">
@@ -164,18 +156,11 @@ export const FilmFiltersMobile: FC<FilmFiltersMobileProps> = ({
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 placeholder="Search films..."
-                className="w-full rounded-lg border px-3 py-2 pl-9 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
+                className="w-full rounded-lg border border-secondary px-3 py-2 pl-9 focus:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
                 style={cssVars({
-                  borderColor: 'var(--color-border-secondary)',
                   backgroundColor: 'var(--color-surface-muted)',
                   color: 'var(--color-text-primary)',
                 })}
-                onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--color-border-primary)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'var(--color-border-secondary)';
-                }}
               />
             </div>
           </div>
@@ -186,23 +171,7 @@ export const FilmFiltersMobile: FC<FilmFiltersMobileProps> = ({
               <button
                 type="button"
                 onClick={onClearFilters}
-                className="rounded-full border px-3 py-1.5 text-sm font-medium transition"
-                style={{
-                  borderColor: 'var(--color-border-secondary)',
-                  color: 'var(--color-text-secondary)',
-                }}
-                onMouseEnter={(e) => {
-                  setStyles(e.currentTarget, {
-                    borderColor: 'var(--color-border-primary)',
-                    color: 'var(--color-text-primary)',
-                  });
-                }}
-                onMouseLeave={(e) => {
-                  setStyles(e.currentTarget, {
-                    borderColor: 'var(--color-border-secondary)',
-                    color: 'var(--color-text-secondary)',
-                  });
-                }}
+                className="rounded-full border border-secondary px-3 py-1.5 text-sm font-medium text-secondary transition hover:border-primary hover:text-primary"
               >
                 Clear all filters
               </button>

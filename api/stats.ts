@@ -1,6 +1,11 @@
-import { createSupabaseProxy } from '../utils/createSupabaseProxy';
+import {
+  createSupabaseProxy,
+  type SupabaseProxyConfig,
+} from '../utils/createSupabaseProxy';
 
-export default createSupabaseProxy({
+export const statsProxyConfig: SupabaseProxyConfig = {
   name: 'stats',
   allowedParams: [],
-});
+};
+
+export default createSupabaseProxy(statsProxyConfig);

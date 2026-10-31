@@ -204,15 +204,6 @@
 
   /* CSS-based hover states to avoid JS style mutations and synchronous reflows */
   @media (hover: hover) {
-    .hoverable-row:hover {
-      background-color: var(--row-bg-hover) !important;
-    }
-
-    .hoverable-card:hover {
-      background-color: var(--card-bg-hover) !important;
-      border-color: var(--card-border-hover) !important;
-    }
-
     .hoverable-favorite:hover {
       background-color: var(--color-border-secondary) !important;
     }
@@ -229,11 +220,6 @@
 
     .hoverable-link-tile:hover {
       background-color: var(--color-border-primary) !important;
-    }
-
-    .hoverable-delete-btn:hover {
-      background-color: var(--del-bg-hover) !important;
-      color: var(--del-color-hover) !important;
     }
 
     .hoverable-link:hover {

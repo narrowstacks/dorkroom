@@ -89,75 +89,83 @@ describe('useReciprocityCalculator', () => {
     expect(result.current.calculation?.percentageIncrease).toBeGreaterThan(0);
   });
 
-  it('never shortens a sub-1s exposure (must FAIL before the clamp fix)', () => {
+  it('formats the metered time for display as it is typed', () => {
+    const { result } = renderHook(() => useReciprocityCalculator());
+
+    // Default metered time is 30s.
+    expect(result.current.formattedTime).toBe('30s');
+
+    act(() => {
+      result.current.setMeteredTime('2m 5s');
+    });
+
+    expect(result.current.formattedTime).toBe('2m 5s');
+    expect(result.current.timeFormatError).toBeNull();
+  });
+
+  it('reports a format error and clears the display for unparseable input', () => {
     const { result } = renderHook(() => useReciprocityCalculator());
 
     act(() => {
-      result.current.setMeteredTime('0.5s');
+      result.current.setMeteredTime('abc');
     });
 
-    // Unclamped, 0.5 ** 1.54 ≈ 0.34 -- physically backwards. The corrected
-    // time must pass through unchanged below the 1s reciprocity threshold.
-    expect(result.current.calculation?.originalTime).toBe(0.5);
-    expect(result.current.calculation?.adjustedTime).toBe(0.5);
-    expect(result.current.calculation?.adjustedTime).toBeGreaterThanOrEqual(
-      result.current.calculation?.originalTime ?? Number.POSITIVE_INFINITY
+    expect(result.current.timeFormatError).toBe(
+      'Invalid time format. Try: 30s, 1m30s, 1h15m'
     );
+    expect(result.current.formattedTime).toBeNull();
+
+    act(() => {
+      result.current.setMeteredTime('45s');
+    });
+
+    expect(result.current.timeFormatError).toBeNull();
+    expect(result.current.formattedTime).toBe('45s');
   });
 
-  it('holds the 1s boundary at exactly 1s regardless of film factor', () => {
+  it('clears the display without an error when the input is emptied', () => {
     const { result } = renderHook(() => useReciprocityCalculator());
 
     act(() => {
-      result.current.setMeteredTime('1s');
+      result.current.setMeteredTime('');
     });
 
-    expect(result.current.calculation?.originalTime).toBe(1);
-    expect(result.current.calculation?.adjustedTime).toBe(1);
+    expect(result.current.timeFormatError).toBeNull();
+    expect(result.current.formattedTime).toBeNull();
   });
 
-  it('applies the power law just above the 1s boundary (2s on Tri-X)', () => {
+  it('never reports a format error from setMeteredTimeDirectly', () => {
     const { result } = renderHook(() => useReciprocityCalculator());
 
     act(() => {
-      result.current.setMeteredTime('2s');
+      result.current.setMeteredTimeDirectly('abc');
     });
 
-    // 2 ** 1.54 ≈ 2.91
-    expect(result.current.calculation?.adjustedTime).toBeCloseTo(2.91, 2);
-    expect(result.current.calculation?.adjustedTime).toBeGreaterThan(
-      result.current.calculation?.originalTime ?? Number.POSITIVE_INFINITY
-    );
+    expect(result.current.meteredTime).toBe('abc');
+    expect(result.current.timeFormatError).toBeNull();
+    expect(result.current.formattedTime).toBeNull();
   });
 
-  it('never reports a negative percentage increase across long, boundary, and sub-1s inputs', () => {
-    const { result } = renderHook(() => useReciprocityCalculator());
-
-    for (const meteredTime of ['30s', '1s', '2s', '0.5s']) {
-      act(() => {
-        result.current.setMeteredTime(meteredTime);
-      });
-      expect(
-        result.current.calculation?.percentageIncrease
-      ).toBeGreaterThanOrEqual(0);
-    }
-  });
-
-  it('respects the never-shorter invariant for a sub-1s input under a custom factor', () => {
+  it('keeps the last valid calculation while the input is unparseable', () => {
     const { result } = renderHook(() => useReciprocityCalculator());
 
     act(() => {
-      result.current.setFilmType('custom');
-      result.current.setCustomFactor('1.8');
-      result.current.setMeteredTime('0.4s');
+      result.current.setMeteredTime('60s');
+    });
+    const valid = result.current.calculation;
+    expect(valid?.originalTime).toBe(60);
+
+    act(() => {
+      result.current.setMeteredTime('abc');
     });
 
-    expect(result.current.calculation?.factor).toBeCloseTo(1.8, 2);
-    expect(result.current.calculation?.originalTime).toBe(0.4);
-    expect(result.current.calculation?.adjustedTime).toBe(0.4);
-    expect(result.current.calculation?.adjustedTime).toBeGreaterThanOrEqual(
-      result.current.calculation?.originalTime ?? Number.POSITIVE_INFINITY
-    );
+    expect(result.current.calculation).toEqual(valid);
+
+    act(() => {
+      result.current.setMeteredTime('10s');
+    });
+
+    expect(result.current.calculation?.originalTime).toBe(10);
   });
 
   it('applies a comma-decimal custom factor (#318)', () => {

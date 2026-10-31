@@ -1,6 +1,6 @@
 import { AlertTriangle } from 'lucide-react';
 import { useId } from 'react';
-import { cssVars } from '../lib/dom';
+import { cn } from '../lib/cn';
 import { Modal } from './modal';
 
 interface ConfirmModalProps {
@@ -112,19 +112,7 @@ export function ConfirmModal({
             type="button"
             onClick={onClose}
             disabled={isProcessing}
-            className="px-4 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
-            style={cssVars({
-              color: 'var(--color-text-secondary)',
-              backgroundColor: 'var(--color-surface-muted)',
-            })}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor =
-                'var(--color-border-muted)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor =
-                'var(--color-surface-muted)';
-            }}
+            className="px-4 py-2 text-sm font-medium rounded-lg text-secondary bg-surface-muted hover:bg-hover-surface hover:text-on-hover-surface transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
           >
             {cancelText}
           </button>
@@ -132,21 +120,10 @@ export function ConfirmModal({
             type="button"
             onClick={handleConfirm}
             disabled={isProcessing}
-            className="px-4 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] disabled:opacity-50"
-            style={cssVars({
-              color: 'var(--color-background)',
-              backgroundColor: isDestructive
-                ? 'var(--color-semantic-error)'
-                : 'var(--color-brand)',
-            })}
-            onMouseEnter={(e) => {
-              if (!isProcessing) {
-                e.currentTarget.style.opacity = '0.9';
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.opacity = '1';
-            }}
+            className={cn(
+              'px-4 py-2 text-sm font-medium rounded-lg text-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] enabled:hover:opacity-90 disabled:opacity-50',
+              isDestructive ? 'bg-error' : 'bg-brand'
+            )}
           >
             {isProcessing ? 'Deleting…' : confirmText}
           </button>
