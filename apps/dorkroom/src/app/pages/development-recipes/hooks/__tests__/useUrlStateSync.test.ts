@@ -411,6 +411,37 @@ describe('development recipes URL → state', () => {
       expect(result.current.recipes.searchQuery).toBe('rodinal');
     });
 
+    // q is seeded at mount and the applier leaves it alone, so neither the
+    // catalogue arriving nor the first canonical write undoes what was typed.
+    it('keeps text typed while the catalogue loads', async () => {
+      seedCatalogue(false);
+      vi.stubGlobal('fetch', () => new Promise<never>(() => undefined));
+      window.history.replaceState(null, '', '/development?q=rodinal');
+      const { result } = renderHook(() => usePageUrlState(), { wrapper });
+
+      act(() => result.current.recipes.setSearchQuery('d76'));
+      act(() => {
+        queryClient.setQueryData(['films', 'list'], [HP5, TRI_X]);
+        queryClient.setQueryData(['developers', 'list'], [DDX, D76]);
+        queryClient.setQueryData(['combinations', 'list'], [HP5_DDX, TRIX_D76]);
+      });
+      await waitFor(() =>
+        expect(result.current.url.initialUrlState.fromUrl).toBe(true)
+      );
+      await flushUrlWrites();
+
+      expect(result.current.recipes.searchQuery).toBe('d76');
+      expect(currentParams().get('q')).toBe('d76');
+    });
+
+    it('round-trips an encoded query', async () => {
+      const { result } = await openAt('?q=hp5+plus%20%26');
+      expect(result.current.recipes.searchQuery).toBe('hp5 plus &');
+
+      await flushUrlWrites();
+      expect(currentParams().get('q')).toBe('hp5 plus &');
+    });
+
     // #288: q had its own debounced read-modify-write writer racing the
     // filter writer on one history entry. Both now leave in one write.
     it('writes q and the filters together in one replaceState', async () => {
@@ -430,12 +461,14 @@ describe('development recipes URL → state', () => {
       replaceState.mockRestore();
     });
 
-    it('keeps a q from the link through the first canonical write', async () => {
-      await openAt('?q=tri-x&film=hp5-plus');
+    // Only a managed q is rewritten into the canonical order (after unmanaged
+    // params, ahead of film). An unmanaged q would stay where the link put it.
+    it('rewrites a q from the link as a managed param', async () => {
+      await openAt('?q=tri-x&utm_source=forum&film=hp5-plus');
       await flushUrlWrites();
 
+      expect([...currentParams().keys()]).toEqual(['utm_source', 'q', 'film']);
       expect(currentParams().get('q')).toBe('tri-x');
-      expect(currentParams().get('film')).toBe('hp5-plus');
     });
   });
 
@@ -507,8 +540,20 @@ describe('development recipes URL → state', () => {
 
     act(() => result.current.recipes.setSelectedFilm(null));
     await flushUrlWrites();
+    expect(currentParams().has('film')).toBe(false);
+
+    // The URL changes underneath the page (back/forward). The store re-reads
+    // it and re-derives initialUrlState, but the applier has already run.
+    act(() => {
+      window.history.replaceState(null, '', '/development?film=hp5-plus');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    await waitFor(() =>
+      expect(result.current.url.initialUrlState.selectedFilm?.slug).toBe(
+        'hp5-plus'
+      )
+    );
 
     expect(result.current.recipes.selectedFilm).toBeNull();
-    expect(currentParams().has('film')).toBe(false);
   });
 });
