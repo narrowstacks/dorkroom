@@ -148,11 +148,12 @@ describe('nav search', () => {
     const dialog = await findDialog();
     expect(dialog).toHaveAttribute('aria-modal', 'true');
     await waitFor(() => expect(box()).toHaveFocus());
-    // The home page's experience: Try chips and an example answer.
+    // Try chips only: no example answer until something is typed.
     expect(
       within(dialog).getByRole('button', { name: 'tri-x 30s' })
     ).toBeInTheDocument();
-    expect(within(dialog).getByText(/^Example:/)).toBeInTheDocument();
+    expect(within(dialog).queryByText(/^Example:/)).toBeNull();
+    expect(within(dialog).queryByRole('link')).toBeNull();
     // No "/" key hint: the box already has focus, so "/" would type a slash.
     expect(dialog.querySelector('kbd')).toBeNull();
 

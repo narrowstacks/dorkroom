@@ -21,8 +21,9 @@ import { SearchCombobox } from './search-combobox';
 import { useSearchData } from './use-search-data';
 
 /**
- * What an empty box shows: a real answer, worked out like any other. A
- * calculator query, so it needs no data and is ready on first paint.
+ * What the home page's empty box shows: a real answer, worked out like any
+ * other. A calculator query, so it needs no data and is ready on first paint.
+ * The nav dialog shows only the Try chips until something is typed.
  */
 const EXAMPLE_QUERY = '8x10 35mm 1/2';
 const EXAMPLE = searchHome(EXAMPLE_QUERY);
@@ -146,6 +147,7 @@ function SearchPanelBody({ variant, onNavigate }: SearchPanelProps) {
   );
   const shown = searching ? result : EXAMPLE;
   const { answer, groups } = shown;
+  const showResults = searching || !inDialog;
 
   const fill = (next: string) => {
     load();
@@ -170,37 +172,39 @@ function SearchPanelBody({ variant, onNavigate }: SearchPanelProps) {
 
       {searching ? null : <TryChips onTry={fill} />}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:items-start">
-        {answer ? (
-          <AnswerCard
-            answer={answer}
-            example={searching ? undefined : EXAMPLE_QUERY}
-            onNavigate={onNavigate}
-            className={groups.length ? 'lg:col-span-7' : 'lg:col-span-12'}
-          />
-        ) : null}
-        {!answer && shown.pending ? (
-          <p className="rounded-2xl border border-[color:var(--color-border-secondary)] bg-[color:var(--color-surface)] p-4 text-sm text-[color:var(--color-text-secondary)] lg:col-span-7">
-            {pendingText(loadError)}
-          </p>
-        ) : null}
-        {!answer && !shown.pending && groups.length === 0 ? (
-          <div className="flex flex-col gap-3 rounded-2xl border border-[color:var(--color-border-secondary)] bg-[color:var(--color-surface)] p-4 lg:col-span-12">
-            <p className="text-sm text-[color:var(--color-text-secondary)]">
-              Nothing matches that yet. Name a film, a developer or a size, or
-              try one of these.
+      {showResults ? (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:items-start">
+          {answer ? (
+            <AnswerCard
+              answer={answer}
+              example={searching ? undefined : EXAMPLE_QUERY}
+              onNavigate={onNavigate}
+              className={groups.length ? 'lg:col-span-7' : 'lg:col-span-12'}
+            />
+          ) : null}
+          {!answer && shown.pending ? (
+            <p className="rounded-2xl border border-[color:var(--color-border-secondary)] bg-[color:var(--color-surface)] p-4 text-sm text-[color:var(--color-text-secondary)] lg:col-span-7">
+              {pendingText(loadError)}
             </p>
-            <TryChips onTry={fill} />
-          </div>
-        ) : null}
-        <ResultGroups
-          groups={groups}
-          onNavigate={onNavigate}
-          className={
-            answer || shown.pending ? 'lg:col-span-5' : 'lg:col-span-12'
-          }
-        />
-      </div>
+          ) : null}
+          {!answer && !shown.pending && groups.length === 0 ? (
+            <div className="flex flex-col gap-3 rounded-2xl border border-[color:var(--color-border-secondary)] bg-[color:var(--color-surface)] p-4 lg:col-span-12">
+              <p className="text-sm text-[color:var(--color-text-secondary)]">
+                Nothing matches that yet. Name a film, a developer or a size, or
+                try one of these.
+              </p>
+              <TryChips onTry={fill} />
+            </div>
+          ) : null}
+          <ResultGroups
+            groups={groups}
+            onNavigate={onNavigate}
+            className={
+              answer || shown.pending ? 'lg:col-span-5' : 'lg:col-span-12'
+            }
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

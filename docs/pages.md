@@ -536,7 +536,8 @@ keys focus the hero's search box instead.
 It opens a dialog (`Modal`, so `role="dialog"`, `aria-modal`, labelled
 "Search", Tab trapped inside, focus back to the trigger on close) holding the
 home page's search: `SearchPanel` with `variant="dialog"`, so the same
-combobox, answer card, grouped matches and Try chips. Focus starts in the
+combobox, answer card, grouped matches and Try chips. With an empty box it
+shows only the Try chips (no example answer). Focus starts in the
 box. Escape closes the suggestion list first; with the list closed it closes
 the dialog (it does not clear the box, as it does on the home page). Following
 any link from the dialog closes it, including one to the page already open.
