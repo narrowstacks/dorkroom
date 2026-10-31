@@ -18,6 +18,7 @@ import { useSiteSearchAnalytics } from '../../app/lib/analytics/use-site-search-
 import { AnswerCard } from './answer-card';
 import { ResultGroups } from './result-groups';
 import { SearchCombobox } from './search-combobox';
+import { PAGE_SEARCH_ID } from './search-shortcut';
 import { useSearchData } from './use-search-data';
 
 /**
@@ -162,7 +163,10 @@ function SearchPanelBody({ variant, onNavigate }: SearchPanelProps) {
   };
 
   return (
-    <div className="search-panel flex flex-col gap-4">
+    <div
+      id={inDialog ? undefined : PAGE_SEARCH_ID}
+      className="search-panel flex flex-col gap-4"
+    >
       <SearchCombobox
         inputRef={inputRef}
         value={query}

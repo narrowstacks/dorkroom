@@ -85,9 +85,12 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
       <button
         ref={toggleButtonRef}
         type="button"
+        // darkroom-invert-icon: darkroom pins every svg to the text colour,
+        // which is this button's fill, so the icon would vanish into it.
         className={cn(
           MOBILE_FAB,
           MOBILE_FAB_EDGE,
+          'darkroom-invert-icon',
           isMobileMenuOpen ? 'z-[60]' : 'z-50'
         )}
         style={{

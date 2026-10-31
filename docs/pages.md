@@ -55,8 +55,8 @@ and platform-free so the iOS app can share them (issue #528).
   no arrow keys), opens it at any time. Arrow keys move through it, Enter or a
   click fills the box and searches, Escape closes the list and then clears the
   box, Tab closes the list. Cmd+K or Ctrl+K, or `/` outside a text field,
-  focuses the box. The nav bar has no search button on this page, so there is
-  never a second search box on screen
+  focuses the box, and so do the nav bar's Search buttons on this page
+  (scrolling it into view), so there is never a second search box on screen
 - Answer card (`AnswerCard`): the title, a source or calculator tag, a "Read as"
   row showing how the query was understood (defaults marked "(default)"), a
   notice above the number when it answers something other than what was asked
@@ -535,31 +535,34 @@ the last change, and clears the snapshot on reset. Storage comes from
 
 ### Site Search
 
-Every page except the home page has a Search control: in the header from
-`sm` up, an icon button like its neighbours whose tooltip carries the
-shortcut hint ("Search (⌘K)", or "Ctrl K" off Apple devices; the header is
-capped at `max-w-6xl` and the nav already fills it, so a text label and hint
-would overflow it at every width); on phones a round search button beside the
-floating menu toggle (the open menu drawer covers it; both buttons take their
-size and spots from `components/mobile-fab.ts`). Cmd+K or Ctrl+K opens it from
-anywhere, and `/` does too outside a text field. On the home page the same
-keys focus the hero's search box instead.
+Every page has a Search control: in the header from `sm` up, an icon button
+like its neighbours whose tooltip carries the shortcut hint ("Search (⌘K)",
+or "Ctrl K" off Apple devices; the header is capped at `max-w-6xl` and the
+nav already fills it, so a text label and hint would overflow it at every
+width); on phones a round search button beside the floating menu toggle (the
+open menu drawer covers it; both buttons take their size and spots from
+`components/mobile-fab.ts`). Cmd+K or Ctrl+K opens it from anywhere, and `/`
+does too outside a text field. On the home page the buttons and keys focus
+(and scroll into view) the hero's search box instead, so the header is the
+same on every page and there is never a second search box.
 
 It opens a dialog (`Modal`, so `role="dialog"`, `aria-modal`, labelled
 "Search", Tab trapped inside, focus back to the trigger on close) holding the
 home page's search: `SearchPanel` with `variant="dialog"`, so the same
 combobox, answer card, grouped matches and Try chips. With an empty box it
-shows only the Try chips (no example answer). Focus starts in the
-box. Escape closes the suggestion list first; with the list closed it closes
-the dialog (it does not clear the box, as it does on the home page). Following
+shows only the Try chips (no example answer). Focus starts in the box.
+Escape closes the suggestion list first; with the list closed it closes the
+dialog (it does not clear the box, as it does on the home page). Following
 any link from the dialog closes it, including one to the page already open.
 Back and forward to another page close it too (it is open only while the
 pathname is the one it was opened at), while a page's own search param
-updates, such as `/films` syncing its filters, leave it open. At phone width the dialog is a full-height sheet; from
-`sm` up a wide panel near the top of the screen. Recipe answers follow the
-°C/°F setting (`SearchPanel` mounts its own `TemperatureProvider`, which
-reads the same stored unit as `/development`). The `/` key hint shows only in
-the home page's box: in the dialog the box already has focus.
+updates, such as `/films` syncing its filters, leave it open. At phone width
+the dialog is a full-height sheet (it keeps the box above the keyboard);
+from `sm` up a wide panel near the top of the screen, as tall as its content
+up to the screen's height, then scrolling. Recipe answers follow the °C/°F
+setting (`SearchPanel` mounts its own `TemperatureProvider`, which reads the
+same stored unit as `/development`). The `/` key hint shows only in the home
+page's box: in the dialog the box already has focus.
 
 **Bundle:** only the triggers and the shortcut
 (`components/search/nav-search.tsx`, `search-shortcut.ts`) are in every

@@ -8,9 +8,11 @@ interface SearchDialogProps {
 
 /**
  * The nav bar's search: the home page's search panel in a dialog. A full
- * height sheet on phones, a wide panel near the top of the screen from `sm`
- * up, so it does not jump as answers change height. `Modal` owns the
- * portal, backdrop, Escape, focus trap and focus return.
+ * height sheet on phones, which keeps the box clear of the keyboard. From
+ * `sm` up a wide panel pinned near the top of the screen, as tall as its
+ * content (so answers grow it downward only) up to the screen's height,
+ * then scrolling. `Modal` owns the portal, backdrop, Escape, focus trap and
+ * focus return.
  *
  * Loaded lazily by `nav-search.tsx` (the default export is for
  * `React.lazy`), so the search code stays out of every page's first load.
@@ -34,7 +36,9 @@ export default function SearchDialog({ onClose }: SearchDialogProps) {
       title="Search"
       size="lg"
       className="max-sm:fixed max-sm:inset-0 max-sm:flex max-sm:h-dvh max-sm:max-w-none max-sm:flex-col max-sm:rounded-none max-sm:border-0 max-sm:p-4 max-sm:pt-[calc(env(safe-area-inset-top)+1rem)] sm:mt-[8vh] sm:self-start"
-      bodyClassName="max-sm:max-h-none max-sm:min-h-0 max-sm:flex-1 max-sm:pb-[env(safe-area-inset-bottom)] sm:min-h-[24rem]"
+      // The scrolling body clips what overflows it, the box's focus ring
+      // included: -m-1 p-1 gives the ring room without moving the content.
+      bodyClassName="-m-1 p-1 max-sm:max-h-none max-sm:min-h-0 max-sm:flex-1 max-sm:pb-[calc(env(safe-area-inset-bottom)+0.25rem)] sm:max-h-[calc(92dvh-8rem)]"
     >
       <SearchPanel variant="dialog" onNavigate={closeOnLink} />
     </Modal>

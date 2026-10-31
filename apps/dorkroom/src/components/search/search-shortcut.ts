@@ -1,6 +1,7 @@
 /**
- * The search shortcut, shared by the nav trigger (in every page's first load,
- * so this module stays tiny) and the search box itself.
+ * The search shortcut and the page search box's id, shared by the nav
+ * trigger (in every page's first load, so this module stays tiny) and the
+ * search box itself.
  */
 
 /** True when a key press lands in something the user is typing into. */
@@ -36,3 +37,9 @@ export const SEARCH_SHORTCUT_HINT = isApple ? '⌘K' : 'Ctrl K';
 
 /** For `aria-keyshortcuts` on the controls the shortcut reaches. */
 export const SEARCH_KEYSHORTCUTS = 'Meta+K Control+K /';
+
+/**
+ * The id of a page's own search panel (the home page's hero), whose box the
+ * nav's Search buttons focus on that page instead of opening the dialog.
+ */
+export const PAGE_SEARCH_ID = 'site-search';

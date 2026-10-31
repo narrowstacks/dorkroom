@@ -29,9 +29,9 @@ function RootComponent() {
 
   usePreferenceAnalytics();
 
-  // The home page has its own search box, so no second one in the nav there.
-  const showNavSearch = pathname !== '/';
-  const navSearch = useNavSearch(pathname, showNavSearch);
+  // The home page has its own search box: the nav's Search buttons focus it
+  // there rather than open a second one.
+  const navSearch = useNavSearch(pathname, pathname === '/');
 
   // Update document title based on route
   useEffect(() => {
@@ -146,12 +146,7 @@ function RootComponent() {
                 </div>
               </nav>
               <div className="hidden items-center gap-2 sm:flex xl:gap-3">
-                {showNavSearch ? (
-                  <NavSearchButton
-                    variant="header"
-                    onClick={navSearch.openSearch}
-                  />
-                ) : null}
+                <NavSearchButton variant="header" search={navSearch} />
                 <Tooltip label="Contribute on GitHub">
                   <a
                     href="https://github.com/narrowstacks/dorkroom"
@@ -208,9 +203,7 @@ function RootComponent() {
             </div>
           </header>
 
-          {showNavSearch ? (
-            <NavSearchButton variant="fab" onClick={navSearch.openSearch} />
-          ) : null}
+          <NavSearchButton variant="fab" search={navSearch} />
           <MobileNav pathname={pathname} onNavigate={handleNavigate} />
           {navSearch.dialog}
 

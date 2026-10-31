@@ -32,6 +32,7 @@ import LensCalculatorPage from '../../../app/pages/lens-calculator/lens-calculat
 import { Route as rootRouteOptions } from '../../../routes/__root';
 import { parseSearch, stringifySearch } from '../../../routes/search-params';
 import { calculatorRoute } from '../../calculator-route';
+import { SearchPanel } from '../search-panel';
 
 // SAFETY: `__root.tsx` sets `options.component`; see root-layout.test.tsx.
 const RootComponent = rootRouteOptions.options.component as RouteComponent;
@@ -56,7 +57,7 @@ async function renderApp(url: string) {
       createRoute({
         getParentRoute: () => rootRoute,
         path: '/',
-        component: () => <p>home page</p>,
+        component: () => <SearchPanel variant="hero" />,
       }),
       createRoute({
         getParentRoute: () => rootRoute,
@@ -102,8 +103,14 @@ async function renderApp(url: string) {
   return router;
 }
 
+/**
+ * The header's Search button. On '/' the hero's answer card renders a second
+ * banner, so take the site header, which comes first.
+ */
 const headerSearchButton = () =>
-  within(screen.getByRole('banner')).getByRole('button', { name: 'Search' });
+  within(screen.getAllByRole('banner')[0]).getByRole('button', {
+    name: 'Search',
+  });
 const findDialog = () => screen.findByRole('dialog', { name: 'Search' });
 const box = () =>
   within(screen.getByRole('dialog')).getByRole('combobox', {
@@ -126,14 +133,27 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  // jsdom has no scrollIntoView; drop the stub the home test adds.
+  Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
 });
 
 describe('nav search', () => {
-  it('is not on the home page, which has its own search box', async () => {
+  it('focuses the home page’s own search box there, never opening a second one', async () => {
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
     await renderApp('/');
+    const heroBox = within(screen.getByRole('main')).getByRole('combobox');
 
-    expect(screen.queryByRole('button', { name: 'Search' })).toBeNull();
+    // The header keeps the same buttons as on every other page.
+    expect(headerSearchButton()).not.toHaveAttribute('aria-haspopup');
+    fireEvent.click(headerSearchButton());
+    expect(heroBox).toHaveFocus();
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'center' });
+    expect(screen.queryByRole('dialog')).toBeNull();
+
+    heroBox.blur();
     fireEvent.keyDown(document.body, { key: 'k', ctrlKey: true });
+    expect(heroBox).toHaveFocus();
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
@@ -144,6 +164,7 @@ describe('nav search', () => {
       'the header button and the phone button'
     ).toHaveLength(2);
 
+    expect(headerSearchButton()).toHaveAttribute('aria-haspopup', 'dialog');
     fireEvent.click(headerSearchButton());
     const dialog = await findDialog();
     expect(dialog).toHaveAttribute('aria-modal', 'true');
