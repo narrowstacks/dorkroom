@@ -58,6 +58,33 @@ describe('text-sanitization', () => {
       expect(sanitizeText(input)).toBe(input);
     });
 
+    it('keeps a bare < or > in prose', () => {
+      expect(sanitizeText('Keep temp < 20C and time > 5 min')).toBe(
+        'Keep temp < 20C and time > 5 min'
+      );
+      expect(sanitizeText('a<3 b>2')).toBe('a<3 b>2');
+    });
+
+    it('strips closing tags, comments and processing instructions', () => {
+      expect(sanitizeText('x</b>y')).toBe('xy');
+      expect(sanitizeText('x<!-- c -->y')).toBe('xy');
+      expect(sanitizeText('x<?php echo 1 ?>y')).toBe('xy');
+      expect(sanitizeText('<script>x</script>')).toBe('x');
+      expect(sanitizeText('<img src=x onerror=y>')).toBe('');
+    });
+
+    it('keeps subdivision flag emoji (tag characters)', () => {
+      const england =
+        '\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}';
+      expect(sanitizeText(england)).toBe(england);
+    });
+
+    it('removes lone surrogates but keeps pairs', () => {
+      expect(sanitizeText('a\uD800b\uDC00c')).toBe('abc');
+      expect(sanitizeText('\uDC00x')).toBe('x');
+      expect(sanitizeText('a\u{1F600}b')).toBe('a\u{1F600}b');
+    });
+
     it('still removes tags around those words', () => {
       expect(sanitizeText('<script>alert(1)</script>')).toBe('alert(1)');
       expect(sanitizeText('<iframe src="x"></iframe>ok')).toBe('ok');
@@ -164,6 +191,8 @@ describe('text-sanitization', () => {
     it('repeats tag removal until a spliced tag cannot reappear', () => {
       expect(sanitizeText('<scr<script>ipt>alert(1)')).toBe('ipt>alert(1)');
       expect(sanitizeText('<\u0000script>x')).toBe('x');
+      // Too long to match until the inner `<b>` is removed: needs a second pass.
+      expect(sanitizeText(`<${'a'.repeat(2000)}<b>>`)).toBe('');
     });
   });
 
@@ -212,6 +241,11 @@ describe('text-sanitization', () => {
 
     it('strips control and bidi/zero-width characters', () => {
       expect(sanitizeRecipeName('A\u0000B\u202EC\u200BD\uFEFFE')).toBe('ABCDE');
+    });
+
+    it('turns newlines and tabs into single spaces', () => {
+      expect(sanitizeRecipeName('Line1\nLine2')).toBe('Line1 Line2');
+      expect(sanitizeRecipeName('A\tB')).toBe('A B');
     });
 
     it('collapses whitespace including newlines', () => {
@@ -270,9 +304,10 @@ describe('text-sanitization', () => {
       // The `{0,2000}` bound (rather than `*`) keeps the tag regex linear on
       // runs of "<" with no ">". Pin the bound itself: a tag body of up to
       // 2000 characters is stripped, a longer one is left alone.
-      expect(sanitizeText(`<${'a'.repeat(1999)}>`)).toBe('');
+      // The first letter after `<` is outside the bounded run.
       expect(sanitizeText(`<${'a'.repeat(2000)}>`)).toBe('');
-      expect(sanitizeText(`<${'a'.repeat(2001)}>`)).toHaveLength(2003);
+      expect(sanitizeText(`<${'a'.repeat(2001)}>`)).toBe('');
+      expect(sanitizeText(`<${'a'.repeat(2002)}>`)).toHaveLength(2004);
     });
 
     it('handles many HTML entities efficiently', () => {
