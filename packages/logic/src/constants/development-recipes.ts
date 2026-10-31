@@ -32,3 +32,32 @@ export const PUSH_PULL_LABELS = {
   1: 'Push 1 stop',
   2: 'Push 2 stops',
 } satisfies Record<number, string>;
+
+const OFFICIAL_TAG_PREFIX = 'official-';
+
+/** Makers whose name is not just their tag capitalised. */
+const OFFICIAL_TAG_NAMES = new Map([
+  ['cinestill', 'CineStill'],
+  ['fuji', 'Fujifilm'],
+  ['jch', 'JCH'],
+]);
+
+/**
+ * The maker behind an `official-*` recipe tag ("official-fuji" -> "Fujifilm"),
+ * or null when the tag is not an official one.
+ */
+export function officialTagMaker(tag: string): string | null {
+  if (!tag.startsWith(OFFICIAL_TAG_PREFIX)) return null;
+  const maker = tag.slice(OFFICIAL_TAG_PREFIX.length);
+  return (
+    OFFICIAL_TAG_NAMES.get(maker) ??
+    maker.charAt(0).toUpperCase() + maker.slice(1)
+  );
+}
+
+/** Dilutions the recipes page accepts in its `dilution` URL param. */
+const RECIPE_URL_DILUTIONS = [/^stock$/i, /^\d+:\d+$/, /^\d+\+\d+$/, /^\d+$/];
+
+/** Whether the recipes page accepts `dilution` as its `dilution` URL param. */
+export const isRecipeUrlDilution = (dilution: string): boolean =>
+  RECIPE_URL_DILUTIONS.some((pattern) => pattern.test(dilution));

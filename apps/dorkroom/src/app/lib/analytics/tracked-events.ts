@@ -1,3 +1,4 @@
+import type { HomeAnswerKind } from '@dorkroom/logic';
 import { track } from '@vercel/analytics';
 
 /**
@@ -67,6 +68,12 @@ export type TrackedRoute = (typeof TRACKED_ROUTES)[number];
 /** A known route, or `unknown` for anything the wildcard route caught. */
 export type RouteLabel = TrackedRoute | 'unknown';
 
+/**
+ * What a settled home-page search showed: an answer of one kind (the closed
+ * set `searchHome` returns), a list of matches with no answer, or nothing.
+ */
+export type HomeSearchOutcome = HomeAnswerKind | 'list' | 'none';
+
 export type ThemeName =
   'light' | 'dark' | 'darkroom' | 'high-contrast' | 'system';
 
@@ -117,6 +124,10 @@ export interface AnalyticsEvents {
    *  The query itself is deliberately not sent. */
   search_no_results: { tool: BrowseTool; filters: number };
   detail_opened: { type: 'film' | 'recipe' };
+  /** A home-page search settled. `count` is how many matches the result
+   *  lists (recipes, films, developers and tools). The query itself is
+   *  deliberately not sent. */
+  home_search: { result: HomeSearchOutcome; count: number };
   filter_applied: { tool: BrowseTool; filter: FilmsFilter | DevelopmentFilter };
   /** `route` is one of the app's known routes, or `unknown`. Never the raw
    *  pathname: the wildcard route would let a visitor choose the value. */

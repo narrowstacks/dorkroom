@@ -211,10 +211,8 @@ export default useStandaloneBorderCalculator;
 
 export * from '../../types/border-calculator';
 // Re-export sub-hooks for testing or advanced usage
-export {
-  initialState,
-  useBorderCalculatorState,
-} from './use-border-calculator-state';
+export { initialState } from '../../schemas/border-calculator-persistence';
+export { useBorderCalculatorState } from './use-border-calculator-state';
 export type { PresetShareMethod } from './use-calculator-sharing';
 export { useCalculatorSharing } from './use-calculator-sharing';
 export { useInputHandlers } from './use-input-handlers';

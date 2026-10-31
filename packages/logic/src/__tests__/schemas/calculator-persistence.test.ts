@@ -15,7 +15,7 @@ import { RESIZE_FORM_DEFAULTS } from '../../constants/resize-calculator';
 import {
   borderCalculatorPersistence,
   initialState as borderInitialState,
-} from '../../hooks/border-calculator/use-border-calculator-state';
+} from '../../schemas/border-calculator-persistence';
 import { cameraExposurePersistence } from '../../schemas/camera-exposure-calculator.schema';
 import { exposureCalculatorPersistence } from '../../schemas/exposure-calculator.schema';
 import { lensCalculatorPersistence } from '../../schemas/lens-calculator.schema';

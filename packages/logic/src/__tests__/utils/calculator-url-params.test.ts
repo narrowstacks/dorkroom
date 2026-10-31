@@ -9,7 +9,7 @@ import {
   RECIPROCITY_CALCULATOR_LINK_PARAMS,
   RESIZE_CALCULATOR_LINK_PARAMS,
 } from '../../constants/calculator-link-params';
-import { borderCalculatorLink } from '../../hooks/border-calculator/use-border-calculator-state';
+import { borderCalculatorLink } from '../../schemas/border-calculator-persistence';
 import { cameraExposureLink } from '../../schemas/camera-exposure-calculator.schema';
 import { lensCalculatorLink } from '../../schemas/lens-calculator.schema';
 import { matCalculatorLink } from '../../schemas/mat-calculator.schema';

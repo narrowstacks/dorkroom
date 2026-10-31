@@ -39,10 +39,46 @@ const fromRatio = (originalTime: number, ratio: number): ResizeExposure => ({
 });
 
 /**
+ * The exposure factor for a print resize: the ratio of print areas, or of
+ * squared enlarger heights in enlarger-height mode. The original time is not
+ * read.
+ *
+ * @returns The factor, or null when the relevant dimensions are not all
+ *   positive and finite
+ * @example
+ * ```typescript
+ * resizeExposureRatio({
+ *   isEnlargerHeightMode: false,
+ *   originalWidth: 8, originalLength: 10, newWidth: 11, newLength: 14,
+ *   originalHeight: 0, newHeight: 0,
+ * }); // 1.925
+ * ```
+ */
+export const resizeExposureRatio = ({
+  isEnlargerHeightMode,
+  originalWidth,
+  originalLength,
+  newWidth,
+  newLength,
+  originalHeight,
+  newHeight,
+}: Omit<ResizeExposureInput, 'originalTime'>): number | null => {
+  if (isEnlargerHeightMode) {
+    return isPositive(originalHeight, newHeight)
+      ? newHeight ** 2 / originalHeight ** 2
+      : null;
+  }
+  return isPositive(originalWidth, originalLength, newWidth, newLength)
+    ? (newWidth * newLength) / (originalWidth * originalLength)
+    : null;
+};
+
+/**
  * Calculates the exposure change for a print resize.
  *
  * Both modes are inverse-square: print-size mode scales by the ratio of print
- * areas, enlarger-height mode by the ratio of squared heights.
+ * areas, enlarger-height mode by the ratio of squared heights
+ * (`resizeExposureRatio`).
  *
  * @returns The new time and stop difference, or empty strings when the relevant
  *   inputs are not all positive and finite
@@ -56,39 +92,14 @@ const fromRatio = (originalTime: number, ratio: number): ResizeExposure => ({
  * // bigger.newTime === '22.5', bigger.stopsDifference === '1.17'
  * ```
  */
-export const calculateResizeExposure = ({
-  isEnlargerHeightMode,
-  originalTime,
-  originalWidth,
-  originalLength,
-  newWidth,
-  newLength,
-  originalHeight,
-  newHeight,
-}: ResizeExposureInput): ResizeExposure => {
-  if (isEnlargerHeightMode) {
-    if (!isPositive(originalTime, originalHeight, newHeight)) {
-      return EMPTY_EXPOSURE;
-    }
-
-    return fromRatio(originalTime, newHeight ** 2 / originalHeight ** 2);
-  }
-
-  if (
-    !isPositive(
-      originalTime,
-      originalWidth,
-      originalLength,
-      newWidth,
-      newLength
-    )
-  ) {
+export const calculateResizeExposure = (
+  input: ResizeExposureInput
+): ResizeExposure => {
+  const ratio = resizeExposureRatio(input);
+  if (ratio === null || !isPositive(input.originalTime)) {
     return EMPTY_EXPOSURE;
   }
-
-  const originalArea = originalWidth * originalLength;
-
-  return fromRatio(originalTime, (newWidth * newLength) / originalArea);
+  return fromRatio(input.originalTime, ratio);
 };
 
 /** Print dimensions to compare, in a single unit system. */

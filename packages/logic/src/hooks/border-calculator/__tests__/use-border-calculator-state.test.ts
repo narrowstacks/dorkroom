@@ -3,13 +3,11 @@ import { createElement, type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BORDER_CALCULATOR_STORAGE_KEY } from '../../../constants/storage-keys';
 import { PersistenceStorageProvider } from '../../../hooks/use-persisted-calculator';
+import { persistedBorderCalculatorFieldSchemas } from '../../../schemas/border-calculator-persistence';
 import { createMemoryStorage } from '../../../services/key-value-storage';
 import type { BorderCalculatorState } from '../../../types/border-calculator';
 import type { PersistedValue } from '../../../utils/persisted-calculator';
-import {
-  persistedBorderCalculatorFieldSchemas,
-  useBorderCalculatorState,
-} from '../use-border-calculator-state';
+import { useBorderCalculatorState } from '../use-border-calculator-state';
 
 /**
  * Comprehensive test suite for the useBorderCalculatorState hook.
