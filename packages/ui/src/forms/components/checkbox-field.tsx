@@ -29,7 +29,7 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({
   disabled = false,
 }) => {
   const showErrors =
-    field.state.meta.errors.length > 0 &&
+    formatFieldErrors(field.state.meta.errors) !== '' &&
     (field.state.meta.isTouched || field.state.meta.isDirty);
 
   return (

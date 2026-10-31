@@ -87,6 +87,25 @@ describe('importRecipeSchema', () => {
   });
 });
 
+describe('importRecipeSchema messages', () => {
+  const messages = (encoded: string) => {
+    const r = importRecipeSchema.safeParse({ encoded });
+    return r.success ? [] : r.error.issues.map((i) => i.message);
+  };
+
+  it('reports exactly one message for empty input', () => {
+    expect(messages('')).toEqual(['Please enter a recipe URL, ID, or code']);
+  });
+
+  it('rejects a database recipe link with a clear message', () => {
+    const link =
+      'https://dorkroom.art/development?film=a&developer=b&recipe=123e4567-e89b-12d3-a456-426614174000&source=share';
+    expect(messages(link)).toEqual([
+      'This links to a recipe in the Dorkroom database. Open the link directly to view it.',
+    ]);
+  });
+});
+
 describe('extractImportRecipeCode', () => {
   it('returns the code from a link, a fragment, or the bare input', () => {
     expect(

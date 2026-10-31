@@ -6,6 +6,7 @@ import { isFilmDevOrgUrl } from '../utils/url-helpers';
 const RECIPE_PARAM = 'recipe';
 
 /**
+ * Exists only to skip URL parsing of huge pastes (performance).
  * Headroom over MAX_ENCODED_LENGTH for the origin, path and other query
  * params of a pasted share link. Anything longer is rejected before parsing.
  */
@@ -22,6 +23,12 @@ const recipeFromShareLink = (value: string): string | null => {
     return null;
   }
 };
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** A share link to a database recipe carries a UUID, not an encoded recipe. */
+const isDatabaseRecipeLink = (value: string): boolean =>
+  UUID.test(extractImportRecipeCode(value));
 
 /**
  * Pulls the shared recipe code out of what a user pasted: a full Dorkroom
@@ -56,7 +63,11 @@ export function extractImportRecipeCode(input: string): string {
 export const importRecipeSchema = z.object({
   encoded: z
     .string()
-    .min(1, 'Please enter a recipe URL, ID, or code')
+    .min(1, { message: 'Please enter a recipe URL, ID, or code', abort: true })
+    .refine(
+      (value) => !isDatabaseRecipeLink(value),
+      'This links to a recipe in the Dorkroom database. Open the link directly to view it.'
+    )
     .refine((value) => {
       const trimmed = value.trim();
       // Match filmdev.org URL (host-checked, not a loose substring match)

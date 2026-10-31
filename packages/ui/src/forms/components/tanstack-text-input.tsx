@@ -35,7 +35,8 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
   type = 'text',
 }) => {
   const meta = field.state.meta;
-  const hasErrors = meta.errors.length > 0 && (meta.isTouched || meta.isDirty);
+  const errorText = formatFieldErrors(meta.errors);
+  const hasErrors = errorText !== '' && (meta.isTouched || meta.isDirty);
 
   // Compute border colors based on current hasErrors value (every render)
   const borderColorError = colorMixOr(
@@ -115,7 +116,7 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
             ),
           }}
         >
-          {formatFieldErrors(field.state.meta.errors)}
+          {errorText}
         </div>
       )}
     </div>
