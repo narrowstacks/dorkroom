@@ -32,7 +32,6 @@ ignorePatterns = [
   "apps/mobile/android/",
   "apps/mobile/expo-env.d.ts",
   "og-previews/",
-  "playwright-report/",
   "test-results/",
   "**/*.md",
   "**/*.mdx",

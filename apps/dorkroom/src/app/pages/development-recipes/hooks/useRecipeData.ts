@@ -28,9 +28,7 @@ export interface UseRecipeDataProps {
     | CustomRecipe
     | Omit<CustomRecipe, 'id' | 'dateCreated' | 'dateModified'>
     | null;
-  flags: {
-    CUSTOM_RECIPE_SHARING: boolean;
-  };
+  customRecipeSharingEnabled: boolean;
   isFavorite: (id: string) => boolean;
   getFilmById: (id: string) => Film | undefined;
   getDeveloperById: (id: string) => Developer | undefined;
@@ -106,7 +104,7 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
     customRecipeFilter,
     favoritesOnly,
     sharedCustomRecipe,
-    flags,
+    customRecipeSharingEnabled,
     isFavorite,
     getFilmById,
     getDeveloperById,
@@ -258,7 +256,7 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
             getDeveloperById
           ),
           source: 'custom',
-          canShare: flags.CUSTOM_RECIPE_SHARING,
+          canShare: customRecipeSharingEnabled,
         } satisfies DevelopmentCombinationView,
       ];
     });
@@ -266,7 +264,7 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
     customRecipes,
     getDeveloperById,
     getFilmById,
-    flags.CUSTOM_RECIPE_SHARING,
+    customRecipeSharingEnabled,
   ]);
 
   const apiCombinationViews = useMemo<DevelopmentCombinationView[]>(() => {
