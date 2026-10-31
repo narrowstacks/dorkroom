@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   ANONYMOUS_RATE_LIMIT,
   ANONYMOUS_RATE_WINDOW_MS,
-} from '../edgeRateLimit';
+} from '../rateLimitPolicy';
 import type { HandlerConfig, UnkeyClient } from '../withHandler';
 import { createMockRequest, createMockResponse } from './mock-vercel';
 
@@ -155,7 +155,7 @@ describe('withHandler', () => {
       const res = createMockResponse();
       await handler(req, res);
 
-      expect(res._status).toBe(200);
+      expect(res._status).toBe(204);
       expect(res._headers['x-content-type-options']).toBe('nosniff');
     });
   });
@@ -195,7 +195,7 @@ describe('withHandler', () => {
       expect(res._headers['access-control-max-age']).toBeUndefined();
     });
 
-    it('should handle OPTIONS preflight and return 200', async () => {
+    it('should handle OPTIONS preflight and return 204', async () => {
       const handler = await buildHandler({
         name: 'test',
         handler: async () => {
@@ -207,7 +207,8 @@ describe('withHandler', () => {
       const res = createMockResponse();
       await handler(req, res);
 
-      expect(res._status).toBe(200);
+      expect(res._status).toBe(204);
+      expect(res._headers.allow).toBe('GET, OPTIONS');
       expect(res._ended).toBe(true);
     });
   });
@@ -341,6 +342,64 @@ describe('withHandler', () => {
 
       const vary = res._headers.vary;
       expect(vary).toContain('Host');
+    });
+  });
+
+  describe('cache policy', () => {
+    const WEBSITE_CACHE = 'public, max-age=60, s-maxage=300';
+
+    async function cachingHandler() {
+      return buildHandler({
+        name: 'test',
+        handler: async (_req, res, ctx) => {
+          ctx.setCacheControl(WEBSITE_CACHE);
+          res.status(200).json({ ok: true });
+        },
+      });
+    }
+
+    it('lets the handler choose Cache-Control on the website host', async () => {
+      const handler = await cachingHandler();
+      const res = createMockResponse();
+      await handler(
+        createMockRequest({ headers: { host: 'dorkroom.art' } }),
+        res
+      );
+
+      expect(res._status).toBe(200);
+      expect(res._headers['cache-control']).toBe(WEBSITE_CACHE);
+    });
+
+    it('pins private, no-store on the public API host even when the handler asks for caching', async () => {
+      process.env.UNKEY_ROOT_KEY = 'root-key';
+      process.env.UNKEY_API_ID = 'test-api';
+      process.env.UNKEY_API_KEY_PERMISSION = 'read';
+      verifyKeyMock.mockResolvedValueOnce(validVerification());
+      const handler = await cachingHandler();
+
+      const res = createMockResponse();
+      await handler(
+        createMockRequest({
+          headers: { host: 'api.dorkroom.art', 'x-api-key': 'dk_f_test' },
+        }),
+        res
+      );
+
+      expect(res._status).toBe(200);
+      expect(res._headers['cache-control']).toBe('private, no-store');
+    });
+
+    it('pins private, no-store on public API host rejections too', async () => {
+      const handler = await cachingHandler();
+      const res = createMockResponse();
+      await handler(
+        createMockRequest({ headers: { host: 'api.dorkroom.art' } }),
+        res
+      );
+
+      // No UNKEY_API_ID: the key layer answers 500 before the handler runs.
+      expect(res._status).toBe(500);
+      expect(res._headers['cache-control']).toBe('private, no-store');
     });
   });
 

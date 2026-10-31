@@ -113,6 +113,8 @@
         "utils/**",
         "scripts/**",
         "README.md",
+        "docs/API.md",
+        "packages/api/CLAUDE.md",
         "vitest.config.ts"
       ]
     }

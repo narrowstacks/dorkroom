@@ -1,13 +1,10 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { ANONYMOUS_RATE_LIMIT, KEY_TIERS } from '../utils/rateLimitPolicy';
+import { withEnvelope } from '../utils/requestEnvelope';
 
-export default function handler(req: VercelRequest, res: VercelResponse): void {
-  if (req.method !== 'GET') {
-    res.setHeader('Allow', 'GET');
-    res.status(405).send('Method Not Allowed');
-    return;
-  }
-
-  const html = `<!doctype html>
+export default withEnvelope(
+  { name: 'docs', methods: ['GET'], cors: 'none' },
+  (_req, res, ctx) => {
+    const html = `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -275,10 +272,10 @@ export default function handler(req: VercelRequest, res: VercelResponse): void {
       <section class="section">
         <h2>Rate Limits</h2>
         <p>
-          Public API keys use per-key limits configured in Unkey (example tiers: 60/min free, 300/min standard, unlimited partner).
+          Public API keys use per-key limits configured in Unkey (example tiers: ${KEY_TIERS.free.limit}/min free, ${KEY_TIERS.standard.limit}/min standard, unlimited partner).
         </p>
         <p>
-          Anonymous requests on <code>dorkroom.art/api</code> are limited to <code>30 requests/minute per IP</code>.
+          Anonymous requests on <code>dorkroom.art/api</code> are limited to <code>${ANONYMOUS_RATE_LIMIT} requests/minute per IP</code>.
         </p>
         <p>
           Response headers: <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code>,
@@ -294,12 +291,9 @@ export default function handler(req: VercelRequest, res: VercelResponse): void {
   </body>
 </html>`;
 
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader(
-    'Cache-Control',
-    'public, max-age=300, stale-while-revalidate=600'
-  );
-  res.status(200).send(html);
-}
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('X-Frame-Options', 'DENY');
+    ctx.setCacheControl('public, max-age=300, stale-while-revalidate=600');
+    res.status(200).send(html);
+  }
+);

@@ -20,8 +20,9 @@ Everything else:
 - `filmdev.ts` - filmdev.org import endpoint; the one handler that calls `withHandler` directly
 - `docs.ts` - `api.dorkroom.art` landing page
 - `not-found.ts` - JSON 404 (`{ error, message, requestId }`) for any other path on
-  `api.dorkroom.art`. Deliberately not wrapped in `withHandler`, which would demand
-  an API key and turn a mistyped path into a 401
+  `api.dorkroom.art`. Envelope only, never `withHandler`, which would demand
+  an API key and turn a mistyped path into a 401. Answers every method with
+  the 404 (`methods: 'any'`), since a 405 would claim the path exists
 - `openapi.ts` - serves the OpenAPI 3.1 spec (`/openapi.json`)
 - `reference.ts` - interactive API reference (Scalar) at `/reference`
 - `meta.ts` - server-rendered meta tags for social crawlers. `vercel.json`
@@ -31,8 +32,8 @@ Everything else:
   because shared links routinely carry `utm_*` junk.
 - `og.tsx` - Open Graph card images via `@vercel/og` (edge runtime). Reads
   `route`, `film`, `developer`, and `recipe` params. See the `og-image-routes`
-  skill. Not wrapped in `withHandler` (Node-only), so it carries its own
-  guards: unknown params 400; malformed values (checked by
+  skill. `og.tsx` runs on the edge, outside the Node-only envelope, so it
+  carries its own guards: unknown params 400; malformed values (checked by
   `utils/queryPatterns.ts`, the same patterns `meta.ts` uses) are treated as
   absent before any upstream lookup; fonts are cached per isolate; and every
   request other than a bare static card (`?route=<known page>`) is limited per
@@ -64,28 +65,57 @@ fails if the committed JSON is stale. `openapi-spec.json` is excluded from
 
 ## Core Pattern
 
-Every data handler is wrapped by `withHandler` from `../utils/withHandler.ts`,
-either directly (`filmdev.ts`) or through `createSupabaseProxy`.
+Every Node handler runs inside the **request envelope**,
+`withEnvelope(policy, handler)` from `../utils/requestEnvelope.ts`. Data
+handlers add the **API-key layer** on top through `withHandler` from
+`../utils/withHandler.ts`, either directly (`filmdev.ts`) or through
+`createSupabaseProxy`. Nothing hand-rolls CORS, `OPTIONS`, or a method guard.
 
-`withHandler` centralizes:
+The envelope centralizes:
 
-1. Request ID + user-agent normalization
-2. CORS headers and `OPTIONS` handling
-3. GET-only method guard
-4. Required env var validation
-5. Host-based Unkey auth and rate limiting
-6. Outer error mapping (`AbortError`/`TimeoutError` => 504, fetch network => 502, generic => 500)
+1. Request ID, user-agent normalization, request logging
+2. Host classification (`ctx.isPublicApi`: `api.dorkroom.art`, or any host it
+   cannot place)
+3. `X-Content-Type-Options: nosniff` on every response
+4. CORS per `policy.cors`: `'public-api'` (data endpoints), `'any-host'`
+   (`openapi`, `not-found`), or `'none'`
+5. `OPTIONS` answers **204** with `Allow`; a method outside `policy.methods`
+   answers **405** with `Allow` and `{ error, allowed, requestId }`. `Allow`
+   and `Access-Control-Allow-Methods` both list `policy.methods` plus `OPTIONS`
+6. Cache policy: `policy.cache` pins `Cache-Control` (`publicApi` on the api
+   host, `always` everywhere) before the handler runs. Handlers call
+   `ctx.setCacheControl(value)` for a cacheable success, which is a no-op where
+   a value is pinned, so no handler branches on host to pick its cache
+7. Required env var validation
+8. Outer error mapping (`AbortError`/`TimeoutError` => 504, fetch network => 502, generic => 500)
 
-`docs.ts`, `openapi.ts`, `reference.ts`, `meta.ts`, and `og.tsx` are plain
-handlers. They serve static or derived content and need no key. `og.tsx` does
-call `/api/films`, `/api/developers`, and `/api/combinations`, which is why it
-has its own rate limit (above).
+`withHandler` = envelope (`methods: ['GET']`, `cors: 'public-api'`,
+`cache.publicApi: 'private, no-store'`) + `withApiKey`, which sets `Vary` and
+runs host-based Unkey auth and rate limiting before the handler. Unkey is
+reached only through the `UnkeyClient` interface; `HandlerConfig.createUnkeyClient`
+swaps in a test stand-in, and deployed handlers get the real SDK client.
+
+`docs.ts`, `openapi.ts`, `reference.ts`, `meta.ts`, and `not-found.ts` use the
+envelope alone: they serve static or derived content and need no key. `meta.ts`
+also allows `HEAD`, since some crawlers probe with it. `og.tsx` is edge
+runtime and keeps its own guards (above); it calls `/api/films`,
+`/api/developers`, and `/api/combinations`, which is why it has its own rate
+limit.
+
+### Upstream fetches
+
+Both data paths fetch through `fetchUpstreamJson(res, ctx, { url, headers,
+label, cache })` in `../utils/fetchUpstreamJson.ts`: 30s timeout, non-OK to a
+generic 502 (an `onUpstreamStatus` hook may claim a status first: the proxy
+passes a 400 through, `filmdev` maps a 404), JSON `content-type` check,
+declared `content-length` over 1 MB to 502, parse failure to 502, logging, and
+the success cache through `ctx.setCacheControl`.
 
 ### Supabase proxies
 
 A proxy route is a config object plus one call. `createSupabaseProxy` supplies
-the fetch, the 30s timeout (`AbortSignal.timeout`), the 1 MB response cap,
-query sanitization against `allowedParams`, and structured logging:
+the upstream URL and headers, query sanitization against `allowedParams`, and
+the 400 pass-through; `fetchUpstreamJson` does the rest:
 
 ```typescript
 export const filmsProxyConfig: SupabaseProxyConfig = {
@@ -108,9 +138,18 @@ on that list is dropped before the upstream call.
 
 All under `/utils`:
 
-- `withHandler.ts` - common wrapper and Unkey integration
+- `requestEnvelope.ts` - `withEnvelope`, the request envelope every Node handler uses
+- `withHandler.ts` - the API-key layer (`withApiKey`) and `withHandler`
+  (envelope + key layer) for data endpoints; Unkey integration
+- `fetchUpstreamJson.ts` - the shared upstream JSON fetch described above
+- `rateLimitPolicy.ts` - the one home for rate-limit policy: anonymous and
+  per-client budgets, per-key tiers, and namespace
+  resolution. Imported by `withHandler.ts`, `edgeRateLimit.ts`,
+  `scripts/unkey-keys.ts`, and `api/docs.ts`. Edge-safe (no Node imports).
+  `utils/__tests__/rateLimitPolicy.test.ts` fails if the limits quoted in
+  `docs/API.md`, this file, or `packages/api/CLAUDE.md` drift from it
 - `edgeRateLimit.ts` - edge-safe Unkey rate limit over plain `fetch` (no SDK,
-  no Node imports) plus the shared anonymous namespace and 30 req/min budget
+  no Node imports), using the anonymous namespace and budget from `rateLimitPolicy.ts`
 - `queryPatterns.ts` - slug/UUID/ISO/brand/preset patterns shared by `meta.ts` and `og.tsx`
 - `createSupabaseProxy.ts` - the proxy factory described above
 - `queryValidation.ts` - allowlist-based query sanitization
@@ -137,7 +176,7 @@ Two access modes are supported from one Vercel project:
     key-only limiting; a malformed value is treated as
     absent (never rejected). Implemented in
     `applyClientIdentityRateLimit`/`applyNamespaceRateLimit` in
-    `utils/withHandler.ts`.
+    `utils/withHandler.ts`; the numbers live in `utils/rateLimitPolicy.ts`.
 
 - `dorkroom.art/api/*`
   - No API key required
@@ -165,7 +204,12 @@ Unkey integration:
 
 Operational note:
 
-- Use `bun run keys:anon-bootstrap` to create/check the anonymous ratelimit namespace.
+- Use `bun run keys:anon-bootstrap` to create/check the anonymous ratelimit
+  namespace, and `bun run keys:anon-bootstrap -- --scope client` for the
+  per-client one. Both resolve the namespace exactly as the runtime does
+  (`getRateLimitNamespace` in `utils/rateLimitPolicy.ts`). In production the
+  runtime fails closed (500) if a namespace is missing and the key lacks
+  `create_namespace`, so bootstrap both before deploying.
 - This command uses `UNKEY_ROOT_KEY` (runtime key), not `UNKEY_ADMIN_ROOT_KEY`.
 
 ## Testing
