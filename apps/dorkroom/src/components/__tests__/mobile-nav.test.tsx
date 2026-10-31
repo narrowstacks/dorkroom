@@ -126,3 +126,47 @@ describe('MobileNav breakpoint', () => {
     }
   });
 });
+
+/**
+ * #516: the floating toggle ("Close navigation" while open) must stack above
+ * the drawer, or the drawer footer's Settings button takes its taps. happy-dom
+ * has no layout or hit testing, so assert the stacking classes here; the
+ * `elementFromPoint` check runs in a real browser.
+ */
+describe('MobileNav floating toggle stacking (#516)', () => {
+  const zIndexOf = (el: HTMLElement) => {
+    const match = /(?:^|\s)z-(?:\[(\d+)\]|(\d+))(?:\s|$)/.exec(el.className);
+    return Number(match?.[1] ?? match?.[2]);
+  };
+
+  it('stacks the floating toggle above the open drawer', () => {
+    render346(<MobileNav pathname="/" onNavigate={vi.fn()} />);
+    const toggle = screen.getByRole('button', { name: 'Open navigation' });
+    fireEvent.click(toggle);
+    const drawer = screen.getByRole('dialog', { name: 'Navigation menu' });
+
+    expect(toggle).toHaveAccessibleName('Close navigation');
+    expect(zIndexOf(toggle)).toBeGreaterThan(zIndexOf(drawer));
+  });
+
+  it('keeps the closed toggle at z-50 so later-DOM z-50 bottom sheets cover it', () => {
+    // Bottom sheets (border settings, custom recipe form) are z-50 and later
+    // in the DOM than the nav, so a closed toggle above 50 would cover them.
+    render346(<MobileNav pathname="/" onNavigate={vi.fn()} />);
+    const toggle = screen.getByRole('button', { name: 'Open navigation' });
+
+    expect(zIndexOf(toggle)).toBeLessThanOrEqual(50);
+  });
+
+  // Class-only check; the real guard is the browser elementFromPoint run on
+  // the PR (Settings must clear the toggle).
+  it('pads the drawer bottom so the footer clears the floating toggle', () => {
+    render346(<MobileNav pathname="/" onNavigate={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
+    const drawer = screen.getByRole('dialog', { name: 'Navigation menu' });
+
+    expect(drawer.className).toContain(
+      'pb-[calc(env(safe-area-inset-bottom)+5rem)]'
+    );
+  });
+});
