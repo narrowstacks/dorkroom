@@ -431,6 +431,11 @@ const MIGRATED_HOVER_PAIRS: HoverPair[] = [
     foreground: 'text-on-hover-surface',
   },
   {
+    name: 'searchable select option',
+    background: 'bg-hover-surface',
+    foreground: 'text-on-hover-surface',
+  },
+  {
     name: 'save recipe',
     background: 'bg-text-secondary',
     foreground: 'text-background',

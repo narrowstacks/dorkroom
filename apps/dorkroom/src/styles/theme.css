@@ -1094,6 +1094,13 @@
   stroke: var(--color-background) !important;
 }
 
+/* Same opt-out for controls that only fill with a colour on hover (the
+   collapsed filter panel's expand button turns brand red under the red icon). */
+[data-theme="darkroom"] .darkroom-hover-invert-icon:hover svg {
+  color: var(--color-background) !important;
+  stroke: var(--color-background) !important;
+}
+
 /* Override: official badge icon stays black in darkroom theme */
 [data-theme="darkroom"] .official-badge svg {
   color: var(--color-official-badge-icon) !important;
