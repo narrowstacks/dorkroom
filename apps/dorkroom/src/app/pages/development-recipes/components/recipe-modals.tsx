@@ -11,14 +11,9 @@ import {
 import type { FC } from 'react';
 import { CustomRecipeModal } from './custom-recipe-modal';
 import { ImportRecipeModal } from './import-recipe-modal';
-import { RecipeDetailModal } from './recipe-detail-modal';
 
 export interface RecipeModalsProps {
   isMobile: boolean;
-  // Detail modal
-  isDetailOpen: boolean;
-  detailView: DevelopmentCombinationView | null;
-  onCloseDetail: () => void;
   // Custom recipe modal
   isCustomModalOpen: boolean;
   editingRecipe: DevelopmentCombinationView | null;
@@ -48,21 +43,14 @@ export interface RecipeModalsProps {
   filmdevPreviewRecipe: DevelopmentCombinationView | null;
   onCloseFilmdevPreview: () => void;
   onConfirmFilmdevImport: () => Promise<void>;
-  // Common handlers
-  isFavorite: (id: string) => boolean;
-  toggleFavorite: (id: string) => void;
-  onEditCustomRecipe: (view: DevelopmentCombinationView) => void;
-  onDeleteCustomRecipe: (view: DevelopmentCombinationView) => void;
-  onShareRecipe: (view: DevelopmentCombinationView) => Promise<void>;
-  onCopyRecipe: (view: DevelopmentCombinationView) => Promise<void>;
+  // Favorites, for the shared recipe preview
+  isFavorite: (view: DevelopmentCombinationView) => boolean;
+  onToggleFavorite: (view: DevelopmentCombinationView) => void;
 }
 
 export const RecipeModals: FC<RecipeModalsProps> = (props) => {
   const {
     isMobile,
-    isDetailOpen,
-    detailView,
-    onCloseDetail,
     isCustomModalOpen,
     editingRecipe,
     isSubmittingRecipe,
@@ -89,28 +77,11 @@ export const RecipeModals: FC<RecipeModalsProps> = (props) => {
     onCloseFilmdevPreview,
     onConfirmFilmdevImport,
     isFavorite,
-    toggleFavorite,
-    onEditCustomRecipe,
-    onDeleteCustomRecipe,
-    onShareRecipe,
-    onCopyRecipe,
+    onToggleFavorite,
   } = props;
 
   return (
     <>
-      <RecipeDetailModal
-        isOpen={isDetailOpen && !!detailView}
-        onClose={onCloseDetail}
-        detailView={detailView}
-        isMobile={isMobile}
-        isFavorite={isFavorite}
-        toggleFavorite={toggleFavorite}
-        onEditCustomRecipe={onEditCustomRecipe}
-        onDeleteCustomRecipe={onDeleteCustomRecipe}
-        onShareRecipe={onShareRecipe}
-        onCopyRecipe={onCopyRecipe}
-      />
-
       <CustomRecipeModal
         isOpen={isCustomModalOpen}
         onClose={onCloseCustomModal}
@@ -142,12 +113,8 @@ export const RecipeModals: FC<RecipeModalsProps> = (props) => {
         recipeSource={sharedRecipeSource}
         isMobile={isMobile}
         hideAddToCollection={false}
-        isFavorite={(view) =>
-          isFavorite(String(view.combination.uuid || view.combination.id))
-        }
-        onToggleFavorite={(view) =>
-          toggleFavorite(String(view.combination.uuid || view.combination.id))
-        }
+        isFavorite={isFavorite}
+        onToggleFavorite={onToggleFavorite}
       />
 
       <FilmdevPreviewModal

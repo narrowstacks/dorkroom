@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useBodyScrollLock } from '../hooks/use-body-scroll-lock';
 import { useEscapeKey } from '../hooks/use-escape-key';
 import { cn } from '../lib/cn';
 
@@ -52,7 +53,6 @@ export function Drawer({
     const frame = requestAnimationFrame(() => {
       setTransition((prev) => ({ ...prev, animateOpen: true }));
     });
-    document.body.style.overflow = 'hidden';
     return () => cancelAnimationFrame(frame);
   }, []);
 
@@ -63,15 +63,18 @@ export function Drawer({
       () => setTransition((prev) => ({ ...prev, showContent: false })),
       300
     );
-    document.body.style.overflow = 'unset';
     return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-doctor/no-adjust-state-on-prop-change, react-doctor/no-derived-state -- the transition state is not derivable from isOpen: it is a timed animation sequence (rAF-delayed slide-in, 300ms slide-out before unmounting) that also locks body scroll
+    // eslint-disable-next-line react-doctor/no-adjust-state-on-prop-change, react-doctor/no-derived-state -- the transition state is not derivable from isOpen: it is a timed animation sequence (rAF-delayed slide-in, 300ms slide-out before unmounting)
     return isOpen ? runOpenTransition() : runCloseTransition();
   }, [isOpen, runOpenTransition, runCloseTransition]);
 
+  // Page scroll follows isOpen, not the slide-out: it unlocks as the close
+  // animation starts. Counted, so a drawer over another overlay keeps the
+  // page locked until both have closed.
+  useBodyScrollLock(isOpen);
   useEscapeKey(isOpen, onClose);
 
   const transformClasses = {

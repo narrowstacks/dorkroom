@@ -1,6 +1,7 @@
 import { GripVertical, Maximize2, Minimize2, X } from 'lucide-react';
 import { type FC, type ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useBodyScrollLock } from '../../hooks/use-body-scroll-lock';
 import { useEscapeKey } from '../../hooks/use-escape-key';
 import { hasGlobal } from '../../lib/dom';
 
@@ -124,17 +125,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
   }, [isOpen]);
 
   // Body scroll lock when panel is open (mobile or expanded)
-  useEffect(() => {
-    if (!isOpen || (!isMobile && !isExpanded)) {
-      return;
-    }
-
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [isOpen, isMobile, isExpanded]);
+  useBodyScrollLock(isOpen && (isMobile || isExpanded));
 
   // Escape collapses an expanded panel first, then closes it. Routed through
   // the shared dismiss stack so a dialog opened above the panel takes the

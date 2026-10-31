@@ -260,7 +260,7 @@ build-time prerender snapshots stay deterministic.
 - Favorites filtering
 - Grid and table view modes
 - Pagination
-- Recipe detail modal
+- Recipe detail panel (sidebar on desktop, bottom drawer on mobile)
 - Custom recipe creation/editing
 - Recipe sharing (URL and clipboard)
 - Recipe import from external sources

@@ -1,56 +1,136 @@
 import '@testing-library/jest-dom/vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import type { Combination, Developer, Film } from '@dorkroom/api';
+import type { DevelopmentCombinationView } from '@dorkroom/logic';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RecipeDetailPanel } from '../../components/development-recipes/recipe-detail-panel';
 import { TemperatureProvider } from '../../contexts/temperature-context';
 import { VolumeProvider } from '../../contexts/volume-context';
-import type { DevelopmentCombinationView } from '../../development-recipes';
 
-const customView: DevelopmentCombinationView = {
-  combination: {
-    id: -1,
-    uuid: 'custom-1',
-    name: 'Custom recipe',
-    filmStockId: 'film-1',
-    filmSlug: 'film-1',
-    developerId: 'dev-1',
-    developerSlug: 'dev-1',
-    temperatureF: 68,
-    temperatureC: 20,
-    timeMinutes: 9.5,
-    shootingIso: 400,
-    pushPull: 0,
-    agitationMethod: 'Standard',
-    agitationSchedule: null,
-    notes: null,
-    customDilution: null,
-    dilutionId: null,
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-    tags: ['custom'],
-    infoSource: null,
-  },
-  source: 'custom',
+const TIMESTAMP = '2026-01-01T00:00:00.000Z';
+
+const film: Film = {
+  id: 1,
+  uuid: 'f1',
+  slug: 'hp5',
+  name: 'HP5 Plus',
+  brand: 'Ilford',
+  isoSpeed: 400,
+  colorType: 'bw',
+  grainStructure: null,
+  description: '',
+  manufacturerNotes: null,
+  reciprocityFailure: null,
+  discontinued: false,
+  staticImageUrl: null,
+  aliases: [],
+  baseFilmSlug: null,
+  dateAdded: TIMESTAMP,
+  createdAt: TIMESTAMP,
+  updatedAt: TIMESTAMP,
 };
 
-describe('RecipeDetailPanel sharing', () => {
-  it('offers Share on a custom recipe', () => {
-    const onShareRecipe = vi.fn();
-    render(
-      <TemperatureProvider>
-        <VolumeProvider>
-          <RecipeDetailPanel
-            view={customView}
-            isOpen
-            onClose={() => undefined}
-            isMobile={false}
-            onShareRecipe={onShareRecipe}
-          />
-        </VolumeProvider>
-      </TemperatureProvider>
-    );
+const developer: Developer = {
+  id: 1,
+  uuid: 'd1',
+  slug: 'dd-x',
+  name: 'DD-X',
+  manufacturer: 'Ilford',
+  type: 'concentrate',
+  description: '',
+  filmOrPaper: true,
+  dilutions: [],
+  mixingInstructions: null,
+  storageRequirements: null,
+  safetyNotes: null,
+  notes: null,
+  createdAt: TIMESTAMP,
+  updatedAt: TIMESTAMP,
+};
+
+const combination: Combination = {
+  id: 1,
+  uuid: 'c1',
+  name: 'HP5 in DD-X',
+  filmStockId: 'f1',
+  filmSlug: 'hp5',
+  developerId: 'd1',
+  developerSlug: 'dd-x',
+  shootingIso: 400,
+  dilutionId: null,
+  customDilution: '1+4',
+  temperatureC: 20,
+  temperatureF: 68,
+  timeMinutes: 9,
+  agitationMethod: 'standard',
+  agitationSchedule: null,
+  pushPull: 0,
+  tags: [],
+  notes: null,
+  infoSource: null,
+  createdAt: TIMESTAMP,
+  updatedAt: TIMESTAMP,
+};
+
+const viewOf = (source: 'api' | 'custom'): DevelopmentCombinationView => ({
+  combination,
+  film,
+  developer,
+  source,
+});
+
+function renderPanel(
+  source: 'api' | 'custom',
+  handlers: {
+    onShareRecipe?: (view: DevelopmentCombinationView) => void;
+    onCopyRecipe?: (view: DevelopmentCombinationView) => void;
+  } = {}
+) {
+  const view = viewOf(source);
+  const onShareRecipe = handlers.onShareRecipe ?? vi.fn();
+  const onCopyRecipe = handlers.onCopyRecipe ?? vi.fn();
+  render(
+    <TemperatureProvider>
+      <VolumeProvider>
+        <RecipeDetailPanel
+          view={view}
+          isOpen
+          onClose={vi.fn()}
+          isMobile={false}
+          onToggleFavorite={vi.fn()}
+          onShareRecipe={onShareRecipe}
+          onCopyRecipe={onCopyRecipe}
+        />
+      </VolumeProvider>
+    </TemperatureProvider>
+  );
+  return { view, onShareRecipe, onCopyRecipe };
+}
+
+const hasButton = (name: string) =>
+  screen.queryByRole('button', { name }) !== null;
+
+afterEach(cleanup);
+
+describe('RecipeDetailPanel share actions', () => {
+  it('offers Share, never Copy link, on a built-in recipe', () => {
+    renderPanel('api');
+    expect(hasButton('Share')).toBe(true);
+    expect(hasButton('Copy link')).toBe(false);
+  });
+
+  it('offers Share and Copy link on a custom recipe', () => {
+    renderPanel('custom');
+    expect(hasButton('Share')).toBe(true);
+    expect(hasButton('Copy link')).toBe(true);
+  });
+
+  it('passes the custom recipe to the share and copy callbacks', () => {
+    const { view, onShareRecipe, onCopyRecipe } = renderPanel('custom');
 
     fireEvent.click(screen.getByRole('button', { name: 'Share' }));
-    expect(onShareRecipe).toHaveBeenCalledWith(customView);
+    expect(onShareRecipe).toHaveBeenCalledWith(view);
+    fireEvent.click(screen.getByRole('button', { name: 'Copy link' }));
+    expect(onCopyRecipe).toHaveBeenCalledWith(view);
   });
 });

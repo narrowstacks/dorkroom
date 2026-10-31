@@ -20,6 +20,7 @@ import {
   CollapsibleFilters,
   createTableColumns,
   DevelopmentActionsBar,
+  type DevelopmentCombinationView,
   FilmDeveloperSelection,
   FiltersSidebar,
   MobileSortingControls,
@@ -50,6 +51,12 @@ import { useRecipeData, useRecipesByUuid } from './hooks/useRecipeData';
 import { useRecipeModals } from './hooks/useRecipeModals';
 import { useResultsPagination } from './hooks/useResultsPagination';
 import { useUrlStateSync } from './hooks/useUrlStateSync';
+
+const DEVELOPER_TYPE_OPTIONS = [
+  { label: 'All developers', value: '' },
+  { label: 'Powder', value: 'powder' },
+  { label: 'Concentrate', value: 'concentrate' },
+];
 
 // eslint-disable-next-line react-doctor/no-giant-component, react-doctor/prefer-useReducer -- top-level page that wires together many independent feature hooks; splitting/reducer-izing was attempted but regressed behavior, so it is kept as the composition root (tracked as follow-up)
 export default function DevelopmentRecipesPage() {
@@ -495,6 +502,100 @@ export default function DevelopmentRecipesPage() {
     setFavoritesOnly,
   });
 
+  // Raw toggle for the detail panel and the shared recipe preview: it skips the
+  // list's fade animation and its favorite_toggled event, as both always did.
+  const handleToggleViewFavorite = (view: DevelopmentCombinationView) =>
+    toggleFavorite(String(view.combination.uuid || view.combination.id));
+
+  // One props object for whichever filter module the breakpoint mounts.
+  const filterProps = {
+    searchQuery,
+    onSearchChange: setSearchQuery,
+    developerTypeFilter,
+    onDeveloperTypeFilterChange: handleDeveloperTypeFilterChange,
+    developerTypeOptions: DEVELOPER_TYPE_OPTIONS,
+    dilutionFilter,
+    onDilutionFilterChange: handleDilutionFilterChange,
+    dilutionOptions: getAvailableDilutions(),
+    isoFilter,
+    onIsoFilterChange: handleIsoFilterChange,
+    isoOptions: getAvailableISOs(),
+    customRecipeFilter,
+    onCustomRecipeFilterChange: handleCustomRecipeFilterChange,
+    favoritesOnly,
+    onFavoritesOnlyChange: handleFavoritesOnlyChange,
+    onClearFilters: handleClearFilters,
+    showDeveloperTypeFilter: !selectedDeveloper,
+    showDilutionFilter: !!selectedDeveloper,
+  };
+
+  const filmDeveloperProps = {
+    selectedFilm: selectedFilm?.uuid || '',
+    onFilmChange: (value: string) => {
+      const film = allFilms.find((f) => f.uuid === value);
+      setSelectedFilm(film || null);
+    },
+    filmOptions,
+    selectedDeveloper: selectedDeveloper?.uuid || '',
+    onDeveloperChange: (value: string) => {
+      const developer = allDevelopers.find((d) => d.uuid === value);
+      setSelectedDeveloper(developer || null);
+    },
+    developerOptions,
+  };
+
+  const resultsSection = (
+    <RecipeResultsSection
+      isLoading={isLoading}
+      isRefreshingData={isRefreshingData}
+      isLoaded={isLoaded}
+      isMobile={isMobile}
+      viewMode={viewMode}
+      table={table}
+      resultsContainerRef={resultsContainerRef}
+      virtualScrollContainerRef={virtualScrollContainerRef}
+      favoriteTransitions={favoriteTransitions}
+      onSelectCombination={handleOpenDetail}
+      onToggleFavorite={handleToggleFavorite}
+      onShareCombination={handleShareCombination}
+      onCopyCombination={handleCopyCombination}
+      onEditCustomRecipe={handleEditCustomRecipe}
+      onDeleteCustomRecipe={handleDeleteCustomRecipe}
+      isFavorite={handleCheckFavorite}
+      selectedRecipeId={selectedRecipeId}
+    />
+  );
+
+  const pagination = !isLoading && !isRefreshingData && (
+    <div className="animate-slide-fade-top animate-delay-300">
+      <PaginationControls table={table} />
+    </div>
+  );
+
+  // One detail panel for both breakpoints: it renders the sidebar or the
+  // bottom drawer itself through `isMobile`. Keyed by breakpoint so crossing
+  // it starts the panel fresh (an expanded desktop modal drops back to the
+  // drawer instead of carrying its state over).
+  const detailPanel = (
+    <RecipeDetailPanel
+      key={isMobile ? 'mobile' : 'desktop'}
+      view={detailView}
+      // On mobile the drawer is portaled above the form drawers (z-[100] vs
+      // z-50), so it steps aside while the custom recipe form is open and
+      // returns, showing the saved recipe, when the form closes.
+      isOpen={isDetailOpen && !(isMobile && isCustomModalOpen)}
+      onClose={() => setIsDetailOpen(false)}
+      isMobile={isMobile}
+      isFavorite={handleCheckFavorite}
+      onToggleFavorite={handleToggleViewFavorite}
+      onEditCustomRecipe={handleEditCustomRecipe}
+      onDeleteCustomRecipe={handleDeleteCustomRecipe}
+      onShareRecipe={handleShareCombination}
+      onCopyRecipe={handleCopyCombination}
+      maxHeight={isMobile ? undefined : mainContentHeight}
+    />
+  );
+
   return (
     <TemperatureProvider>
       {/* Max-width of 1920px accommodates wider displays while maintaining content readability */}
@@ -533,76 +634,24 @@ export default function DevelopmentRecipesPage() {
         {isMobile ? (
           <>
             <FilmDeveloperSelection
-              selectedFilm={selectedFilm?.uuid || ''}
-              onFilmChange={(value) => {
-                const film = allFilms.find((f) => f.uuid === value);
-                setSelectedFilm(film || null);
-              }}
+              selectedFilm={filmDeveloperProps.selectedFilm}
+              onFilmChange={filmDeveloperProps.onFilmChange}
               filmOptions={filmOptions}
-              selectedDeveloper={selectedDeveloper?.uuid || ''}
-              onDeveloperChange={(value) => {
-                const developer = allDevelopers.find((d) => d.uuid === value);
-                setSelectedDeveloper(developer || null);
-              }}
+              selectedDeveloper={filmDeveloperProps.selectedDeveloper}
+              onDeveloperChange={filmDeveloperProps.onDeveloperChange}
               developerOptions={developerOptions}
             />
 
-            <CollapsibleFilters
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              developerTypeFilter={developerTypeFilter}
-              onDeveloperTypeFilterChange={handleDeveloperTypeFilterChange}
-              developerTypeOptions={[
-                { label: 'All developers', value: '' },
-                { label: 'Powder', value: 'powder' },
-                { label: 'Concentrate', value: 'concentrate' },
-              ]}
-              dilutionFilter={dilutionFilter}
-              onDilutionFilterChange={handleDilutionFilterChange}
-              dilutionOptions={getAvailableDilutions()}
-              isoFilter={isoFilter}
-              onIsoFilterChange={handleIsoFilterChange}
-              isoOptions={getAvailableISOs()}
-              customRecipeFilter={customRecipeFilter}
-              onCustomRecipeFilterChange={handleCustomRecipeFilterChange}
-              onClearFilters={handleClearFilters}
-              showDeveloperTypeFilter={!selectedDeveloper}
-              showDilutionFilter={!!selectedDeveloper}
-              defaultCollapsed={true}
-              favoritesOnly={favoritesOnly}
-              onFavoritesOnlyChange={handleFavoritesOnlyChange}
-            />
+            <CollapsibleFilters {...filterProps} defaultCollapsed={true} />
 
             <MobileSortingControls
               sorting={sorting}
               onSortingChange={setSorting}
             />
 
-            <RecipeResultsSection
-              isLoading={isLoading}
-              isRefreshingData={isRefreshingData}
-              isLoaded={isLoaded}
-              isMobile={isMobile}
-              viewMode={viewMode}
-              table={table}
-              resultsContainerRef={resultsContainerRef}
-              virtualScrollContainerRef={virtualScrollContainerRef}
-              favoriteTransitions={favoriteTransitions}
-              onSelectCombination={handleOpenDetail}
-              onToggleFavorite={handleToggleFavorite}
-              onShareCombination={handleShareCombination}
-              onCopyCombination={handleCopyCombination}
-              onEditCustomRecipe={handleEditCustomRecipe}
-              onDeleteCustomRecipe={handleDeleteCustomRecipe}
-              isFavorite={handleCheckFavorite}
-              selectedRecipeId={selectedRecipeId}
-            />
-
-            {!isLoading && !isRefreshingData && (
-              <div className="animate-slide-fade-top animate-delay-300">
-                <PaginationControls table={table} />
-              </div>
-            )}
+            {resultsSection}
+            {pagination}
+            {detailPanel}
           </>
         ) : (
           <div className="flex gap-4">
@@ -611,44 +660,12 @@ export default function DevelopmentRecipesPage() {
               style={{ width: isFiltersSidebarCollapsed ? '64px' : '304px' }}
             >
               <FiltersSidebar
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                selectedFilm={selectedFilm?.uuid || ''}
-                onFilmChange={(value) => {
-                  const film = allFilms.find((f) => f.uuid === value);
-                  setSelectedFilm(film || null);
-                }}
-                filmOptions={filmOptions}
-                selectedDeveloper={selectedDeveloper?.uuid || ''}
-                onDeveloperChange={(value) => {
-                  const developer = allDevelopers.find((d) => d.uuid === value);
-                  setSelectedDeveloper(developer || null);
-                }}
-                developerOptions={developerOptions}
-                developerTypeFilter={developerTypeFilter}
-                onDeveloperTypeFilterChange={handleDeveloperTypeFilterChange}
-                developerTypeOptions={[
-                  { label: 'All developers', value: '' },
-                  { label: 'Powder', value: 'powder' },
-                  { label: 'Concentrate', value: 'concentrate' },
-                ]}
-                dilutionFilter={dilutionFilter}
-                onDilutionFilterChange={handleDilutionFilterChange}
-                dilutionOptions={getAvailableDilutions()}
-                isoFilter={isoFilter}
-                onIsoFilterChange={handleIsoFilterChange}
-                isoOptions={getAvailableISOs()}
-                customRecipeFilter={customRecipeFilter}
-                onCustomRecipeFilterChange={handleCustomRecipeFilterChange}
-                favoritesOnly={favoritesOnly}
-                onFavoritesOnlyChange={handleFavoritesOnlyChange}
+                {...filterProps}
+                {...filmDeveloperProps}
                 sorting={sorting}
                 onSortingChange={setSorting}
                 showSortingControls={viewMode === 'grid'}
-                onClearFilters={handleClearFilters}
                 onClearSelections={clearSelections}
-                showDeveloperTypeFilter={!selectedDeveloper}
-                showDilutionFilter={!!selectedDeveloper}
                 onCollapsedChange={setIsFiltersSidebarCollapsed}
                 collapsed={isFiltersSidebarCollapsed}
                 defaultCollapsed={false}
@@ -656,60 +673,16 @@ export default function DevelopmentRecipesPage() {
             </aside>
 
             <main ref={mainContentRef} className="flex-1 min-w-0 space-y-3">
-              <RecipeResultsSection
-                isLoading={isLoading}
-                isRefreshingData={isRefreshingData}
-                isLoaded={isLoaded}
-                isMobile={isMobile}
-                viewMode={viewMode}
-                table={table}
-                resultsContainerRef={resultsContainerRef}
-                virtualScrollContainerRef={virtualScrollContainerRef}
-                favoriteTransitions={favoriteTransitions}
-                onSelectCombination={handleOpenDetail}
-                onToggleFavorite={handleToggleFavorite}
-                onShareCombination={handleShareCombination}
-                onCopyCombination={handleCopyCombination}
-                onEditCustomRecipe={handleEditCustomRecipe}
-                onDeleteCustomRecipe={handleDeleteCustomRecipe}
-                isFavorite={handleCheckFavorite}
-                selectedRecipeId={selectedRecipeId}
-              />
-
-              {!isLoading && !isRefreshingData && (
-                <div className="animate-slide-fade-top animate-delay-300">
-                  <PaginationControls table={table} />
-                </div>
-              )}
+              {resultsSection}
+              {pagination}
             </main>
 
-            {/* Recipe detail sidebar (desktop only) */}
-            <RecipeDetailPanel
-              view={detailView}
-              isOpen={isDetailOpen}
-              onClose={() => setIsDetailOpen(false)}
-              isMobile={false}
-              isFavorite={(view) =>
-                isFavorite(String(view.combination.uuid || view.combination.id))
-              }
-              onToggleFavorite={(view) =>
-                toggleFavorite(
-                  String(view.combination.uuid || view.combination.id)
-                )
-              }
-              onEditCustomRecipe={handleEditCustomRecipe}
-              onDeleteCustomRecipe={handleDeleteCustomRecipe}
-              onShareRecipe={handleShareCombination}
-              maxHeight={mainContentHeight}
-            />
+            {detailPanel}
           </div>
         )}
 
         <RecipeModals
           isMobile={isMobile}
-          isDetailOpen={isMobile && isDetailOpen}
-          detailView={detailView}
-          onCloseDetail={() => setIsDetailOpen(false)}
           isCustomModalOpen={isCustomModalOpen}
           editingRecipe={editingRecipe}
           isSubmittingRecipe={isSubmittingRecipe}
@@ -738,12 +711,8 @@ export default function DevelopmentRecipesPage() {
           filmdevPreviewRecipe={filmdevPreviewRecipe}
           onCloseFilmdevPreview={handleCloseFilmdevPreview}
           onConfirmFilmdevImport={handleConfirmFilmdevImport}
-          isFavorite={isFavorite}
-          toggleFavorite={toggleFavorite}
-          onEditCustomRecipe={handleEditCustomRecipe}
-          onDeleteCustomRecipe={handleDeleteCustomRecipe}
-          onShareRecipe={handleShareCombination}
-          onCopyRecipe={handleCopyCombination}
+          isFavorite={handleCheckFavorite}
+          onToggleFavorite={handleToggleViewFavorite}
         />
 
         <ConfirmModal
