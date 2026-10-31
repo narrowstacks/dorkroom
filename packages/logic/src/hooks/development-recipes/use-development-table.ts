@@ -53,18 +53,32 @@ const compareNumbers = (a?: number | null, b?: number | null) => {
  * calling isFavorite() (which may traverse storage) for every row-pair
  * comparison during the O(n log n) sort pass.
  *
+ * TanStack multiplies a sortingFn's result by -1 for a descending column, and
+ * the fn is not told the direction. So the favorite ordering is pre-flipped
+ * for descending columns (read from the sorting state): the multiplication
+ * then restores "favorites first". Column comparisons are left as they are, so
+ * favorites still order among themselves in the chosen direction.
+ *
  * @param favoriteIds - Pre-computed Set of favorited combination keys
+ * @param sorting - Current sorting state, to know which columns are descending
  */
 const createFavoriteAwareSortingFn = (
-  favoriteIds: Set<string>
+  favoriteIds: Set<string>,
+  sorting: SortingState
 ): SortingFn<DevelopmentCombinationView> => {
+  const descendingColumns = new Set(
+    sorting.filter((entry) => entry.desc).map((entry) => entry.id)
+  );
   return (rowA, rowB, columnId) => {
     const aIsFav = favoriteIds.has(getCombinationKey(rowA.original));
     const bIsFav = favoriteIds.has(getCombinationKey(rowB.original));
 
-    // Favorites always sort first
-    if (aIsFav && !bIsFav) return -1;
-    if (!aIsFav && bIsFav) return 1;
+    // Favorites always sort first. TanStack negates this for descending
+    // columns, so return the opposite sign there.
+    if (aIsFav !== bIsFav) {
+      const favoriteFirst = aIsFav ? -1 : 1;
+      return descendingColumns.has(columnId) ? -favoriteFirst : favoriteFirst;
+    }
 
     // For non-favorite comparisons, use the column-specific logic
     switch (columnId) {
@@ -148,12 +162,18 @@ export function useDevelopmentTable({
   }, [rows, isFavorite]);
 
   const favoriteSortingFn = useMemo(
-    () => createFavoriteAwareSortingFn(favoriteIdsSet),
-    [favoriteIdsSet]
+    () => createFavoriteAwareSortingFn(favoriteIdsSet, sorting),
+    [favoriteIdsSet, sorting]
   );
 
+  // TanStack memoizes the sorted model on the data reference, so hand it a
+  // fresh array when favorites change: the table then re-sorts even if the
+  // caller passes the same `rows` reference.
+  // oxlint-disable-next-line react-hooks/exhaustive-deps
+  const data = useMemo(() => [...rows], [rows, favoriteIdsSet]);
+
   const table = useReactTable({
-    data: rows,
+    data,
     columns,
     state: {
       sorting,
