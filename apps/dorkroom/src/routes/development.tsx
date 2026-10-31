@@ -1,12 +1,7 @@
 import { ROUTE_DESCRIPTIONS, ROUTE_TITLES } from '@dorkroom/ui';
 import { createFileRoute } from '@tanstack/react-router';
-import { lazy, Suspense } from 'react';
-import { LoadingSpinner } from '../components/loading-spinner';
+import { DevelopmentRoute } from '../components/development-route';
 import { developmentSearchSchema } from './search-schemas';
-
-const DevelopmentRecipesPage = lazy(
-  () => import('../app/pages/development-recipes/development-recipes-page')
-);
 
 export const Route = createFileRoute('/development')({
   validateSearch: developmentSearchSchema,
@@ -21,9 +16,5 @@ export const Route = createFileRoute('/development')({
       },
     ],
   }),
-  component: () => (
-    <Suspense fallback={<LoadingSpinner />}>
-      <DevelopmentRecipesPage />
-    </Suspense>
-  ),
+  component: DevelopmentRoute,
 });

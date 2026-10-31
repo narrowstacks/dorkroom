@@ -2,7 +2,7 @@ import type { BorderDiagram, HomeAnswer } from '@dorkroom/logic';
 import { cn } from '@dorkroom/ui';
 import { Link } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
-import { type ReactNode, useId } from 'react';
+import { type MouseEventHandler, type ReactNode, useId } from 'react';
 import { activeOptionClass } from './result-sections';
 
 const focusRing =
@@ -26,7 +26,7 @@ function EaselDiagram({
       className="h-auto w-full max-w-[12rem] sm:max-w-[14rem]"
     >
       <rect
-        className="home-easel-paper"
+        className="search-easel-paper"
         x={0}
         y={0}
         width={diagram.paperW}
@@ -35,7 +35,7 @@ function EaselDiagram({
         strokeWidth={0.06}
       />
       <rect
-        className="home-easel-print"
+        className="search-easel-print"
         x={diagram.printX}
         y={diagram.printY}
         width={diagram.printW}
@@ -106,15 +106,18 @@ interface AnswerCardProps {
    * in the results listbox for screen readers; this is what the eye follows.
    */
   highlighted?: boolean;
+  /** Called when the answer's link is clicked (the nav dialog closes on it). */
+  onNavigate?: MouseEventHandler<HTMLAnchorElement>;
   className?: string;
 }
 
-/** One answer from the home search: the number, how it was read, and where to go next. */
+/** One answer from the site search: the number, how it was read, and where to go next. */
 export function AnswerCard({
   answer,
   example,
   linkId,
   highlighted = false,
+  onNavigate,
   className,
 }: AnswerCardProps) {
   const titleId = useId();
@@ -262,6 +265,7 @@ export function AnswerCard({
           to={answer.link.target.to}
           search={answer.link.target.search}
           id={linkId}
+          onClick={onNavigate}
           className={cn(
             '-mx-1.5 inline-flex scroll-my-24 items-center gap-1 rounded-lg px-1.5 py-0.5 text-sm font-medium text-[color:var(--color-text-primary)] underline decoration-[color:var(--color-border-primary)] underline-offset-4 transition-colors hover:decoration-[color:var(--color-text-primary)]',
             highlighted && activeOptionClass,

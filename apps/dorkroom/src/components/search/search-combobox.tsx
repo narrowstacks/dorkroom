@@ -1,14 +1,6 @@
 import { Search, X } from 'lucide-react';
 import { type KeyboardEvent, type RefObject, useEffect, useId } from 'react';
-
-/** True when a key press lands in something the user is typing into. */
-function isTypingTarget(target: EventTarget | null): boolean {
-  return (
-    target instanceof HTMLElement &&
-    (target.isContentEditable ||
-      ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
-  );
-}
+import { isSearchShortcut, SEARCH_KEYSHORTCUTS } from './search-shortcut';
 
 interface SearchComboboxProps {
   /** The text box, so the page can return focus to it. */
@@ -27,14 +19,22 @@ interface SearchComboboxProps {
   /** The box gained or lost focus. */
   onFocusedChange: (focused: boolean) => void;
   placeholder: string;
+  /**
+   * The box stands on its own on the page (the home hero, the default):
+   * Escape clears it, and an empty box shows the "/" key that focuses it.
+   * Off in the search dialog, where Escape closes the dialog and the box
+   * already has focus.
+   */
+  standalone?: boolean;
 }
 
 /**
- * The home search box: a WAI-ARIA 1.2 combobox whose popup is the results
- * on the page itself (the answer's link, suggestions, matches), never a list
- * over them. Arrow keys move the active option (focus stays in the box),
- * Enter opens it (a suggestion fills the box), Escape clears the box. "/"
- * anywhere on the page focuses it.
+ * The search box: a WAI-ARIA 1.2 combobox whose popup is the results on the
+ * page itself (the answer's link, suggestions, matches), never a list over
+ * them. Arrow keys move the active option (focus stays in the box), Enter
+ * opens it (a suggestion fills the box), Escape clears the box (see
+ * `standalone`). The search shortcut (Cmd+K, Ctrl+K, or "/" outside a text
+ * field) focuses it.
  */
 export function SearchCombobox({
   inputRef,
@@ -47,20 +47,13 @@ export function SearchCombobox({
   onActiveChange,
   onFocusedChange,
   placeholder,
+  standalone = true,
 }: SearchComboboxProps) {
   const inputId = useId();
 
   useEffect(() => {
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (
-        event.key !== '/' ||
-        event.metaKey ||
-        event.ctrlKey ||
-        event.altKey ||
-        isTypingTarget(event.target)
-      ) {
-        return;
-      }
+      if (!isSearchShortcut(event)) return;
       event.preventDefault();
       inputRef.current?.focus();
     };
@@ -96,7 +89,8 @@ export function SearchCombobox({
         }
         break;
       case 'Escape':
-        if (value) {
+        // In the dialog Escape is left to bubble, and the dialog closes.
+        if (value && standalone) {
           event.preventDefault();
           onChange('');
         }
@@ -123,6 +117,7 @@ export function SearchCombobox({
         aria-expanded={options.length > 0}
         aria-controls={listId}
         aria-autocomplete="list"
+        aria-keyshortcuts={SEARCH_KEYSHORTCUTS}
         aria-activedescendant={activeId ?? undefined}
         autoComplete="off"
         autoCapitalize="none"
@@ -156,14 +151,14 @@ export function SearchCombobox({
         >
           <X aria-hidden className="size-4" />
         </button>
-      ) : (
+      ) : standalone ? (
         <kbd
           aria-hidden
           className="pointer-events-none absolute right-4 top-1/2 hidden -translate-y-1/2 rounded-lg border border-[color:var(--color-border-secondary)] px-1.5 text-xs text-[color:var(--color-text-tertiary)] sm:block"
         >
           /
         </kbd>
-      )}
+      ) : null}
     </div>
   );
 }

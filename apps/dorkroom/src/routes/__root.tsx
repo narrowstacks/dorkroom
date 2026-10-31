@@ -20,6 +20,7 @@ import { Beaker, GitBranch, Home, Newspaper, Settings } from 'lucide-react';
 import { useEffect } from 'react';
 import { usePreferenceAnalytics } from '../app/lib/analytics/use-preference-analytics';
 import { MobileNav } from '../components/mobile-nav';
+import { NavSearchButton, useNavSearch } from '../components/search/nav-search';
 
 function RootComponent() {
   const router = useRouter();
@@ -27,6 +28,10 @@ function RootComponent() {
   const pathname = routerState.location.pathname;
 
   usePreferenceAnalytics();
+
+  // The home page has its own search box: the nav's Search buttons focus it
+  // there rather than open a second one.
+  const navSearch = useNavSearch(pathname, pathname === '/');
 
   // Update document title based on route
   useEffect(() => {
@@ -83,7 +88,9 @@ function RootComponent() {
               borderColor: 'var(--color-border-muted)',
             }}
           >
-            <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4 sm:px-10">
+            {/* Tighter below xl: with the Search button, the nav and the icon
+                cluster only just fit at 1100px and up. */}
+            <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-6 py-4 sm:px-8 xl:gap-4 xl:px-10">
               <Link
                 to="/"
                 className="flex items-center gap-3"
@@ -138,7 +145,8 @@ function RootComponent() {
                   ))}
                 </div>
               </nav>
-              <div className="hidden items-center gap-3 sm:flex">
+              <div className="hidden items-center gap-2 sm:flex xl:gap-3">
+                <NavSearchButton variant="header" search={navSearch} />
                 <Tooltip label="Contribute on GitHub">
                   <a
                     href="https://github.com/narrowstacks/dorkroom"
@@ -195,7 +203,9 @@ function RootComponent() {
             </div>
           </header>
 
+          <NavSearchButton variant="fab" search={navSearch} />
           <MobileNav pathname={pathname} onNavigate={handleNavigate} />
+          {navSearch.dialog}
 
           {/* Reserves space below the page content on phones (<640px) so
               nothing at the bottom of a route's content can end up under the

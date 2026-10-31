@@ -36,8 +36,10 @@ that goes deeper. The search box is the hero: type a question and the page
 answers it with a real number, from the calculators' own math or the recipe
 database.
 
-**Location:** `apps/dorkroom/src/app/pages/home-page.tsx`, with the search in
-`apps/dorkroom/src/app/pages/home/`. The parsing and answers are
+**Location:** `apps/dorkroom/src/app/pages/home-page.tsx`. The search UI is
+`SearchPanel` (`variant="hero"`) in `apps/dorkroom/src/components/search/`,
+shared with the nav bar's search dialog (see [Site
+Search](#site-search)). The parsing and answers are
 `searchHome` / `suggestHome` in `packages/logic/src/utils/home-search/`, pure
 and platform-free so the iOS app can share them (issue #528).
 
@@ -62,7 +64,9 @@ and platform-free so the iOS app can share them (issue #528).
   that confirms an input method's composition is left alone. Escape clears
   the box. Rows work as links with a mouse or a tap. With an empty box the
   example's links are plain links, not options, and `aria-expanded` is false.
-  `/` anywhere on the page focuses the box
+  Cmd+K or Ctrl+K, or `/` outside a text field, focuses the box, and so do
+  the nav bar's Search buttons on this page (scrolling it into view), so
+  there is never a second search box on screen
 - Answer card (`AnswerCard`): the title, a source or calculator tag, a "Read as"
   row showing how the query was understood (defaults marked "(default)"), a
   notice above the number when it answers something other than what was asked
@@ -611,6 +615,50 @@ keeps its default), writes the persisted fields as one JSON object 300ms after
 the last change, and clears the snapshot on reset. Storage comes from
 `PersistenceStorageProvider` (MMKV on iOS) and falls back to `localStorage`.
 
+### Site Search
+
+Every page has a Search control: in the header from `sm` up, an icon button
+like its neighbours whose tooltip carries the shortcut hint ("Search (⌘K)",
+or "Ctrl K" off Apple devices; the header is capped at `max-w-6xl` and the
+nav already fills it, so a text label and hint would overflow it at every
+width); on phones a round search button beside the floating menu toggle (the
+open menu drawer covers it; both buttons take their size and spots from
+`components/mobile-fab.ts`). Cmd+K or Ctrl+K opens it from anywhere, and `/`
+does too outside a text field. On the home page the buttons and keys focus
+(and scroll into view) the hero's search box instead, so the header is the
+same on every page and there is never a second search box.
+
+It opens a dialog (`Modal`, so `role="dialog"`, `aria-modal`, labelled
+"Search", Tab trapped inside, focus back to the trigger on close) holding the
+home page's search: `SearchPanel` with `variant="dialog"`, so the same
+combobox, answer card, results list and Try chips. With an empty box it
+shows only the Try chips (no example answer and no options). Focus starts in
+the box. The arrow keys and Enter work as on the home page: Enter opens the
+top result (the answer, else the first match) and closes the dialog. Escape
+closes the dialog in one press, query or not (it does not clear the box, as
+it does on the home page); the next open starts with an empty box. Following
+any link from the dialog closes it, including one to the page already open.
+Back and forward to another page close it too (it is open only while the
+pathname is the one it was opened at), while a page's own search param
+updates, such as `/films` syncing its filters, leave it open. At phone width
+the dialog is a full-height sheet (it keeps the box above the keyboard);
+from `sm` up a wide panel near the top of the screen, as tall as its content
+up to the screen's height, then scrolling. Recipe answers follow the °C/°F
+setting (`SearchPanel` mounts its own `TemperatureProvider`, which reads the
+same stored unit as `/development`). The `/` key hint shows only in the home
+page's box: in the dialog the box already has focus.
+
+**Bundle:** only the triggers and the shortcut
+(`components/search/nav-search.tsx`, `search-shortcut.ts`) are in every
+page's first load. The dialog, and with it the search panel and
+`searchHome`, is a lazy chunk loaded on first open (and prefetched when a
+pointer or focus reaches a trigger). The catalog loads when the search box
+takes focus, as on the home page.
+
+**Analytics:** one `nav_search` event per settled distinct query, with the
+same two properties as `home_search` (the kind of answer and the number of
+matches). Never the query text.
+
 ### Link Parameters
 
 Every calculator in this section can be opened pre-filled from URL search
@@ -631,8 +679,21 @@ wiring in each of the link, the route and the page:
    It supplies `validateSearch` (a catch-all object, so other params such as
    `?preset=` survive) and a component that captures the link's params on
    mount, passes them to the page as `linkSearch`, and strips them from the
-   URL. A navigation within the route that adds link params is ignored until
-   the page mounts again.
+   URL. Link params that reappear in the URL while the route is mounted (a
+   link to the calculator already open, such as a search answer on its own
+   page) are captured again, and the page remounts with them; the strip only
+   removes params, so it never triggers a capture of its own.
+   `/development` is not a calculator route but gets the same result its own
+   way: the page reads its `film`, `developer`, `recipe` and other params on
+   mount and keeps the URL in step through `history.replaceState`, passing
+   the entry's existing state so the router's history key stays the same.
+   `components/development-route.tsx` (the route's component) keys the page
+   on that key. A router navigation that lands there while
+   it is open (a recipe answer from the nav search, the nav link) remounts the
+   page with the link's filters and recipe. The router writes a navigation
+   to the browser URL in a microtask, after a link click has rendered, so the
+   route flushes that pending write before rendering the page; otherwise the
+   new page would read the old URL and write the old filters back.
 4. **Page**: typed `CalculatorLinkProps<typeof lensCalculatorLink>`, so a
    route that hands it another calculator's params fails to compile. It
    passes `lensCalculatorLink.read(linkSearch ?? {})` as `overrides` to

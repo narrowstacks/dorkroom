@@ -15,7 +15,7 @@ import {
   Outlet,
   RouterProvider,
 } from '@tanstack/react-router';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { type ComponentType, useEffect } from 'react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import LensCalculatorPage from '../../app/pages/lens-calculator/lens-calculator-page';
@@ -143,6 +143,62 @@ describe('calculatorRoute', () => {
     expect(await screen.findByText('focal 80')).toBeInTheDocument();
     await waitFor(() => expect(window.location.search).toBe('?utm=home'));
     expect(router.state.location.search).toEqual({ utm: 'home' });
+  });
+
+  it('applies a link to the calculator already open, and strips it again', async () => {
+    window.localStorage.setItem(
+      LENS_STORAGE_KEY,
+      JSON.stringify({ focalLength: 35 })
+    );
+    const router = renderLensesRoute('/lenses?utm=home');
+    await waitFor(async () => expect(await focalLengthInput()).toHaveValue(35));
+
+    // What a search answer's link does from /lenses itself.
+    await act(() =>
+      router.navigate({
+        to: '/lenses',
+        search: { focal: '80', from: 'film-6x6', to: 'full-frame' },
+      })
+    );
+
+    await waitFor(async () => expect(await focalLengthInput()).toHaveValue(80));
+    await waitFor(() => expect(router.state.location.search).toEqual({}));
+    await waitFor(() =>
+      expect(
+        JSON.parse(window.localStorage.getItem(LENS_STORAGE_KEY) ?? '{}')
+      ).toMatchObject({ focalLength: 80, sourceFormat: 'film-6x6' })
+    );
+  });
+
+  it('remounts the page once per link, never for its own strip', async () => {
+    const mounts: (LensLinkSearch | undefined)[] = [];
+    function MountCountingPage({
+      linkSearch,
+    }: {
+      linkSearch?: LensLinkSearch;
+    }) {
+      useEffect(() => {
+        mounts.push(linkSearch);
+      }, [linkSearch]);
+      return <p>focal {linkSearch?.focal ?? 'none'}</p>;
+    }
+    const router = renderLensesRoute('/lenses?focal=50', {
+      page: MountCountingPage,
+    });
+    expect(await screen.findByText('focal 50')).toBeInTheDocument();
+    await waitFor(() => expect(router.state.location.search).toEqual({}));
+
+    // A same-route navigation without link params leaves the page alone.
+    await act(() => router.navigate({ to: '/lenses', search: { utm: 'x' } }));
+    await act(() =>
+      router.navigate({ to: '/lenses', search: { focal: '80', utm: 'x' } })
+    );
+    expect(await screen.findByText('focal 80')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(router.state.location.search).toEqual({ utm: 'x' })
+    );
+
+    expect(mounts).toEqual([{ focal: '50' }, { focal: '80' }]);
   });
 
   it('only accepts a page that reads its own link params', () => {

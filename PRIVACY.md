@@ -46,6 +46,7 @@ The catalog below is generated from, and must stay in sync with,
 | `units_changed` | You switch between imperial and metric, or change volume units. | Which setting, and which unit. |
 | `search_no_results` | A search returns nothing. | Which page, and how many filters were active. Never the search text. |
 | `home_search` | A search on the home page settles (once per search, not per keystroke). | What kind of answer it showed (a recipe, a calculator, a list of matches, or nothing) and how many matches it listed. Never the search text. |
+| `nav_search` | A search from the search button in the navigation bar settles (once per search, not per keystroke). | What kind of answer it showed (a recipe, a calculator, a list of matches, or nothing) and how many matches it listed. Never the search text. |
 | `detail_opened` | You open a film or recipe detail view. | Whether it was a film or a recipe. |
 | `filter_applied` | You apply a filter. | Which page, and which filter control. Never the value you chose. |
 | `app_error` | Something crashes. | Which of Dorkroom's pages you were on, chosen from a fixed list. Never the error message, and never a path you typed. |

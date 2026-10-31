@@ -1,7 +1,7 @@
 import type { HomeLinkTarget, HomeSuggestion } from '@dorkroom/logic';
 import { cn } from '@dorkroom/ui';
 import { Link } from '@tanstack/react-router';
-import { useId } from 'react';
+import { type MouseEventHandler, useId } from 'react';
 import { activeOptionClass, type ResultSection } from './result-sections';
 
 const rowClass =
@@ -31,6 +31,8 @@ interface ResultGroupsProps {
   onSuggest: (suggestion: HomeSuggestion) => void;
   /** While the box has a query the panel is its listbox and the rows its options. */
   listbox: Listbox | null;
+  /** Called when a match's or the answer's link is clicked (the nav dialog closes on it). */
+  onNavigate?: MouseEventHandler<HTMLAnchorElement>;
   className?: string;
 }
 
@@ -46,6 +48,7 @@ export function ResultGroups({
   sections,
   onSuggest,
   listbox,
+  onNavigate,
   className,
 }: ResultGroupsProps) {
   const empty = sections.length === 0;
@@ -82,6 +85,7 @@ export function ResultGroups({
               id={answer.id}
               to={answer.target.to}
               search={answer.target.search}
+              onClick={onNavigate}
               // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- combobox listbox pattern; an <option> cannot be a link
               // eslint-disable-next-line react-doctor/prefer-tag-over-role -- combobox listbox pattern; an <option> cannot be a link
               role="option"
@@ -98,6 +102,7 @@ export function ResultGroups({
             key={section.key}
             section={section}
             onSuggest={onSuggest}
+            onNavigate={onNavigate}
             options={listbox !== null}
             activeId={listbox?.activeId ?? null}
             highlight={listbox?.highlight ?? false}
@@ -111,12 +116,14 @@ export function ResultGroups({
 function Section({
   section,
   onSuggest,
+  onNavigate,
   options,
   activeId,
   highlight,
 }: {
   section: ResultSection;
   onSuggest: (suggestion: HomeSuggestion) => void;
+  onNavigate?: MouseEventHandler<HTMLAnchorElement>;
   /** The rows are listbox options. */
   options: boolean;
   activeId: string | null;
@@ -157,6 +164,7 @@ function Section({
             id={row.id}
             to={row.target.to}
             search={row.target.search}
+            onClick={onNavigate}
             {...optionProps(row.id)}
             className={classFor(row.id)}
           >

@@ -70,10 +70,10 @@ export type TrackedRoute = (typeof TRACKED_ROUTES)[number];
 export type RouteLabel = TrackedRoute | 'unknown';
 
 /**
- * What a settled home-page search showed: an answer of one kind (the closed
+ * What a settled search (home page or nav bar) showed: an answer of one kind (the closed
  * set `searchHome` returns), a list of matches with no answer, or nothing.
  */
-export type HomeSearchOutcome = HomeAnswerKind | 'list' | 'none';
+export type SiteSearchOutcome = HomeAnswerKind | 'list' | 'none';
 
 export type ThemeName =
   'light' | 'dark' | 'darkroom' | 'high-contrast' | 'system';
@@ -128,7 +128,10 @@ export interface AnalyticsEvents {
   /** A home-page search settled. `count` is how many matches the result
    *  lists (recipes, films, developers and tools). The query itself is
    *  deliberately not sent. */
-  home_search: { result: HomeSearchOutcome; count: number };
+  home_search: { result: SiteSearchOutcome; count: number };
+  /** The same search from the nav bar's search dialog (every page but the
+   *  home page), with the same two properties. Never the query. */
+  nav_search: { result: SiteSearchOutcome; count: number };
   filter_applied: { tool: BrowseTool; filter: FilmsFilter | DevelopmentFilter };
   /** `route` is one of the app's known routes, or `unknown`. Never the raw
    *  pathname: the wildcard route would let a visitor choose the value. */
