@@ -89,6 +89,14 @@ const MIN_DENSITY_RANGE = 0.05;
  */
 const BRIGHTER_THAN_BASE = 0.05;
 
+/**
+ * Code values at or below this are clipped to black, so their density is
+ * unknown rather than high. Phone cameras crush the dense end of the blue
+ * (and, after a Display P3 to sRGB conversion, green) layer of an orange
+ * negative to 0, which would otherwise read as density 4.
+ */
+const CLIPPED_BYTE = 2;
+
 /** How far one unit of warmth or tint moves a channel, in output units. */
 const COLOUR_SHIFT_SCALE = 0.15;
 
@@ -260,7 +268,8 @@ function densityOfBin(bin: number): number {
  * the base are skipped as well, because a crop around a 35mm strip always
  * includes sprocket holes: white light that outshines an orange mask most in
  * blue, so counting it would drag each channel's black point by a different
- * amount and cast the whole frame blue. `step` samples every nth pixel in
+ * amount and cast the whole frame blue. Pixels with a channel clipped to
+ * black are skipped too (see {@link CLIPPED_BYTE}). `step` samples every nth pixel in
  * each direction, for large proxies.
  */
 export function buildDensityHistograms(
@@ -286,6 +295,13 @@ export function buildDensityHistograms(
   for (let row = rect.y; row < rect.y + rect.height; row += stride) {
     for (let col = rect.x; col < rect.x + rect.width; col += stride) {
       const i = (row * image.width + col) * 4;
+      if (
+        image.data[i] <= CLIPPED_BYTE ||
+        image.data[i + 1] <= CLIPPED_BYTE ||
+        image.data[i + 2] <= CLIPPED_BYTE
+      ) {
+        continue;
+      }
       const linear: Rgb = [
         byteToLinear(image.data[i]),
         byteToLinear(image.data[i + 1]),

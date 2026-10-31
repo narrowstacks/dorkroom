@@ -336,6 +336,22 @@ describe('C-41 conversion', () => {
     }
   });
 
+  it('ignores channels clipped to black by the camera', () => {
+    // A phone photo (or its P3 to sRGB conversion) crushes the dense end of
+    // the blue layer to 0. Counted as data, 0 reads as density 4 and drags
+    // blue's white point to the top of the histogram, casting the frame.
+    const negative = makeNegative(ORANGE_MASK, C41_GAMMA);
+    const clean = convert(negative, 'c41').coeffs;
+    const x0 = (negative.stepCentres.at(-1) ?? 0) - 5;
+    for (let y = 0; y < negative.height / 2; y++) {
+      for (let x = x0; x < x0 + 10; x++) {
+        negative.data[(y * negative.width + x) * 4 + 2] = 0;
+      }
+    }
+    const clipped = convert(negative, 'c41').coeffs;
+    expect(clipped.densityHigh[2]).toBeCloseTo(clean.densityHigh[2], 1);
+  });
+
   it('beats a naive RGB invert, which leaves a strong cast', () => {
     const negative = makeNegative(ORANGE_MASK, C41_GAMMA);
     const x = negative.stepCentres[3];
