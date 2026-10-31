@@ -6,7 +6,6 @@ import {
 } from '@dorkroom/logic';
 import { ROUTE_TITLES, ShareModal, useOptionalToast } from '@dorkroom/ui';
 import { type ReactNode, useCallback, useState } from 'react';
-import { stringifySearch } from '../../routes/search-params';
 import {
   type CalculatorTool,
   type TrackedRoute,
@@ -27,8 +26,22 @@ const SHARE_PATHS = {
   film: '/films',
 } as const satisfies Record<LinkShareTool, TrackedRoute>;
 
-/** Flat search params; a missing or empty value gets no param. */
+/**
+ * Flat search params. A missing value gets no param; an empty one gets an
+ * empty param (`artW=`), because a calculator link uses it to keep a cleared
+ * field cleared. That is why this does not reuse the router's
+ * `stringifySearch`, which drops empty values.
+ */
 export type ShareLinkSearch = Readonly<Partial<Record<string, string>>>;
+
+const toQuery = (search: ShareLinkSearch): string => {
+  const params = new URLSearchParams();
+  for (const [name, value] of Object.entries(search)) {
+    if (value !== undefined) params.set(name, value);
+  }
+  const query = params.toString();
+  return query ? `?${query}` : '';
+};
 
 export interface ShareLinkControls {
   /**
@@ -69,7 +82,7 @@ export function useShareLink(tool: LinkShareTool): ShareLinkControls {
   const share = useCallback(
     async (search: ShareLinkSearch, title?: string) => {
       const path = SHARE_PATHS[tool];
-      const url = `${getShareBaseUrl()}${path}${stringifySearch(search)}`;
+      const url = `${getShareBaseUrl()}${path}${toQuery(search)}`;
       const shareTitle = title ?? ROUTE_TITLES[path] ?? 'Dorkroom';
       const outcome = await shareLink({
         url,

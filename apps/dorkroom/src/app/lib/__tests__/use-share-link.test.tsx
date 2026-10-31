@@ -103,6 +103,17 @@ describe('useShareLink', () => {
     expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/lenses`);
   });
 
+  it('keeps an empty value as an empty param and skips a missing one', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    stubDesktop(writeText);
+
+    await share({ focal: '80', from: '', to: undefined });
+
+    expect(writeText).toHaveBeenCalledWith(
+      `${window.location.origin}/lenses?focal=80&from=`
+    );
+  });
+
   it('opens the share sheet on a phone and reports a native share', async () => {
     const nativeShare = vi.fn().mockResolvedValue(undefined);
     stubPhone(nativeShare);

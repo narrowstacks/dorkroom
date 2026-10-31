@@ -57,7 +57,15 @@ const CALCULATORS: SharedCalculator[] = [
     route: '/mat',
     Page: MatCalculatorPage,
     read: matCalculatorLink.read,
-    linkSearch: { outerW: '16', top: '3 1/2', bottomWeight: 'true' },
+    // Cleared artwork and reveal must stay cleared for the recipient.
+    linkSearch: {
+      outerW: '16',
+      top: '3 1/2',
+      bottomWeight: 'true',
+      artW: '',
+      artH: '',
+      reveal: '',
+    },
   },
   {
     route: '/exposure',
