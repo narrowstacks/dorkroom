@@ -1,6 +1,13 @@
 import { z } from 'zod';
-import { EXPOSURE_STORAGE_KEY } from '../types/exposure-calculator';
-import { definePersistedFormFields } from '../utils/persisted-form-fields';
+import {
+  DEFAULT_EXPOSURE_ORIGINAL_TIME,
+  DEFAULT_EXPOSURE_STOPS,
+} from '../constants/exposure-calculator-defaults';
+import {
+  EXPOSURE_STORAGE_KEY,
+  type ExposureFormState,
+} from '../types/exposure-calculator';
+import { definePersistedCalculator } from '../utils/persisted-calculator';
 import { exposureTimeValidator, stopsValidator } from './validators';
 
 /**
@@ -23,8 +30,15 @@ export type ExposureCalculatorFormData = z.infer<
   typeof exposureCalculatorSchema
 >;
 
-/** Storage key, persist keys and hydration validators for the form. */
-export const exposureCalculatorPersistence = definePersistedFormFields(
+/** The stops calculator's form defaults. */
+export const EXPOSURE_FORM_DEFAULTS: ExposureFormState = {
+  originalTime: DEFAULT_EXPOSURE_ORIGINAL_TIME,
+  stops: DEFAULT_EXPOSURE_STOPS,
+};
+
+/** Storage key, persist keys, hydration validators and defaults for the form. */
+export const exposureCalculatorPersistence = definePersistedCalculator(
   EXPOSURE_STORAGE_KEY,
-  exposureCalculatorFieldSchemas
+  exposureCalculatorFieldSchemas,
+  EXPOSURE_FORM_DEFAULTS
 );

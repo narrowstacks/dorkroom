@@ -15,8 +15,8 @@ import {
   PAPER_SIZES,
   useBorderPresets,
   useCalculatorSharing,
-  useLocalStorageFormPersistence,
   usePaperDimensionInput,
+  usePersistedCalculator,
   usePresetManagement,
   useUrlPresetLoader,
   useWindowDimensions,
@@ -75,27 +75,29 @@ export function useBorderCalculatorController() {
   // Persist and hydrate form state to/from localStorage. `resetToDefaults`
   // restores the form defaults and drops the stored snapshot, the same reset
   // every other persisted calculator uses.
-  const { resetToDefaults } = useLocalStorageFormPersistence({
-    ...borderCalculatorPersistence,
-    form,
-    formValues,
-    onHydrated: (loadedValues) => {
-      // Recalculate orientation for custom paper after loading from storage,
-      // unless the user flipped it by hand: then the persisted isLandscape is
-      // the user's choice and re-deriving it would undo the flip (#339).
-      if (
-        loadedValues.paperSize === 'custom' &&
-        !loadedValues.hasManuallyFlippedPaper &&
-        loadedValues.customPaperWidth !== undefined &&
-        loadedValues.customPaperHeight !== undefined
-      ) {
-        form.setFieldValue(
-          'isLandscape',
-          loadedValues.customPaperWidth < loadedValues.customPaperHeight
-        );
-      }
-    },
-  });
+  const { resetToDefaults } = usePersistedCalculator(
+    borderCalculatorPersistence,
+    {
+      form,
+      values: formValues,
+      onHydrated: (loadedValues) => {
+        // Recalculate orientation for custom paper after loading from storage,
+        // unless the user flipped it by hand: then the persisted isLandscape is
+        // the user's choice and re-deriving it would undo the flip (#339).
+        if (
+          loadedValues.paperSize === 'custom' &&
+          !loadedValues.hasManuallyFlippedPaper &&
+          loadedValues.customPaperWidth !== undefined &&
+          loadedValues.customPaperHeight !== undefined
+        ) {
+          form.setFieldValue(
+            'isLandscape',
+            loadedValues.customPaperWidth < loadedValues.customPaperHeight
+          );
+        }
+      },
+    }
+  );
 
   const { presets, addPreset, updatePreset, removePreset } = useBorderPresets();
 

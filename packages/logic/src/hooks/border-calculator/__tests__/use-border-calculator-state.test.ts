@@ -1,8 +1,11 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
+import { createElement, type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BORDER_CALCULATOR_STORAGE_KEY } from '../../../constants/storage-keys';
-import type { PersistedValue } from '../../../hooks/use-local-storage-form-persistence';
+import { PersistenceStorageProvider } from '../../../hooks/use-persisted-calculator';
+import { createMemoryStorage } from '../../../services/key-value-storage';
 import type { BorderCalculatorState } from '../../../types/border-calculator';
+import type { PersistedValue } from '../../../utils/persisted-calculator';
 import { useBorderCalculatorState } from '../use-border-calculator-state';
 
 /**
@@ -950,6 +953,43 @@ describe('useBorderCalculatorState', () => {
       const lastSave = JSON.parse(savedCalls[savedCalls.length - 1][1]);
       expect(lastSave.aspectRatio).toBe('4:3');
       expect(lastSave.minBorder).toBe(2.0);
+    });
+  });
+
+  describe('storage provider', () => {
+    it('hydrates from and persists to the provided storage, not localStorage', async () => {
+      const storage = createMemoryStorage({
+        [BORDER_CALCULATOR_STORAGE_KEY]: JSON.stringify({
+          aspectRatio: '16:9',
+        }),
+      });
+      const wrapper = ({ children }: { children: ReactNode }) =>
+        createElement(PersistenceStorageProvider, { value: storage }, children);
+
+      const { result } = renderHook(() => useBorderCalculatorState(), {
+        wrapper,
+      });
+      expect(result.current.state.aspectRatio).toBe('16:9');
+
+      act(() => {
+        result.current.dispatch({
+          type: 'SET_FIELD',
+          key: 'minBorder',
+          value: 1.25,
+        });
+      });
+
+      await waitFor(
+        () => {
+          expect(
+            JSON.parse(storage.getItem(BORDER_CALCULATOR_STORAGE_KEY) ?? '{}')
+              .minBorder
+          ).toBe(1.25);
+        },
+        { timeout: 1000 }
+      );
+      expect(localStorageMock.getItem).not.toHaveBeenCalled();
+      expect(localStorageMock.setItem).not.toHaveBeenCalled();
     });
   });
 });

@@ -12,7 +12,7 @@
 import { z } from 'zod';
 import { SUPERSEDED_STORAGE_KEYS } from '../constants/storage-keys';
 import { debugError, debugWarn } from '../utils/debug-logger';
-import { isBrowser } from '../utils/environment';
+import { getLocalStorage, type KeyValueStorage } from './key-value-storage';
 
 /**
  * Options for configuring the storage manager
@@ -58,35 +58,22 @@ export interface StorageManager<T> {
 }
 
 /**
- * Safely get localStorage reference
- * Returns null in SSR environments or when localStorage is unavailable
- */
-function getStorage(): Storage | null {
-  if (!isBrowser()) {
-    return null;
-  }
-
-  try {
-    return window.localStorage;
-  } catch {
-    return null;
-  }
-}
-
-/**
  * Remove the keys `currentKey` superseded, once `currentKey` exists. This
  * guard only prevents purging before the new key has been written; it does not
  * make the purge safe for unmigrated data, so list a key as superseded only
- * after a migration has copied its data forward. Safe where no `localStorage`
- * exists (SSR, iOS before the MMKV shim) and never throws.
+ * after a migration has copied its data forward. `storage` defaults to
+ * `localStorage`; persisted calculators pass the adapter they hydrate from, so
+ * the purge hits the same store. Safe where no storage exists (SSR) and never
+ * throws.
  */
-export function removeSupersededStorageKeys(currentKey: string): void {
+export function removeSupersededStorageKeys(
+  currentKey: string,
+  storage: KeyValueStorage | null = getLocalStorage()
+): void {
   const olderKeys: readonly string[] | undefined = Object.entries(
     SUPERSEDED_STORAGE_KEYS
   ).find(([key]) => key === currentKey)?.[1];
   if (!olderKeys?.length) return;
-
-  const storage = getStorage();
   if (!storage) return;
 
   try {
@@ -127,7 +114,7 @@ export function createStorageManager<T>(
   const context = logContext ?? storageKey;
 
   const read = (): T => {
-    const storage = getStorage();
+    const storage = getLocalStorage();
     if (!storage) {
       return defaultValue;
     }
@@ -152,7 +139,7 @@ export function createStorageManager<T>(
   };
 
   const write = (data: T): void => {
-    const storage = getStorage();
+    const storage = getLocalStorage();
     if (!storage) {
       debugWarn(`[${context}] localStorage unavailable, cannot persist data`);
       return;
@@ -167,7 +154,7 @@ export function createStorageManager<T>(
   };
 
   const clear = (): void => {
-    const storage = getStorage();
+    const storage = getLocalStorage();
     if (!storage) {
       return;
     }

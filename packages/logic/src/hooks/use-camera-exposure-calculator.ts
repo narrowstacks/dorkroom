@@ -25,8 +25,7 @@ import {
   solveForISO,
   solveForShutterSpeed,
 } from '../utils/camera-exposure-calculations';
-import { createStateFormAdapter } from '../utils/persisted-form-fields';
-import { useLocalStorageFormPersistence } from './use-local-storage-form-persistence';
+import { usePersistedCalculator } from './use-persisted-calculator';
 
 // No shared ISO formatter exists elsewhere (unlike shutter speed/aperture),
 // so this rounds a solved ISO to a display string for the out-of-range
@@ -80,7 +79,7 @@ export interface UseCameraExposureCalculatorReturn {
 
 /**
  * Hook for the camera exposure calculator. Owns the exposure-triangle settings
- * and a comparison exposure (persisted to localStorage), and derives the EV,
+ * and a comparison exposure (persisted through the storage seam), and derives the EV,
  * equivalent exposures, and the A-vs-B comparison.
  *
  * @example
@@ -112,15 +111,13 @@ export function useCameraExposureCalculator(): UseCameraExposureCalculatorReturn
     []
   );
 
-  const { resetToDefaults: reset } = useLocalStorageFormPersistence({
-    ...cameraExposurePersistence,
-    // A preset notice describes the inputs being discarded, so a reset
-    // clears it too.
-    form: createStateFormAdapter(setValues, CAMERA_EXPOSURE_DEFAULTS, () =>
-      setLastPresetEv(null)
-    ),
-    formValues: values,
-  });
+  // A preset notice describes the inputs being discarded, so a reset clears
+  // it too.
+  const clearPresetNotice = useCallback(() => setLastPresetEv(null), []);
+  const { resetToDefaults: reset } = usePersistedCalculator(
+    cameraExposurePersistence,
+    { values, setValues, onReset: clearPresetNotice }
+  );
 
   const applyPreset = useCallback((ev: number) => {
     // Functional updater, reading only `prev` — not the `values` closure —

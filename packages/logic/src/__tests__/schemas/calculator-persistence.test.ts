@@ -16,14 +16,16 @@ import {
   borderCalculatorPersistence,
   initialState as borderInitialState,
 } from '../../hooks/border-calculator/use-border-calculator-state';
-import type { PersistedValue } from '../../hooks/use-local-storage-form-persistence';
 import { cameraExposurePersistence } from '../../schemas/camera-exposure-calculator.schema';
 import { exposureCalculatorPersistence } from '../../schemas/exposure-calculator.schema';
 import { lensCalculatorPersistence } from '../../schemas/lens-calculator.schema';
 import { matCalculatorPersistence } from '../../schemas/mat-calculator.schema';
 import { reciprocityCalculatorPersistence } from '../../schemas/reciprocity-calculator.schema';
 import { resizeCalculatorPersistence } from '../../schemas/resize-calculator.schema';
-import type { PersistedFormFields } from '../../utils/persisted-form-fields';
+import {
+  type PersistedCalculatorDefinition,
+  persistedSnapshotSchema,
+} from '../../utils/persisted-calculator';
 
 // Storage keys and persist-key order for exposure, resize and reciprocity are
 // pinned in the web app's hydration tests (#488); this table covers the rest.
@@ -103,33 +105,37 @@ describe('calculator persistence contract', () => {
     expect(Object.keys(p.validators)).toEqual(keys);
   });
 
-  it('every persisted default passes its own validator', () => {
-    const check = <K extends string>(
-      name: string,
-      persistence: PersistedFormFields<K>,
-      defaults: Record<K, PersistedValue>
+  it("bundles each calculator's defaults, and every one passes its own validator", () => {
+    const check = <T extends object, K extends keyof T & string>(
+      definition: PersistedCalculatorDefinition<T, K>,
+      expected: T
     ) => {
-      for (const key of persistence.persistKeys) {
+      expect(definition.defaults).toEqual(expected);
+      // Validate the defaults as they would come back out of storage.
+      const stored = persistedSnapshotSchema.parse(
+        JSON.parse(JSON.stringify(definition.defaults))
+      );
+      for (const key of definition.persistKeys) {
         expect(
-          persistence.validators[key].validate(defaults[key]),
-          `${name}.${key}`
+          definition.validators[key].validate(stored[key]),
+          `${definition.storageKey}.${key}`
         ).toBe(true);
       }
     };
-    check('mat', matCalculatorPersistence, MAT_CALCULATOR_DEFAULTS);
-    check('camera', cameraExposurePersistence, CAMERA_EXPOSURE_DEFAULTS);
-    check('lens', lensCalculatorPersistence, LENS_DEFAULTS);
-    check('exposure', exposureCalculatorPersistence, {
+    check(matCalculatorPersistence, MAT_CALCULATOR_DEFAULTS);
+    check(cameraExposurePersistence, CAMERA_EXPOSURE_DEFAULTS);
+    check(lensCalculatorPersistence, LENS_DEFAULTS);
+    check(exposureCalculatorPersistence, {
       originalTime: DEFAULT_EXPOSURE_ORIGINAL_TIME,
       stops: DEFAULT_EXPOSURE_STOPS,
     });
-    check('reciprocity', reciprocityCalculatorPersistence, {
+    check(reciprocityCalculatorPersistence, {
       filmType: RECIPROCITY_CALCULATOR_DEFAULTS.filmType,
       meteredTime: DEFAULT_RECIPROCITY_METERED_TIME,
       customFactor: DEFAULT_RECIPROCITY_CUSTOM_FACTOR,
     });
-    check('resize', resizeCalculatorPersistence, RESIZE_FORM_DEFAULTS);
-    check('border', borderCalculatorPersistence, borderInitialState);
+    check(resizeCalculatorPersistence, RESIZE_FORM_DEFAULTS);
+    check(borderCalculatorPersistence, borderInitialState);
   });
 
   it('camera exposure rejects an unknown solveFor and non-positive numbers', () => {

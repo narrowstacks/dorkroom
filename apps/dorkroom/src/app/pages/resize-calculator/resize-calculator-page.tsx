@@ -11,7 +11,7 @@ import {
   RESIZE_FORM_DEFAULTS,
   resizeCalculatorPersistence,
   type ResizeCalculatorState,
-  useLocalStorageFormPersistence,
+  usePersistedCalculator,
 } from '@dorkroom/logic';
 import {
   AspectPreview,
@@ -601,11 +601,10 @@ function useResizeForm() {
   // Persist and hydrate form state to/from localStorage. Persist keys and
   // hydration validators derive from the schema's field bounds, so a tampered
   // stored value falls back to its default.
-  const { resetToDefaults } = useLocalStorageFormPersistence({
-    ...resizeCalculatorPersistence,
-    form,
-    formValues,
-  });
+  const { resetToDefaults } = usePersistedCalculator(
+    resizeCalculatorPersistence,
+    { form, values: formValues }
+  );
 
   return { form, formValues, resetToDefaults };
 }
