@@ -19,6 +19,7 @@ export * from './constants/border-calculator';
 export * from './constants/breakpoints';
 export * from './constants/border-calculator-defaults';
 export * from './constants/calculations';
+export * from './constants/calculator-link-params';
 export * from './constants/camera-exposure-defaults';
 export * from './constants/development-recipes';
 export * from './constants/exposure-calculator-defaults';
@@ -52,6 +53,7 @@ export {
 } from './hooks/border-calculator';
 export {
   type PersistedBorderCalculatorState,
+  borderCalculatorLink,
   borderCalculatorPersistence,
   persistedBorderCalculatorFieldSchemas,
   persistedBorderCalculatorSchema,
@@ -180,6 +182,7 @@ export * from './types/reciprocity';
 export * from './utils/aspect-preview-geometry';
 export * from './utils/border-calculations';
 export * from './utils/border-layout';
+export * from './utils/calculator-url-params';
 export * from './utils/camera-exposure-calculations';
 export * from './utils/combination-factory';
 export * from './utils/custom-recipe-helpers';

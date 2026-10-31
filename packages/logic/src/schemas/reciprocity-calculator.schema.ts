@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { RECIPROCITY_CALCULATOR_LINK_PARAMS } from '../constants/calculator-link-params';
 import { RECIPROCITY_FILM_TYPES } from '../constants/reciprocity';
 import {
   DEFAULT_RECIPROCITY_CUSTOM_FACTOR,
@@ -9,6 +10,7 @@ import {
   RECIPROCITY_STORAGE_KEY,
   type ReciprocityFormState,
 } from '../types/reciprocity';
+import { defineCalculatorLink } from '../utils/calculator-url-params';
 import { definePersistedCalculator } from '../utils/persisted-calculator';
 import { reciprocityFactorValidator } from './validators';
 
@@ -73,6 +75,12 @@ export const reciprocityCalculatorPersistence = definePersistedCalculator(
   RECIPROCITY_STORAGE_KEY,
   reciprocityPersistedFieldSchemas,
   RECIPROCITY_FORM_DEFAULTS
+);
+
+/** Link that opens the reciprocity calculator pre-filled (params: `RECIPROCITY_CALCULATOR_LINK_PARAMS`). */
+export const reciprocityCalculatorLink = defineCalculatorLink(
+  reciprocityCalculatorPersistence,
+  RECIPROCITY_CALCULATOR_LINK_PARAMS
 );
 
 export type ReciprocityCalculatorFormData = z.infer<

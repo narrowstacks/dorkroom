@@ -391,3 +391,104 @@ describe('useBorderCalculatorController manual paper flip', () => {
     });
   });
 });
+
+// A link must render the same whatever the viewer had stored.
+describe('useBorderCalculatorController link values', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    window.history.replaceState(null, '', '/border');
+  });
+
+  function renderWithLink(overrides: Partial<PersistedBorderCalculatorState>) {
+    const hook = renderHook(() => useBorderCalculatorController(overrides), {
+      wrapper,
+    });
+    hook.rerender();
+    return hook;
+  }
+
+  it('sets the layout mirror of each linked length, as editing it does', () => {
+    const { result } = renderWithLink({
+      paperSize: 'custom',
+      customPaperWidth: 12,
+      minBorder: 0.75,
+    });
+
+    expect(result.current.formValues).toMatchObject({
+      customPaperWidth: 12,
+      lastValidCustomPaperWidth: 12,
+      minBorder: 0.75,
+      lastValidMinBorder: 0.75,
+    });
+  });
+
+  it("keeps a link's landscape on custom paper instead of re-deriving it", () => {
+    const { result } = renderWithLink({
+      paperSize: 'custom',
+      customPaperWidth: 12,
+      customPaperHeight: 10,
+      isLandscape: true,
+    });
+
+    expect(result.current.formValues).toMatchObject({
+      paperSize: 'custom',
+      isLandscape: true,
+      hasManuallyFlippedPaper: true,
+    });
+  });
+
+  it("keeps a link's landscape over stored custom paper that was never flipped", () => {
+    window.localStorage.setItem(
+      BORDER_CALCULATOR_STORAGE_KEY,
+      JSON.stringify({
+        paperSize: 'custom',
+        customPaperWidth: 10,
+        customPaperHeight: 13,
+        isLandscape: true,
+        hasManuallyFlippedPaper: false,
+      })
+    );
+
+    const { result } = renderWithLink({ isLandscape: false });
+
+    expect(result.current.formValues.isLandscape).toBe(false);
+  });
+
+  it('derives orientation for link custom paper even when the viewer had flipped theirs', () => {
+    window.localStorage.setItem(
+      BORDER_CALCULATOR_STORAGE_KEY,
+      JSON.stringify({
+        paperSize: 'custom',
+        customPaperWidth: 10,
+        customPaperHeight: 13,
+        isLandscape: false,
+        hasManuallyFlippedPaper: true,
+      })
+    );
+
+    const { result } = renderWithLink({
+      paperSize: 'custom',
+      customPaperWidth: 12,
+      customPaperHeight: 10,
+    });
+
+    expect(result.current.formValues).toMatchObject({
+      isLandscape: false,
+      hasManuallyFlippedPaper: false,
+    });
+  });
+
+  it('orients link standard paper as landscape, as picking it in the form does', () => {
+    window.localStorage.setItem(
+      BORDER_CALCULATOR_STORAGE_KEY,
+      JSON.stringify({ paperSize: '11x14', isLandscape: false })
+    );
+
+    const { result } = renderWithLink({ paperSize: '8x10' });
+
+    expect(result.current.formValues).toMatchObject({
+      paperSize: '8x10',
+      isLandscape: true,
+    });
+  });
+});

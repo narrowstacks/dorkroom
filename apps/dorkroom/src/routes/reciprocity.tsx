@@ -1,7 +1,8 @@
+import { RECIPROCITY_CALCULATOR_LINK_PARAMS } from '@dorkroom/logic';
 import { ROUTE_DESCRIPTIONS, ROUTE_TITLES } from '@dorkroom/ui';
 import { createFileRoute } from '@tanstack/react-router';
-import { lazy, Suspense } from 'react';
-import { LoadingSpinner } from '../components/loading-spinner';
+import { lazy } from 'react';
+import { calculatorRoute } from '../components/calculator-route';
 
 const ReciprocityCalculatorPage = lazy(
   () =>
@@ -9,6 +10,10 @@ const ReciprocityCalculatorPage = lazy(
 );
 
 export const Route = createFileRoute('/reciprocity')({
+  ...calculatorRoute(
+    RECIPROCITY_CALCULATOR_LINK_PARAMS,
+    ReciprocityCalculatorPage
+  ),
   head: () => ({
     meta: [
       { title: `${ROUTE_TITLES['/reciprocity']} - Dorkroom` },
@@ -20,9 +25,4 @@ export const Route = createFileRoute('/reciprocity')({
       },
     ],
   }),
-  component: () => (
-    <Suspense fallback={<LoadingSpinner />}>
-      <ReciprocityCalculatorPage />
-    </Suspense>
-  ),
 });

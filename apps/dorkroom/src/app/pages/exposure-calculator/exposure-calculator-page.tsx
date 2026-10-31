@@ -1,6 +1,7 @@
 import {
   calculateExposureAdjustment,
   EXPOSURE_PRESETS,
+  exposureCalculatorLink,
   exposureCalculatorPersistence,
   type ExposureFormState,
   type ExposurePreset,
@@ -26,6 +27,7 @@ import {
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
 import { type ChangeEvent, type FC, useMemo, useRef, useState } from 'react';
+import type { CalculatorLinkProps } from '../../../components/calculator-route';
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
 
@@ -137,7 +139,15 @@ const StopsNumberInput: FC<StopsNumberInputProps> = ({
   );
 };
 
-export default function ExposureCalculatorPage() {
+export default function ExposureCalculatorPage({
+  linkSearch,
+}: CalculatorLinkProps<typeof exposureCalculatorLink>) {
+  const link = exposureCalculatorLink.read(linkSearch ?? {});
+  // Round like the stop buttons do, so `stops=-1/3` shows -0.33, not -0.333…
+  const linkOverrides =
+    link.stops === undefined
+      ? link
+      : { ...link, stops: roundToStandardPrecision(link.stops) };
   useCalculatorAnalytics({ tool: 'stops' });
 
   const form = useForm({
@@ -153,7 +163,7 @@ export default function ExposureCalculatorPage() {
   // Persist and hydrate form state to/from localStorage
   const { resetToDefaults } = usePersistedCalculator(
     exposureCalculatorPersistence,
-    { form, values: formValues }
+    { form, values: formValues, overrides: linkOverrides }
   );
 
   const handleAdjustStops = (increment: number) => {

@@ -1,6 +1,7 @@
 import {
   borderCalculatorPersistence,
   borderCalculatorSchema,
+  type BorderCalculatorState,
   type BorderPresetSettings,
   calculateQuarterInchMinBorder,
   computeBorderLayout,
@@ -33,7 +34,58 @@ import { trackEvent } from '../../../lib/analytics/tracked-events';
 
 const validateBorderCalculator = createZodFormValidator(borderCalculatorSchema);
 
-export function useBorderCalculatorController() {
+/** Each linkable length and the `lastValid*` mirror the layout draws from. */
+const LINK_MIRRORS = [
+  ['customPaperWidth', 'lastValidCustomPaperWidth'],
+  ['customPaperHeight', 'lastValidCustomPaperHeight'],
+  ['customAspectWidth', 'lastValidCustomAspectWidth'],
+  ['customAspectHeight', 'lastValidCustomAspectHeight'],
+  ['minBorder', 'lastValidMinBorder'],
+] as const satisfies readonly (readonly [
+  keyof BorderCalculatorState,
+  keyof BorderCalculatorState,
+])[];
+
+/**
+ * A border link's values, completed the way a form edit would complete them,
+ * so the same link renders the same for every viewer:
+ *
+ * - Each length also sets its `lastValid*` mirror, as editing it does.
+ * - A link that sets `landscape` pins it, like a manual Flip Paper, so the
+ *   custom-paper re-derivation leaves it alone.
+ * - A link that sets the paper (size or custom dimensions) without
+ *   `landscape` orients it the way picking that paper in the form does:
+ *   landscape for a standard size, derived from width and height for custom.
+ */
+function borderLinkOverrides(
+  link: Partial<BorderCalculatorState>
+): Partial<BorderCalculatorState> {
+  const overrides = { ...link };
+  for (const [field, mirror] of LINK_MIRRORS) {
+    const value = link[field];
+    if (value !== undefined) overrides[mirror] = value;
+  }
+  if (link.isLandscape !== undefined) {
+    return { ...overrides, hasManuallyFlippedPaper: true };
+  }
+  const setsPaper =
+    link.paperSize !== undefined ||
+    link.customPaperWidth !== undefined ||
+    link.customPaperHeight !== undefined;
+  if (!setsPaper) return overrides;
+  // Custom paper: onHydrated and the orientation effect derive isLandscape
+  // from the merged dimensions, since the flip flag is now off.
+  return { ...overrides, isLandscape: true, hasManuallyFlippedPaper: false };
+}
+
+/**
+ * @param linkValues - values read from the route's link params
+ *   (`borderCalculatorLink.read`), applied over the stored inputs once on
+ *   mount (see `borderLinkOverrides`).
+ */
+export function useBorderCalculatorController(
+  linkValues: Partial<BorderCalculatorState> = {}
+) {
   // The layout switch and the preview size read the same (debounced) window
   // sample, so the preview always matches the layout that renders it.
   const { width, height } = useWindowDimensions();
@@ -81,6 +133,7 @@ export function useBorderCalculatorController() {
     {
       form,
       values: formValues,
+      overrides: borderLinkOverrides(linkValues),
       onHydrated: (loadedValues) => {
         // Recalculate orientation for custom paper after loading from storage,
         // unless the user flipped it by hand: then the persisted isLandscape is
