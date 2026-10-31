@@ -189,7 +189,8 @@ async function openAndWait(url: string): Promise<CaptureView> {
  * Legacy chunks must not contain Unicode property escapes (`\p{...}`): the
  * transpiler rewrites them only in regex LITERALS, so a leftover means a
  * `new RegExp('\\p{..}')` string (or an untranspiled literal) that throws a
- * SyntaxError on browsers without property-escape support.
+ * SyntaxError on browsers without property-escape support. Stale chunks left
+ * in dist/ can fail this locally: `rm -rf apps/dorkroom/dist` and rebuild.
  */
 async function checkLegacyChunksHaveNoPropertyEscapes(): Promise<void> {
   const assetsDir = join(distDir, 'assets');
@@ -199,12 +200,16 @@ async function checkLegacyChunksHaveNoPropertyEscapes(): Promise<void> {
   check('legacy: found legacy chunks to scan', files.length > 0);
   const offenders: string[] = [];
   for (const file of files) {
-    // Zod ships its emoji pattern as a string for `z.emoji()` (compiled lazily
-    // with `new RegExp`); the app never calls it, so it cannot throw at load.
-    if (file.startsWith('zod-')) continue;
     const source = await readFile(join(assetsDir, file), 'utf8');
+    // Zod ships its emoji pattern as a string for `z.emoji()` (compiled
+    // lazily with `new RegExp`, never called by the app), so those known
+    // property names are removed before testing.
+    const scanned = source.replace(
+      /\\\\p\{(Extended_Pictographic|Regional_Indicator|Emoji_Component)\}/g,
+      ''
+    );
     // `\\p{` also covers the escaped form inside a string passed to RegExp().
-    if (/\\{1,2}[pP]\{/.test(source)) offenders.push(file);
+    if (/\\{1,2}[pP]\{/.test(scanned)) offenders.push(file);
   }
   check(
     'legacy: no Unicode property escapes (\\p{...}) in any legacy chunk',

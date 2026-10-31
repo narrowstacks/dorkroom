@@ -1,10 +1,15 @@
 /**
- * Control and invisible formatting characters to remove. Cc (controls), Cf
- * (zero-width spaces, bidi overrides and isolates, BOM), Co (private use) and
- * the line/paragraph separators. Kept: tab, LF, CR (callers decide what to do
- * with them), ZWJ/ZWNJ (needed for emoji sequences and Persian/Indic scripts),
- * and the Unicode tag block U+E0020-E007F (it spells subdivision flag emoji
- * such as the England flag).
+ * Control and invisible formatting characters to remove: Cc (controls), Cf
+ * (zero-width spaces, bidi overrides and isolates, BOM, Unicode tag
+ * characters), Co (private use) and the line/paragraph separators. Kept: tab,
+ * LF, CR (callers decide what to do with them) and ZWJ/ZWNJ (needed for emoji
+ * sequences and Persian/Indic scripts).
+ *
+ * Tag characters (U+E0000 block) can smuggle invisible ASCII, so they are
+ * removed, EXCEPT inside a well-formed subdivision flag emoji: U+1F3F4 + 2-6
+ * lowercase alphanumeric tags + CANCEL TAG (U+E007F), e.g. England. The flag
+ * is matched by capture group 1 and put back by the replacer; stray tags
+ * (including extra ones after a flag) are removed.
  *
  * These are regex LITERALS on purpose: the legacy build (Babel/regexpu)
  * rewrites property escapes in literals into ES5-safe classes, but leaves
@@ -14,7 +19,7 @@
  * surrogates are removed by LONE_SURROGATE instead, which needs no lookbehind.
  */
 const INVISIBLE_UNSAFE =
-  /(?!\t|\n|\r|\u200C|\u200D|[\u{E0020}-\u{E007F}])[\p{Cc}\p{Cf}\p{Co}\p{Zl}\p{Zp}]/gu;
+  /(\u{1F3F4}[\u{E0030}-\u{E0039}\u{E0061}-\u{E007A}]{2,6}\u{E007F})|(?!\t|\n|\r|\u200C|\u200D)[\p{Cc}\p{Cf}\p{Co}\p{Zl}\p{Zp}]/gu;
 
 /** A high surrogate with no low after it, or a low surrogate with no high before it. */
 const LONE_SURROGATE =
@@ -26,9 +31,9 @@ const LONE_SURROGATE =
  * THREAT MODEL: recipe text is only ever rendered as text, never as markup:
  * React text nodes and React Native `<Text>` escape it, and none of these
  * fields feeds `dangerouslySetInnerHTML`, markdown, or server-rendered HTML.
- * The one exception is `CustomRecipe.sourceUrl`: it becomes an `href`, is NOT
- * sanitized here, and must be scheme-validated where it is built (tracked in
- * #495). Custom recipes also never reach `api/meta.ts` or
+ * The one exception is `CustomRecipe.sourceUrl`: it becomes an `href`
+ * unconditionally and is not scheme-validated anywhere yet (see #495); React 19
+ * blocks `javascript:` URLs. Custom recipes also never reach `api/meta.ts` or
  * `api/og.tsx` (those only render catalog data looked up by slug/UUID, and
  * `api/meta.ts` escapes at the sink with `escapeHtml`). So injection is
  * prevented by the render sinks, not by deleting words here. This function is
@@ -59,7 +64,10 @@ export function sanitizeText(
   // Strip control/invisible characters first so they cannot be used to split a
   // tag and survive the pass below.
   let sanitized = text
-    .replace(INVISIBLE_UNSAFE, '')
+    .replace(
+      INVISIBLE_UNSAFE,
+      (_match: string, flag: string | undefined) => flag ?? ''
+    )
     .replace(LONE_SURROGATE, '$1');
 
   // Only things that look like tags are removed (`<` followed by a letter, `/`,

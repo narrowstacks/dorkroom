@@ -73,10 +73,23 @@ describe('text-sanitization', () => {
       expect(sanitizeText('<img src=x onerror=y>')).toBe('');
     });
 
-    it('keeps subdivision flag emoji (tag characters)', () => {
-      const england =
-        '\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}';
-      expect(sanitizeText(england)).toBe(england);
+    it('keeps well-formed subdivision flags, strips other tag characters', () => {
+      const tags = (word: string): string =>
+        [...word]
+          .map((c) => String.fromCodePoint(0xe0000 + c.charCodeAt(0)))
+          .join('');
+      const flag = (code: string): string => `\u{1F3F4}${tags(code)}\u{E007F}`;
+      for (const code of ['gbeng', 'gbsct', 'gbwls']) {
+        expect(sanitizeText(flag(code))).toBe(flag(code));
+      }
+      expect(sanitizeText(`hi${tags('ignore')}`)).toBe('hi');
+      expect(sanitizeText(`${flag('gbeng')}${tags('ignore')}`)).toBe(
+        flag('gbeng')
+      );
+      expect(sanitizeText(`\u{1F3F4}${tags('a'.repeat(15))}\u{E007F}`)).toBe(
+        '\u{1F3F4}'
+      );
+      expect(sanitizeText('a\u{E0001}b')).toBe('ab');
     });
 
     it('removes lone surrogates but keeps pairs', () => {
