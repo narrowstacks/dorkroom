@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { importRecipeSchema } from '../../schemas/import-recipe.schema';
+import {
+  extractImportRecipeCode,
+  importRecipeSchema,
+} from '../../schemas/import-recipe.schema';
 import {
   encodeCustomRecipe,
   MAX_ENCODED_LENGTH,
@@ -48,5 +51,56 @@ describe('importRecipeSchema', () => {
   it('rejects empty input and text with spaces or punctuation', () => {
     expect(accepts('')).toBe(false);
     expect(accepts('not a code!')).toBe(false);
+  });
+
+  it('accepts a full Dorkroom share link and a recipe= fragment', () => {
+    expect(
+      accepts(
+        'https://dorkroom.art/development?recipe=abc-def_ghi&source=share'
+      )
+    ).toBe(true);
+    expect(accepts('dorkroom.art/development/?recipe=abc123')).toBe(true);
+    expect(accepts('recipe=abc-def_ghi')).toBe(true);
+    expect(accepts('?recipe=abc-def_ghi')).toBe(true);
+  });
+
+  it('rejects share links without a usable recipe code', () => {
+    expect(accepts('https://dorkroom.art/development')).toBe(false);
+    expect(accepts('https://dorkroom.art/development?recipe=')).toBe(false);
+    expect(accepts('https://dorkroom.art/border?recipe=abc')).toBe(false);
+    expect(accepts('recipe=not a code!')).toBe(false);
+  });
+
+  it('rejects garbage', () => {
+    expect(accepts('zzzz zzzz')).toBe(false);
+    expect(accepts('https://example.com/whatever')).toBe(false);
+  });
+
+  it('bounds the extracted code before it is decoded', () => {
+    const ok = 'a'.repeat(MAX_ENCODED_LENGTH);
+    const tooLong = 'a'.repeat(MAX_ENCODED_LENGTH + 1);
+    expect(accepts(`https://dorkroom.art/development?recipe=${ok}`)).toBe(true);
+    expect(accepts(`https://dorkroom.art/development?recipe=${tooLong}`)).toBe(
+      false
+    );
+    expect(accepts(`recipe=${tooLong}`)).toBe(false);
+  });
+});
+
+describe('extractImportRecipeCode', () => {
+  it('returns the code from a link, a fragment, or the bare input', () => {
+    expect(
+      extractImportRecipeCode(
+        ' https://dorkroom.art/development?recipe=abc_1&source=share '
+      )
+    ).toBe('abc_1');
+    expect(extractImportRecipeCode('recipe=abc_1')).toBe('abc_1');
+    expect(extractImportRecipeCode(' abc_1 ')).toBe('abc_1');
+  });
+
+  it('leaves filmdev urls and ids untouched', () => {
+    const url = 'https://filmdev.org/recipe/show/5001';
+    expect(extractImportRecipeCode(url)).toBe(url);
+    expect(extractImportRecipeCode('5001')).toBe('5001');
   });
 });

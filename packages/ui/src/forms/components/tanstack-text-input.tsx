@@ -2,6 +2,7 @@ import type React from 'react';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 import { cssVars } from '../../lib/dom';
+import { formatFieldErrors } from '../utils/format-field-errors';
 
 export interface TanStackTextInputProps {
   field: {
@@ -114,7 +115,7 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
             ),
           }}
         >
-          {field.state.meta.errors.map((e) => String(e)).join(', ')}
+          {formatFieldErrors(field.state.meta.errors)}
         </div>
       )}
     </div>
