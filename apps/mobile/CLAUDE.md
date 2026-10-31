@@ -130,10 +130,16 @@ because it is a permanent tab).
 ### Persistence and data
 
 - Storage is **synchronous MMKV**. Two patterns:
-  - Shared `@dorkroom/logic` hooks read and write `globalThis.localStorage`,
-    backed by the MMKV shim installed in `app/_layout.tsx` via
-    `installLocalStorage()`. That call **must** stay first, before anything reads
-    persisted state.
+  - Shared `@dorkroom/logic` calculators (mat, lens, camera exposure, border)
+    persist through `PersistenceStorageProvider`, which `app/_layout.tsx` gives
+    `calculatorStorage` from `src/lib/mmkv-storage.ts`: an MMKV adapter over
+    the shared `dorkroom-mobile` instance. The exposure, reciprocity and resize
+    screens use string-state hooks that do not persist (#427 tracks unifying them).
+  - Other shared hooks (custom recipes, border presets) read and write
+    `globalThis.localStorage`, backed by the MMKV shim installed in
+    `app/_layout.tsx` via `installLocalStorage()` over that same instance.
+    That call **must** stay first, before anything reads persisted state, and
+    the instance id must not change, or saved state is lost.
   - Mobile-only state uses `createMMKV({ id: '…' })` (MMKV 4) directly with a named id
     (`meter-settings.ts`, `meter-calibration.ts`, `tab-bar-settings.ts`,
     `film-log-storage.ts`). Pull defaults from `@dorkroom/logic` constants and

@@ -1,7 +1,6 @@
 import type { SelectItem } from '@dorkroom/logic';
 import { Search } from 'lucide-react';
-import { type FC, useRef } from 'react';
-import { cssVars, setStyles } from '../../lib/dom';
+import type { FC } from 'react';
 import { optionChangeHandler } from '../../lib/select-options';
 import { FilterPanelContainer } from '../filters/filter-panel-container';
 import { FilterPanelHeader } from '../filters/filter-panel-header';
@@ -72,8 +71,6 @@ export const FilmFiltersPanel: FC<FilmFiltersPanelProps> = ({
   onCollapsedChange,
   defaultCollapsed = false,
 }) => {
-  const searchIconRef = useRef<SVGSVGElement>(null);
-
   // Count active filters (including search)
   const activeFilterCount = [
     searchQuery,
@@ -109,12 +106,8 @@ export const FilmFiltersPanel: FC<FilmFiltersPanelProps> = ({
         >
           Search Films
         </label>
-        <div className="relative">
-          <Search
-            ref={searchIconRef}
-            className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 transition-colors"
-            style={{ color: 'var(--color-text-muted)' }}
-          />
+        <div className="group relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted transition-colors group-focus-within:text-brand" />
           <input
             id="film-search"
             type="text"
@@ -122,30 +115,7 @@ export const FilmFiltersPanel: FC<FilmFiltersPanelProps> = ({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Type to search..."
-            className="w-full rounded-lg border px-3 py-2.5 pl-10 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
-            style={cssVars({
-              borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'var(--color-surface-muted)',
-              color: 'var(--color-text-primary)',
-            })}
-            onFocus={(e) => {
-              setStyles(e.target, {
-                borderColor: 'var(--color-brand)',
-                backgroundColor: 'var(--color-background)',
-              });
-              if (searchIconRef.current) {
-                searchIconRef.current.style.color = 'var(--color-brand)';
-              }
-            }}
-            onBlur={(e) => {
-              setStyles(e.target, {
-                borderColor: 'var(--color-border-secondary)',
-                backgroundColor: 'var(--color-surface-muted)',
-              });
-              if (searchIconRef.current) {
-                searchIconRef.current.style.color = 'var(--color-text-muted)';
-              }
-            }}
+            className="w-full rounded-lg border border-secondary bg-surface-muted px-3 py-2.5 pl-10 text-sm font-medium text-primary transition-all duration-200 focus:border-brand focus:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
           />
         </div>
       </div>

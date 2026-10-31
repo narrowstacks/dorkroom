@@ -371,3 +371,24 @@ describe('meta handler - unknown routes', () => {
     expect(res._sent).not.toContain('noindex');
   });
 });
+
+describe('meta handler - origin failure', () => {
+  it.each([404, 500, 503])(
+    'answers 502 instead of rewriting an origin %i payload as the document',
+    async (originStatus) => {
+      globalThis.fetch = vi.fn().mockResolvedValue(
+        new Response('<html><title>Origin down</title></html>', {
+          status: originStatus,
+        })
+      );
+      const req = createMockRequest({ query: { path: '/stops' } });
+      const res = createMockResponse();
+
+      await handler(req, res);
+
+      expect(res._status).toBe(502);
+      expect(res._sent).toBe('Failed to fetch origin document');
+      expect(res._sent).not.toContain('Origin down');
+    }
+  );
+});

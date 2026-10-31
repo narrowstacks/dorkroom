@@ -1,7 +1,6 @@
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import type { Table } from '@tanstack/react-table';
 import { cn } from '../../lib/cn';
-import { setStyles } from '../../lib/dom';
 
 interface PaginationControlsProps {
   table: Table<DevelopmentCombinationView>;
@@ -26,25 +25,9 @@ export function PaginationControls({ table }: PaginationControlsProps) {
         onClick={() => table.previousPage()}
         disabled={!table.getCanPreviousPage()}
         className={cn(
-          'rounded-full border px-3 py-1.5 transition',
+          'rounded-full border border-secondary px-3 py-1.5 text-secondary transition hover:border-primary hover:text-primary',
           !table.getCanPreviousPage() && 'cursor-not-allowed opacity-50'
         )}
-        style={{
-          borderColor: 'var(--color-border-secondary)',
-          color: 'var(--color-text-secondary)',
-        }}
-        onMouseEnter={(e) => {
-          setStyles(e.currentTarget, {
-            borderColor: 'var(--color-border-primary)',
-            color: 'var(--color-text-primary)',
-          });
-        }}
-        onMouseLeave={(e) => {
-          setStyles(e.currentTarget, {
-            borderColor: 'var(--color-border-secondary)',
-            color: 'var(--color-text-secondary)',
-          });
-        }}
       >
         Previous
       </button>
@@ -56,25 +39,9 @@ export function PaginationControls({ table }: PaginationControlsProps) {
         onClick={() => table.nextPage()}
         disabled={!table.getCanNextPage()}
         className={cn(
-          'rounded-full border px-3 py-1.5 transition',
+          'rounded-full border border-secondary px-3 py-1.5 text-secondary transition hover:border-primary hover:text-primary',
           !table.getCanNextPage() && 'cursor-not-allowed opacity-50'
         )}
-        style={{
-          borderColor: 'var(--color-border-secondary)',
-          color: 'var(--color-text-secondary)',
-        }}
-        onMouseEnter={(e) => {
-          setStyles(e.currentTarget, {
-            borderColor: 'var(--color-border-primary)',
-            color: 'var(--color-text-primary)',
-          });
-        }}
-        onMouseLeave={(e) => {
-          setStyles(e.currentTarget, {
-            borderColor: 'var(--color-border-secondary)',
-            color: 'var(--color-text-secondary)',
-          });
-        }}
       >
         Next
       </button>

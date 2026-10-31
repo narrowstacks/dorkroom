@@ -550,16 +550,9 @@ export const createTableColumns = (
                   ? 'View on FilmDev.org'
                   : 'View source'
               }
-              className="inline-flex items-center"
-              style={{ color: 'var(--color-text-tertiary)' }}
+              className="inline-flex items-center text-tertiary hover:text-primary"
               onClick={(e) => {
                 e.stopPropagation();
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--color-text-primary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--color-text-tertiary)';
               }}
             >
               <ExternalLink className="size-4" aria-hidden="true" />

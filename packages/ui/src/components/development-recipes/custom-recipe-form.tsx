@@ -8,7 +8,6 @@ import {
 } from '@dorkroom/logic';
 import { useMemo, useState } from 'react';
 import { cn } from '../../lib/cn';
-import { setStyles } from '../../lib/dom';
 import { optionChangeHandler } from '../../lib/select-options';
 import { Select } from '../select';
 import { TextInput } from '../text-input';
@@ -472,23 +471,7 @@ function FormActions({ isSubmitting, onCancel }: FormActionsProps) {
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-full border px-4 py-2 text-sm font-medium transition"
-          style={{
-            borderColor: 'var(--color-border-primary)',
-            color: 'var(--color-text-tertiary)',
-          }}
-          onMouseEnter={(e) => {
-            setStyles(e.currentTarget, {
-              borderColor: 'var(--color-border-primary)',
-              color: 'var(--color-text-primary)',
-            });
-          }}
-          onMouseLeave={(e) => {
-            setStyles(e.currentTarget, {
-              borderColor: 'var(--color-border-primary)',
-              color: 'var(--color-text-tertiary)',
-            });
-          }}
+          className="rounded-full border border-primary px-4 py-2 text-sm font-medium text-tertiary transition hover:text-primary"
         >
           Cancel
         </button>
@@ -497,24 +480,9 @@ function FormActions({ isSubmitting, onCancel }: FormActionsProps) {
         type="submit"
         disabled={isSubmitting}
         className={cn(
-          'rounded-full px-5 py-2 text-sm font-semibold transition',
+          'rounded-full bg-text-primary px-5 py-2 text-sm font-semibold text-background transition enabled:hover:bg-text-secondary',
           isSubmitting && 'cursor-wait opacity-70'
         )}
-        style={{
-          backgroundColor: 'var(--color-text-primary)',
-          color: 'var(--color-background)',
-        }}
-        onMouseEnter={(e) => {
-          if (!isSubmitting) {
-            e.currentTarget.style.backgroundColor =
-              'var(--color-text-secondary)';
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!isSubmitting) {
-            e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
-          }
-        }}
       >
         {isSubmitting ? 'Saving…' : 'Save recipe'}
       </button>

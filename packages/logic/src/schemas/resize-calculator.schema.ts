@@ -1,6 +1,9 @@
 import { z } from 'zod';
-import { RESIZE_STORAGE_KEY } from '../constants/resize-calculator';
-import { definePersistedFormFields } from '../utils/persisted-form-fields';
+import {
+  RESIZE_FORM_DEFAULTS,
+  RESIZE_STORAGE_KEY,
+} from '../constants/resize-calculator';
+import { definePersistedCalculator } from '../utils/persisted-calculator';
 import {
   exposureTimeValidator,
   positiveDimensionValidator,
@@ -58,9 +61,10 @@ export const resizeCalculatorSchema = z
   );
 
 /** Storage key, persist keys and hydration validators for the form. */
-export const resizeCalculatorPersistence = definePersistedFormFields(
+export const resizeCalculatorPersistence = definePersistedCalculator(
   RESIZE_STORAGE_KEY,
-  resizeCalculatorFieldSchemas
+  resizeCalculatorFieldSchemas,
+  RESIZE_FORM_DEFAULTS
 );
 
 export type ResizeCalculatorFormData = z.infer<typeof resizeCalculatorSchema>;

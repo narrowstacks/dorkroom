@@ -16,22 +16,10 @@ describe('openapi endpoint', () => {
       'application/json; charset=utf-8'
     );
 
-    expect(res._json).toMatchObject({
-      openapi: '3.1.0',
-      paths: {
-        '/films': expect.anything(),
-        '/developers': expect.anything(),
-        '/combinations': expect.anything(),
-        '/stats': expect.anything(),
-        '/filmdev': expect.anything(),
-      },
-      components: {
-        schemas: {
-          RawFilm: expect.anything(),
-          ErrorResponse: expect.anything(),
-        },
-      },
-    });
+    // Paths and schemas are pinned by the drift guard in
+    // packages/api/src/dorkroom/__tests__/openapi.test.ts; here we only check
+    // the handler serves a document at all.
+    expect(res._json).toMatchObject({ openapi: '3.1.0' });
   });
 
   it('sets permissive CORS and cache headers', () => {
@@ -61,7 +49,7 @@ describe('openapi endpoint', () => {
       handler(req, res);
 
       expect(res._status).toBe(405);
-      expect(res._headers.allow).toBe('GET');
+      expect(res._headers.allow).toBe('GET, OPTIONS');
     }
   });
 });

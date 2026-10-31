@@ -2,12 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createMockRequest,
   createMockResponse,
+  type MockVercelResponse,
 } from '../../utils/__tests__/mock-vercel';
 import { createSupabaseProxyHandler } from '../../utils/createSupabaseProxy';
 import type { HandlerContext } from '../../utils/withHandler';
 import { combinationsProxyConfig } from '../combinations';
 import { developersProxyConfig } from '../developers';
 import { filmsProxyConfig } from '../films';
+import { statsProxyConfig } from '../stats';
 
 /** A well-formed Supabase Edge Function list payload; the proxy forwards it verbatim. */
 const LIST_PAYLOAD = JSON.stringify({ data: [{ id: 1, name: 'Test' }] });
@@ -35,13 +37,23 @@ function respondWith(response: Response): void {
   globalThis.fetch = vi.fn().mockResolvedValue(response);
 }
 
-/** The context `withHandler` hands the proxy once host auth has passed. */
-function createContext(isPublicApi = false): HandlerContext {
+/**
+ * The context `withHandler` hands the proxy once host auth has passed. With no
+ * cache policy pinned (the website host), the envelope's `setCacheControl`
+ * writes straight through to the response.
+ */
+function createContext(
+  res?: MockVercelResponse,
+  isPublicApi = false
+): HandlerContext {
   return {
     requestId: 'test-request-id',
     startTime: Date.now(),
     userAgent: 'TestAgent/1.0',
     isPublicApi,
+    setCacheControl: (value) => {
+      res?.setHeader('Cache-Control', value);
+    },
   };
 }
 
@@ -65,24 +77,37 @@ afterEach(() => {
   globalThis.fetch = originalFetch;
 });
 
-describe.each([
-  { endpoint: 'films', config: filmsProxyConfig },
-  { endpoint: 'developers', config: developersProxyConfig },
-  { endpoint: 'combinations', config: combinationsProxyConfig },
-])('$endpoint endpoint', ({ config }) => {
-  const handler = createSupabaseProxyHandler(config);
+// Everything below is the factory's behaviour, identical for every endpoint,
+// so it runs once against a neutral config. What differs per endpoint (target
+// URL and allowed params) is pinned in the per-endpoint suite at the bottom.
+describe('createSupabaseProxyHandler', () => {
+  const handler = createSupabaseProxyHandler({
+    name: 'example',
+    allowedParams: [],
+  });
 
   describe('upstream error handling', () => {
-    it('should return 502 for non-OK upstream responses (not reflected status)', async () => {
-      respondWith(createUpstreamResponse('', { status: 403 }));
+    it.each([401, 403, 404, 500, 503])(
+      'answers an upstream %i with a generic 502 that leaks nothing from upstream',
+      async (upstreamStatus) => {
+        respondWith(
+          createUpstreamResponse(
+            JSON.stringify({ error: 'internal upstream detail' }),
+            { status: upstreamStatus }
+          )
+        );
 
-      const res = createMockResponse();
-      await handler(createMockRequest(), res, createContext());
+        const res = createMockResponse();
+        await handler(createMockRequest(), res, createContext());
 
-      expect(res._status).toBe(502);
-      expect(res._json).toMatchObject({ error: 'External API error' });
-      expect(res._json).not.toHaveProperty('status');
-    });
+        expect(res._status).toBe(502);
+        expect(res._json).toMatchObject({ error: 'External API error' });
+        expect(res._json).not.toHaveProperty('status');
+        expect(JSON.stringify(res._json)).not.toContain(
+          'internal upstream detail'
+        );
+      }
+    );
 
     it('should pass an upstream 400 through with its error string and requestId', async () => {
       respondWith(
@@ -122,20 +147,6 @@ describe.each([
       }
     });
 
-    it('should keep an upstream 404 as a 502', async () => {
-      respondWith(
-        createUpstreamResponse(JSON.stringify({ error: 'Film not found' }), {
-          status: 404,
-        })
-      );
-
-      const res = createMockResponse();
-      await handler(createMockRequest(), res, createContext());
-
-      expect(res._status).toBe(502);
-      expect(res._json).toMatchObject({ error: 'External API error' });
-    });
-
     it('should use the fallback for an oversized 400 body without reading it', async () => {
       const upstream = createUpstreamResponse(
         JSON.stringify({ error: 'big' }),
@@ -153,9 +164,11 @@ describe.each([
     });
 
     it('should use the fallback for an oversized 400 body without content-length', async () => {
+      // `error` alone is valid and short, so only the body-size guard in
+      // readUpstreamError can turn this into the fallback.
       respondWith(
         createUpstreamResponse(
-          JSON.stringify({ error: 'x'.repeat(2 * 1024 * 1024) }),
+          JSON.stringify({ error: 'big', pad: 'x'.repeat(2 * 1024 * 1024) }),
           { status: 400 }
         )
       );
@@ -222,19 +235,6 @@ describe.each([
         handler(createMockRequest(), res, createContext())
       ).rejects.toThrow('fetch failed');
     });
-
-    it.each([401, 403, 500, 503])(
-      'should not include upstream status %i in the response',
-      async (upstreamStatus) => {
-        respondWith(createUpstreamResponse('', { status: upstreamStatus }));
-
-        const res = createMockResponse();
-        await handler(createMockRequest(), res, createContext());
-
-        expect(res._status).toBe(502);
-        expect(res._json).not.toHaveProperty('status');
-      }
-    );
   });
 
   describe('content type error handling', () => {
@@ -303,16 +303,26 @@ describe.each([
   describe('cache-control header', () => {
     it('should set an edge-cacheable Cache-Control header for website requests', async () => {
       const res = createMockResponse();
-      await handler(createMockRequest(), res, createContext());
+      await handler(createMockRequest(), res, createContext(res));
 
       expect(res._headers['cache-control']).toContain('s-maxage=300');
     });
 
-    it('should keep the public API Cache-Control header as private, no-store', async () => {
+    it('should leave the public API cache policy to the envelope instead of branching on host', async () => {
+      // `private, no-store` on api.dorkroom.art is pinned by the envelope and
+      // asserted in withHandler.test.ts; the proxy asks for the same value on
+      // every host and never writes Cache-Control itself.
       const res = createMockResponse();
-      await handler(createMockRequest(), res, createContext(true));
+      const setCacheControl = vi.fn();
+      await handler(createMockRequest(), res, {
+        ...createContext(res, true),
+        setCacheControl,
+      });
 
-      expect(res._headers['cache-control']).toBe('private, no-store');
+      expect(setCacheControl).toHaveBeenCalledExactlyOnceWith(
+        'public, max-age=60, s-maxage=300, stale-while-revalidate=600'
+      );
+      expect(res._headers['cache-control']).toBeUndefined();
     });
   });
 
@@ -332,19 +342,86 @@ describe.each([
       const headers = new Headers(sent[0]?.headers);
       expect(headers.get('x-proxy-secret')).toBe('test-proxy-secret');
     });
+  });
+});
 
-    it('should mask an upstream 401 as a 502 with no upstream detail', async () => {
-      respondWith(
-        createUpstreamResponse(JSON.stringify({ error: 'Unauthorized' }), {
-          status: 401,
-        })
-      );
+describe.each([
+  {
+    name: 'films',
+    config: filmsProxyConfig,
+    kept: {
+      query: 'tri',
+      fuzzy: 'true',
+      limit: '10',
+      colorType: 'bw',
+      brand: 'kodak',
+      slug: 'tri-x',
+    },
+    dropped: { type: 'concentrate', manufacturer: 'ilford', film: 'x' },
+  },
+  {
+    name: 'developers',
+    config: developersProxyConfig,
+    kept: {
+      query: 'hc',
+      fuzzy: 'false',
+      limit: '10',
+      type: 'concentrate',
+      manufacturer: 'ilford',
+      slug: 'hc-110',
+    },
+    dropped: { colorType: 'bw', brand: 'kodak', film: 'x' },
+  },
+  {
+    name: 'combinations',
+    config: combinationsProxyConfig,
+    kept: {
+      film: 'tri-x',
+      developer: 'hc-110',
+      count: '25',
+      page: '2',
+      id: 'abc',
+      query: 'x',
+      fuzzy: 'true',
+      limit: '10',
+    },
+    dropped: { slug: 'tri-x', brand: 'kodak', manufacturer: 'ilford' },
+  },
+  {
+    name: 'stats',
+    config: statsProxyConfig,
+    kept: {},
+    dropped: { query: 'x', limit: '5', slug: 'tri-x' },
+  },
+])('$name endpoint wiring', ({ name, config, kept, dropped }) => {
+  const handler = createSupabaseProxyHandler(config);
 
-      const res = createMockResponse();
-      await handler(createMockRequest(), res, createContext());
+  it('calls the matching Supabase Edge Function', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(createUpstreamResponse(EMPTY_LIST_PAYLOAD));
+    globalThis.fetch = fetchMock;
 
-      expect(res._status).toBe(502);
-      expect(JSON.stringify(res._json)).not.toContain('Unauthorized');
-    });
+    await handler(createMockRequest(), createMockResponse(), createContext());
+
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      `https://test.supabase.co/functions/v1/${name}`
+    );
+  });
+
+  it('forwards its own params and drops everything else', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(createUpstreamResponse(EMPTY_LIST_PAYLOAD));
+    globalThis.fetch = fetchMock;
+
+    await handler(
+      createMockRequest({ query: { ...kept, ...dropped } }),
+      createMockResponse(),
+      createContext()
+    );
+
+    const target = new URL(fetchMock.mock.calls[0][0]);
+    expect(Object.fromEntries(target.searchParams)).toEqual(kept);
   });
 });

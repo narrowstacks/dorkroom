@@ -17,7 +17,8 @@ import type {
   BorderPresetSettings,
 } from '../../types/border-calculator';
 import { computeMaxAllowedMinBorder } from '../../utils/border-calculations';
-import { isBrowser } from '../../utils/environment';
+import { definePersistedCalculator } from '../../utils/persisted-calculator';
+import { usePersistenceStorage } from '../use-persisted-calculator';
 
 /**
  * Field bounds for the persisted border-calculator snapshot: the preset
@@ -90,6 +91,17 @@ const createInitialState = (): BorderCalculatorState => {
 };
 
 export const initialState = createInitialState();
+
+/**
+ * Storage key, persist keys, per-key hydration validators and defaults for
+ * the web form, which hydrates field by field (a bad field falls back on its
+ * own).
+ */
+export const borderCalculatorPersistence = definePersistedCalculator(
+  BORDER_CALCULATOR_STORAGE_KEY,
+  persistedBorderCalculatorFieldSchemas,
+  initialState
+);
 
 function reducer(
   state: BorderCalculatorState,
@@ -175,6 +187,7 @@ function reducer(
  */
 export const useBorderCalculatorState = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const storage = usePersistenceStorage();
   const persistTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const persistableState: BorderPresetSettings & Required<PersistedState> =
@@ -205,13 +218,14 @@ export const useBorderCalculatorState = () => {
       [state]
     );
 
+  // Hydrate once on mount. This reducer path validates the snapshot whole
+  // (see persistedBorderCalculatorSchema) rather than field by field, so it
+  // does not go through usePersistedCalculator, but it uses the same storage.
   useEffect(() => {
-    if (!isBrowser()) return;
-
     try {
-      const raw = window.localStorage.getItem(BORDER_CALCULATOR_STORAGE_KEY);
+      const raw = storage.getItem(BORDER_CALCULATOR_STORAGE_KEY);
       if (!raw) return;
-      removeSupersededStorageKeys(BORDER_CALCULATOR_STORAGE_KEY);
+      removeSupersededStorageKeys(BORDER_CALCULATOR_STORAGE_KEY, storage);
 
       const cached = persistedBorderCalculatorSchema.safeParse(JSON.parse(raw));
       if (cached.success) {
@@ -220,18 +234,17 @@ export const useBorderCalculatorState = () => {
     } catch (error) {
       console.warn('Failed to load calculator state', error);
     }
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- mount-only hydration; the storage provider is fixed for the app's lifetime
   }, []);
 
   useEffect(() => {
-    if (!isBrowser()) return;
-
     if (persistTimeout.current) {
       clearTimeout(persistTimeout.current);
     }
 
     persistTimeout.current = setTimeout(() => {
       try {
-        window.localStorage.setItem(
+        storage.setItem(
           BORDER_CALCULATOR_STORAGE_KEY,
           JSON.stringify(persistableState)
         );
@@ -246,7 +259,7 @@ export const useBorderCalculatorState = () => {
         persistTimeout.current = null;
       }
     };
-  }, [persistableState]);
+  }, [storage, persistableState]);
 
   useEffect(
     () => () => {

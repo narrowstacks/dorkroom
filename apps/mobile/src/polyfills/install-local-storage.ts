@@ -1,4 +1,4 @@
-import { createMMKV } from 'react-native-mmkv';
+import { sharedStorage } from '@/lib/mmkv-storage';
 import { createWebStorageShim } from './local-storage-shim';
 
 let installed = false;
@@ -11,8 +11,7 @@ export function installLocalStorage(): void {
   if (installed) {
     return;
   }
-  const mmkv = createMMKV({ id: 'dorkroom-mobile' });
-  const shim = createWebStorageShim(mmkv);
+  const shim = createWebStorageShim(sharedStorage);
   Object.defineProperty(globalThis, 'localStorage', {
     value: shim,
     configurable: true,

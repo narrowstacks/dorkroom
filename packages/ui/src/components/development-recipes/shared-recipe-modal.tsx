@@ -1,7 +1,5 @@
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import { cn } from '../../lib/cn';
-import { colorMixOr } from '../../lib/color';
-import { setStyles } from '../../lib/dom';
 import { ResponsiveModal } from '../responsive-modal';
 import { DevelopmentRecipeDetail } from './recipe-detail';
 
@@ -57,44 +55,10 @@ export function SharedRecipeModal({
         disabled={isProcessing}
         className={cn(
           'rounded-full px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50',
-          hideAddToCollection ? 'border-0 font-semibold' : 'border'
-        )}
-        style={
           hideAddToCollection
-            ? {
-                backgroundColor: 'var(--color-text-primary)',
-                color: 'var(--color-background)',
-              }
-            : {
-                borderColor: 'var(--color-border-primary)',
-                color: 'var(--color-text-secondary)',
-              }
-        }
-        onMouseEnter={(e) => {
-          if (hideAddToCollection) {
-            e.currentTarget.style.backgroundColor = colorMixOr(
-              'var(--color-text-primary)',
-              90,
-              'transparent',
-              'var(--color-text-primary)'
-            );
-          } else {
-            setStyles(e.currentTarget, {
-              borderColor: 'var(--color-border-secondary)',
-              color: 'var(--color-text-primary)',
-            });
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (hideAddToCollection) {
-            e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
-          } else {
-            setStyles(e.currentTarget, {
-              borderColor: 'var(--color-border-primary)',
-              color: 'var(--color-text-secondary)',
-            });
-          }
-        }}
+            ? 'border-0 bg-text-primary font-semibold text-background hover:bg-text-primary/90'
+            : 'border border-primary text-secondary hover:border-secondary hover:text-primary'
+        )}
       >
         {hideAddToCollection ? 'Close' : 'Not now'}
       </button>
@@ -102,25 +66,8 @@ export function SharedRecipeModal({
         <button
           type="button"
           onClick={() => onToggleFavorite?.(recipe)}
-          className={cn(
-            'rounded-full px-5 py-2 text-sm font-semibold transition'
-          )}
+          className="rounded-full bg-text-primary px-5 py-2 text-sm font-semibold text-background transition hover:bg-text-primary/90"
           aria-pressed={isFavorite?.(recipe) ?? false}
-          style={{
-            backgroundColor: 'var(--color-text-primary)',
-            color: 'var(--color-background)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = colorMixOr(
-              'var(--color-text-primary)',
-              90,
-              'transparent',
-              'var(--color-text-primary)'
-            );
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
-          }}
         >
           {isFavorite?.(recipe) ? 'Remove from favorites' : 'Add to favorites'}
         </button>
@@ -131,24 +78,9 @@ export function SharedRecipeModal({
           onClick={onAddToCollection}
           disabled={isProcessing}
           className={cn(
-            'rounded-full px-5 py-2 text-sm font-semibold transition',
+            'rounded-full bg-text-primary px-5 py-2 text-sm font-semibold text-background transition hover:bg-text-primary/90',
             isProcessing && 'cursor-wait opacity-70'
           )}
-          style={{
-            backgroundColor: 'var(--color-text-primary)',
-            color: 'var(--color-background)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = colorMixOr(
-              'var(--color-text-primary)',
-              90,
-              'transparent',
-              'var(--color-text-primary)'
-            );
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
-          }}
         >
           {isProcessing
             ? 'Adding...'

@@ -1,5 +1,4 @@
 import type { FC } from 'react';
-import { setStyles } from '../../lib/dom';
 
 interface FilterPanelClearButtonProps {
   onClick: () => void;
@@ -15,25 +14,7 @@ export const FilterPanelClearButton: FC<FilterPanelClearButtonProps> = ({
     <button
       type="button"
       onClick={onClick}
-      className="rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all duration-200"
-      style={{
-        color: 'var(--color-text-secondary)',
-        border: '1px solid var(--color-border-secondary)',
-      }}
-      onMouseEnter={(e) => {
-        setStyles(e.currentTarget, {
-          backgroundColor: 'var(--color-accent)',
-          color: 'var(--color-background)',
-          borderColor: 'var(--color-accent)',
-        });
-      }}
-      onMouseLeave={(e) => {
-        setStyles(e.currentTarget, {
-          backgroundColor: 'transparent',
-          color: 'var(--color-text-secondary)',
-          borderColor: 'var(--color-border-secondary)',
-        });
-      }}
+      className="rounded-lg border border-secondary px-2.5 py-1.5 text-xs font-semibold text-secondary transition-all duration-200 hover:border-accent hover:bg-accent hover:text-background"
     >
       {label}
     </button>

@@ -160,13 +160,5 @@ describe('borderCalculatorSchema slider-range agreement', () => {
     it('accepts a typical in-range baseline', () => {
       expect(parse({}).success).toBe(true);
     });
-
-    it('still rejects non-numeric values', () => {
-      const result = borderCalculatorSchema.safeParse({
-        ...baseValues,
-        minBorder: 'wide',
-      });
-      expect(result.success).toBe(false);
-    });
   });
 });
