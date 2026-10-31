@@ -7,6 +7,7 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
+import { isRecipeUrlDilution } from '../../constants/development-recipes';
 import { customRecipeFilterSchema } from '../../schemas/development-recipes.schema';
 import type {
   InitialUrlState,
@@ -21,7 +22,6 @@ import { useCustomRecipeSharing } from './use-custom-recipe-sharing';
 const VALIDATION_CONFIG: UrlValidationConfig = {
   maxSlugLength: 100,
   isoRange: { min: 6, max: 25600 },
-  dilutionPatterns: [/^stock$/i, /^\d+:\d+$/, /^\d+\+\d+$/, /^\d+$/],
 };
 
 /**
@@ -237,10 +237,7 @@ export const validateUrlParams = (
 
   const { dilution } = params;
   if (dilution) {
-    const isValidDilution = VALIDATION_CONFIG.dilutionPatterns.some((pattern) =>
-      pattern.test(dilution)
-    );
-    if (isValidDilution) {
+    if (isRecipeUrlDilution(dilution)) {
       sanitized.dilution = dilution;
     } else {
       errors.push('Invalid dilution format');

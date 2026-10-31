@@ -57,7 +57,7 @@ export {
   borderCalculatorPersistence,
   persistedBorderCalculatorFieldSchemas,
   persistedBorderCalculatorSchema,
-} from './hooks/border-calculator/use-border-calculator-state';
+} from './schemas/border-calculator-persistence';
 export {
   type UseCustomRecipesResult,
   useCustomRecipes,
@@ -127,11 +127,7 @@ export {
   type UsePersistedCalculatorReturn,
   usePersistenceStorage,
 } from './hooks/use-persisted-calculator';
-export {
-  formatReciprocityTime,
-  parseReciprocityTime,
-  useReciprocityCalculator,
-} from './hooks/use-reciprocity-calculator';
+export { useReciprocityCalculator } from './hooks/use-reciprocity-calculator';
 export { useResizeCalculator } from './hooks/use-resize-calculator';
 export { useUrlPresetLoader } from './hooks/use-url-preset-loader';
 // Hook exports
@@ -184,6 +180,7 @@ export * from './utils/border-calculations';
 export * from './utils/border-layout';
 export * from './utils/calculator-url-params';
 export * from './utils/camera-exposure-calculations';
+export * from './utils/combination-dilution';
 export * from './utils/combination-factory';
 export * from './utils/custom-recipe-helpers';
 export { debugError, debugLog, debugWarn } from './utils/debug-logger';
@@ -193,6 +190,7 @@ export * from './utils/exposure-calculations';
 export * from './utils/film-alias-resolver';
 export * from './utils/filmdev-mapper';
 export * from './utils/fuzzy-search';
+export * from './utils/home-search';
 export * from './utils/input-validation';
 export {
   calculateEquivalentFocalLength,

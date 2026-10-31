@@ -479,12 +479,8 @@
     color: var(--color-text-primary);
   }
 
-  /* Home-page calculator buttons: use black borders in high-contrast.
-     Exclude the hero border-calculator preview (it's an <a href="/border">
-     too, but the framed stroke around its box reads as noise). */
-  [data-theme="high-contrast"]
-    main
-    a[href*="/border"]:not([aria-label="Open the border calculator"]),
+  /* Calculator links: black borders in high-contrast. */
+  [data-theme="high-contrast"] main a[href*="/border"],
   [data-theme="high-contrast"] main a[href*="/stops"],
   [data-theme="high-contrast"] main a[href*="/resize"],
   [data-theme="high-contrast"] main a[href*="/exposure"],
@@ -493,11 +489,8 @@
     border: 2px solid var(--color-brand);
   }
 
-  /* Calculator buttons with red borders in darkroom theme - only on home page.
-     Exclude the hero border-calculator preview (see note above). */
-  [data-theme="darkroom"]
-    main
-    a[href*="/border"]:not([aria-label="Open the border calculator"]),
+  /* Calculator links: red borders in darkroom. */
+  [data-theme="darkroom"] main a[href*="/border"],
   [data-theme="darkroom"] main a[href*="/stops"],
   [data-theme="darkroom"] main a[href*="/resize"],
   [data-theme="darkroom"] main a[href*="/exposure"],
@@ -506,28 +499,11 @@
     border: 2px solid var(--color-brand);
   }
 
-  /* Home page CTA buttons */
-  .button-primary {
-    background-color: var(--color-text-primary);
-    color: var(--color-background);
-    transition:
-      background-color 0.2s,
-      opacity 0.2s;
-  }
-
-  .button-primary:hover {
-    opacity: 0.85;
-  }
-
-  .button-secondary {
-    border: 1px solid var(--color-border-primary);
-    color: var(--color-text-primary);
-    background-color: transparent;
-    transition: background-color 0.2s;
-  }
-
-  .button-secondary:hover {
-    background-color: var(--color-surface-muted);
+  /* The home search's answer and result links point at the same routes but
+     are text links and list rows, where a framed stroke reads as noise. */
+  [data-theme="high-contrast"] main .home-search a,
+  [data-theme="darkroom"] main .home-search a {
+    border-width: 0;
   }
 
   /* Home hero panel: subtle red movie-grain texture over the surface color
@@ -595,16 +571,23 @@
     background-image: none;
   }
 
-  /* Home hero border-calculator preview: 1px paper edge. In the two-tone
-     themes the preview sits on black with red blades, where an extra red
-     sheet border just reads as a tight, purposeless stroke — drop it. */
-  .hero-preview-paper {
-    border: 1px solid var(--color-paper-border);
+  /* Home search border answer: paper and print to scale. In the two-tone
+     themes paper, print and card share one fill, so the strokes are all
+     that draw them: the paper keeps its solid edge and the print is dashed
+     (as --print-border-style has it there), so the two read apart. */
+  .home-easel-paper {
+    fill: var(--color-paper-background);
+    stroke: var(--color-paper-border);
   }
 
-  [data-theme="darkroom"] .hero-preview-paper,
-  [data-theme="high-contrast"] .hero-preview-paper {
-    border-color: transparent;
+  .home-easel-print {
+    fill: var(--color-print-background);
+    stroke: var(--color-print-border);
+  }
+
+  [data-theme="darkroom"] .home-easel-print,
+  [data-theme="high-contrast"] .home-easel-print {
+    stroke-dasharray: 0.16 0.1;
   }
 
   /* Hero Button Styles */

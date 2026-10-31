@@ -30,25 +30,72 @@ application through Vercel Microfrontends; see [Documentation
 
 ## Home (`/`)
 
-**Purpose:** Dashboard landing page with navigation to all tools.
+**Purpose:** Answer a darkroom question straight away, then lead to the tool
+that goes deeper. The search box is the hero: type a question and the page
+answers it with a real number, from the calculators' own math or the recipe
+database.
 
-**Location:** `apps/dorkroom/src/app/pages/home-page.tsx`
+**Location:** `apps/dorkroom/src/app/pages/home-page.tsx`, with the search in
+`apps/dorkroom/src/app/pages/home/`. The parsing and answers are
+`searchHome` / `suggestHome` in `packages/logic/src/utils/home-search/`, pure
+and platform-free so the iOS app can share them (issue #528).
 
 **Features:**
 
 - Grain-textured hero panel: `Greeting`, the "Skip the math. Make prints!"
-  tagline, and a one-line stat summary (development recipes, film stocks,
-  developers)
-- Two hero calls to action, linking to `/border` and `/development`
-- `HomeHeroPreview` - a live border-calculator preview, shown from the `md`
-  breakpoint up
-- Tools grid of `ToolCard`s, one per calculator, driven by the module-level
-  `CALCULATORS` array (category, accent tone, and icon per tool)
+  tagline, a one-line stat summary (development recipes, film stocks,
+  developers), and the search box
+- Search box (`SearchCombobox`): a WAI-ARIA 1.2 combobox. Up to six
+  suggestions while typing (completions of film, developer and tool names,
+  plus query templates that teach the syntax); arrow keys move through them,
+  Enter or a click fills the box and searches, Escape closes the list and then
+  clears the box, Tab closes the list. `/` anywhere on the page focuses the box
+- Answer card (`AnswerCard`): the title, a source or calculator tag, a "Read as"
+  row showing how the query was understood (defaults marked "(default)"), the
+  big number in Fraunces, a few facts, notes, and a link that opens the matching
+  page pre-filled (see [Link Parameters](#link-parameters))
+- Grouped matches beside the answer (`ResultGroups`): development recipes, film
+  stocks, developers and tools, each with a count
+- With an empty box: a real answer to an example query, labelled "Example",
+  and "Try" chips that fill the box and move focus to it
+- Tools grid of `ToolCard`s, one per calculator, from the `homeToolCards` tool
+  manifest in `@dorkroom/ui`
 - Footer with license, `/privacy`, GitHub, and Ko-fi links
+
+**Query syntax:**
+
+| Kind | Examples | Answer |
+| --- | --- | --- |
+| Recipe | `hp5 at 800 in dd-x`, `tri-x in d-76 1+1`, `fp4 in id-11`, `hc-110 dilution b tri-x` | Time, temperature, dilution, EI with push or pull, agitation ("Not in source" when the data has none), source, official or community, other recipes for the pair. EI via `at`, `@`, `ei` or `iso`; dilution as `1+4`, `1:31`, `stock` or an HC-110 letter; temperature as `24c` or `75f`. Temperatures lead with the visitor's °C/°F setting (shared with `/development`) |
+| Reciprocity | `tri-x 30s`, `delta 3200 2m`, `hp5 reciprocity` | Corrected time from the film's reciprocity factor. Without a time it assumes 30s, marked |
+| Border | `11x14 6x7 1.45`, `8x10 35mm 1 1/4`, `24x30cm 6x6 2cm`, `8x10 645 borderless`, `9.5x12 6x9 1 portrait`, `6x7 1.5` | Print size and the borders on each side, centred, with a diagram. The larger size is the paper (default 8x10), the other the negative (default 35mm); a lone `4x5` is a negative. A bare border up to 4 is inches; any number with a unit (`15mm`, `2cm`, `2in`) is read in that unit; a bare number above 4 is ignored with a note. Metric queries answer in metric first |
+| Resize | `8x10 to 11x14 12s`, `11x14 from 8x10 20s`, `24x30cm to 30x40cm 15s`, `height 40cm to 60cm 10s`, `8x10 to 11x14` | New time, stops, factor, and whether the two sizes share a shape |
+| Lens | `80mm on 6x6`, `80mm 6x6 to 35mm`, `90mm on 645 to apsc`, `25mm mft equivalent` | Equivalent focal length, field of view, crop factors. Target defaults to full frame (6x6 from full frame), marked. With paper named, a mm number is a border unless it cannot fit or the query says `lens` or `equivalent` |
+| Stops | `12s +1/3`, `12s plus 2 stops`, `15s down 1 stop` | New time |
+| Mat | `16x20 mat 8x10 print`, `11x14 mat for 8x10`, `mat 16x20 11x14 reveal 1/8`, `16x20 mat 8x10 bottom weight` | Window opening and best-fit borders; the reveal defaults to the calculator's, marked. Needs the word `mat`, `matte` or `window` |
+| Camera exposure | `f/8`, `1/125`, `iso 400 f/8`, `sunny 16`, `what shutter` | A link to the Camera Exposure calculator, no answer |
+| Lookup | `portra 400`, `rodinal`, `foma` | Grouped matches only |
+
+**Data loading:** the page fetches only `useStats()` on load. Films,
+developers and recipes (the recipes are about 500 KB) load on the first sign
+of interest in searching: focus, pointer over the box, a keystroke, or a Try
+chip. The example and every calculator answer need no data, so first paint
+never waits on the catalog; a catalog query typed before it arrives shows
+"Loading recipes and films". So does an easel query with a word it cannot
+explain (`d76 8x10`, `tmax 100 4x5`), and a film and developer pair waits for
+the recipes, so neither answers one way and then changes. If part of the
+catalog fails to load, the card and the screen reader announcement say which
+part, and calculator questions keep working.
 
 **Data dependencies:**
 
-- `useStats()` - Recipe, film, and developer counts for the hero stat line
+- `useStats()` - recipe, film, and developer counts for the hero stat line
+- `useFilms`, `useDevelopers`, `useCombinations` (with `enabled` off until the
+  search is used) - the catalog the search reads
+
+**Analytics:** one `home_search` event per settled distinct query (1.5s
+without change, not per keystroke, never for the example), with the kind of
+answer and the number of matches. Never the query text.
 
 The footer year is set in a mount effect rather than during render, so
 build-time prerender snapshots stay deterministic.

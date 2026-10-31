@@ -128,7 +128,7 @@ describe('OfficialBadge', () => {
       const manufacturers = [
         { tag: 'official-kodak', expected: 'Official Kodak Recipe' },
         { tag: 'official-ilford', expected: 'Official Ilford Recipe' },
-        { tag: 'official-fuji', expected: 'Official Fuji Recipe' },
+        { tag: 'official-fuji', expected: 'Official Fujifilm Recipe' },
       ];
 
       manufacturers.forEach(({ tag, expected }) => {

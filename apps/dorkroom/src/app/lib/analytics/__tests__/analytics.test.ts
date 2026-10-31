@@ -30,6 +30,7 @@ const SAMPLES = {
   units_changed: { context: 'measurement', unit: 'metric' },
   search_no_results: { tool: 'films', filters: 2 },
   detail_opened: { type: 'film' },
+  home_search: { result: 'recipe', count: 4 },
   filter_applied: { tool: 'development', filter: 'dilution' },
   app_error: { route: '/border' },
   route_not_found: { referrer: 'external' },
