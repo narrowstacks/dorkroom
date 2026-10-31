@@ -95,7 +95,8 @@ interface AnswerOf<K extends string, T extends HomeToolRoute> {
   readAs: HomeReading[];
   /**
    * Shown above the figure: the answer is not for what was asked (no recipe
-   * at the EI typed, so the figure is another EI's time).
+   * at the EI or temperature typed, so the figure is another one's time).
+   * One or more sentences.
    */
   notice?: string;
   figure: HomeAnswerFigure | null;
@@ -166,7 +167,10 @@ export interface HomeSearchResult {
 
 /** What a suggestion is: a kind of answer it leads to, or a name it completes. */
 export type HomeSuggestionHint =
-  Exclude<HomeAnswerKind, 'no_recipe'> | 'film' | 'developer' | 'tool';
+  | Exclude<HomeAnswerKind, 'no_recipe' | 'camera_exposure'>
+  | 'film'
+  | 'developer'
+  | 'tool';
 
 export interface HomeSuggestion {
   /** What the list shows. */
@@ -174,4 +178,6 @@ export interface HomeSuggestion {
   /** What selecting it puts in the box (and searches). */
   query: string;
   hint: HomeSuggestionHint;
+  /** The tool a `tool` suggestion names, so the host can name it as it does elsewhere. */
+  tool?: HomeToolRoute;
 }

@@ -4,19 +4,26 @@
  * matched, so a reader can blank what it has consumed and read the rest.
  */
 
-import { parseMatInput } from '../../constants/mat-calculator';
 import { parseReciprocityTime } from '../reciprocity-calculations';
-import { roundTemperature, toCelsius } from '../temperature';
+import {
+  roundTemperature,
+  type TemperatureUnit,
+  toCelsius,
+  toFahrenheit,
+} from '../temperature';
 import { cmToInches, mmToInches } from '../unit-conversion';
-import { type AnswerUnit, FRACTION_GLYPHS } from './format';
+import type { AnswerUnit } from './format';
 
-/** Each fraction glyph's value: '½' -> 0.5. */
-const GLYPH_VALUES = new Map(
-  [...FRACTION_GLYPHS].map(([fraction, glyph]): [string, number] => [
-    glyph,
-    parseMatInput(fraction),
-  ])
-);
+/** Inch fractions people type as a single glyph, by value: '½' -> 0.5. */
+const GLYPH_VALUES = new Map([
+  ['⅛', 1 / 8],
+  ['¼', 1 / 4],
+  ['⅜', 3 / 8],
+  ['½', 1 / 2],
+  ['⅝', 5 / 8],
+  ['¾', 3 / 4],
+  ['⅞', 7 / 8],
+]);
 
 /**
  * ISO paper sizes, in centimetres. The border calculator has no ISO presets,
@@ -29,10 +36,15 @@ const ISO_PAPERS = new Map([
   ['a3', '29.7x42cm'],
   ['a2', '42x59.4cm'],
 ]);
-const ISO_PAPER_RE = new RegExp(
-  String.raw`\b(?:${[...ISO_PAPERS.keys()].join('|')})\b`,
-  'g'
-);
+const ISO_PAPER_SOURCE = String.raw`\b(?:${[...ISO_PAPERS.keys()].join('|')})\b`;
+const ISO_PAPER_RE = new RegExp(ISO_PAPER_SOURCE, 'g');
+
+/**
+ * The query names an ISO paper ("a4"). The standard gives those sizes
+ * upright, so an easel answer stands them in portrait unless told otherwise.
+ */
+export const namesIsoPaper = (query: string): boolean =>
+  new RegExp(ISO_PAPER_SOURCE).test(query.toLowerCase());
 
 /**
  * Lowercase and canonicalise a query: `×` to `x`, inch marks to ` in `,
@@ -245,10 +257,19 @@ export function findDilution(
     : null;
 }
 
-/** A development temperature, read into Celsius: "24c", "20 °c", "75f". */
+/** A development temperature as typed: "24c", "20 °c", "75f". */
+export interface TypedTemperature {
+  celsius: number;
+  /** The same temperature in Fahrenheit: as typed, or converted. */
+  fahrenheit: number;
+  /** The unit it was typed in. */
+  unit: TemperatureUnit;
+}
+
+/** A development temperature, read into both units: "24c", "20 °c", "75f". */
 export function findTemperature(
   text: string
-): (Span & { celsius: number }) | null {
+): (Span & { temperature: TypedTemperature }) | null {
   const match = /(^|[^\d.])(\d{2,3}(?:\.\d)?)\s*°?\s*([cf])(?![\w/])/.exec(
     text
   );
@@ -257,6 +278,13 @@ export function findTemperature(
   return {
     index: match.index + match[1].length,
     length: match[0].length - match[1].length,
-    celsius: match[3] === 'f' ? roundTemperature(toCelsius(value)) : value,
+    temperature:
+      match[3] === 'f'
+        ? {
+            celsius: roundTemperature(toCelsius(value)),
+            fahrenheit: value,
+            unit: 'fahrenheit',
+          }
+        : { celsius: value, fahrenheit: toFahrenheit(value), unit: 'celsius' },
   };
 }

@@ -1,27 +1,5 @@
-import type { HomeSuggestion, HomeSuggestionHint } from '@dorkroom/logic';
-import { cn } from '@dorkroom/ui';
 import { Search, X } from 'lucide-react';
-import {
-  type KeyboardEvent,
-  type RefObject,
-  useEffect,
-  useId,
-  useState,
-} from 'react';
-
-const HINT_LABELS = {
-  film: 'Film',
-  developer: 'Developer',
-  tool: 'Tool',
-  recipe: 'Recipe',
-  reciprocity: 'Reciprocity',
-  border: 'Border',
-  resize: 'Resize',
-  mat: 'Mat',
-  lens: 'Lens',
-  stops: 'Stops',
-  camera_exposure: 'Camera',
-} as const satisfies Record<HomeSuggestionHint, string>;
+import { type KeyboardEvent, type RefObject, useEffect, useId } from 'react';
 
 /** True when a key press lands in something the user is typing into. */
 function isTypingTarget(target: EventTarget | null): boolean {
@@ -37,53 +15,40 @@ interface SearchComboboxProps {
   inputRef: RefObject<HTMLInputElement | null>;
   value: string;
   onChange: (value: string) => void;
-  suggestions: readonly HomeSuggestion[];
-  /** A suggestion was picked: fill the box with its query. */
-  onSelect: (suggestion: HomeSuggestion) => void;
   /** First interest in searching (focus, pointer, key), to start loading data. */
   onIntent: () => void;
-  /**
-   * The page shows an answer for the box's query. Typing then leaves the
-   * list shut so it never covers the answer; the arrow keys, or a tap on the
-   * box once it has focus (touch has no arrow keys), still open it.
-   */
-  hasAnswer: boolean;
+  /** The id of the results listbox the box controls. */
+  listId: string;
+  /** The element ids of the options, in arrow-key order; empty for none. */
+  options: readonly string[];
+  /** The option Enter opens. */
+  activeId: string | null;
+  onActiveChange: (id: string) => void;
+  /** The box gained or lost focus. */
+  onFocusedChange: (focused: boolean) => void;
   placeholder: string;
 }
 
 /**
- * Why the list is open: the box was typed in or first clicked (`typing`,
- * which yields to an answer), or the arrow keys or a further click asked for
- * it (`asked`).
- */
-type OpenState = 'closed' | 'typing' | 'asked';
-
-/**
- * The home search box: a WAI-ARIA 1.2 combobox with a list of suggestions.
- * The list opens as you type until the query has an answer; arrow keys (or
- * a click on the focused box) open it any time and move through it (focus
- * stays in the box), Enter picks,
- * Escape closes the list or else clears the box, Tab closes it and moves on.
- * "/" anywhere on the page focuses the box.
+ * The home search box: a WAI-ARIA 1.2 combobox whose popup is the results
+ * on the page itself (the answer's link, suggestions, matches), never a list
+ * over them. Arrow keys move the active option (focus stays in the box),
+ * Enter opens it (a suggestion fills the box), Escape clears the box. "/"
+ * anywhere on the page focuses it.
  */
 export function SearchCombobox({
   inputRef,
   value,
   onChange,
-  suggestions,
-  onSelect,
   onIntent,
-  hasAnswer,
+  listId,
+  options,
+  activeId,
+  onActiveChange,
+  onFocusedChange,
   placeholder,
 }: SearchComboboxProps) {
-  const listId = useId();
-  const optionId = (index: number) => `${listId}-option-${index}`;
-  const [open, setOpen] = useState<OpenState>('closed');
-  const [active, setActive] = useState(-1);
-  const expanded =
-    suggestions.length > 0 &&
-    (open === 'asked' || (open === 'typing' && !hasAnswer));
-  const activeIndex = active < suggestions.length ? active : -1;
+  const inputId = useId();
 
   useEffect(() => {
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
@@ -103,59 +68,38 @@ export function SearchCombobox({
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [inputRef]);
 
-  const close = () => {
-    setOpen('closed');
-    setActive(-1);
-  };
-
-  const pick = (suggestion: HomeSuggestion) => {
-    onSelect(suggestion);
-    close();
-  };
-
+  // `activeId` is always one of `options` while there are any.
   const move = (step: 1 | -1) => {
     onIntent();
-    if (!expanded) {
-      setOpen('asked');
-      setActive(step === 1 ? 0 : suggestions.length - 1);
-      return;
-    }
-    const count = suggestions.length;
-    setActive((index) =>
-      index < 0 ? (step === 1 ? 0 : count - 1) : (index + step + count) % count
-    );
+    if (options.length === 0) return;
+    const index = options.indexOf(activeId ?? '');
+    onActiveChange(options[(index + step + options.length) % options.length]);
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    // A key that confirms an IME composition is the input method's, not ours.
+    if (event.nativeEvent.isComposing) return;
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
-        if (event.altKey) setOpen('asked');
-        else move(1);
+        move(1);
         break;
       case 'ArrowUp':
         event.preventDefault();
         move(-1);
         break;
       case 'Enter':
-        if (expanded && activeIndex >= 0) {
+        if (activeId) {
           event.preventDefault();
-          pick(suggestions[activeIndex]);
-        } else {
-          close();
+          // Each option acts on a click: a link navigates, a suggestion fills.
+          document.getElementById(activeId)?.click();
         }
         break;
       case 'Escape':
-        if (expanded) {
-          event.preventDefault();
-          close();
-        } else if (value) {
+        if (value) {
           event.preventDefault();
           onChange('');
         }
-        break;
-      case 'Tab':
-        close();
         break;
       default:
         break;
@@ -164,7 +108,7 @@ export function SearchCombobox({
 
   return (
     <div className="relative">
-      <label htmlFor={`${listId}-input`} className="sr-only">
+      <label htmlFor={inputId} className="sr-only">
         Search recipes, films and calculators
       </label>
       <Search
@@ -173,15 +117,13 @@ export function SearchCombobox({
       />
       <input
         ref={inputRef}
-        id={`${listId}-input`}
+        id={inputId}
         type="text"
         role="combobox"
-        aria-expanded={expanded}
+        aria-expanded={options.length > 0}
         aria-controls={listId}
         aria-autocomplete="list"
-        aria-activedescendant={
-          expanded && activeIndex >= 0 ? optionId(activeIndex) : undefined
-        }
+        aria-activedescendant={activeId ?? undefined}
         autoComplete="off"
         autoCapitalize="none"
         autoCorrect="off"
@@ -192,15 +134,13 @@ export function SearchCombobox({
         onChange={(event) => {
           onIntent();
           onChange(event.target.value);
-          setOpen('typing');
-          setActive(-1);
         }}
-        onFocus={onIntent}
+        onFocus={() => {
+          onIntent();
+          onFocusedChange(true);
+        }}
+        onBlur={() => onFocusedChange(false)}
         onPointerEnter={onIntent}
-        onClick={() =>
-          setOpen((state) => (state === 'closed' ? 'typing' : 'asked'))
-        }
-        onBlur={close}
         onKeyDown={onKeyDown}
         className="w-full rounded-xl border border-[color:var(--color-border-primary)] bg-[color:var(--color-background)] py-3.5 pl-12 pr-12 text-base text-[color:var(--color-text-primary)] transition-colors placeholder:text-[color:var(--color-text-tertiary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] sm:text-lg"
       />
@@ -224,52 +164,6 @@ export function SearchCombobox({
           /
         </kbd>
       )}
-      <div
-        id={listId}
-        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- combobox listbox pattern; a native <datalist> cannot show hints or follow aria-activedescendant
-        // eslint-disable-next-line react-doctor/prefer-tag-over-role -- combobox listbox pattern; a native <datalist> cannot show hints or follow aria-activedescendant
-        role="listbox"
-        aria-label="Suggestions"
-        hidden={!expanded}
-        className="absolute inset-x-0 top-full z-20 mt-2 overflow-hidden rounded-xl border border-[color:var(--color-border-secondary)] bg-[color:var(--color-surface)] py-1 shadow-xl"
-      >
-        {suggestions.map((suggestion, index) => (
-          // The keyboard lives on the combobox input (aria-activedescendant),
-          // as the ARIA combobox pattern prescribes; options take pointer input.
-          // oxlint-disable-next-line jsx-a11y/click-events-have-key-events -- keys are handled on the combobox input
-          <div
-            key={`${suggestion.hint}:${suggestion.query}`}
-            id={optionId(index)}
-            // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- combobox option pattern; native <option> cannot host the hint markup
-            // eslint-disable-next-line react-doctor/prefer-tag-over-role -- combobox option pattern; native <option> cannot host the hint markup
-            role="option"
-            // Options are reached through the input, never tabbed to.
-            tabIndex={-1}
-            aria-selected={index === activeIndex}
-            // Keep focus in the box: the click picks, the blur would close first.
-            onMouseDown={(event) => event.preventDefault()}
-            onClick={() => pick(suggestion)}
-            onMouseMove={() => setActive(index)}
-            className={cn(
-              'flex cursor-pointer items-center justify-between gap-3 px-4 py-2 text-sm text-[color:var(--color-text-primary)]',
-              index === activeIndex &&
-                'bg-[color:var(--color-hover-surface)] text-[color:var(--color-on-hover-surface)]'
-            )}
-          >
-            <span className="min-w-0 truncate">{suggestion.label}</span>
-            <span
-              className={cn(
-                'shrink-0 text-xs',
-                index === activeIndex
-                  ? 'text-[color:var(--color-on-hover-surface)]'
-                  : 'text-[color:var(--color-text-tertiary)]'
-              )}
-            >
-              {HINT_LABELS[suggestion.hint]}
-            </span>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

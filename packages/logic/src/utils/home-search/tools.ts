@@ -52,10 +52,12 @@ export const RELATED_TOOLS = {
   camera_exposure: ['/exposure'],
 } as const satisfies Record<HomeAnswerKind, readonly HomeToolRoute[]>;
 
-/** Tool completions for a word being typed: each matching tool's fill word. */
-export function toolCompletions(prefix: string): string[] {
+/** Tool completions for a word being typed: each matching tool and its fill word. */
+export function toolCompletions(
+  prefix: string
+): { route: HomeToolRoute; word: string }[] {
   if (prefix.length < 2) return [];
   return TOOL_ROUTES.filter((route) =>
     TOOL_WORDS[route].some((w) => w.startsWith(prefix))
-  ).map((route) => TOOL_WORDS[route][0]);
+  ).map((route) => ({ route, word: TOOL_WORDS[route][0] }));
 }

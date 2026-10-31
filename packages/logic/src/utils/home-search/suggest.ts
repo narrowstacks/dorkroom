@@ -1,3 +1,4 @@
+import type { Combination } from '@dorkroom/api';
 import { PAPER_SIZES } from '../../constants/border-calculator';
 import { MAT_PRESETS } from '../../constants/mat-calculator';
 import { formatExposureTime } from '../exposure-calculations';
@@ -15,10 +16,30 @@ import { isNegativeNotation } from './printing';
 import { areaSqIn, findDims } from './query';
 import { calculatorAnswer, readQuery } from './search';
 import { toolCompletions } from './tools';
-import type { HomeSearchData, HomeSuggestion } from './types';
+import type { HomeSearchData, HomeSuggestion, HomeToolRoute } from './types';
 
 /** How many suggestions the list shows at most. */
 const MAX_SUGGESTIONS = 6;
+
+/**
+ * The partner a film or developer is best known with: of those it has
+ * recipes with, the most widely used (`partners`), then the one with most
+ * recipes for the pair. Data alone decides; no names are favoured.
+ */
+function topPartner<E extends { partners: number }>(
+  recipes: readonly Combination[],
+  slugOf: (c: Combination) => string,
+  bySlug: ReadonlyMap<string, E>
+): E | undefined {
+  const counts = new Map<E, number>();
+  for (const c of recipes) {
+    const entry = bySlug.get(slugOf(c));
+    if (entry) counts.set(entry, (counts.get(entry) ?? 0) + 1);
+  }
+  return [...counts]
+    .toSorted(([a, x], [b, y]) => b.partners - a.partners || y - x)
+    .at(0)?.[0];
+}
 
 /** The value seen most often, ties to the first seen. */
 function mostCommon<T>(values: readonly T[]): T | undefined {
@@ -68,38 +89,32 @@ export function suggestHome(
   if (!text) return [];
   const out: HomeSuggestion[] = [];
   const seen = new Set([text]);
-  const add = (label: string, hint: HomeSuggestion['hint'], fill = label) => {
+  const add: Add = (label, hint, fill = label, tool) => {
     const key = fill.toLowerCase();
     if (seen.has(key)) return;
     seen.add(key);
-    out.push({ label, query: fill, hint });
+    out.push(
+      tool ? { label, query: fill, hint, tool } : { label, query: fill, hint }
+    );
   };
 
   const dims = findDims(text);
-  const answer = calculatorAnswer(reading);
-  if (answer?.kind === 'camera_exposure') {
-    out.push({
-      label: 'Camera Exposure calculator',
-      query: query.trim(),
-      hint: 'camera_exposure',
-    });
-  }
-
   // A calculator query names no film or developer, whatever its words match.
-  const calculator = answer !== null;
+  const calculator = calculatorAnswer(reading) !== null;
   const numbered = calculator ? [] : filmsByNumber(catalog, text);
   const film = numbered[0] ?? (calculator ? undefined : match.film?.entry);
   const developer = calculator ? undefined : match.developer?.entry;
-  if (film && developer) {
-    pairTemplates(catalog, film, developer, reading.iso, add);
-  } else if (film) {
-    filmTemplates(catalog, film, reading.iso, add);
-  } else if (developer) {
-    const recipes = recipesOf(catalog, { developer });
-    const top = catalog.filmBySlug.get(
-      mostCommon(recipes.map((c) => c.filmSlug)) ?? ''
+  // With both named, the answer and the pair's other recipes listed beside
+  // it already cover every speed the data has, so nothing is suggested.
+  if (film && !developer) {
+    filmTemplates(catalog, film, reading, add);
+  } else if (developer && !film) {
+    const top = topPartner(
+      recipesOf(catalog, { developer }),
+      (c) => c.filmSlug,
+      catalog.filmBySlug
     );
-    if (top) add(`${top.film.name} in ${developer.developer.name}`, 'recipe');
+    if (top) recipe(add, top, developer);
   }
 
   const only = (pattern: RegExp) => pattern.test(text);
@@ -131,8 +146,14 @@ export function suggestHome(
     add(`8x10 to 11x14 ${time}`, 'resize');
     const longFilm = catalog.films
       .filter((f) => f.factor !== null)
-      .toSorted((a, b) => b.recipes - a.recipes)[0];
-    if (longFilm) add(`${longFilm.film.name} ${time}`, 'reciprocity');
+      .toSorted((a, b) => b.partners - a.partners)[0];
+    if (longFilm) {
+      add(
+        `${longFilm.name} ${time}`,
+        'reciprocity',
+        `${longFilm.film.name} ${time}`
+      );
+    }
   }
 
   for (const f of numbered) add(f.name, 'film', f.film.name);
@@ -156,65 +177,73 @@ function filmsByNumber(catalog: Catalog, text: string): FilmEntry[] {
   if (named.some((f) => f.own.includes(last))) return [];
   return named
     .filter((f) => f.own.some((w) => w.startsWith(last)))
-    .toSorted((a, b) => b.recipes - a.recipes)
+    .toSorted((a, b) => b.partners - a.partners)
     .slice(0, 3);
 }
 
-type Add = (label: string, hint: HomeSuggestion['hint'], fill?: string) => void;
+type Add = (
+  label: string,
+  hint: HomeSuggestion['hint'],
+  fill?: string,
+  tool?: HomeToolRoute
+) => void;
 
 /**
- * "HP5 Plus in DD-X", "HP5 Plus at 800 in DD-X", "HP5 Plus 30s". With an EI
- * already typed, the developer is the one with most recipes at that speed.
+ * A recipe template, named in full as the answer and matches name it
+ * ("Ilford HP5 Plus at 800 in Ilford DD-X"), filled short ("HP5 Plus at 800
+ * in DD-X").
+ */
+function recipe(
+  add: Add,
+  film: FilmEntry,
+  developer: DeveloperEntry,
+  iso?: number
+) {
+  const at = iso === undefined ? '' : ` at ${iso}`;
+  add(
+    `${film.name}${at} in ${developer.name}`,
+    'recipe',
+    `${film.film.name}${at} in ${developer.developer.name}`
+  );
+}
+
+/**
+ * "HP5 Plus in DD-X", "HP5 Plus at 800 in DD-X", "HP5 Plus 30s". The
+ * developer is the film's `topPartner`, among the recipes at the EI typed
+ * when there are any. With a time typed, the answer is already the film's
+ * reciprocity, so that template is left out.
  */
 function filmTemplates(
   catalog: Catalog,
   film: FilmEntry,
-  iso: number | null,
+  { iso, seconds }: { iso: number | null; seconds: number | null },
   add: Add
 ) {
   const all = recipesOf(catalog, { film });
   const atIso = iso === null ? [] : all.filter((c) => c.shootingIso === iso);
   const recipes = atIso.length ? atIso : all;
-  const topSlug = mostCommon(recipes.map((c) => c.developerSlug));
-  const top = topSlug ? catalog.developerBySlug.get(topSlug) : undefined;
-  if (top && atIso.length) {
-    add(`${film.film.name} at ${iso} in ${top.developer.name}`, 'recipe');
+  const top = topPartner(
+    recipes,
+    (c) => c.developerSlug,
+    catalog.developerBySlug
+  );
+  if (top && iso !== null && atIso.length) {
+    recipe(add, film, top, iso);
   } else if (top) {
-    const name = top.developer.name;
-    add(`${film.film.name} in ${name}`, 'recipe');
+    recipe(add, film, top);
     const pushed = mostCommon(
       recipes
         .filter(
           (c) =>
-            c.developerSlug === topSlug && c.shootingIso > film.film.isoSpeed
+            c.developerSlug === top.developer.slug &&
+            c.shootingIso > film.film.isoSpeed
         )
         .map((c) => c.shootingIso)
     );
-    if (pushed) add(`${film.film.name} at ${pushed} in ${name}`, 'recipe');
+    if (pushed) recipe(add, film, top, pushed);
   }
-  if (film.factor !== null) add(`${film.film.name} 30s`, 'reciprocity');
-}
-
-/**
- * The speeds the data has for a film and developer: the EI typed first when
- * it has one, else the others than box speed (which the answer shows).
- */
-function pairTemplates(
-  catalog: Catalog,
-  film: FilmEntry,
-  developer: DeveloperEntry,
-  iso: number | null,
-  add: Add
-) {
-  const recipes = recipesOf(catalog, { film, developer });
-  const speeds = [...new Set(recipes.map((c) => c.shootingIso))]
-    .filter((s) => iso !== null || s !== film.film.isoSpeed)
-    .sort((a, b) => Number(b === iso) - Number(a === iso) || a - b);
-  for (const speed of speeds.slice(0, 3)) {
-    add(
-      `${film.film.name} at ${speed} in ${developer.developer.name}`,
-      'recipe'
-    );
+  if (film.factor !== null && seconds === null) {
+    add(`${film.name} 30s`, 'reciprocity', `${film.film.name} 30s`);
   }
 }
 
@@ -244,19 +273,19 @@ function completions(
   const developers = toolsOnly ? [] : catalog.developers;
   for (const f of films
     .filter(starts)
-    .toSorted((a, b) => b.recipes - a.recipes)
+    .toSorted((a, b) => b.partners - a.partners)
     .slice(0, 3)) {
     add(f.name, 'film', fill(f.film.name));
   }
   for (const d of developers
     .filter(starts)
-    .toSorted((a, b) => b.recipes - a.recipes)
+    .toSorted((a, b) => b.partners - a.partners)
     .slice(0, 2)) {
     add(d.name, 'developer', fill(d.developer.name));
   }
   if (!head) {
-    for (const word of toolCompletions(prefix)) {
-      add(word.charAt(0).toUpperCase() + word.slice(1), 'tool', word);
+    for (const { route, word } of toolCompletions(prefix)) {
+      add(word.charAt(0).toUpperCase() + word.slice(1), 'tool', word, route);
     }
   }
 }

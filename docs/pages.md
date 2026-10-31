@@ -45,22 +45,42 @@ and platform-free so the iOS app can share them (issue #528).
 - Grain-textured hero panel: `Greeting`, the "Skip the math. Make prints!"
   tagline, a one-line stat summary (development recipes, film stocks,
   developers), and the search box
-- Search box (`SearchCombobox`): a WAI-ARIA 1.2 combobox. Up to six
-  suggestions (completions of film, developer and tool names, plus query
-  templates that teach the syntax). The list opens while typing only until the
-  query has an answer, so it never covers the answer's number; ArrowDown or
-  ArrowUp, or a tap or click on the box once it has focus (for touch, which has
-  no arrow keys), opens it at any time. Arrow keys move through it, Enter or a
-  click fills the box and searches, Escape closes the list and then clears the
-  box, Tab closes the list. `/` anywhere on the page focuses the box
+- Search box (`SearchCombobox`): a WAI-ARIA 1.2 combobox whose popup is the
+  results on the page itself, never a list over them. Once there is a query,
+  its options are, in order, the answer card's link, the suggestions, then
+  every match row. The listbox is the results panel; each section is a
+  labelled group, led by an "Answer" group whose one option, for screen
+  readers only, repeats the card's link and names the answer ("Open recipe:
+  Ilford HP5 Plus in Ilford DD-X"), so the listbox's order is the arrow keys'.
+  The answer is preselected, else the first match (never a suggestion, which
+  only fills the box), so Enter opens it. Arrow keys move the active option
+  (`aria-activedescendant`, focus stays in the box, the row is scrolled into
+  view with room above and below), and wrap. While the box has focus the
+  active option is tinted (the card's own link when the answer is active),
+  never given the focus ring. Enter on a suggestion fills the box; an Enter
+  that confirms an input method's composition is left alone. Escape clears
+  the box. Rows work as links with a mouse or a tap. With an empty box the
+  example's links are plain links, not options, and `aria-expanded` is false.
+  `/` anywhere on the page focuses the box
 - Answer card (`AnswerCard`): the title, a source or calculator tag, a "Read as"
   row showing how the query was understood (defaults marked "(default)"), a
   notice above the number when it answers something other than what was asked
-  (an EI the pair has no recipe for), the big number in Fraunces, a few facts,
-  notes, and a link that opens the matching page pre-filled (see
-  [Link Parameters](#link-parameters))
-- Grouped matches beside the answer (`ResultGroups`): development recipes, film
-  stocks, developers and tools, each with a count
+  (an EI or a temperature the pair has no recipe for; both when both), the big
+  number in Fraunces on one line (a long one steps down a size; inch
+  fractions in it are set in the body font, as in the facts), a few facts
+  (a reciprocity formula's power set as a superscript), notes, and a link that
+  opens the matching page pre-filled (see [Link Parameters](#link-parameters))
+- Results panel beside the answer (`ResultGroups`): up to four "Suggestions"
+  (completions of film, developer and tool names, plus query templates that
+  teach the syntax; none that repeats a match, and no recipe suggestions once
+  a film and developer are both named, since the answer and the pair's other
+  recipes cover them), then the grouped matches: development recipes, film stocks,
+  developers and tools, each with a count. With a recipe answer the recipes
+  group is "Other recipes for this pair", the ones its footnote counts.
+  Suggestions name films and developers in full, as the matches do, and fill
+  the box short ("HP5 Plus in D-76"). A suggested pairing is the partner most
+  widely used in the data (the most films or developers it has recipes with),
+  then the one with most recipes for the pair
 - With an empty box: a real answer to an example query, labelled "Example",
   and "Try" chips that fill the box and move focus to it
 - Tools grid of `ToolCard`s, one per calculator, from the `homeToolCards` tool
@@ -71,15 +91,20 @@ and platform-free so the iOS app can share them (issue #528).
 
 | Kind | Examples | Answer |
 | --- | --- | --- |
-| Recipe | `hp5 at 800 in dd-x`, `tri-x xtol 1600`, `tri-x in d-76 1+1`, `fp4 in id-11`, `hc-110 dilution b tri-x` | Time, temperature, dilution, EI with push or pull, agitation ("Not in source" when the data has none), source, official or community, and the EIs of the pair's other recipes. EI via `at`, `@`, `ei` or `iso`, or a bare number that is part of neither name and is an EI the pair has a recipe at or a film speed of 100 or more (so `hp5 rodinal 50` and `hp5 xtol 68` read no EI; a push beats a box speed typed beside it, `hp5 400 xtol 1600`); an EI with no recipe says so above the time ("No EI 1600 recipe for this pair. Showing EI 400.") and lists the other EIs that have one. Dilution as `1+4`, `1:31`, `stock` or an HC-110 letter; temperature as `24c`, `24 °C` or `75f`. Temperatures lead with the visitor's °C/°F setting (shared with `/development`) |
+| Recipe | `hp5 at 800 in dd-x`, `tri-x xtol 1600`, `tri-x in d-76 1+1`, `fp4 in id-11`, `hc-110 dilution b tri-x` | Time, temperature, dilution, EI with push or pull, agitation ("Not in source" when the data has none), source, official or community, and the EIs of the pair's other recipes. EI via `at`, `@`, `ei` or `iso`, or a bare number that is part of neither name and is an EI the pair has a recipe at or a film speed of 100 or more (so `hp5 rodinal 50` and `hp5 xtol 68` read no EI; a push beats a box speed typed beside it, `hp5 400 xtol 1600`); an EI with no recipe says so above the time ("No EI 1600 recipe for this pair. Showing EI 400.") and lists the other EIs that have one. Dilution as `1+4`, `1:31`, `stock` or an HC-110 letter; temperature as `24c`, `24 °C` or `75f`; a temperature with no recipe is said above the time in the unit typed, plus the visitor's when that differs ("No recipe at 24°C (75.2°F). This one is at 20°C (68°F)."). Temperatures lead with the visitor's °C/°F setting (shared with `/development`) |
 | Reciprocity | `tri-x 30s`, `delta 3200 2m`, `hp5 reciprocity` | Corrected time from the film's reciprocity factor. Without a time it assumes 30s, marked |
-| Border | `11x14 6x7 1.45`, `8x10 35mm 1 1/4`, `24x30cm 6x6 2cm`, `8x10 645 borderless`, `9.5x12 6x9 1 portrait`, `6x7 1.5` | Print size and the borders on each side, centred, with a diagram. The larger size is the paper (default 8x10), the other the negative (default 35mm); a lone `4x5` is a negative. A bare border up to 4 is inches; any number with a unit (`15mm`, `2cm`, `2in`) is read in that unit; a bare number above 4 is ignored with a note. ISO papers `a2` to `a6` read as their size in cm (`a4 35mm` is 21×29.7 cm, a custom paper in the Border Calculator link). Metric queries answer in metric first |
+| Border | `11x14 6x7 1.45`, `8x10 35mm 1 1/4`, `24x30cm 6x6 2cm`, `8x10 645 borderless`, `9.5x12 6x9 1 portrait`, `6x7 1.5` | Print size and the borders on each side, centred, with a diagram. The larger size is the paper (default 8x10), the other the negative (default 35mm); a lone `4x5` is a negative. A bare border up to 4 is inches; any number with a unit (`15mm`, `2cm`, `2in`) is read in that unit; a bare number above 4 is ignored with a note. ISO papers `a2` to `a6` read as their size in cm (`a4 35mm` is 21×29.7 cm, a custom paper in the Border Calculator link). Metric queries answer in metric first. Inch fractions are all written one way (`9 5⁄16`), and a border is never shown under the minimum asked for: the print is worked out for the minimum rounded up to a step the answer shows (1.45 in becomes 1 1⁄2, so `11x14 6x7 1.45` is 8 × 9 5⁄16), which keeps the negative's shape, makes both units describe one print, and is the border the Border Calculator link passes. Paper lies landscape (the Border Calculator's default) unless the query says `portrait` or `vertical`; an ISO paper stands portrait, as the standard gives it, unless the query says `landscape` or `horizontal`; the diagram is drawn the way the paper lies |
 | Resize | `8x10 to 11x14 12s`, `11x14 from 8x10 20s`, `24x30cm to 30x40cm 15s`, `height 40cm to 60cm 10s`, `8x10 to 11x14` | New time, stops, factor, and whether the two sizes share a shape |
 | Lens | `80mm on 6x6`, `80mm 6x6 to 35mm`, `90mm on 645 to apsc`, `25mm mft equivalent` | Equivalent focal length, field of view, crop factors. Target defaults to full frame (6x6 from full frame), marked. With paper named, a mm number is a border unless it cannot fit or the query says `lens` or `equivalent` |
 | Stops | `12s +1/3`, `12s plus 2 stops`, `15s down 1 stop`, `12 seconds plus half a stop`, `12 sec minus a third of a stop` | New time. A change as a number (`1/3 stop`, `-0.5`) or in words (`half a stop`, `two thirds of a stop`, `two stops`, `one and a half stops`), signed with `+`, `-`, `plus`, `minus`, `add`, `up` or `down` |
 | Mat | `16x20 mat 8x10 print`, `11x14 mat for 8x10`, `mat 16x20 11x14 reveal 1/8`, `16x20 mat 11x14 1/8 reveal`, `16x20 mat 8x10 bottom weight` | Window opening and best-fit borders; the reveal (its number before or after the word) defaults to the calculator's, marked. Needs the word `mat`, `matte` or `window` |
 | Camera exposure | `f/8`, `1/125`, `iso 400 f/8`, `sunny 16`, `what shutter` | A link to the Camera Exposure calculator, no answer. Only when no other calculator reads the query: `enlarge 8x10 to 16x20 20s f/8` is a resize |
 | Lookup | `portra 400`, `rodinal`, `foma`, `reciprocity` | Grouped matches only. Every tool is found by its name |
+
+Times worked out in stops, resize and reciprocity answers are at darkroom
+precision: a tenth of a second under a minute (`15.1s`, `17.0s`), whole
+seconds from there (`3m 8s`). A time the query typed is echoed as typed
+(`12s`, not `12.0s`).
 
 **Spellings:** names match however they are spaced or run together (`hp5+`,
 `tmax400`, `t max 400`, `tri x`, `d 76`). A small alias table in

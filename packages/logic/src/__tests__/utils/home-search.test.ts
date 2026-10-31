@@ -11,6 +11,7 @@ import {
   FIXTURE_DATA,
   FIXTURE_DEVELOPERS,
   FIXTURE_FILMS,
+  FIXTURE_RECIPES,
 } from './home-search.fixture';
 
 const answer = (query: string, data = FIXTURE_DATA): HomeAnswer => {
@@ -168,6 +169,19 @@ describe('searchHome', () => {
       );
     });
 
+    it('lists the other recipes the footnote counts, not the one shown', () => {
+      const result = searchHome('hp5 at 800 in dd-x', FIXTURE_DATA);
+      const recipes = result.groups.find((g) => g.key === 'recipes');
+      if (!recipes || recipes.key === 'tools') throw new Error('no recipes');
+      expect(recipes.label).toBe('Other recipes for this pair');
+      expect(result.answer?.footnote).toMatch(
+        new RegExp(`^${recipes.total} other recipes`)
+      );
+      const shown = result.answer?.link.target.search;
+      for (const item of recipes.items)
+        expect(item.target.search).not.toEqual(shown);
+    });
+
     it.each([
       'hp5 in dd-x 24c',
       'hp5 dd-x at 24c',
@@ -175,12 +189,26 @@ describe('searchHome', () => {
       'hp5 dd-x 24 °C',
       'hp5 dd-x 24 c',
     ])('reads a Celsius temperature: %s', (query) => {
-      const a = answer(query);
-      expect(a.notes.some((n) => n.startsWith('No recipe at 24°C.'))).toBe(
-        true
+      // Said up front, in the unit typed; "at 24c" is never EI 24.
+      expect(answer(query).notice).toBe(
+        'No recipe at 24°C. This one is at 20°C.'
       );
-      // "at 24c" is a temperature, never EI 24.
-      expect(a.notice).toBeUndefined();
+    });
+
+    it("adds the viewer's unit when the temperature was typed in the other", () => {
+      const a = searchHome('hp5 in dd-x 24c', FIXTURE_DATA, {
+        temperatureUnit: 'fahrenheit',
+      }).answer;
+      expect(a?.notice).toBe(
+        'No recipe at 24°C (75.2°F). This one is at 20°C (68°F).'
+      );
+      expect(a?.notes).toEqual([]);
+    });
+
+    it('says both when neither the EI nor the temperature has a recipe', () => {
+      expect(answer('hp5 at 6400 in dd-x 24c').notice).toBe(
+        'No EI 6400 recipe for this pair. Showing EI 3200. Also at EI 400, 800, 1600. No recipe at 24°C. This one is at 20°C.'
+      );
     });
 
     it("leads with the viewer's temperature unit", () => {
@@ -194,9 +222,7 @@ describe('searchHome', () => {
       const a = searchHome('hp5 in dd-x 75f', FIXTURE_DATA, {
         temperatureUnit: 'fahrenheit',
       }).answer;
-      expect(a?.notes.some((n) => n.startsWith('No recipe at 75°F.'))).toBe(
-        true
-      );
+      expect(a?.notice).toBe('No recipe at 75°F. This one is at 68°F.');
     });
 
     it('says when a pair has no recipe instead of making one up', () => {
@@ -218,7 +244,7 @@ describe('searchHome', () => {
     it('corrects a metered time with the film factor', () => {
       const a = answer('tri-x 30s');
       expect(a.kind).toBe('reciprocity');
-      expect(a.figure?.value).toBe('3m 8.3s');
+      expect(a.figure?.value).toBe('3m 8s');
       expect(factOf(a, 'Factor')?.value).toBe('1.54');
       expect(a.link.target).toEqual({
         to: '/reciprocity',
@@ -267,27 +293,54 @@ describe('searchHome', () => {
         '6×7 negative',
         '1.45″ min border',
       ]);
-      expect(a.figure).toMatchObject({ value: '8⅛×9 7⁄16', unit: 'in' });
+      expect(a.figure).toMatchObject({ value: '8 × 9 5⁄16', unit: 'in' });
       expect(a.link.target).toEqual({
         to: '/border',
         search: {
           paper: '11x14',
           ratio: '7:6',
-          border: '1.45',
+          border: '1.5',
           landscape: 'true',
           flip: 'false',
         },
       });
     });
 
+    it('never shows a border under the minimum asked for', () => {
+      // 1.45 is nearest 1 7/16 (1.4375): the print is worked out for 1 1/2,
+      // so it keeps the 7:6 shape and both units describe one print.
+      const a = answer('11x14 6x7 1.45');
+      expect(factOf(a, 'Top / bottom')?.value).toBe('1 1⁄2″');
+      expect(factOf(a, 'Left / right')?.value).toBe('2 5⁄16″');
+      expect(a.figure?.value).toBe('8 × 9 5⁄16');
+      expect(a.figure?.caption).toBe('print, 20.3×23.7 cm');
+      if (a.kind !== 'border' || !a.diagram) throw new Error('no diagram');
+      expect(a.diagram.printW / a.diagram.printH).toBeCloseTo(7 / 6, 6);
+      expect(factOf(answer('8x10 35mm 1/2'), 'Left / right')?.value).toBe(
+        '1⁄2″'
+      );
+    });
+
+    it('writes every inch fraction the same way', () => {
+      for (const query of [
+        '11x14 6x7 1.45',
+        '8x10 35mm 3/4',
+        '16x20 mat 8x10',
+      ]) {
+        const a = answer(query);
+        const text = [a.figure?.value, ...a.facts.map((f) => f.value)].join();
+        expect(text, query).not.toMatch(/[½¼¾⅛⅜⅝⅞]/);
+      }
+    });
+
     it.each([
-      ['8x10 35mm 3/4', '¾″ min border', '5 11⁄16×8½'],
-      ['8x10 35mm 1 1/4', '1¼″ min border', '5×7½'],
-      ['8x10 35mm ½', '½″ min border', '6×9'],
-      ['8x10 35mm 1½', '1½″ min border', '4 11⁄16×7'],
+      ['8x10 35mm 3/4', '3⁄4″ min border', '5 11⁄16 × 8 1⁄2'],
+      ['8x10 35mm 1 1/4', '1 1⁄4″ min border', '5 × 7 1⁄2'],
+      ['8x10 35mm ½', '1⁄2″ min border', '6×9'],
+      ['8x10 35mm 1½', '1 1⁄2″ min border', '4 11⁄16 × 7'],
       ['16x20 4x5 2in', '2″ min border', '12×15'],
-      ['11x14 xpan 1', '1″ min border', '4 7⁄16×12'],
-      ['8x10 645 borderless', 'no border', '7½×10'],
+      ['11x14 xpan 1', '1″ min border', '4 7⁄16 × 12'],
+      ['8x10 645 borderless', 'no border', '7 1⁄2 × 10'],
     ])('%s', (query, border, print) => {
       const a = answer(query);
       expect(readAs(a)).toContain(border);
@@ -323,7 +376,7 @@ describe('searchHome', () => {
     it('reads ISO paper names as their metric size', () => {
       const a = answer('a4 35mm');
       expect(readAs(a)[0]).toBe('21×29.7 cm paper');
-      expect(a.figure).toMatchObject({ value: '18.1×27.2', unit: 'cm' });
+      expect(a.figure).toMatchObject({ value: '18.1×27.1', unit: 'cm' });
       expect(a.link.target.search).toMatchObject({
         paper: 'custom',
         paperW: '8.2677',
@@ -332,7 +385,8 @@ describe('searchHome', () => {
       expect(readAs(answer('a4 paper 6x6 1cm'))).toEqual([
         '21×29.7 cm paper',
         '6×6 negative',
-        '1 cm min border (⅜″)',
+        '1 cm min border (3⁄8″)',
+        'portrait (as the paper stands)',
       ]);
       expect(readAs(answer('A3 6x7 2cm'))[0]).toBe('29.7×42 cm paper');
       expect(readAs(answer('a5 35mm'))[0]).toBe('14.8×21 cm paper');
@@ -348,6 +402,22 @@ describe('searchHome', () => {
       });
       if (a.kind !== 'border' || !a.diagram) throw new Error('no diagram');
       expect(a.diagram.paperH).toBeGreaterThan(a.diagram.paperW);
+    });
+
+    it('stands an ISO paper upright unless told otherwise', () => {
+      const drawn = (query: string) => {
+        const a = answer(query);
+        if (a.kind !== 'border' || !a.diagram) throw new Error('no diagram');
+        return a.diagram.paperH > a.diagram.paperW ? 'portrait' : 'landscape';
+      };
+      expect(drawn('a4 35mm')).toBe('portrait');
+      expect(answer('a4 35mm').link.target.search).toMatchObject({
+        landscape: 'false',
+      });
+      expect(drawn('a4 35mm landscape')).toBe('landscape');
+      expect(readAs(answer('a4 35mm landscape'))).toContain('landscape');
+      expect(drawn('8x10 35mm')).toBe('landscape');
+      expect(drawn('8x10 35mm vertical')).toBe('portrait');
     });
 
     it('defaults the paper to 8x10, marked', () => {
@@ -368,7 +438,7 @@ describe('searchHome', () => {
     it('ignores a bare number too big for inches, with a note', () => {
       const a = answer('8x10 35mm 20');
       expect(a.readAs[2]).toEqual({
-        text: '½″ min border (default)',
+        text: '1⁄2″ min border (default)',
         assumed: true,
       });
       expect(a.notes).toContain(
@@ -377,10 +447,10 @@ describe('searchHome', () => {
     });
 
     it.each([
-      ['fp4 8x10 6x7 1.5', FIXTURE_DATA, '1½″ min border'],
+      ['fp4 8x10 6x7 1.5', FIXTURE_DATA, '1 1⁄2″ min border'],
       ['hp5 8x10 35mm 1', FIXTURE_DATA, '1″ min border'],
       ['fomapan 200 11x14 6x7 1', FIXTURE_DATA, '1″ min border'],
-      ['fomapan 200 11x14 6x7', FIXTURE_DATA, '½″ min border (default)'],
+      ['fomapan 200 11x14 6x7', FIXTURE_DATA, '1⁄2″ min border (default)'],
     ])(
       'never reads a number in a name as the border: %s',
       (query, data, border) => {
@@ -415,7 +485,11 @@ describe('searchHome', () => {
     it('scales a time between print sizes', () => {
       const a = answer('8x10 to 11x14 12s');
       expect(a.kind).toBe('resize');
-      expect(a.figure).toMatchObject({ value: '23.1', unit: 's' });
+      expect(a.figure).toMatchObject({
+        value: '23.1s',
+        unit: null,
+        caption: 'new exposure, from 12s',
+      });
       expect(factOf(a, 'Change')?.value).toBe('+0.94 stops');
       expect(factOf(a, 'Shape')?.value).toBe('Different');
       expect(a.link.target).toEqual({
@@ -436,12 +510,12 @@ describe('searchHome', () => {
     });
 
     it('handles cm papers', () => {
-      expect(answer('24x30cm to 30x40cm 15s').figure?.value).toBe('25.0');
+      expect(answer('24x30cm to 30x40cm 15s').figure?.value).toBe('25.0s');
     });
 
     it('scales by enlarger height', () => {
       const a = answer('height 40cm to 60cm 10s');
-      expect(a.figure?.value).toBe('22.5');
+      expect(a.figure?.value).toBe('22.5s');
       expect(a.link.target.search).toMatchObject({
         height: 'true',
         fromH: '15.748',
@@ -509,10 +583,10 @@ describe('searchHome', () => {
 
   describe('stops', () => {
     it.each([
-      ['12s +1/3', '15.12s', '0.3333'],
-      ['12s plus 2 stops', '48s', '2'],
-      ['+1/3 stop 12s', '15.12s', '0.3333'],
-      ['12s -0.5 stops', '8.49s', '-0.5'],
+      ['12s +1/3', '15.1s', '0.3333'],
+      ['12s plus 2 stops', '48.0s', '2'],
+      ['+1/3 stop 12s', '15.1s', '0.3333'],
+      ['12s -0.5 stops', '8.5s', '-0.5'],
       ['15s down 1 stop', '7.5s', '-1'],
     ])('%s', (query, time, stops) => {
       const a = answer(query);
@@ -522,23 +596,32 @@ describe('searchHome', () => {
     });
 
     it.each([
-      ['12 seconds plus half a stop', '16.97s', '0.5'],
-      ['12 sec minus a third of a stop', '9.52s', '-0.3333'],
-      ['12s add two thirds of a stop', '19.05s', '0.6667'],
-      ['12s up one stop', '24s', '1'],
-      ['12s down two stops', '3s', '-2'],
+      ['12 seconds plus half a stop', '17.0s', '0.5'],
+      ['12 sec minus a third of a stop', '9.5s', '-0.3333'],
+      ['12s add two thirds of a stop', '19.0s', '0.6667'],
+      ['12s up one stop', '24.0s', '1'],
+      ['12s down two stops', '3.0s', '-2'],
       ['12s plus three stops', '1m 36s', '3'],
-      ['12s plus 2/3 stop', '19.05s', '0.6667'],
-      ['12 seconds a half stop', '16.97s', '0.5'],
-      ['12s one and a half stops', '33.94s', '1.5'],
-      ['12s plus 1 and a half stops', '33.94s', '1.5'],
-      ['12s two and a half stops', '1m 7.88s', '2.5'],
-      ['12s minus one and a third stops', '4.76s', '-1.3333'],
+      ['12s plus 2/3 stop', '19.0s', '0.6667'],
+      ['12 seconds a half stop', '17.0s', '0.5'],
+      ['12s one and a half stops', '33.9s', '1.5'],
+      ['12s plus 1 and a half stops', '33.9s', '1.5'],
+      ['12s two and a half stops', '1m 8s', '2.5'],
+      ['12s minus one and a third stops', '4.8s', '-1.3333'],
     ])('reads stops in words: %s', (query, time, stops) => {
       const a = answer(query);
       if (a.kind !== 'stops') throw new Error(`${query} is ${a.kind}`);
       expect(a.figure?.value).toBe(time);
       expect(a.link.target.search.stops).toBe(stops);
+    });
+
+    it('shows times to a tenth under a minute and whole seconds over', () => {
+      const a = answer('12s +1/3');
+      expect(a.title).toBe('12s +0.33 stops');
+      expect(factOf(a, 'Base time')?.value).toBe('12s');
+      expect(factOf(a, 'Added time')?.value).toBe('+3.1s');
+      expect(factOf(answer('60s -1 stop'), 'Added time')?.value).toBe('−30.0s');
+      expect(answer('12s plus three stops').figure?.value).toBe('1m 36s');
     });
 
     it('does not read a dilution as a stop change', () => {
@@ -550,10 +633,15 @@ describe('searchHome', () => {
     it('opens a window with best-fit borders and the default reveal', () => {
       const a = answer('16x20 mat 8x10 print');
       expect(a.kind).toBe('mat');
-      expect(a.figure).toMatchObject({ value: '7½×9½', unit: 'in' });
-      expect(a.facts.map((f) => f.value)).toEqual(['5¼″', '5¼″', '4¼″', '4¼″']);
+      expect(a.figure).toMatchObject({ value: '7 1⁄2 × 9 1⁄2', unit: 'in' });
+      expect(a.facts.map((f) => f.value)).toEqual([
+        '5 1⁄4″',
+        '5 1⁄4″',
+        '4 1⁄4″',
+        '4 1⁄4″',
+      ]);
       expect(a.readAs[2]).toEqual({
-        text: '¼″ reveal (default)',
+        text: '1⁄4″ reveal (default)',
         assumed: true,
       });
       expect(a.link.target.search).toEqual({
@@ -571,13 +659,13 @@ describe('searchHome', () => {
     });
 
     it('reads "for", a reveal and bottom weighting', () => {
-      expect(answer('11x14 mat for 8x10').facts[0].value).toBe('2¼″');
+      expect(answer('11x14 mat for 8x10').facts[0].value).toBe('2 1⁄4″');
       expect(answer('mat 16x20 11x14 reveal 1/8').figure?.value).toBe(
-        '10¾×13¾'
+        '10 3⁄4 × 13 3⁄4'
       );
       const weighted = answer('16x20 mat 8x10 bottom weight');
-      expect(factOf(weighted, 'Bottom')?.value).toBe('5⅝″');
-      expect(factOf(weighted, 'Top')?.value).toBe('4⅞″');
+      expect(factOf(weighted, 'Bottom')?.value).toBe('5 5⁄8″');
+      expect(factOf(weighted, 'Top')?.value).toBe('4 7⁄8″');
     });
 
     it.each([
@@ -587,8 +675,8 @@ describe('searchHome', () => {
       '16x20 mat 11x14 reveal 1/8in',
     ])('reads the reveal on either side of the word: %s', (query) => {
       const a = answer(query);
-      expect(a.figure?.value).toBe('10¾×13¾');
-      expect(a.readAs[2]).toEqual({ text: '⅛″ reveal', assumed: false });
+      expect(a.figure?.value).toBe('10 3⁄4 × 13 3⁄4');
+      expect(a.readAs[2]).toEqual({ text: '1⁄8″ reveal', assumed: false });
       expect(a.link.target.search).toMatchObject({ reveal: '1/8' });
     });
 
@@ -617,7 +705,7 @@ describe('searchHome', () => {
     it('never hides another answer behind an f-number', () => {
       const a = answer('enlarge 8x10 to 16x20 20s f/8');
       expect(a.kind).toBe('resize');
-      expect(a.figure?.value).toBe('80.0');
+      expect(a.figure?.value).toBe('1m 20s');
       expect(kind('8x10 35mm 1/2 f/8')).toBe('border');
       expect(kind('12s +1/3 f/8')).toBe('stops');
     });
@@ -874,10 +962,60 @@ describe('suggestHome', () => {
     expect(suggestions.slice(0, 3)).toEqual([
       expect.objectContaining({ hint: 'recipe' }),
       expect.objectContaining({ hint: 'recipe' }),
-      { label: 'HP5 Plus 30s', query: 'HP5 Plus 30s', hint: 'reciprocity' },
+      {
+        label: 'Ilford HP5 Plus 30s',
+        query: 'HP5 Plus 30s',
+        hint: 'reciprocity',
+      },
     ]);
-    expect(suggestions[0].label).toMatch(/^HP5 Plus in /);
-    expect(suggestions[1].label).toMatch(/^HP5 Plus at \d+ in /);
+    // Named in full, as the answer and the matches name them; filled short.
+    expect(suggestions[0].label).toMatch(/^Ilford HP5 Plus in /);
+    expect(suggestions[0].query).toMatch(/^HP5 Plus in /);
+    expect(suggestions[1].label).toMatch(/^Ilford HP5 Plus at \d+ in /);
+  });
+
+  it('pairs a name with its most widely used partner, not its longest datasheet', () => {
+    const r = (uuid: string, filmSlug: string, developerSlug: string) => ({
+      ...FIXTURE_RECIPES[0],
+      uuid,
+      filmSlug,
+      developerSlug,
+    });
+    const data = {
+      films: FIXTURE_FILMS,
+      developers: FIXTURE_DEVELOPERS,
+      combinations: [
+        // Three HP5 recipes in DD-X, which no other film has...
+        r('a', 'ilford-hp5-plus', 'ilford-dd-x'),
+        r('b', 'ilford-hp5-plus', 'ilford-dd-x'),
+        r('c', 'ilford-hp5-plus', 'ilford-dd-x'),
+        // ...and one in D-76, which three films have.
+        r('d', 'ilford-hp5-plus', 'kodak-d-76'),
+        r('e', 'kodak-tri-x-400', 'kodak-d-76'),
+        r('f', 'ilford-fp4-plus', 'kodak-d-76'),
+        r('g', 'kodak-tri-x-400', 'ilford-id-11'),
+        r('h', 'kodak-tri-x-400', 'kodak-xtol'),
+      ],
+    };
+    expect(suggestHome('hp5', data)[0].query).toBe('HP5 Plus in D-76');
+    // Tri-X has three developers, HP5 two and FP4 Plus one.
+    expect(suggestHome('d-76', data)[0].query).toBe('Tri-X 400 in D-76');
+  });
+
+  it('names a film as the matches do', () => {
+    const result = searchHome('fp4', FIXTURE_DATA);
+    const films = result.groups.find((g) => g.key === 'films');
+    if (!films || films.key === 'tools') throw new Error('no films');
+    const suggested = suggestHome('fp', FIXTURE_DATA).find(
+      (s) => s.hint === 'film'
+    );
+    expect(suggested?.label).toBe(films.items[0].title);
+  });
+
+  it('never offers the reciprocity a timed query already answers', () => {
+    expect(
+      suggestHome('tri-x 30s', FIXTURE_DATA).map((s) => s.hint)
+    ).not.toContain('reciprocity');
   });
 
   it('every suggested template answers', () => {
@@ -907,20 +1045,8 @@ describe('suggestHome', () => {
     expect(labels('12s', {})[0]).toBe('12s +1/3 stop');
   });
 
-  it('offers the Camera Exposure calculator only when nothing else answers', () => {
-    expect(labels('enlarge 8x10 to 16x20 20s f/8')).not.toContain(
-      'Camera Exposure calculator'
-    );
-  });
-
-  it('offers the Camera Exposure calculator for camera talk', () => {
-    expect(suggestHome('f/8', FIXTURE_DATA)).toEqual([
-      {
-        label: 'Camera Exposure calculator',
-        query: 'f/8',
-        hint: 'camera_exposure',
-      },
-    ]);
+  it('suggests nothing for camera talk, which the answer already links', () => {
+    expect(suggestHome('f/8', FIXTURE_DATA)).toEqual([]);
   });
 
   it('completes the word being typed', () => {
@@ -928,7 +1054,12 @@ describe('suggestHome', () => {
       hint: 'film',
       label: 'Foma Fomapan 100 Classic',
     });
-    expect(labels('reci', {})).toContain('Reciprocity');
+    expect(suggestHome('reci', {})).toContainEqual({
+      label: 'Reciprocity',
+      query: 'reciprocity',
+      hint: 'tool',
+      tool: '/reciprocity',
+    });
   });
 
   it('completes a number being typed after a film name', () => {
@@ -942,24 +1073,18 @@ describe('suggestHome', () => {
     expect(labels('fomapan 200')).not.toContain('Foma Fomapan 200 Creative');
   });
 
-  it('offers other speeds for a pair', () => {
-    expect(labels('hp5 in dd-x')).toEqual([
-      'HP5 Plus at 800 in DD-X',
-      'HP5 Plus at 1600 in DD-X',
-      'HP5 Plus at 3200 in DD-X',
-    ]);
-  });
-
-  it('leads with the EI typed for a pair, when the data has it', () => {
-    expect(labels('hp5 at 800 in dd-x')).toEqual([
-      'HP5 Plus at 800 in DD-X',
-      'HP5 Plus at 400 in DD-X',
-      'HP5 Plus at 1600 in DD-X',
-    ]);
-    // An EI the pair lacks: the speeds it does have.
-    expect(labels('tri-x at 1600 in xtol')).toEqual([
-      'Tri-X 400 at 400 in XTOL',
-    ]);
+  it('suggests no recipes for a pair, whose other recipes the matches list', () => {
+    for (const query of [
+      'hp5 in dd-x',
+      'hp5 at 800 in dd-x',
+      'tri-x at 1600 in xtol',
+    ]) {
+      const hints = suggestHome(query, FIXTURE_DATA).map((s) => s.hint);
+      expect(hints, query).not.toContain('recipe');
+    }
+    const result = searchHome('hp5 at 800 in dd-x', FIXTURE_DATA);
+    const others = result.groups.find((g) => g.key === 'recipes');
+    expect(others?.label).toBe('Other recipes for this pair');
   });
 
   it('keeps a connective typed after a name', () => {

@@ -11,10 +11,7 @@ import { reciprocityCalculatorLink } from '../../schemas/reciprocity-calculator.
 import { getCombinationDilution } from '../combination-dilution';
 import { parseDilution } from '../dilution-parser';
 import { calculatePushPull } from '../exposure-calculations';
-import {
-  calculateReciprocity,
-  formatReciprocityTime,
-} from '../reciprocity-calculations';
+import { calculateReciprocity } from '../reciprocity-calculations';
 import {
   formatTemperature,
   STANDARD_TEMP_C,
@@ -25,13 +22,15 @@ import {
   fact,
   formatClock,
   formatPushPull,
+  formatSeconds,
+  formatTypedSeconds,
   plural,
   recipeSourceLabel,
   signed,
   sourceFact,
   trimNumber,
 } from './format';
-import { tokenize } from './query';
+import { tokenize, type TypedTemperature } from './query';
 import type {
   DevelopmentLinkSearch,
   HomeAnswer,
@@ -47,6 +46,12 @@ interface Named {
   joined: string[];
   brand: string[];
   recipes: number;
+  /**
+   * How many developers (for a film) or films (for a developer) it has
+   * recipes with: how widely used it is, which one long datasheet cannot
+   * inflate the way it does `recipes`.
+   */
+  partners: number;
 }
 
 export interface FilmEntry extends Named {
@@ -109,12 +114,18 @@ export function getCatalog(data: HomeSearchData): Catalog {
   const combinations = data.combinations ?? [];
   const filmRecipes = new Map<string, number>();
   const developerRecipes = new Map<string, number>();
+  const filmPartners = new Map<string, Set<string>>();
+  const developerPartners = new Map<string, Set<string>>();
+  const addTo = (map: Map<string, Set<string>>, key: string, value: string) =>
+    map.set(key, (map.get(key) ?? new Set()).add(value));
   for (const c of combinations) {
     filmRecipes.set(c.filmSlug, (filmRecipes.get(c.filmSlug) ?? 0) + 1);
     developerRecipes.set(
       c.developerSlug,
       (developerRecipes.get(c.developerSlug) ?? 0) + 1
     );
+    addTo(filmPartners, c.filmSlug, c.developerSlug);
+    addTo(developerPartners, c.developerSlug, c.filmSlug);
   }
 
   const filmBySlug = new Map<string, FilmEntry>();
@@ -122,15 +133,17 @@ export function getCatalog(data: HomeSearchData): Catalog {
     const brand = tokenize(film.brand);
     const brandWords = new Set(brand);
     const names = [film.name, ...film.aliases.map((a) => a.name)];
+    const slugs = [film.slug, ...film.aliases.map((a) => a.slug)];
     const entry: FilmEntry = {
       film,
       name: `${film.brand} ${film.name}`,
       own: tokenize(names.join(' ')).filter((t) => !brandWords.has(t)),
       joined: joinedWords(names, brandWords),
       brand,
-      recipes:
-        (filmRecipes.get(film.slug) ?? 0) +
-        film.aliases.reduce((n, a) => n + (filmRecipes.get(a.slug) ?? 0), 0),
+      recipes: slugs.reduce((n, slug) => n + (filmRecipes.get(slug) ?? 0), 0),
+      partners: new Set(
+        slugs.flatMap((slug) => [...(filmPartners.get(slug) ?? [])])
+      ).size,
       factor: filmFactor(film),
     };
     filmBySlug.set(film.slug, entry);
@@ -147,6 +160,7 @@ export function getCatalog(data: HomeSearchData): Catalog {
       joined: joinedWords([developer.name], new Set()),
       brand: tokenize(developer.manufacturer),
       recipes: developerRecipes.get(developer.slug) ?? 0,
+      partners: developerPartners.get(developer.slug)?.size ?? 0,
     };
     developerBySlug.set(developer.slug, entry);
     return entry;
@@ -391,7 +405,7 @@ export function recipesOf(
 export interface RecipeWish {
   iso: number | null;
   dilution: { dilution: string; label: string } | null;
-  celsius: number | null;
+  temperature: TypedTemperature | null;
 }
 
 /**
@@ -451,7 +465,7 @@ export function recipeAnswer(
     dilutionMissing = matching.length === 0;
     if (!dilutionMissing) candidates = matching;
   }
-  const temperature = wish.celsius ?? STANDARD_TEMP_C;
+  const temperature = wish.temperature?.celsius ?? STANDARD_TEMP_C;
   const dilutionRank = (c: Combination) => {
     const d = dilutionOf(c).toLowerCase();
     return d === 'stock' ? 0 : d === '1+1' ? 1 : 2;
@@ -472,10 +486,22 @@ export function recipeAnswer(
   const alsoAt = speeds.filter((ei) => ei !== recipe.shootingIso);
   // An EI typed but not in the data is said up front, never left to the small
   // "Rated at", so the figure cannot pass for that EI's time.
-  const notice =
-    isoMissing && wish.iso !== null
-      ? `No EI ${wish.iso} recipe for this pair. Showing EI ${recipe.shootingIso}.${alsoAt.length ? ` Also at EI ${alsoAt.join(', ')}.` : ''}`
-      : undefined;
+  const notices: string[] = [];
+  if (isoMissing && wish.iso !== null) {
+    notices.push(
+      `No EI ${wish.iso} recipe for this pair. Showing EI ${recipe.shootingIso}.${alsoAt.length ? ` Also at EI ${alsoAt.join(', ')}.` : ''}`
+    );
+  }
+  // So is a temperature typed but not in the data, in the unit it was typed
+  // in (and the viewer's, when that differs).
+  const typed = wish.temperature;
+  if (typed && recipe.temperatureC !== typed.celsius) {
+    const both = (celsius: number, fahrenheit: number) =>
+      `${temperatureIn(typed.unit, celsius, fahrenheit)}${typed.unit === unit ? '' : ` (${temperatureIn(unit, celsius, fahrenheit)})`}`;
+    notices.push(
+      `No recipe at ${both(typed.celsius, typed.fahrenheit)}. This one is at ${both(recipe.temperatureC, recipe.temperatureF)}.`
+    );
+  }
   if (isoMissing && wish.iso === null) {
     notes.push(
       `No recipe at box speed (EI ${iso}) for this pair. Recipes exist at EI ${speeds.join(', ')}.`
@@ -484,11 +510,6 @@ export function recipeAnswer(
   if (wish.dilution && dilutionMissing) {
     notes.push(
       `No recipe at ${wish.dilution.label} for this pair. Showing ${dilution}.`
-    );
-  }
-  if (wish.celsius !== null && recipe.temperatureC !== wish.celsius) {
-    notes.push(
-      `No recipe at ${temperatureIn(unit, wish.celsius)}. This one is at ${temperatureIn(unit, recipe.temperatureC, recipe.temperatureF)}.`
     );
   }
   const others = all.filter((c) => c !== recipe);
@@ -501,7 +522,7 @@ export function recipeAnswer(
     title,
     badge: recipeSourceLabel(recipe.tags),
     readAs: [],
-    notice,
+    notice: notices.length ? notices.join(' ') : undefined,
     figure: {
       value: formatClock(recipe.timeMinutes),
       unit: 'min',
@@ -571,7 +592,7 @@ export function reciprocityAnswer(
     customFactor: entry.factor,
   });
   if (!result) return null;
-  const meteredText = formatReciprocityTime(metered);
+  const meteredText = formatTypedSeconds(metered);
   return {
     kind: 'reciprocity',
     title: `${entry.name} for ${meteredText} metered`,
@@ -584,7 +605,7 @@ export function reciprocityAnswer(
       },
     ],
     figure: {
-      value: formatReciprocityTime(result.adjustedTime),
+      value: formatSeconds(result.adjustedTime),
       unit: null,
       caption: 'corrected exposure',
     },
@@ -628,19 +649,27 @@ const FILM_TYPES = new Map([
   ['slide', 'Slide'],
 ]);
 
+/**
+ * The grouped matches for a query. With `answered` (the uuid of the recipe
+ * the answer shows), the recipes group lists the pair's other recipes, the
+ * ones the answer's footnote counts.
+ */
 export function catalogGroups(
   catalog: Catalog,
   tokens: readonly string[],
   match: CatalogMatch,
   iso: number | null,
-  unit: TemperatureUnit = 'celsius'
+  unit: TemperatureUnit = 'celsius',
+  answered?: string
 ): HomeResultGroup[] {
   const groups: HomeResultGroup[] = [];
   const film = match.film?.entry;
   const developer = match.developer?.entry;
 
   let recipes = recipesOf(catalog, { film, developer });
-  if (iso !== null) {
+  if (answered) {
+    recipes = recipes.filter((c) => c.uuid !== answered);
+  } else if (iso !== null) {
     const atIso = recipes.filter((c) => c.shootingIso === iso);
     if (atIso.length) recipes = atIso;
   }
@@ -653,7 +682,7 @@ export function catalogGroups(
   if (recipes.length) {
     groups.push({
       key: 'recipes',
-      label: 'Development recipes',
+      label: answered ? 'Other recipes for this pair' : 'Development recipes',
       total: recipes.length,
       items: recipes.slice(0, 4).map((c) => {
         const f = catalog.filmBySlug.get(c.filmSlug);
