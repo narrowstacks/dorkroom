@@ -6,7 +6,7 @@ import {
 } from '@dorkroom/logic';
 import { useCallback, useMemo, useState } from 'react';
 
-export interface HomeSearchDataState {
+export interface SearchDataState {
   data: HomeSearchData;
   /** Start fetching (idempotent). */
   load: () => void;
@@ -27,13 +27,13 @@ function listOf(parts: readonly string[]): string {
 }
 
 /**
- * The catalog the home search reads, fetched only once someone shows interest
+ * The catalog the search reads, fetched only once someone shows interest
  * in searching (`load`). The recipes alone are about 500 KB, so the first
  * paint never waits on them: until they arrive the box answers calculator
  * queries, which need no data. Data already cached (say, from /development)
  * is used at once.
  */
-export function useHomeSearchData(): HomeSearchDataState {
+export function useSearchData(): SearchDataState {
   const [enabled, setEnabled] = useState(false);
   const films = useFilms({ enabled });
   const developers = useDevelopers({ enabled });

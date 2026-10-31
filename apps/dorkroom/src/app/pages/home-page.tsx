@@ -1,10 +1,5 @@
 import { useStats } from '@dorkroom/logic';
-import {
-  Greeting,
-  homeToolCards,
-  TemperatureProvider,
-  ToolCard,
-} from '@dorkroom/ui';
+import { Greeting, homeToolCards, ToolCard } from '@dorkroom/ui';
 import { Link } from '@tanstack/react-router';
 import {
   CalculatorIcon,
@@ -13,7 +8,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { HomeSearch } from './home/home-search';
+import { SearchPanel } from '../../components/search/search-panel';
 
 export function HomePage() {
   const { data: stats, isPending: isStatsLoading } = useStats();
@@ -69,10 +64,7 @@ export function HomePage() {
             ))}
           </p>
         </div>
-        {/* Recipe answers follow the visitor's °C/°F setting, shared with /development. */}
-        <TemperatureProvider>
-          <HomeSearch />
-        </TemperatureProvider>
+        <SearchPanel variant="hero" />
       </div>
 
       {/* Tools Grid */}

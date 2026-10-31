@@ -1,6 +1,7 @@
 import type { HomeLinkTarget, HomeResultGroup } from '@dorkroom/logic';
 import { cn, homeToolCards } from '@dorkroom/ui';
 import { Link } from '@tanstack/react-router';
+import type { MouseEventHandler } from 'react';
 
 interface Row {
   key: string;
@@ -36,11 +37,17 @@ function rowsOf(group: HomeResultGroup): Row[] {
 
 interface ResultGroupsProps {
   groups: readonly HomeResultGroup[];
+  /** Called when a row's link is clicked (the nav dialog closes on it). */
+  onNavigate?: MouseEventHandler<HTMLAnchorElement>;
   className?: string;
 }
 
 /** Grouped matches beside the answer: recipes, films, developers and tools. */
-export function ResultGroups({ groups, className }: ResultGroupsProps) {
+export function ResultGroups({
+  groups,
+  onNavigate,
+  className,
+}: ResultGroupsProps) {
   if (groups.length === 0) return null;
   return (
     <div
@@ -67,6 +74,7 @@ export function ResultGroups({ groups, className }: ResultGroupsProps) {
                   <Link
                     to={row.target.to}
                     search={row.target.search}
+                    onClick={onNavigate}
                     className="-mx-2 grid grid-cols-[1fr_auto] gap-x-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-[color:var(--color-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
                   >
                     <span className="min-w-0 text-sm font-medium text-[color:var(--color-text-primary)]">

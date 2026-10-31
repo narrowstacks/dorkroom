@@ -178,4 +178,61 @@ describe('Modal', () => {
       expect(onClose).not.toHaveBeenCalled();
     });
   });
+
+  describe('focus', () => {
+    const body = (
+      <>
+        <button type="button">First</button>
+        <button type="button" hidden>
+          Hidden
+        </button>
+        <button type="button">Last</button>
+      </>
+    );
+
+    it('keeps Tab inside the dialog, wrapping at both ends', () => {
+      render(
+        <Modal {...defaultProps} hideCloseButton>
+          {body}
+        </Modal>
+      );
+      const first = screen.getByRole('button', { name: 'First' });
+      const last = screen.getByRole('button', { name: 'Last' });
+
+      last.focus();
+      fireEvent.keyDown(last, { key: 'Tab' });
+      expect(first).toHaveFocus();
+
+      fireEvent.keyDown(first, { key: 'Tab', shiftKey: true });
+      expect(last).toHaveFocus();
+
+      // Between the ends, Tab is the browser's to move.
+      first.focus();
+      fireEvent.keyDown(first, { key: 'Tab' });
+      expect(first).toHaveFocus();
+    });
+
+    it('returns focus to the element that opened it, on close and on unmount', () => {
+      const opener = document.createElement('button');
+      document.body.append(opener);
+      opener.focus();
+
+      const { rerender, unmount } = render(
+        <Modal {...defaultProps}>{body}</Modal>
+      );
+      screen.getByRole('button', { name: 'First' }).focus();
+      rerender(
+        <Modal {...defaultProps} isOpen={false}>
+          {body}
+        </Modal>
+      );
+      expect(opener).toHaveFocus();
+
+      rerender(<Modal {...defaultProps}>{body}</Modal>);
+      screen.getByRole('button', { name: 'Last' }).focus();
+      unmount();
+      expect(opener).toHaveFocus();
+      opener.remove();
+    });
+  });
 });

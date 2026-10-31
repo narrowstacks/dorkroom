@@ -17,7 +17,11 @@ import { LoadingSpinner } from './loading-spinner';
 export interface CalculatorLinkProps<
   L extends { build: (values: never) => object },
 > {
-  /** The route's link params as the URL carried them on mount (raw strings). */
+  /**
+   * The route's link params as the URL carried them when the page mounted
+   * (raw strings). A later link to the open route remounts the page with its
+   * own.
+   */
   linkSearch?: CalculatorLinkSearch<keyof ReturnType<L['build']> & string>;
 }
 
@@ -27,13 +31,29 @@ type CalculatorPage<P extends string> = ComponentType<{
 
 const optionalString = z.string().optional().catch(undefined);
 
+/** The calculator's own params among the URL's search values. */
+function pickLinkParams<P extends string>(
+  search: CalculatorLinkSearch,
+  params: CalculatorLinkParamMap
+): CalculatorLinkSearch<P> {
+  // SAFETY: only names that are keys of `params` (a P) pass the filter.
+  return Object.fromEntries(
+    Object.entries(search).filter(([name]) => Object.hasOwn(params, name))
+  ) as CalculatorLinkSearch<P>;
+}
+
 /**
- * Captures the calculator's link params once on mount, strips them from the
- * URL with a replace navigation (keeping any other param, such as border's
- * `?preset=`), and renders the lazy page with them. The page saves them like
- * any edit, so a reload starts from them without re-applying the link. A
- * navigation within the route that adds link params is ignored until the next
- * mount. The router hooks live here, so pages render without a router.
+ * Captures the calculator's link params, strips them from the URL with a
+ * replace navigation (keeping any other param, such as border's `?preset=`),
+ * and renders the lazy page with them. The page saves them like any edit, so
+ * a reload starts from them without re-applying the link.
+ *
+ * A capture happens on mount and again whenever link params reappear in the
+ * URL while the route is mounted (a link to the calculator already open, such
+ * as a search answer on its own page): the page remounts, keyed by the
+ * capture count, and applies them. The strip only removes params, so it never
+ * starts a capture of its own. The router hooks live here, so pages render
+ * without a router.
  */
 function CalculatorRoute<P extends string>({
   params,
@@ -44,16 +64,27 @@ function CalculatorRoute<P extends string>({
 }) {
   // Search values are flat strings: see parseSearch in routes/search-params.
   const search: CalculatorLinkSearch = useSearch({ strict: false });
-  // SAFETY: only names that are keys of `params` (a P) pass the filter.
-  const [linkSearch] = useState(
-    () =>
-      Object.fromEntries(
-        Object.entries(search).filter(([name]) => Object.hasOwn(params, name))
-      ) as CalculatorLinkSearch<P>
-  );
+  const picked = pickLinkParams<P>(search, params);
+  const linked = Object.keys(picked).length > 0;
+  const [capture, setCapture] = useState(() => ({
+    count: 0,
+    linkSearch: picked,
+    linked,
+  }));
+  // Adjusted during render on each change of "the URL carries link params":
+  // their arrival is a new capture, their removal (the strip) only noted.
+  if (linked !== capture.linked) {
+    setCapture(
+      linked
+        ? { count: capture.count + 1, linkSearch: picked, linked }
+        : { ...capture, linked }
+    );
+  }
+  const { linkSearch } = capture;
   const navigate = useNavigate();
 
-  // Once: `linkSearch` is state, `params` a module constant, `navigate` stable.
+  // Once per capture: `linkSearch` changes only with one, `params` is a
+  // module constant, `navigate` stable.
   useEffect(() => {
     if (Object.keys(linkSearch).length === 0) return;
     void navigate({
@@ -69,7 +100,7 @@ function CalculatorRoute<P extends string>({
 
   return (
     <Suspense fallback={<LoadingSpinner />}>
-      <Page linkSearch={linkSearch} />
+      <Page key={capture.count} linkSearch={linkSearch} />
     </Suspense>
   );
 }
