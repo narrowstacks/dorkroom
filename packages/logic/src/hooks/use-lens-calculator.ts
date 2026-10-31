@@ -40,6 +40,8 @@ export interface UseLensCalculatorReturn {
  * source/target format selection (persisted through the storage seam) and derives
  * the equivalent focal length and field of view on the target format.
  *
+ * @param options - `overrides`: values applied over the stored ones on
+ *   mount, such as a link's (`lensCalculatorLink.read`).
  * @example
  * ```tsx
  * const lens = useLensCalculator();
@@ -47,7 +49,9 @@ export interface UseLensCalculatorReturn {
  * return <span>{lens.calculation?.equivalentFocalLength}</span>;
  * ```
  */
-export function useLensCalculator(): UseLensCalculatorReturn {
+export function useLensCalculator(options?: {
+  overrides?: Partial<LensFormState>;
+}): UseLensCalculatorReturn {
   const [values, setValues] = useState<LensFormState>(LENS_DEFAULTS);
 
   const setFocalLength = useCallback(
@@ -80,7 +84,7 @@ export function useLensCalculator(): UseLensCalculatorReturn {
 
   const { resetToDefaults: reset } = usePersistedCalculator(
     lensCalculatorPersistence,
-    { values, setValues }
+    { values, setValues, overrides: options?.overrides }
   );
 
   const calculation = useMemo<LensCalculatorResult | null>(() => {

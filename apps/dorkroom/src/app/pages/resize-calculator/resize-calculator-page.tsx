@@ -9,6 +9,7 @@ import {
   DEFAULT_ORIGINAL_WIDTH,
   matchesAspectRatio,
   RESIZE_FORM_DEFAULTS,
+  resizeCalculatorLink,
   resizeCalculatorPersistence,
   type ResizeCalculatorState,
   usePersistedCalculator,
@@ -37,6 +38,7 @@ import {
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
 import { useMemo } from 'react';
+import type { CalculatorLinkProps } from '../../../components/calculator-route';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
 
 const validateResizeForm = createZodFormValidator(resizeCalculatorSchema);
@@ -584,7 +586,7 @@ function ResizeInputs({
   );
 }
 
-function useResizeForm() {
+function useResizeForm(linkOverrides?: Partial<ResizeCalculatorState>) {
   const form = useForm({
     // Annotated rather than `satisfies`: the form's field types come from these
     // defaults, and `satisfies` would pin isEnlargerHeightMode to the literal
@@ -603,17 +605,20 @@ function useResizeForm() {
   // stored value falls back to its default.
   const { resetToDefaults } = usePersistedCalculator(
     resizeCalculatorPersistence,
-    { form, values: formValues }
+    { form, values: formValues, overrides: linkOverrides }
   );
 
   return { form, formValues, resetToDefaults };
 }
 
-export default function ResizeCalculatorPage() {
+export default function ResizeCalculatorPage({
+  linkSearch,
+}: CalculatorLinkProps<typeof resizeCalculatorLink>) {
+  const linkOverrides = resizeCalculatorLink.read(linkSearch ?? {});
   const { unit } = useMeasurement();
   const unitLabel = unit === 'imperial' ? 'in' : 'cm';
   const { toInches, toDisplay } = useMeasurementConverter();
-  const { form, formValues, resetToDefaults } = useResizeForm();
+  const { form, formValues, resetToDefaults } = useResizeForm(linkOverrides);
 
   useCalculatorAnalytics({
     tool: 'resize',

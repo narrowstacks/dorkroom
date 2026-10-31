@@ -1,8 +1,10 @@
 import { z } from 'zod';
+import { RESIZE_CALCULATOR_LINK_PARAMS } from '../constants/calculator-link-params';
 import {
   RESIZE_FORM_DEFAULTS,
   RESIZE_STORAGE_KEY,
 } from '../constants/resize-calculator';
+import { defineCalculatorLink } from '../utils/calculator-url-params';
 import { definePersistedCalculator } from '../utils/persisted-calculator';
 import {
   exposureTimeValidator,
@@ -65,6 +67,12 @@ export const resizeCalculatorPersistence = definePersistedCalculator(
   RESIZE_STORAGE_KEY,
   resizeCalculatorFieldSchemas,
   RESIZE_FORM_DEFAULTS
+);
+
+/** Link that opens the resize calculator pre-filled (params: `RESIZE_CALCULATOR_LINK_PARAMS`). */
+export const resizeCalculatorLink = defineCalculatorLink(
+  resizeCalculatorPersistence,
+  RESIZE_CALCULATOR_LINK_PARAMS
 );
 
 export type ResizeCalculatorFormData = z.infer<typeof resizeCalculatorSchema>;

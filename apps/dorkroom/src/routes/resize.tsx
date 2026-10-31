@@ -1,13 +1,15 @@
+import { RESIZE_CALCULATOR_LINK_PARAMS } from '@dorkroom/logic';
 import { ROUTE_DESCRIPTIONS, ROUTE_TITLES } from '@dorkroom/ui';
 import { createFileRoute } from '@tanstack/react-router';
-import { lazy, Suspense } from 'react';
-import { LoadingSpinner } from '../components/loading-spinner';
+import { lazy } from 'react';
+import { calculatorRoute } from '../components/calculator-route';
 
 const ResizeCalculatorPage = lazy(
   () => import('../app/pages/resize-calculator/resize-calculator-page')
 );
 
 export const Route = createFileRoute('/resize')({
+  ...calculatorRoute(RESIZE_CALCULATOR_LINK_PARAMS, ResizeCalculatorPage),
   head: () => ({
     meta: [
       { title: `${ROUTE_TITLES['/resize']} - Dorkroom` },
@@ -16,9 +18,4 @@ export const Route = createFileRoute('/resize')({
       { property: 'og:description', content: ROUTE_DESCRIPTIONS['/resize'] },
     ],
   }),
-  component: () => (
-    <Suspense fallback={<LoadingSpinner />}>
-      <ResizeCalculatorPage />
-    </Suspense>
-  ),
 });
