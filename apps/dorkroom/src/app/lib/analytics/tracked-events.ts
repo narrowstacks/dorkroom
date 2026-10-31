@@ -56,6 +56,7 @@ export const TRACKED_ROUTES = [
   '/films',
   '/lenses',
   '/mat',
+  '/negative-inverter',
   '/privacy',
   '/reciprocity',
   '/resize',

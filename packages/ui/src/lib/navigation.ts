@@ -2,6 +2,7 @@ import {
   Aperture,
   BookOpen,
   Camera,
+  Contrast,
   Crop,
   Film,
   FlaskConical,
@@ -159,6 +160,19 @@ const TOOL_LIST = [
     },
   },
   {
+    to: '/negative-inverter',
+    label: 'Inverter',
+    summary: 'Preview a negative as a positive from a phone photo.',
+    icon: Contrast,
+    category: 'film',
+    accent: 'violet',
+    card: {
+      title: 'Negative Inverter',
+      description: 'Quick positives from phone photos',
+      order: 7,
+    },
+  },
+  {
     to: '/lenses',
     label: 'Lenses',
     summary: 'Equivalent focal lengths across formats.',
@@ -168,7 +182,7 @@ const TOOL_LIST = [
     card: {
       title: 'Lens Equivalency',
       description: 'Compare format lens differences',
-      order: 7,
+      order: 8,
     },
   },
   {
@@ -181,7 +195,7 @@ const TOOL_LIST = [
     card: {
       title: 'Camera Exposure',
       description: 'Equivalent exposure calculator',
-      order: 8,
+      order: 9,
       icon: Camera,
     },
   },
@@ -195,7 +209,7 @@ const TOOL_LIST = [
     card: {
       title: 'Film Database',
       description: 'Browse film stocks by brand & ISO',
-      order: 9,
+      order: 10,
     },
   },
   {
@@ -353,6 +367,7 @@ export const ROUTE_TITLES: RouteTextByPath = {
   '/reciprocity': 'Reciprocity Failure Calculator',
   '/stops': 'Stops Calculator',
   '/mat': 'Mat Cut Calculator',
+  '/negative-inverter': 'Negative Inverter',
   '/exposure': 'Exposure Calculator',
   '/lenses': 'Lens Equivalency Calculator',
   '/development': 'Development Recipes',
@@ -374,6 +389,8 @@ export const ROUTE_DESCRIPTIONS: RouteTextByPath = {
     'Convert between exposure stops and seconds. Translate f-stop or time adjustments into exposure values.',
   '/mat':
     'Plan single-window mats with independent borders. Get exact window openings and mat cutter guide-bar settings, with best-fit borders for your artwork.',
+  '/negative-inverter':
+    'Turn a phone photo of a black and white or C-41 negative into a positive preview. Pick the film base, crop out the light table, and download. Photos never leave your device.',
   '/exposure':
     'Balance aperture, shutter speed, and ISO for correct exposure. Calculate equivalent exposures across different settings.',
   '/lenses':
