@@ -4,8 +4,16 @@ import { calculateEV } from '../../utils/camera-exposure-calculations';
 import { useLightMeterSolver } from '../use-light-meter-solver';
 
 describe('useLightMeterSolver', () => {
-  it('is invalid when EV is null or NaN', () => {
-    const { result } = renderHook(() => useLightMeterSolver(null));
+  // NaN does not bite on its own: the solve of NaN is not finite, so the
+  // solution is invalid regardless of the guard. Infinity is what catches a
+  // missing `Number.isFinite` check.
+  it.each([
+    ['null', null],
+    ['NaN', Number.NaN],
+    ['Infinity', Number.POSITIVE_INFINITY],
+    ['-Infinity', Number.NEGATIVE_INFINITY],
+  ])('is invalid when EV is %s', (_name, ev) => {
+    const { result } = renderHook(() => useLightMeterSolver(ev));
     expect(result.current.solution.isValid).toBe(false);
     expect(result.current.solution.solvedLabel).toBe('—');
   });
