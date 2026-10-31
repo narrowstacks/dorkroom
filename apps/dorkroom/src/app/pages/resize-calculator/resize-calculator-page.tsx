@@ -8,6 +8,7 @@ import {
   DEFAULT_ORIGINAL_TIME,
   DEFAULT_ORIGINAL_WIDTH,
   matchesAspectRatio,
+  RESIZE_FORM_DEFAULTS,
   resizeCalculatorPersistence,
   type ResizeCalculatorState,
   useLocalStorageFormPersistence,
@@ -224,17 +225,6 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
     </CalculatorCard>
   );
 }
-
-const RESIZE_FORM_DEFAULTS: ResizeCalculatorState = {
-  isEnlargerHeightMode: false,
-  originalWidth: DEFAULT_ORIGINAL_WIDTH,
-  originalLength: DEFAULT_ORIGINAL_LENGTH,
-  newWidth: DEFAULT_NEW_WIDTH,
-  newLength: DEFAULT_NEW_LENGTH,
-  originalTime: DEFAULT_ORIGINAL_TIME,
-  originalHeight: DEFAULT_ORIGINAL_HEIGHT,
-  newHeight: DEFAULT_NEW_HEIGHT,
-};
 
 /** Screen-reader summary of the result; empty while any input is non-positive. */
 function describeResizeResult(values: ResizeCalculatorState): string {

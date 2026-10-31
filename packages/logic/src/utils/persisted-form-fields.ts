@@ -64,3 +64,34 @@ export function definePersistedFormFields<
 
   return { storageKey, persistKeys, validators };
 }
+
+/**
+ * The slice of a form `useLocalStorageFormPersistence` drives. Calculators
+ * that keep their state in `useState` rather than TanStack Form expose the
+ * same shape through `createStateFormAdapter`.
+ */
+export interface PersistenceFormAdapter<T extends object> {
+  setFieldValue: (field: keyof T, value: T[keyof T]) => void;
+  reset: () => void;
+}
+
+/**
+ * Adapt a `useState` setter to the form shape the persistence hook expects, so
+ * hydration writes one field at a time and `resetToDefaults` restores
+ * `defaults`. `onReset` runs first, for state that describes the inputs being
+ * discarded (a preset notice, say).
+ */
+export function createStateFormAdapter<T extends object>(
+  setValues: (update: (prev: T) => T) => void,
+  defaults: T,
+  onReset?: () => void
+): PersistenceFormAdapter<T> {
+  return {
+    setFieldValue: (field, value) =>
+      setValues((prev) => ({ ...prev, [field]: value })),
+    reset: () => {
+      onReset?.();
+      setValues(() => defaults);
+    },
+  };
+}

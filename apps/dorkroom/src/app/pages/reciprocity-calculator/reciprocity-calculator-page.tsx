@@ -4,6 +4,7 @@ import {
   DEFAULT_RECIPROCITY_METERED_TIME,
   formatReciprocityTime,
   parseReciprocityTime,
+  RECIPROCITY_CALCULATOR_DEFAULTS,
   RECIPROCITY_EXPOSURE_PRESETS,
   RECIPROCITY_FILM_TYPES,
   type ReciprocityCalculation,
@@ -432,7 +433,7 @@ function useReciprocityForm() {
   // TanStack Form for input state
   const form = useForm({
     defaultValues: {
-      filmType: RECIPROCITY_FILM_TYPES[0].value,
+      filmType: RECIPROCITY_CALCULATOR_DEFAULTS.filmType,
       meteredTime: DEFAULT_RECIPROCITY_METERED_TIME,
       customFactor: DEFAULT_RECIPROCITY_CUSTOM_FACTOR,
     } satisfies ReciprocityFormState,
