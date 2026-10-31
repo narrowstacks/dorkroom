@@ -149,6 +149,17 @@ describe('MobileNav floating toggle stacking (#516)', () => {
     expect(zIndexOf(toggle)).toBeGreaterThan(zIndexOf(drawer));
   });
 
+  it('keeps the closed toggle at z-50 so later-DOM z-50 bottom sheets cover it', () => {
+    // Bottom sheets (border settings, custom recipe form) are z-50 and later
+    // in the DOM than the nav, so a closed toggle above 50 would cover them.
+    render346(<MobileNav pathname="/" onNavigate={vi.fn()} />);
+    const toggle = screen.getByRole('button', { name: 'Open navigation' });
+
+    expect(zIndexOf(toggle)).toBeLessThanOrEqual(50);
+  });
+
+  // Class-only check; the real guard is the browser elementFromPoint run on
+  // the PR (Settings must clear the toggle).
   it('pads the drawer bottom so the footer clears the floating toggle', () => {
     render346(<MobileNav pathname="/" onNavigate={vi.fn()} />);
     fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }));

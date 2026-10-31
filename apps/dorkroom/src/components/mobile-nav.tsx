@@ -27,8 +27,9 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const wasOpenRef = useRef(isMobileMenuOpen);
 
-  // The open drawer covers the toggle (#346), so move focus to the drawer's
-  // own close button on open and back to the toggle on close. Layout effect so
+  // The drawer's own close button is the primary focusable close control (the
+  // floating toggle sits above the open drawer only as a pointer target), so
+  // move focus there on open and back to the toggle on close. Layout effect so
   // focus leaves the close button before its nav turns aria-hidden. Not a
   // focus trap; see #286.
   useLayoutEffect(() => {
@@ -70,16 +71,22 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
 
   return (
     <>
-      {/* z-[60] keeps the toggle above the z-50 drawer so it stays the topmost
-          tap target while open (#516; #367 dropped this bump, then the drawer
-          covered the toggle again). The drawer pads its bottom edge to match
-          so the footer sits clear of it. size-12 + this bottom offset is what __root.tsx's `<main>` reserves
+      {/* Raised to z-[60] only while the nav is open, so it stays the topmost
+          tap target above the z-50 drawer (#516; #367 dropped an
+          unconditional bump). Closed, it stays z-50 and sits under later-DOM
+          z-50 bottom sheets like <main>'s, so it never covers their fields.
+          The drawer pads its bottom edge so the footer clears the toggle.
+
+          size-12 + this bottom offset is what __root.tsx's `<main>` reserves
           `calc(env(safe-area-inset-bottom)+5rem)` of bottom padding for
-          (#345) — resize this button and update that reservation to match. */}
+          (#345): resize this button and update that reservation to match. */}
       <button
         ref={toggleButtonRef}
         type="button"
-        className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-[60] flex size-12 items-center justify-center rounded-full shadow-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] sm:hidden"
+        className={cn(
+          'fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] flex size-12 items-center justify-center rounded-full shadow-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] sm:hidden',
+          isMobileMenuOpen ? 'z-[60]' : 'z-50'
+        )}
         style={{
           color: 'var(--color-background)',
           borderColor: 'var(--color-background)',

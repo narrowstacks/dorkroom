@@ -152,8 +152,9 @@ export function MobileSidebar({
 
   return (
     <div className="flex h-full flex-col">
-      {/* The drawer covers the toggle that opened it, so it needs its own
-          close button (#346). */}
+      {/* The drawer's own close button is the primary focusable close control
+          (#346); the floating toggle sits above the open drawer only as a
+          pointer target. */}
       <div className="flex shrink-0 justify-end p-2">
         <button
           ref={closeButtonRef}
