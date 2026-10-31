@@ -158,7 +158,18 @@ export function AnswerCard({
                     : 'font-medium text-[color:var(--color-text-primary)]'
                 )}
               >
-                {fact.value}
+                {fact.href ? (
+                  <a
+                    href={fact.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn('underline underline-offset-2', focusRing)}
+                  >
+                    {fact.value}
+                  </a>
+                ) : (
+                  fact.value
+                )}
                 {fact.detail ? (
                   <span className="ml-1 text-xs font-normal text-[color:var(--color-text-tertiary)]">
                     {fact.detail}
