@@ -12,6 +12,10 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - **Calculator inputs are saved through an explicit storage adapter.** Mat, lens, camera exposure and border settings already persisted through a localStorage shim over the app's MMKV store; they now use an MMKV adapter over the same store, so values saved by earlier versions carry over. (#504, fixes #285)
 - **Border warnings are derived from your inputs rather than stored.** They still appear about a quarter second after you stop adjusting, and now clear immediately when you tap "Reset to defaults". (#505, fixes #448)
 
+### Fixed
+
+- **Film log names and notes keep accents and emoji.** Lens, camera, film, roll and shot fields share the web app's text cleanup, which stripped accented letters and some ordinary words. They are now saved as typed. (#521, fixes #513)
+
 ## [2026.10.29]
 
 ### Fixed
