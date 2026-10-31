@@ -42,7 +42,16 @@ interface Negative extends RgbaImage {
   rowCentre: number;
 }
 
-function makeNegative(base: Rgb, gamma: Rgb, surround = 0): Negative {
+/**
+ * `holes` punches sprocket holes (bare light-table light) into the rebate,
+ * inside the frame, the way a crop around a whole 35mm strip includes them.
+ */
+function makeNegative(
+  base: Rgb,
+  gamma: Rgb,
+  surround = 0,
+  holes = false
+): Negative {
   const stepWidth = 10;
   const rebate = 12;
   const frameWidth = rebate + SCENE.length * stepWidth;
@@ -60,6 +69,8 @@ function makeNegative(base: Rgb, gamma: Rgb, surround = 0): Negative {
       const fy = y - surround;
       let linear: Rgb;
       if (fx < 0 || fy < 0 || fx >= frameWidth || fy >= frameHeight) {
+        linear = [1, 1, 1];
+      } else if (holes && fx < 3 && fy % 6 < 3) {
         linear = [1, 1, 1];
       } else if (fx < rebate) {
         linear = base;
@@ -233,7 +244,7 @@ describe('black and white conversion', () => {
     expect(b.densityHigh[1]).toBeCloseTo(a.densityHigh[1], 2);
   });
 
-  it('lets the surround wreck the levels without a crop', () => {
+  it('keeps the surround out of the levels even without a crop', () => {
     const surrounded = makeNegative(BW_BASE, BW_GAMMA, 15);
     const base = samplePatch(
       surrounded,
@@ -247,8 +258,10 @@ describe('black and white conversion', () => {
       base,
       histograms: buildDensityHistograms(surrounded, base, 'bw'),
     });
-    // The bare light table is brighter than the base: negative density.
-    expect(uncropped.densityLow[1]).toBeLessThan(-0.05);
+    // The bare light table is brighter than the base, so it is not image.
+    const cropped = convert(surrounded, 'bw').coeffs;
+    expect(uncropped.densityLow[1]).toBeCloseTo(cropped.densityLow[1], 2);
+    expect(uncropped.densityHigh[1]).toBeCloseTo(cropped.densityHigh[1], 2);
   });
 
   it('brightens with exposure and steepens with contrast', () => {
@@ -307,6 +320,19 @@ describe('C-41 conversion', () => {
     }
     for (let s = 1; s < outputs.length; s++) {
       expect(outputs[s][1]).toBeGreaterThan(outputs[s - 1][1]);
+    }
+  });
+
+  it('stays neutral with sprocket holes inside the crop', () => {
+    // Holes are white light, which outshines the orange base most in blue.
+    // Counted as image, they drag each channel's black point down by a
+    // different amount and turn the rebate teal and the frame blue.
+    const negative = makeNegative(ORANGE_MASK, C41_GAMMA, 0, true);
+    const { base, coeffs } = convert(negative, 'c41');
+    for (const v of invertPixel(base, coeffs)) expect(v).toBeLessThan(0.03);
+    for (const [r, g, b] of stepOutputs(negative, coeffs).slice(1, -1)) {
+      expect(Math.abs(r - g)).toBeLessThan(0.03);
+      expect(Math.abs(b - g)).toBeLessThan(0.03);
     }
   });
 

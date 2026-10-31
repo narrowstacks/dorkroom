@@ -81,6 +81,14 @@ const MIN_TRANSMITTANCE = 1e-4;
 /** Smallest density window, so a flat crop cannot divide by zero. */
 const MIN_DENSITY_RANGE = 0.05;
 
+/**
+ * How far below the base a pixel's density may fall in any channel and still
+ * count as film. Anything brighter is light that never passed through the
+ * negative (sprocket holes, gaps between frames, light-table surround), and
+ * phone JPEG noise on the rebate stays well inside this margin.
+ */
+const BRIGHTER_THAN_BASE = 0.05;
+
 /** How far one unit of warmth or tint moves a channel, in output units. */
 const COLOUR_SHIFT_SCALE = 0.15;
 
@@ -248,8 +256,12 @@ function densityOfBin(bin: number): number {
 
 /**
  * Density histograms over a region of the image. Pass the crop as `region`
- * so light-table surround never reaches the statistics. `step` samples every
- * nth pixel in each direction, for large proxies.
+ * so light-table surround never reaches the statistics. Pixels brighter than
+ * the base are skipped as well, because a crop around a 35mm strip always
+ * includes sprocket holes: white light that outshines an orange mask most in
+ * blue, so counting it would drag each channel's black point by a different
+ * amount and cast the whole frame blue. `step` samples every nth pixel in
+ * each direction, for large proxies.
  */
 export function buildDensityHistograms(
   image: RgbaImage,
@@ -280,6 +292,13 @@ export function buildDensityHistograms(
         byteToLinear(image.data[i + 2]),
       ];
       const d = densityOf(linear, normalized, filmType);
+      if (
+        d[0] < -BRIGHTER_THAN_BASE ||
+        d[1] < -BRIGHTER_THAN_BASE ||
+        d[2] < -BRIGHTER_THAN_BASE
+      ) {
+        continue;
+      }
       histograms[0][binOf(d[0])]++;
       histograms[1][binOf(d[1])]++;
       histograms[2][binOf(d[2])]++;
@@ -339,6 +358,9 @@ export function deriveCoefficients({
       low = 0;
       high = 1;
     }
+    // The base is the least dense the film can be, so black never sits
+    // below it. This keeps the rebate black and neutral in every channel.
+    low = Math.max(low, 0);
     if (high - low < MIN_DENSITY_RANGE) {
       const mid = (low + high) / 2;
       low = mid - MIN_DENSITY_RANGE / 2;
