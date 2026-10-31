@@ -1,4 +1,4 @@
-import { useBorderCalculator } from '@dorkroom/logic';
+import { useStandaloneBorderCalculator } from '@dorkroom/logic';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { BorderPreview } from '@/components/border/border-preview';
@@ -44,7 +44,7 @@ function ToggleButton({
 
 export function BorderScreen() {
   const [unit] = useMeasurementUnit();
-  const calc = useBorderCalculator(unit);
+  const calc = useStandaloneBorderCalculator(unit);
   const { calculation } = calc;
   const [sheet, setSheet] = useState<SheetId>(null);
   const closeSheet = () => setSheet(null);

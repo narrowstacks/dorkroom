@@ -138,6 +138,14 @@ describe('calculator persistence contract', () => {
     check(borderCalculatorPersistence, borderInitialState);
   });
 
+  it('border defaults hold exactly the persisted fields (no warnings, no image state)', () => {
+    // The web form is seeded from these defaults, so anything extra here
+    // would become a form value that is never persisted.
+    expect(Object.keys(borderCalculatorPersistence.defaults).sort()).toEqual(
+      [...borderCalculatorPersistence.persistKeys].sort()
+    );
+  });
+
   it('camera exposure rejects an unknown solveFor and non-positive numbers', () => {
     const { validators } = cameraExposurePersistence;
     expect(validators.solveFor.validate('iso')).toBe(true);

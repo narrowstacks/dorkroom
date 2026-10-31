@@ -17,7 +17,7 @@ This package provides the core logic layer for Dorkroom, including:
 
 ```bash
 # Internal monorepo usage only
-import { useBorderCalculator } from '@dorkroom/logic';
+import { useStandaloneBorderCalculator } from '@dorkroom/logic';
 ```
 
 ## Structure
@@ -49,20 +49,20 @@ src/
 ### Border Calculator
 
 ```typescript
-import { useBorderCalculator } from '@dorkroom/logic';
+import { useStandaloneBorderCalculator } from '@dorkroom/logic';
 
-function BorderCalculatorPage() {
-  const calculator = useBorderCalculator();
-
-  // Access state
-  const { paperWidth, paperHeight, borderSize } = calculator;
+function BorderScreen() {
+  // Owns its state and persists it; used by the iOS app. The web page builds
+  // a TanStack form and reads it through @dorkroom/ui's `useBorderCalculator`.
+  const calculator = useStandaloneBorderCalculator('imperial');
 
   // Update values
-  calculator.setPaperWidth(8);
-  calculator.setBorderSize(1.5);
+  calculator.setPaperSize('8x10');
+  calculator.setMinBorderSlider(0.75);
 
-  // Get calculated results
-  const { imageWidth, imageHeight, bladeReadings } = calculator;
+  // Derived results and (debounced) warnings
+  const { printWidth, printHeight, leftBladeReading } = calculator.calculation;
+  const { minBorderWarning } = calculator;
 }
 ```
 
