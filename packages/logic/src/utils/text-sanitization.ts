@@ -1,20 +1,57 @@
 /**
- * Sanitize user-provided text to prevent XSS attacks.
- * Removes HTML tags and potentially dangerous sequences while preserving readability.
+ * Control and invisible formatting characters to remove: Cc (controls), Cf
+ * (zero-width spaces, bidi overrides and isolates, BOM, Unicode tag
+ * characters), Co (private use) and the line/paragraph separators. Kept: tab,
+ * LF, CR (callers decide what to do with them) and ZWJ/ZWNJ (needed for emoji
+ * sequences and Persian/Indic scripts).
  *
- * SECURITY NOTE: This function provides defense-in-depth sanitization for React applications.
- * React already escapes HTML entities when rendering text, but this function adds an extra
- * layer of protection by removing dangerous patterns before they reach the DOM.
+ * Tag characters (U+E0000 block) can smuggle invisible ASCII, so they are
+ * removed, EXCEPT inside a well-formed subdivision flag emoji: U+1F3F4 + 2-6
+ * lowercase alphanumeric tags + CANCEL TAG (U+E007F), e.g. England. The flag
+ * is matched by capture group 1 and put back by the replacer; stray tags
+ * (including extra ones after a flag) are removed.
  *
- * Why not DOMPurify?
- * - React's built-in escaping is the primary XSS defense
- * - This app only renders text content (no dangerouslySetInnerHTML)
- * - Adding DOMPurify would increase bundle size for minimal security benefit
- * - Defense-in-depth pattern removal is sufficient for our use case
+ * These are regex LITERALS on purpose: the legacy build (Babel/regexpu)
+ * rewrites property escapes in literals into ES5-safe classes, but leaves
+ * `new RegExp('\\p{..}')` strings untouched, which would throw on old
+ * browsers. For the same reason `\p{Cs}` is NOT used (regexpu turns it into
+ * `\uD800-\uDFFF`, which would erase every emoji in the legacy bundle); lone
+ * surrogates are removed by LONE_SURROGATE instead, which needs no lookbehind.
+ */
+const INVISIBLE_UNSAFE =
+  /(\u{1F3F4}[\u{E0030}-\u{E0039}\u{E0061}-\u{E007A}]{2,6}\u{E007F})|(?!\t|\n|\r|\u200C|\u200D)[\p{Cc}\p{Cf}\p{Co}\p{Zl}\p{Zp}]/gu;
+
+/** A high surrogate with no low after it, or a low surrogate with no high before it. */
+const LONE_SURROGATE =
+  /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(^|[^\uD800-\uDBFF])[\uDC00-\uDFFF]/g;
+
+/**
+ * Sanitize user-provided prose (notes, descriptions, schedules).
+ *
+ * THREAT MODEL: recipe text is only ever rendered as text, never as markup:
+ * React text nodes and React Native `<Text>` escape it, and none of these
+ * fields feeds `dangerouslySetInnerHTML`, markdown, or server-rendered HTML.
+ * The one exception is `CustomRecipe.sourceUrl`: it becomes an `href`
+ * unconditionally and is not scheme-validated anywhere yet (see #495); React 19
+ * blocks `javascript:` URLs. Custom recipes also never reach `api/meta.ts` or
+ * `api/og.tsx` (those only render catalog data looked up by slug/UUID, and
+ * `api/meta.ts` escapes at the sink with `escapeHtml`). So injection is
+ * prevented by the render sinks, not by deleting words here. This function is
+ * defense in depth that does only what is safe for ordinary language:
+ *
+ * - strips HTML-like tags (`<b>`, `</b>`, `<!-- -->`), so pasted markup does
+ *   not show up as noise; a bare `<` or `>` in prose is kept
+ * - strips control and invisible formatting characters (bidi overrides,
+ *   zero-width spaces, NUL), keeping tab/newline and the ZWJ/ZWNJ joiners
+ * - truncates to `maxLength`
+ *
+ * It deliberately does NOT delete bare words such as "script", "object",
+ * "iframe" or "embed", or `on...=` sequences: those mangle legitimate prose
+ * ("Objective: embedded subscription") and protect nothing once tags are gone.
  *
  * @param text - User input text to sanitize
  * @param maxLength - Optional maximum length (default: 5000)
- * @returns Sanitized text safe for rendering
+ * @returns Sanitized text
  */
 export function sanitizeText(
   text: string | undefined | null,
@@ -24,71 +61,54 @@ export function sanitizeText(
     return '';
   }
 
-  let sanitized = text;
+  // Strip control/invisible characters first so they cannot be used to split a
+  // tag and survive the pass below.
+  let sanitized = text
+    .replace(
+      INVISIBLE_UNSAFE,
+      (_match: string, flag: string | undefined) => flag ?? ''
+    )
+    .replace(LONE_SURROGATE, '$1');
 
-  // Apply the tag/pattern removals repeatedly until the string stops changing.
-  // A single pass is bypassable because one removal can splice two fragments
-  // into a fresh dangerous token (e.g. `<scr<script>ipt>` -> `<script>`), so we
-  // loop to a fixpoint rather than replacing once.
+  // Only things that look like tags are removed (`<` followed by a letter, `/`,
+  // `!` or `?`), so prose such as "temp < 20C and time > 5 min" survives.
+  // Remove tags repeatedly until the string stops changing: a single pass is
+  // bypassable because one removal can splice two fragments into a fresh tag
+  // (e.g. `<scr<script>ipt>` -> `<script>`).
+  // The `{0,2000}` bound (rather than `*`) keeps this linear: an unbounded
+  // `[^>]*` next to a required `>` backtracks quadratically on input like
+  // `<<<<...` (polynomial ReDoS); no real tag approaches 2000 chars.
   let previous: string;
   do {
     previous = sanitized;
-    sanitized = sanitized
-      // Remove all HTML tags (including self-closing and malformed tags).
-      // Handles: <tag>, </tag>, <tag/>, <tag attr="value">
-      // The `{0,2000}` bound (rather than `*`) keeps this linear — an unbounded
-      // `[^>]*` next to a required `>` backtracks quadratically on input like
-      // `<<<<…` (polynomial ReDoS); no real tag approaches 2000 chars.
-      .replace(/<[^>]{0,2000}>/g, '')
-      // Remove dangerous protocol handlers and event attributes.
-      // Handle variations: javascript:, JAVASCRIPT:, java\x00script:, etc.
-      .replace(/javascript\s*:/gi, '')
-      .replace(/vbscript\s*:/gi, '')
-      .replace(/on\w+\s*=/gi, '') // onclick=, onerror=, etc.
-      .replace(/data\s*:\s*text\/html/gi, '')
-      .replace(/data\s*:\s*application/gi, '')
-      // Remove any remaining script-related content. This catches cases where
-      // tags were URL-encoded or obfuscated.
-      .replace(/script/gi, '')
-      .replace(/iframe/gi, '')
-      .replace(/object/gi, '')
-      .replace(/embed/gi, '');
+    sanitized = sanitized.replace(/<[a-zA-Z/!?][^>]{0,2000}>/g, '');
   } while (sanitized !== previous);
 
-  // Remove null bytes and other control characters (except \n, \r, \t)
-  // Using RegExp constructor to avoid biome lint warning about control characters
-  // This matches: \x00-\x08 (NUL to BS), \x0B (VT), \x0C (FF), \x0E-\x1F (SO to US), \x7F (DEL)
-  // biome-ignore lint/suspicious/noControlCharactersInRegex: Intentionally matching control characters for sanitization
-  sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+  // Do not HTML-encode here: React escapes on render, and encoding would
+  // double-encode ("&lt;" -> "&amp;lt;").
 
-  // WARNING: Do not manually encode HTML entities here.
-  // React automatically handles HTML escaping during rendering.
-  // Manual encoding would result in double-encoding (e.g., "&lt;" becomes "&amp;lt;").
-  // We've already removed dangerous patterns above (script tags, event handlers, etc.),
-  // so we can safely let React handle character escaping.
-
-  // Trim to max length
   if (sanitized.length > maxLength) {
-    sanitized = `${sanitized.substring(0, maxLength)}...`;
+    let cut = sanitized.substring(0, maxLength);
+    // Do not leave half of a surrogate pair (emoji, rare CJK) at the cut.
+    if (/[\uD800-\uDBFF]$/.test(cut)) cut = cut.slice(0, -1);
+    sanitized = `${cut}...`;
   }
 
-  // Trim whitespace
   return sanitized.trim();
 }
 
 /**
- * Sanitize recipe name specifically.
- * More restrictive than general text sanitization.
+ * Sanitize a recipe name.
+ * Keeps letters, marks, numbers, punctuation, symbols and spaces from any
+ * script (accents, CJK, emoji, curly quotes, degree signs). Strips control and
+ * invisible formatting characters, and collapses every whitespace run
+ * (including newlines) to a single space. Capped at 200 characters.
  *
  * @param name - Recipe name to sanitize
  * @returns Sanitized recipe name
  */
 export function sanitizeRecipeName(name: string | undefined | null): string {
-  const sanitized = sanitizeText(name, 200);
-
-  // Recipe names should be even more restrictive
-  // Allow only alphanumeric, spaces, hyphens, and common punctuation
-  return sanitized.replace(/[^a-zA-Z0-9\s\-_.()&,]/g, '');
+  return sanitizeText(name, 200).replace(/\s+/g, ' ').trim();
 }
 
 // Import types for type-safe sanitization

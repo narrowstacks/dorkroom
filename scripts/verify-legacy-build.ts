@@ -22,7 +22,7 @@
  *
  * Exits non-zero on any failed assertion so it can gate CI.
  */
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { extname, join, normalize } from 'node:path';
@@ -185,7 +185,42 @@ async function openAndWait(url: string): Promise<CaptureView> {
   return view;
 }
 
+/**
+ * Legacy chunks must not contain Unicode property escapes (`\p{...}`): the
+ * transpiler rewrites them only in regex LITERALS, so a leftover means a
+ * `new RegExp('\\p{..}')` string (or an untranspiled literal) that throws a
+ * SyntaxError on browsers without property-escape support. Stale chunks left
+ * in dist/ can fail this locally: `rm -rf apps/dorkroom/dist` and rebuild.
+ */
+async function checkLegacyChunksHaveNoPropertyEscapes(): Promise<void> {
+  const assetsDir = join(distDir, 'assets');
+  const files = (await readdir(assetsDir)).filter((f) =>
+    /-legacy-.*\.js$/.test(f)
+  );
+  check('legacy: found legacy chunks to scan', files.length > 0);
+  const offenders: string[] = [];
+  for (const file of files) {
+    const source = await readFile(join(assetsDir, file), 'utf8');
+    // Zod ships its emoji pattern as a string for `z.emoji()` (compiled
+    // lazily with `new RegExp`, never called by the app), so those known
+    // property names are removed before testing.
+    const scanned = source.replace(
+      /\\\\p\{(Extended_Pictographic|Regional_Indicator|Emoji_Component)\}/g,
+      ''
+    );
+    // `\\p{` also covers the escaped form inside a string passed to RegExp().
+    if (/\\{1,2}[pP]\{/.test(scanned)) offenders.push(file);
+  }
+  check(
+    'legacy: no Unicode property escapes (\\p{...}) in any legacy chunk',
+    offenders.length === 0,
+    offenders.join(', ')
+  );
+}
+
 async function run(): Promise<void> {
+  await checkLegacyChunksHaveNoPropertyEscapes();
+
   // ---- 1. MODERN PATH ------------------------------------------------------
   {
     const requests: string[] = [];
