@@ -51,14 +51,6 @@ import { useRecipeModals } from './hooks/useRecipeModals';
 import { useResultsPagination } from './hooks/useResultsPagination';
 import { useUrlStateSync } from './hooks/useUrlStateSync';
 
-/**
- * Sharing a custom recipe is switched off. It used to be a feature flag that
- * resolved to `false` in the production bundle (the flag module keyed off
- * `globalThis.process`, which a browser lacks); the value is kept here so the
- * share plumbing below stays wired for when it is turned on.
- */
-const CUSTOM_RECIPE_SHARING_ENABLED = false;
-
 // eslint-disable-next-line react-doctor/no-giant-component, react-doctor/prefer-useReducer -- top-level page that wires together many independent feature hooks; splitting/reducer-izing was attempted but regressed behavior, so it is kept as the composition root (tracked as follow-up)
 export default function DevelopmentRecipesPage() {
   const {
@@ -259,7 +251,6 @@ export default function DevelopmentRecipesPage() {
     customRecipeFilter,
     favoritesOnly,
     sharedCustomRecipe,
-    customRecipeSharingEnabled: CUSTOM_RECIPE_SHARING_ENABLED,
     isFavorite,
     getFilmById,
     getDeveloperById,
@@ -345,7 +336,6 @@ export default function DevelopmentRecipesPage() {
     getDeveloperById,
     allFilms,
     allDevelopers,
-    customRecipeSharingEnabled: CUSTOM_RECIPE_SHARING_ENABLED,
   });
 
   // URL state synchronization
@@ -754,7 +744,6 @@ export default function DevelopmentRecipesPage() {
               onEditCustomRecipe={handleEditCustomRecipe}
               onDeleteCustomRecipe={handleDeleteCustomRecipe}
               onShareRecipe={handleShareCombination}
-              customRecipeSharingEnabled={CUSTOM_RECIPE_SHARING_ENABLED}
               maxHeight={mainContentHeight}
             />
           </div>
@@ -799,7 +788,6 @@ export default function DevelopmentRecipesPage() {
           onDeleteCustomRecipe={handleDeleteCustomRecipe}
           onShareRecipe={handleShareCombination}
           onCopyRecipe={handleCopyCombination}
-          customRecipeSharingEnabled={CUSTOM_RECIPE_SHARING_ENABLED}
         />
 
         <ConfirmModal

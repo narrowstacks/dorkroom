@@ -101,7 +101,6 @@ interface UseRecipeActionsProps {
   allDevelopers: Developer[];
 
   // Whether a custom recipe can be shared (currently off in the page)
-  customRecipeSharingEnabled: boolean;
 }
 
 /**
@@ -155,7 +154,6 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
     getDeveloperById,
     allFilms,
     allDevelopers,
-    customRecipeSharingEnabled,
     setIsFiltersSidebarCollapsed,
   } = props;
 
@@ -203,7 +201,6 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
     setIsDeleting,
     getFilmById,
     getDeveloperById,
-    customRecipeSharingEnabled,
   });
 
   // Favorite actions
