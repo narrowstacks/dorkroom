@@ -545,6 +545,15 @@ describe('HomePage', () => {
       expect(box()).toHaveAttribute('aria-expanded', 'false');
       type('8x10');
 
+      // "8x10" already answers, so typing leaves the list shut over it...
+      expect(
+        await screen.findByRole('article', {
+          name: '8×10 paper, 35mm negative',
+        })
+      ).toBeInTheDocument();
+      expect(box()).toHaveAttribute('aria-expanded', 'false');
+      // ...and ArrowDown opens it on the first suggestion.
+      key('ArrowDown');
       const list = screen.getByRole('listbox', { name: 'Suggestions' });
       expect(box()).toHaveAttribute('aria-expanded', 'true');
       expect(box()).toHaveAttribute('aria-controls', list.id);
@@ -554,9 +563,6 @@ describe('HomePage', () => {
         '8x10 to 11x14 12sResize',
         '11x14 mat 8x10Mat',
       ]);
-      expect(box()).not.toHaveAttribute('aria-activedescendant');
-
-      key('ArrowDown');
       expect(box()).toHaveAttribute('aria-activedescendant', options[0].id);
       expect(options[0]).toHaveAttribute('aria-selected', 'true');
       key('ArrowDown');
@@ -572,6 +578,45 @@ describe('HomePage', () => {
       expect(
         await screen.findByRole('article', { name: '11×14 mat, 8×10 print' })
       ).toBeInTheDocument();
+    });
+
+    it('opens the list while typing only until the query has an answer', async () => {
+      serveStats(() => statsResponse(STATS));
+
+      await renderHomePage();
+      // "80mm" has no answer yet: the list opens to help finish it.
+      type('80mm');
+      expect(box()).toHaveAttribute('aria-expanded', 'true');
+      // "80mm on 6x6" answers: the list gets out of the answer's way.
+      type('80mm on 6x6');
+      expect(
+        await screen.findByRole('article', {
+          name: '80mm on 6×6 as Full Frame',
+        })
+      ).toBeInTheDocument();
+      expect(box()).toHaveAttribute('aria-expanded', 'false');
+      // Escape with the list shut clears the box, as ever.
+      key('Escape');
+      expect(box()).toHaveValue('');
+    });
+
+    it('opens the list on a tap on the focused box, for touch', async () => {
+      serveStats(() => statsResponse(STATS));
+
+      await renderHomePage();
+      type('8x10');
+      expect(
+        await screen.findByRole('article', {
+          name: '8×10 paper, 35mm negative',
+        })
+      ).toBeInTheDocument();
+      expect(box()).toHaveAttribute('aria-expanded', 'false');
+      // Touch has no arrow keys: a tap on the box it is typing in asks.
+      fireEvent.click(box());
+      expect(box()).toHaveAttribute('aria-expanded', 'true');
+      key('Escape');
+      expect(box()).toHaveAttribute('aria-expanded', 'false');
+      expect(box()).toHaveValue('8x10');
     });
 
     it('closes with Escape, then clears; Tab closes and moves on', async () => {
@@ -603,6 +648,50 @@ describe('HomePage', () => {
       fireEvent.click(screen.getByRole('option', { name: /80mm on 6x6/ }));
 
       expect(box()).toHaveValue('80mm on 6x6');
+    });
+
+    it('says up front when the EI asked for has no recipe', async () => {
+      serveStats(() => statsResponse(STATS), { catalog: true });
+
+      await renderHomePage();
+      fireEvent.focus(box());
+      type('hp5 at 1600 in dd-x');
+
+      const answer = await screen.findByRole('article', {
+        name: 'Ilford HP5 Plus in Ilford DD-X',
+      });
+      const notice = within(answer).getByText(
+        'No EI 1600 recipe for this pair. Showing EI 800. Also at EI 400.'
+      );
+      const figure = within(answer).getByText('10:00');
+      // Above the number, so it is read before the time.
+      expect(
+        notice.compareDocumentPosition(figure) &
+          Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy();
+      await waitFor(
+        () =>
+          expect(document.querySelector('output')).toHaveTextContent(
+            /^Ilford HP5 Plus in Ilford DD-X\. No EI 1600 recipe for this pair\. Showing EI 800\. Also at EI 400\. 10:00 min, at /
+          ),
+        { timeout: 2000 }
+      );
+    });
+
+    it('announces one match in the singular', async () => {
+      serveStats(() => statsResponse(STATS), { catalog: true });
+
+      await renderHomePage();
+      fireEvent.focus(box());
+      type('easel');
+
+      await waitFor(
+        () =>
+          expect(document.querySelector('output')).toHaveTextContent(
+            /^1 match\.$/
+          ),
+        { timeout: 2000 }
+      );
     });
 
     it('focuses the box on "/"', async () => {

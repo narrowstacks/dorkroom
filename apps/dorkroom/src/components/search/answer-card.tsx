@@ -111,6 +111,12 @@ export function AnswerCard({
         </div>
       ) : null}
 
+      {answer.notice ? (
+        <p className="rounded-lg border border-[color:var(--color-border-primary)] px-3 py-2 text-sm font-medium text-[color:var(--color-text-primary)]">
+          {answer.notice}
+        </p>
+      ) : null}
+
       {answer.figure || diagram ? (
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           {answer.figure ? (

@@ -570,9 +570,11 @@ export function matAnswer(text: string): MatAnswer | null {
   const aw = art.a * art.toInches;
   const ah = art.b * art.toInches;
 
-  const revealMatch = new RegExp(
-    String.raw`\breveal\s*(${NUMBER_SOURCE})\s*(${UNIT_SOURCE})?`
-  ).exec(text);
+  // "reveal 1/8", "1/8 reveal", "1/8 in reveal": the number on either side.
+  const length = String.raw`(${NUMBER_SOURCE})\s*(${UNIT_SOURCE})?`;
+  const revealMatch =
+    new RegExp(String.raw`\breveal\s*${length}`).exec(text) ??
+    new RegExp(String.raw`(?:^|[^\w.\/])${length}\s*reveal\b`).exec(text);
   const revealUnit = readUnit(revealMatch?.[2]) ?? 'in';
   const reveal = revealMatch
     ? parseMatInput(revealMatch[1].trim()) * inchesPer(revealUnit)
@@ -665,25 +667,55 @@ export function matAnswer(text: string): MatAnswer | null {
 
 type StopsAnswer = Extract<HomeAnswer, { kind: 'stops' }>;
 
+/** Stop changes written in words, by value. */
+const WORD_STOPS = new Map([
+  ['half', 1 / 2],
+  ['third', 1 / 3],
+  ['two thirds', 2 / 3],
+  ['one', 1],
+  ['two', 2],
+  ['three', 3],
+]);
+
+const STOP_SIGN = String.raw`(?<sign>plus|minus|up|down|add|\+|-)?\s*`;
+
+/** The keys of WORD_STOPS as a pattern alternation ("two\s+thirds|..."). */
+const WORD_STOP_SOURCE = [...WORD_STOPS.keys()]
+  .map((word) => word.replace(' ', String.raw`\s+`))
+  .join('|');
+
 const STOP_PATTERNS: readonly RegExp[] = [
   // "+1/3 stop", "plus 2 stops", "down 1 stop", "1/2 stop"
   new RegExp(
-    String.raw`(?:^|[^\w+.\/])(plus|minus|up|down|add|\+|-)?\s*(${NUMBER_SOURCE})\s*stops?\b`
+    String.raw`(?:^|[^\w+.\/])${STOP_SIGN}(?<amount>${NUMBER_SOURCE})\s*stops?\b`
+  ),
+  // "plus half a stop", "a third of a stop", "down two stops",
+  // "one and a half stops"
+  new RegExp(
+    String.raw`(?:^|[^\w+.\/])${STOP_SIGN}(?:(?<whole>\d+|${WORD_STOP_SOURCE})\s+and\s+)?(?:(?:a|one)\s+)?(?<amount>${WORD_STOP_SOURCE})\s+(?:of\s+)?(?:an?\s+)?stops?\b`
   ),
   // "+1/3", "-0.5"
-  new RegExp(String.raw`(?:^|[^\w+.\/])(\+|-)\s*(${NUMBER_SOURCE})(?![\w.\/])`),
+  new RegExp(
+    String.raw`(?:^|[^\w+.\/])(?<sign>\+|-)\s*(?<amount>${NUMBER_SOURCE})(?![\w.\/])`
+  ),
 ];
+
+/** A number of stops written in words or digits: "two thirds" -> 2/3. */
+const stopValue = (text: string) => {
+  const words = text.trim().replace(/\s+/g, ' ');
+  return WORD_STOPS.get(words) ?? parseMatInput(words);
+};
 
 /** A stop change written in a query, signed. */
 export function findStops(text: string): number | null {
   for (const pattern of STOP_PATTERNS) {
-    const match = pattern.exec(text);
-    if (!match) continue;
-    const value = parseMatInput(match[2].trim());
+    const groups = pattern.exec(text)?.groups;
+    if (!groups) continue;
+    const value =
+      stopValue(groups.amount) + (groups.whole ? stopValue(groups.whole) : 0);
     if (!Number.isFinite(value)) continue;
-    const negative =
-      match[1] === '-' || match[1] === 'minus' || match[1] === 'down';
-    return negative ? -value : value;
+    const { sign } = groups;
+    return sign === '-' || sign === 'minus' || sign === 'down' ? -value : value;
   }
   return null;
 }

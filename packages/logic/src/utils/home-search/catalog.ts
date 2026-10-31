@@ -39,22 +39,26 @@ import type {
   HomeSearchData,
 } from './types';
 
-export interface FilmEntry {
-  film: Film;
-  name: string;
+/** What matching reads of a film or developer. */
+interface Named {
+  /** Words of its own name and aliases, without the maker's. */
   own: string[];
+  /** Each name's neighbouring words run together ("tmax400", "hp5plus"). */
+  joined: string[];
   brand: string[];
   recipes: number;
+}
+
+export interface FilmEntry extends Named {
+  film: Film;
+  name: string;
   /** Reciprocity exponent from the film data, or null when it has none. */
   factor: number | null;
 }
 
-export interface DeveloperEntry {
+export interface DeveloperEntry extends Named {
   developer: Developer;
   name: string;
-  own: string[];
-  brand: string[];
-  recipes: number;
 }
 
 export interface Catalog {
@@ -75,6 +79,14 @@ function developerName(developer: Developer): string {
   return maker && tokenize(developer.name)[0] === maker
     ? developer.name
     : `${developer.manufacturer} ${developer.name}`;
+}
+
+/** Neighbouring words of each name run together: "T-MAX 400" -> "tmax400". */
+function joinedWords(names: readonly string[], skip: ReadonlySet<string>) {
+  return names.flatMap((name) => {
+    const words = tokenize(name).filter((t) => !skip.has(t));
+    return words.slice(1).map((word, i) => words[i] + word);
+  });
 }
 
 function filmFactor(film: Film): number | null {
@@ -109,12 +121,12 @@ export function getCatalog(data: HomeSearchData): Catalog {
   const films = (data.films ?? []).map((film) => {
     const brand = tokenize(film.brand);
     const brandWords = new Set(brand);
+    const names = [film.name, ...film.aliases.map((a) => a.name)];
     const entry: FilmEntry = {
       film,
       name: `${film.brand} ${film.name}`,
-      own: tokenize(
-        [film.name, ...film.aliases.map((a) => a.name)].join(' ')
-      ).filter((t) => !brandWords.has(t)),
+      own: tokenize(names.join(' ')).filter((t) => !brandWords.has(t)),
+      joined: joinedWords(names, brandWords),
       brand,
       recipes:
         (filmRecipes.get(film.slug) ?? 0) +
@@ -132,6 +144,7 @@ export function getCatalog(data: HomeSearchData): Catalog {
       developer,
       name: developerName(developer),
       own: tokenize(developer.name),
+      joined: joinedWords([developer.name], new Set()),
       brand: tokenize(developer.manufacturer),
       recipes: developerRecipes.get(developer.slug) ?? 0,
     };
@@ -167,27 +180,37 @@ interface Scored<E> {
 const hasLetter = (token: string) => /[a-z]/.test(token);
 
 /**
- * Score an entry against query tokens: words of its own name count most,
- * its maker's words less, and a bare number ("400") never identifies one.
+ * Words in many film names ("HP5 Plus", "Portra 160 Pro"). They count toward
+ * a match but never make one on their own: "12s plus half a stop" names no film.
  */
-function score<E extends { own: string[]; brand: string[] }>(
+const GENERIC_WORDS = new Set(['plus', 'pro', 'professional', 'classic']);
+
+/**
+ * Score an entry against query tokens: words of its own name count most,
+ * its maker's words less, and a bare number ("400") or a generic word
+ * ("plus") never identifies one. A word typed whole ("tmax400") or split
+ * ("t max") still matches. Empty tokens are spent and skipped.
+ */
+function score<E extends Named>(
   entry: E,
   tokens: readonly string[]
 ): Scored<E> {
   let own = 0;
   let brand = 0;
-  const used: number[] = [];
+  const used = new Set<number>();
+  const ownWord = (token: string) =>
+    entry.own.includes(token) || entry.joined.includes(token);
   tokens.forEach((token, index) => {
+    if (!token) return;
     const letter = hasLetter(token);
     if (
-      entry.own.some(
-        (word) =>
-          word === token ||
-          (letter && token.length >= 2 && word.startsWith(token))
-      )
+      ownWord(token) ||
+      (letter &&
+        token.length >= 2 &&
+        entry.own.some((word) => word.startsWith(token)))
     ) {
       own += letter ? 2 : 1;
-      used.push(index);
+      used.add(index);
     } else if (
       letter &&
       entry.brand.some(
@@ -196,19 +219,36 @@ function score<E extends { own: string[]; brand: string[] }>(
       )
     ) {
       brand += 1;
-      used.push(index);
+      used.add(index);
     }
   });
-  const named = used.some((index) => hasLetter(tokens[index]));
+  // Two words left over that make one of the name's ("t max" -> "tmax").
+  tokens.forEach((token, index) => {
+    const next = tokens[index + 1];
+    if (
+      token &&
+      next &&
+      !used.has(index) &&
+      !used.has(index + 1) &&
+      ownWord(token + next)
+    ) {
+      own += 2;
+      used.add(index).add(index + 1);
+    }
+  });
+  const named = [...used].some(
+    (index) => hasLetter(tokens[index]) && !GENERIC_WORDS.has(tokens[index])
+  );
   return named
-    ? { entry, score: own * 3 + brand, own, used }
+    ? { entry, score: own * 3 + brand, own, used: [...used] }
     : { entry, score: 0, own: 0, used: [] };
 }
 
 /** Every entry the tokens match, best first, ties to the one with more recipes. */
-export function rank<
-  E extends { own: string[]; brand: string[]; recipes: number },
->(entries: readonly E[], tokens: readonly string[]): Scored<E>[] {
+export function rank<E extends Named>(
+  entries: readonly E[],
+  tokens: readonly string[]
+): Scored<E>[] {
   return entries
     .map((entry) => score(entry, tokens))
     .filter((s) => s.score > 0)
@@ -216,7 +256,7 @@ export function rank<
 }
 
 /** The entry the tokens name, if one matches on its own name (not just its maker). */
-function best<E extends { own: string[]; brand: string[]; recipes: number }>(
+function best<E extends Named>(
   entries: readonly E[],
   tokens: readonly string[]
 ): Scored<E> | null {
@@ -260,12 +300,30 @@ const STOP_WORDS = new Set([
   'rated',
 ]);
 
-/** A connective or question word that never names a film, developer or tool. */
+/**
+ * A connective, question or tool word that never names a film or developer.
+ * Tool words ("reciprocity", "exposure") are found by `toolsForTokens` from
+ * the unfiltered words instead.
+ */
 export const isStopWord = (word: string): boolean => STOP_WORDS.has(word);
+
+/**
+ * Names people type that the catalog does not spell out: Kodak's edge codes
+ * (TMY is T-MAX 400), a film's number alone, common misspellings.
+ */
+const ALIASES = new Map([
+  ['tmx', ['tmax', '100']],
+  ['tmy', ['tmax', '400']],
+  ['tmz', ['tmax', 'p3200']],
+  ['5222', ['doublex', '5222']],
+  ['rodinol', ['rodinal']],
+]);
 
 /** The query's words that could name a film, developer or tool. */
 export function catalogTokens(text: string): string[] {
-  return tokenize(text).filter((t) => !isStopWord(t));
+  return tokenize(text)
+    .filter((t) => !isStopWord(t))
+    .flatMap((t) => ALIASES.get(t) ?? [t]);
 }
 
 export interface CatalogMatch {
@@ -279,7 +337,8 @@ export function matchCatalog(
 ): CatalogMatch {
   const film = best(catalog.films, tokens);
   const used = new Set(film?.used);
-  const rest = tokens.filter((_, i) => !used.has(i));
+  // Blank what the film used, so both matches index the same tokens.
+  const rest = tokens.map((t, i) => (used.has(i) ? '' : t));
   return { film, developer: best(catalog.developers, rest) };
 }
 
@@ -410,9 +469,16 @@ export function recipeAnswer(
   );
 
   const notes: string[] = [];
-  if (isoMissing) {
+  const alsoAt = speeds.filter((ei) => ei !== recipe.shootingIso);
+  // An EI typed but not in the data is said up front, never left to the small
+  // "Rated at", so the figure cannot pass for that EI's time.
+  const notice =
+    isoMissing && wish.iso !== null
+      ? `No EI ${wish.iso} recipe for this pair. Showing EI ${recipe.shootingIso}.${alsoAt.length ? ` Also at EI ${alsoAt.join(', ')}.` : ''}`
+      : undefined;
+  if (isoMissing && wish.iso === null) {
     notes.push(
-      `No recipe at EI ${iso} for this pair. Listed speeds: ${speeds.join(', ')}.`
+      `No recipe at box speed (EI ${iso}) for this pair. Recipes exist at EI ${speeds.join(', ')}.`
     );
   }
   if (wish.dilution && dilutionMissing) {
@@ -425,13 +491,17 @@ export function recipeAnswer(
       `No recipe at ${temperatureIn(unit, wish.celsius)}. This one is at ${temperatureIn(unit, recipe.temperatureC, recipe.temperatureF)}.`
     );
   }
-  const others = all.length - 1;
+  const others = all.filter((c) => c !== recipe);
+  const otherSpeeds = [...new Set(others.map((c) => c.shootingIso))].sort(
+    (a, b) => a - b
+  );
 
   return {
     kind: 'recipe',
     title,
     badge: recipeSourceLabel(recipe.tags),
     readAs: [],
+    notice,
     figure: {
       value: formatClock(recipe.timeMinutes),
       unit: 'min',
@@ -457,9 +527,9 @@ export function recipeAnswer(
     ],
     notes,
     footnote:
-      others === 0
+      others.length === 0
         ? 'The only recipe for this pair.'
-        : `${plural(others, 'other recipe')} for this pair, EI ${speeds.join(', ')}`,
+        : `${plural(others.length, 'other recipe')} for this pair, at EI ${otherSpeeds.join(', ')}`,
     link: {
       label: 'Open recipe',
       target: { to: '/development', search: recipeLink(recipe, dilution) },
@@ -484,8 +554,7 @@ function reciprocityPreset(entry: FilmEntry): string | null {
   const words = new Set([...entry.brand, ...entry.own]);
   const preset = RECIPROCITY_FILM_TYPES.find(
     (p) =>
-      p.factor === entry.factor &&
-      tokenize(p.label.replace(/\+/g, ' plus')).every((w) => words.has(w))
+      p.factor === entry.factor && tokenize(p.label).every((w) => words.has(w))
   );
   return preset?.value ?? null;
 }

@@ -9,7 +9,7 @@ const TOOL_WORDS = {
   '/stops': ['stops', 'stop', 'fstop', 'test', 'strip'],
   '/resize': ['resize', 'scale', 'enlarge', 'enlargement', 'magnification'],
   '/mat': ['mat', 'matte', 'window', 'frame', 'cut', 'board'],
-  '/reciprocity': ['reciprocity', 'long', 'night', 'schwarzschild'],
+  '/reciprocity': ['reciprocity', 'night', 'schwarzschild'],
   '/development': [
     'development',
     'recipe',

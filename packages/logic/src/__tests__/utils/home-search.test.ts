@@ -58,8 +58,9 @@ describe('searchHome', () => {
         value: 'View source',
         href: 'https://www.ilfordphoto.com/amfile/file/download/file/1903/product/691/',
       });
+      // The EIs of the other recipes, not the one shown.
       expect(a.footnote).toBe(
-        '3 other recipes for this pair, EI 400, 800, 1600, 3200'
+        '3 other recipes for this pair, at EI 400, 1600, 3200'
       );
       expect(a.link.target).toEqual({
         to: '/development',
@@ -106,18 +107,80 @@ describe('searchHome', () => {
       expect(a.figure?.value).toBe('3:45');
     });
 
-    it('notes a speed the pair has no recipe for', () => {
+    it('says up front when the EI asked for has no recipe', () => {
       const a = answer('hp5 at 6400 in dd-x');
-      expect(a.notes).toContain(
-        'No recipe at EI 6400 for this pair. Listed speeds: 400, 800, 1600, 3200.'
+      expect(a.notice).toBe(
+        'No EI 6400 recipe for this pair. Showing EI 3200. Also at EI 400, 800, 1600.'
+      );
+      expect(factOf(a, 'Rated at')?.value).toBe('EI 3200');
+    });
+
+    it.each(['tri-x xtol 1600', 'tri-x at 1600 in xtol'])(
+      'never passes another EI off as the one asked: %s',
+      (query) => {
+        const a = answer(query);
+        // One EI in the data: no "Also at" to repeat the one shown.
+        expect(a.notice).toBe(
+          'No EI 1600 recipe for this pair. Showing EI 400.'
+        );
+      }
+    );
+
+    it('reads the push, not a box speed typed beside it', () => {
+      expect(factOf(answer('hp5 400 xtol 1600'), 'Rated at')?.value).toBe(
+        'EI 1600'
+      );
+      expect(answer('ilford hp5 400 in dd-x 6400').notice).toMatch(
+        /^No EI 6400 recipe for this pair\./
+      );
+      const a = answer('hp5 400 dd-x 800');
+      expect(a.notice).toBeUndefined();
+      expect(factOf(a, 'Rated at')?.value).toBe('EI 800');
+      expect(a.figure?.value).toBe('10:00');
+    });
+
+    it.each(['hp5 rodinal 50', 'hp5 id-11 20', 'hp5 dd-x 24', 'hp5 xtol 68'])(
+      'reads no EI from a dilution or temperature: %s',
+      (query) => {
+        expect(answer(query).notice).toBeUndefined();
+      }
+    );
+
+    it('reads a bare number beside a pair as the EI, unless a name has it', () => {
+      expect(factOf(answer('hp5 dd-x 1600'), 'Rated at')?.value).toBe(
+        'EI 1600'
+      );
+      const a = answer('tri-x 400 in xtol');
+      expect(a.notice).toBeUndefined();
+      expect(factOf(a, 'Rated at')?.value).toBe('EI 400');
+    });
+
+    it('needs no notice when the EI asked for has a recipe', () => {
+      expect(answer('hp5 at 800 in dd-x').notice).toBeUndefined();
+    });
+
+    it('counts and lists only the other recipes in the footnote', () => {
+      // Six recipes, two at the EI shown (400).
+      const a = answer('hp5 id-11');
+      expect(factOf(a, 'Rated at')?.value).toBe('EI 400');
+      expect(a.footnote).toBe(
+        '5 other recipes for this pair, at EI 400, 800, 1600'
       );
     });
 
-    it('notes a temperature it could not match', () => {
-      const a = answer('hp5 in dd-x 24c');
+    it.each([
+      'hp5 in dd-x 24c',
+      'hp5 dd-x at 24c',
+      'hp5 dd-x 24°c',
+      'hp5 dd-x 24 °C',
+      'hp5 dd-x 24 c',
+    ])('reads a Celsius temperature: %s', (query) => {
+      const a = answer(query);
       expect(a.notes.some((n) => n.startsWith('No recipe at 24°C.'))).toBe(
         true
       );
+      // "at 24c" is a temperature, never EI 24.
+      expect(a.notice).toBeUndefined();
     });
 
     it("leads with the viewer's temperature unit", () => {
@@ -255,6 +318,24 @@ describe('searchHome', () => {
 
     it('knows metric papers without a unit', () => {
       expect(readAs(answer('18x24 6x6 1'))[0]).toBe('18×24 cm paper');
+    });
+
+    it('reads ISO paper names as their metric size', () => {
+      const a = answer('a4 35mm');
+      expect(readAs(a)[0]).toBe('21×29.7 cm paper');
+      expect(a.figure).toMatchObject({ value: '18.1×27.2', unit: 'cm' });
+      expect(a.link.target.search).toMatchObject({
+        paper: 'custom',
+        paperW: '8.2677',
+        paperH: '11.6929',
+      });
+      expect(readAs(answer('a4 paper 6x6 1cm'))).toEqual([
+        '21×29.7 cm paper',
+        '6×6 negative',
+        '1 cm min border (⅜″)',
+      ]);
+      expect(readAs(answer('A3 6x7 2cm'))[0]).toBe('29.7×42 cm paper');
+      expect(readAs(answer('a5 35mm'))[0]).toBe('14.8×21 cm paper');
     });
 
     it('turns the paper for portrait', () => {
@@ -440,6 +521,26 @@ describe('searchHome', () => {
       expect(a.link.target.search.stops).toBe(stops);
     });
 
+    it.each([
+      ['12 seconds plus half a stop', '16.97s', '0.5'],
+      ['12 sec minus a third of a stop', '9.52s', '-0.3333'],
+      ['12s add two thirds of a stop', '19.05s', '0.6667'],
+      ['12s up one stop', '24s', '1'],
+      ['12s down two stops', '3s', '-2'],
+      ['12s plus three stops', '1m 36s', '3'],
+      ['12s plus 2/3 stop', '19.05s', '0.6667'],
+      ['12 seconds a half stop', '16.97s', '0.5'],
+      ['12s one and a half stops', '33.94s', '1.5'],
+      ['12s plus 1 and a half stops', '33.94s', '1.5'],
+      ['12s two and a half stops', '1m 7.88s', '2.5'],
+      ['12s minus one and a third stops', '4.76s', '-1.3333'],
+    ])('reads stops in words: %s', (query, time, stops) => {
+      const a = answer(query);
+      if (a.kind !== 'stops') throw new Error(`${query} is ${a.kind}`);
+      expect(a.figure?.value).toBe(time);
+      expect(a.link.target.search.stops).toBe(stops);
+    });
+
     it('does not read a dilution as a stop change', () => {
       expect(kind('tri-x in d-76 1+1')).toBe('recipe');
     });
@@ -479,6 +580,18 @@ describe('searchHome', () => {
       expect(factOf(weighted, 'Top')?.value).toBe('4⅞″');
     });
 
+    it.each([
+      '16x20 mat 11x14 1/8 reveal',
+      '16x20 mat 11x14 1/8" reveal',
+      '16x20 mat 11x14 1/8 in reveal',
+      '16x20 mat 11x14 reveal 1/8in',
+    ])('reads the reveal on either side of the word: %s', (query) => {
+      const a = answer(query);
+      expect(a.figure?.value).toBe('10¾×13¾');
+      expect(a.readAs[2]).toEqual({ text: '⅛″ reveal', assumed: false });
+      expect(a.link.target.search).toMatchObject({ reveal: '1/8' });
+    });
+
     it('needs the word mat', () => {
       expect(kind('16x20 8x10')).toBe('border');
     });
@@ -499,6 +612,14 @@ describe('searchHome', () => {
       expect(a.kind).toBe('camera_exposure');
       expect(a.figure).toBeNull();
       expect(a.link.target).toEqual({ to: '/exposure', search: {} });
+    });
+
+    it('never hides another answer behind an f-number', () => {
+      const a = answer('enlarge 8x10 to 16x20 20s f/8');
+      expect(a.kind).toBe('resize');
+      expect(a.figure?.value).toBe('80.0');
+      expect(kind('8x10 35mm 1/2 f/8')).toBe('border');
+      expect(kind('12s +1/3 f/8')).toBe('stops');
     });
 
     it('does not read a fractional border as a shutter speed', () => {
@@ -547,6 +668,115 @@ describe('searchHome', () => {
 
     it('a bare number never names a film', () => {
       expect(searchHome('400', FIXTURE_DATA).groups).toEqual([]);
+    });
+
+    it('a generic word never names a film on its own', () => {
+      expect(searchHome('plus', FIXTURE_DATA).groups).toEqual([]);
+      expect(kind('plus 30s')).toBeNull();
+      expect(kind('12 seconds plus half a stop')).toBe('stops');
+    });
+
+    describe('spellings', () => {
+      // Real catalog entries the slice above has no recipes for.
+      const data = {
+        ...FIXTURE_DATA,
+        films: [
+          ...FIXTURE_FILMS,
+          film(
+            'kodak-ektapan-100',
+            'Kodak',
+            'T-MAX/Ektapan 100',
+            'bw',
+            100,
+            '1.15',
+            false,
+            [{ name: 'Kodak T-MAX 100', slug: 'kodak-t-max-100' }]
+          ),
+          film(
+            'kodak-ektapan-400',
+            'Kodak',
+            'T-MAX/Ektapan 400',
+            'bw',
+            400,
+            '1.24',
+            false,
+            [{ name: 'Kodak T-MAX 400', slug: 'kodak-t-max-400' }]
+          ),
+          film(
+            'kodak-ektapan-p3200',
+            'Kodak',
+            'T-MAX/Ektapan P3200',
+            'bw',
+            3200,
+            null,
+            false,
+            [{ name: 'Kodak T-MAX P3200', slug: 'kodak-t-max-p3200' }]
+          ),
+          film(
+            'eastman-double-x-5222',
+            'Eastman',
+            'Double-X 5222',
+            'bw',
+            250,
+            null
+          ),
+        ],
+      };
+      const topFilm = (query: string) => {
+        const films = searchHome(query, data).groups.find(
+          (g) => g.key === 'films'
+        );
+        return films?.key === 'films' ? films.items[0].title : null;
+      };
+
+      it.each([
+        ['hp5+', 'Ilford HP5 Plus'],
+        ['tmax400', 'Kodak T-MAX/Ektapan 400'],
+        ['t max 400', 'Kodak T-MAX/Ektapan 400'],
+        ['t-max 100', 'Kodak T-MAX/Ektapan 100'],
+        ['tmy', 'Kodak T-MAX/Ektapan 400'],
+        ['tmx', 'Kodak T-MAX/Ektapan 100'],
+        ['tmz', 'Kodak T-MAX/Ektapan P3200'],
+        ['kodak 5222', 'Eastman Double-X 5222'],
+        ['delta3200', 'Ilford Delta 3200'],
+      ])('%s finds %s', (query, title) => {
+        expect(topFilm(query)).toBe(title);
+      });
+
+      it('finds a developer by a common misspelling', () => {
+        const developers = searchHome('rodinol', data).groups.find(
+          (g) => g.key === 'developers'
+        );
+        expect(
+          developers?.key === 'developers' && developers.items[0].title
+        ).toBe('Agfa Rodinal/Adonal');
+      });
+
+      it('answers with a spelling in a recipe query', () => {
+        expect(answer('hp5+ dd-x').title).toBe(
+          'Ilford HP5 Plus in Ilford DD-X'
+        );
+        expect(answer('tri x in d 76').title).toBe(
+          'Kodak Tri-X 400 in Kodak D-76'
+        );
+      });
+    });
+
+    it.each([
+      ['border', '/border'],
+      ['resize', '/resize'],
+      ['stops', '/stops'],
+      ['mat', '/mat'],
+      ['reciprocity', '/reciprocity'],
+      ['development', '/development'],
+      ['lenses', '/lenses'],
+      ['exposure', '/exposure'],
+      ['films', '/films'],
+    ])('finds the %s tool by its name', (query, route) => {
+      const tools = searchHome(query, FIXTURE_DATA).groups.find(
+        (g) => g.key === 'tools'
+      );
+      expect(tools?.key === 'tools' && tools.tools).toContain(route);
     });
   });
 
@@ -677,6 +907,12 @@ describe('suggestHome', () => {
     expect(labels('12s', {})[0]).toBe('12s +1/3 stop');
   });
 
+  it('offers the Camera Exposure calculator only when nothing else answers', () => {
+    expect(labels('enlarge 8x10 to 16x20 20s f/8')).not.toContain(
+      'Camera Exposure calculator'
+    );
+  });
+
   it('offers the Camera Exposure calculator for camera talk', () => {
     expect(suggestHome('f/8', FIXTURE_DATA)).toEqual([
       {
@@ -711,6 +947,18 @@ describe('suggestHome', () => {
       'HP5 Plus at 800 in DD-X',
       'HP5 Plus at 1600 in DD-X',
       'HP5 Plus at 3200 in DD-X',
+    ]);
+  });
+
+  it('leads with the EI typed for a pair, when the data has it', () => {
+    expect(labels('hp5 at 800 in dd-x')).toEqual([
+      'HP5 Plus at 800 in DD-X',
+      'HP5 Plus at 400 in DD-X',
+      'HP5 Plus at 1600 in DD-X',
+    ]);
+    // An EI the pair lacks: the speeds it does have.
+    expect(labels('tri-x at 1600 in xtol')).toEqual([
+      'Tri-X 400 at 400 in XTOL',
     ]);
   });
 

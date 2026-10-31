@@ -93,6 +93,11 @@ interface AnswerOf<K extends string, T extends HomeToolRoute> {
   badge: string;
   /** How the query was read, defaults marked. Empty when nothing to show. */
   readAs: HomeReading[];
+  /**
+   * Shown above the figure: the answer is not for what was asked (no recipe
+   * at the EI typed, so the figure is another EI's time).
+   */
+  notice?: string;
   figure: HomeAnswerFigure | null;
   facts: HomeAnswerFact[];
   notes: string[];
