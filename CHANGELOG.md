@@ -5,6 +5,26 @@ The iOS app has its own changelog: [`apps/mobile/CHANGELOG.md`](apps/mobile/CHAN
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.10.30]
+
+### Added
+
+- **Custom recipes can be shared.** The Share and Copy link buttons on your own recipes on /development were built but hidden in production. They now appear on the recipe detail at every screen size, and the link opens an import preview for whoever receives it. Share codes pasted into "Import recipe" are accepted too; codes containing `-` or `_` used to leave the button disabled. (#512, fixes #500)
+- **Built-in recipes have a Share button in the detail panel** on desktop as well as on phones. (#511)
+
+### Changed
+
+- **Recipe details on phones use the same panel as desktop.** The mobile detail opens as a bottom drawer with the recipe title, a row of actions (favorite, share, copy link, edit, delete), the non-standard temperature alert, and drag-to-dismiss. Editing a custom recipe steps the drawer aside while the form is open and brings it back with your changes. (#511, fixes #380)
+- **Hover effects come from the theme instead of scripts.** Buttons, cards and table rows on /development, /films and the /border mobile drawers use theme hover colors in every theme. Hover no longer sticks after a tap on touch screens, and disabled buttons no longer brighten on hover. (#507, fixes #453)
+- **API responses are more consistent.** Every `api.dorkroom.art` and `/api` endpoint answers `OPTIONS` with 204 and an `Allow` header, rejects unsupported methods with a JSON 405, and sends `nosniff`. Rate limits, API key handling and response bodies are unchanged. (#502, fixes #451)
+- **Calculator persistence was reorganized** so each calculator's saved fields, bounds and defaults come from one definition. Saved inputs from earlier versions load as before. (#503, #504; fixes #284 and #285)
+
+### Fixed
+
+- **The Cancel button in confirmation dialogs is readable in the High Contrast theme.** Its label disappeared on hover. (#507)
+- **A recipe link opens even when its search doesn't match the recipe.** A bookmarked `/development?q=…&recipe=…` link whose search excluded the recipe opened nothing and dropped the recipe from the address bar. The search box also no longer races a second writer for the `q=` parameter. (#509, fixes #288 and #508)
+- **Page scrolling no longer stays locked after closing stacked drawers.** Opening one drawer over another (for example editing a recipe from its detail on a phone) could leave the page unable to scroll until a reload. (#511)
+
 ## [2026.10.29]
 
 ### Added
