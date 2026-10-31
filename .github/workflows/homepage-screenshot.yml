@@ -18,14 +18,48 @@ on:
 
 permissions:
   contents: write
-
-concurrency:
-  group: homepage-screenshot-${{ github.ref }}
-  cancel-in-progress: true
+  pull-requests: read
 
 jobs:
-  screenshot:
+  # Opt-in gate. A path match alone is not enough: almost every UI change
+  # touches packages/ui/src, and the capture is not byte-stable run to run, so
+  # every match committed a visually identical image. A push only re-captures
+  # when its PR carries the `home page` label or a commit message says
+  # [screenshot]. Manual dispatch always runs.
+  gate:
     runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          # Every commit in the push, so a rebase merge counts a [screenshot]
+          # on any of its commits. A squash merge is one commit whose message
+          # already folds in the PR title and each original commit message.
+          MESSAGE: ${{ toJSON(github.event.commits.*.message) }}
+        run: |
+          run=false
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            run=true
+          elif printf '%s' "$MESSAGE" | grep -qiF '[screenshot]'; then
+            run=true
+          elif gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" \
+              --jq '.[].labels[].name' | grep -qxF 'home page'; then
+            run=true
+          fi
+          echo "Opted in: ${run}"
+          echo "run=${run}" >>"$GITHUB_OUTPUT"
+
+  screenshot:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    # Job-level, so a push that does not opt in cannot cancel one that did.
+    concurrency:
+      group: homepage-screenshot-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
