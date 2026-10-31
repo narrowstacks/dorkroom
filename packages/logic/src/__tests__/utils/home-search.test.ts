@@ -315,6 +315,18 @@ describe('searchHome', () => {
   });
 
   describe('resize', () => {
+    it('keeps each enlarger height in its own unit', () => {
+      const mixed = answer('height 40cm to 24in 10s');
+      const same = answer('height 40cm to 60.96cm 10s');
+      expect(mixed.figure?.value).toBe(same.figure?.value);
+    });
+
+    it("gives a height without a unit the other height's unit", () => {
+      expect(answer('height 40 to 60cm 10s').figure?.value).toBe(
+        answer('height 40cm to 60cm 10s').figure?.value
+      );
+    });
+
     it('scales a time between print sizes', () => {
       const a = answer('8x10 to 11x14 12s');
       expect(a.kind).toBe('resize');

@@ -427,9 +427,12 @@ export function readResize(
     ];
     if (numbers.length < 2) return null;
     const [first, second] = orderFromTo(numbers[0], numbers[1], text);
-    const unit = readUnit(first[2] ?? second[2]) ?? 'in';
+    // Each height keeps its own unit; one without falls back to the other's
+    // ("height 40 to 60cm" is both cm), then to inches.
+    const shared = readUnit(first[2] ?? second[2]) ?? 'in';
     const make = (n: RegExpMatchArray) => {
       const value = Number(n[1]);
+      const unit = readUnit(n[2]) ?? shared;
       return {
         w: value * inchesPer(unit),
         l: 0,
