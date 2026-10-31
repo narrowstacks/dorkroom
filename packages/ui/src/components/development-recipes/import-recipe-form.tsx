@@ -3,7 +3,6 @@ import { useForm } from '@tanstack/react-form';
 import { TanStackTextInput } from '../../forms/components/tanstack-text-input';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
-import { setStyles } from '../../lib/dom';
 
 interface ImportRecipeFormProps {
   onImport: (encoded: string) => void;
@@ -84,23 +83,7 @@ export function ImportRecipeForm({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-full border px-4 py-2 text-sm font-medium transition"
-            style={{
-              borderColor: 'var(--color-border-secondary)',
-              color: 'var(--color-text-secondary)',
-            }}
-            onMouseEnter={(e) => {
-              setStyles(e.currentTarget, {
-                borderColor: 'var(--color-border-primary)',
-                color: 'var(--color-text-primary)',
-              });
-            }}
-            onMouseLeave={(e) => {
-              setStyles(e.currentTarget, {
-                borderColor: 'var(--color-border-secondary)',
-                color: 'var(--color-text-secondary)',
-              });
-            }}
+            className="rounded-full border border-secondary px-4 py-2 text-sm font-medium text-secondary transition hover:border-primary hover:text-primary"
           >
             Cancel
           </button>
@@ -113,20 +96,10 @@ export function ImportRecipeForm({
               type="submit"
               disabled={!canSubmit || isProcessing || isSubmitting}
               className={cn(
-                'rounded-full px-4 py-2 text-sm font-semibold transition',
+                'rounded-full bg-text-primary px-4 py-2 text-sm font-semibold text-background transition enabled:hover:opacity-90',
                 (!canSubmit || isProcessing || isSubmitting) &&
                   'cursor-not-allowed opacity-70'
               )}
-              style={{
-                backgroundColor: 'var(--color-text-primary)',
-                color: 'var(--color-background)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.opacity = '0.9';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = '1';
-              }}
             >
               {isProcessing || isSubmitting ? 'Importing…' : 'Import recipe'}
             </button>

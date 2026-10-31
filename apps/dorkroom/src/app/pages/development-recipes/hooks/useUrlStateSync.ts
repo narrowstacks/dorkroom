@@ -188,7 +188,6 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
       film: getFilmById(recipe.filmStockId),
       developer: getDeveloperById(recipe.developerId),
       source: 'api',
-      canShare: true,
     };
 
     // Only a link that carried `source=share` is somebody else's share. A

@@ -88,17 +88,7 @@ export function MobilePresetsSection({
               <button
                 type="button"
                 onClick={handleSaveNew}
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition"
-                style={{
-                  backgroundColor: 'var(--color-semantic-success)',
-                  color: 'var(--color-background)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.filter = 'brightness(0.9)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.filter = 'brightness(1)';
-                }}
+                className="flex items-center gap-2 rounded-lg bg-success px-3 py-2 text-sm font-medium text-background transition hover:brightness-90"
               >
                 <Save className="size-4" />
                 Save

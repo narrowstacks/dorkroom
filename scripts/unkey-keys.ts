@@ -1,25 +1,25 @@
 import { Unkey } from '@unkey/api';
+import {
+  getRateLimitNamespace,
+  KEY_TIERS,
+  type KeyTier,
+  RATE_WINDOW_MS,
+  type RateLimitScope,
+  SCOPE_DEFAULT_LIMIT,
+} from '../utils/rateLimitPolicy';
 
-type Tier = 'free' | 'standard' | 'partner';
 type Command = 'create' | 'tier' | 'anon-bootstrap';
-
-interface TierConfig {
-  limit: number;
-  duration: number;
-  defaultPrefix: string;
-}
-
-const TIER_CONFIG = {
-  free: { limit: 60, duration: 60_000, defaultPrefix: 'dk_f' },
-  standard: { limit: 300, duration: 60_000, defaultPrefix: 'dk_s' },
-  partner: { limit: 1_000_000_000, duration: 60_000, defaultPrefix: 'dk_e' },
-} satisfies Record<Tier, TierConfig>;
 
 function printUsage(): void {
   console.log(`Usage:
   bun run keys:create -- --customer-id <id> --tier <free|standard|partner> [--name <name>] [--external-id <id>] [--prefix <prefix>]
   bun run keys:tier -- --key-id <key_id> --tier <free|standard|partner>
-  bun run keys:anon-bootstrap -- [--namespace <name>] [--identifier <id>] [--limit <n>] [--duration <ms>]
+  bun run keys:anon-bootstrap -- [--scope <anonymous|client>] [--namespace <name>] [--identifier <id>] [--limit <n>] [--duration <ms>]
+
+Tier limits and namespaces come from utils/rateLimitPolicy.ts:
+  free -> ${KEY_TIERS.free.limit} req/min, standard -> ${KEY_TIERS.standard.limit} req/min
+  --scope anonymous (default) -> UNKEY_ANON_NAMESPACE, else <UNKEY_API_ID>-anonymous
+  --scope client -> UNKEY_CLIENT_NAMESPACE, else <UNKEY_API_ID>-client
 
 Default key prefixes by tier:
   free -> dk_f_
@@ -90,7 +90,7 @@ function parseCommand(value: string): Command {
   throw new Error(`Unknown command: ${value}`);
 }
 
-function parseTier(value: string): Tier {
+function parseTier(value: string): KeyTier {
   if (value === 'free' || value === 'standard' || value === 'partner') {
     return value;
   }
@@ -133,12 +133,11 @@ function getUnkeyAdminClient() {
 
 function getUnkeyRuntimeClient() {
   const rootKey = requireEnv('UNKEY_ROOT_KEY');
-  const apiId = requireEnv('UNKEY_API_ID');
+  // Required so the namespace resolves to `${UNKEY_API_ID}-<scope>` like the
+  // deployed runtime, never the `dorkroom-<scope>` local-dev fallback.
+  requireEnv('UNKEY_API_ID');
 
-  return {
-    client: new Unkey({ rootKey }),
-    apiId,
-  };
+  return { client: new Unkey({ rootKey }) };
 }
 
 async function createKey(options: FlagOptions): Promise<void> {
@@ -146,7 +145,7 @@ async function createKey(options: FlagOptions): Promise<void> {
   const tier = parseTier(requireOption(options, 'tier'));
   const externalId = options['external-id'] ?? customerId;
   const name = options.name ?? `customer-${customerId}`;
-  const { limit, duration, defaultPrefix } = TIER_CONFIG[tier];
+  const { limit, duration, defaultPrefix } = KEY_TIERS[tier];
   const prefix = options.prefix ?? defaultPrefix;
   const { client, apiId, keyPermission } = getUnkeyAdminClient();
 
@@ -186,7 +185,7 @@ async function createKey(options: FlagOptions): Promise<void> {
 async function updateTier(options: FlagOptions): Promise<void> {
   const keyId = requireOption(options, 'key-id');
   const tier = parseTier(requireOption(options, 'tier'));
-  const { limit, duration } = TIER_CONFIG[tier];
+  const { limit, duration } = KEY_TIERS[tier];
   const { client } = getUnkeyAdminClient();
 
   await client.keys.updateKey({
@@ -216,16 +215,31 @@ async function updateTier(options: FlagOptions): Promise<void> {
   );
 }
 
-async function bootstrapAnonymousNamespace(
-  options: FlagOptions
-): Promise<void> {
-  const { client, apiId } = getUnkeyRuntimeClient();
-  const namespaceFromEnv = process.env.UNKEY_ANON_NAMESPACE?.trim();
-  const namespace =
-    options.namespace?.trim() || namespaceFromEnv || `${apiId}-anonymous`;
+function parseScope(value: string | undefined): RateLimitScope {
+  if (value === undefined || value === 'anonymous') {
+    return 'anonymous';
+  }
+  if (value === 'client') {
+    return 'client';
+  }
+
+  throw new Error(`Invalid scope: ${value}. Expected anonymous or client.`);
+}
+
+/**
+ * Touches a ratelimit namespace once so Unkey creates it, resolving the name
+ * exactly as the runtime does. The runtime key lacks `create_namespace` in
+ * production on purpose, so both namespaces must exist before deploy.
+ */
+async function bootstrapNamespace(options: FlagOptions): Promise<void> {
+  const { client } = getUnkeyRuntimeClient();
+  const scope = parseScope(options.scope);
+  const namespace = options.namespace?.trim() || getRateLimitNamespace(scope);
   const identifier = options.identifier?.trim() || 'bootstrap-check';
-  const limit = parseOptionalPositiveInt(options, 'limit') ?? 30;
-  const duration = parseOptionalPositiveInt(options, 'duration') ?? 60_000;
+  const limit =
+    parseOptionalPositiveInt(options, 'limit') ?? SCOPE_DEFAULT_LIMIT[scope];
+  const duration =
+    parseOptionalPositiveInt(options, 'duration') ?? RATE_WINDOW_MS;
 
   const response = await client.ratelimit.limit({
     namespace,
@@ -238,6 +252,7 @@ async function bootstrapAnonymousNamespace(
     JSON.stringify(
       {
         ok: true,
+        scope,
         namespace,
         identifier,
         limit,
@@ -278,7 +293,7 @@ async function main(): Promise<void> {
     return;
   }
 
-  await bootstrapAnonymousNamespace(options);
+  await bootstrapNamespace(options);
 }
 
 main().catch((cause: unknown) => {

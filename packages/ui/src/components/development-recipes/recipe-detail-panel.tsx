@@ -41,8 +41,6 @@ export interface RecipeDetailPanelProps {
   onShareRecipe?: (view: DevelopmentCombinationView) => void;
   /** Copy the recipe's share link to the clipboard */
   onCopyRecipe?: (view: DevelopmentCombinationView) => void;
-  /** Whether custom recipe sharing is enabled */
-  customRecipeSharingEnabled?: boolean;
   /** Max height for the desktop sidebar */
   maxHeight?: number;
 }
@@ -156,7 +154,6 @@ interface PanelLayoutProps {
   onDeleteCustomRecipe?: (view: DevelopmentCombinationView) => void;
   onShareRecipe?: (view: DevelopmentCombinationView) => void;
   onCopyRecipe?: (view: DevelopmentCombinationView) => void;
-  customRecipeSharingEnabled: boolean;
 }
 
 /** Action buttons (favorite / share) for the sidebar layout. */
@@ -169,7 +166,6 @@ const SidebarActionButtons: FC<
     | 'onToggleFavorite'
     | 'onShareRecipe'
     | 'onCopyRecipe'
-    | 'customRecipeSharingEnabled'
   >
 > = ({
   view,
@@ -178,7 +174,6 @@ const SidebarActionButtons: FC<
   onToggleFavorite,
   onShareRecipe,
   onCopyRecipe,
-  customRecipeSharingEnabled,
 }) => (
   <div className="flex flex-wrap gap-2">
     {onToggleFavorite && (
@@ -199,9 +194,7 @@ const SidebarActionButtons: FC<
         {isFav ? 'Favorited' : 'Add to favorites'}
       </button>
     )}
-    {/* Built-in recipes always share (as the list does); custom ones are
-        gated by the sharing flag. */}
-    {onShareRecipe && (!isCustomRecipe || customRecipeSharingEnabled) && (
+    {onShareRecipe && (
       <button
         type="button"
         onClick={() => onShareRecipe(view)}
@@ -210,7 +203,7 @@ const SidebarActionButtons: FC<
         Share
       </button>
     )}
-    {onCopyRecipe && isCustomRecipe && customRecipeSharingEnabled && (
+    {onCopyRecipe && isCustomRecipe && (
       <button
         type="button"
         onClick={() => onCopyRecipe(view)}
@@ -263,7 +256,6 @@ const SidebarPanelContent: FC<PanelLayoutProps> = ({
   onDeleteCustomRecipe,
   onShareRecipe,
   onCopyRecipe,
-  customRecipeSharingEnabled,
 }) => {
   const { combination, film, developer } = view;
   return (
@@ -290,7 +282,6 @@ const SidebarPanelContent: FC<PanelLayoutProps> = ({
         onToggleFavorite={onToggleFavorite}
         onShareRecipe={onShareRecipe}
         onCopyRecipe={onCopyRecipe}
-        customRecipeSharingEnabled={customRecipeSharingEnabled}
       />
 
       {/* Non-standard temperature alert */}
@@ -613,7 +604,6 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
   onDeleteCustomRecipe,
   onShareRecipe,
   onCopyRecipe,
-  customRecipeSharingEnabled = false,
   maxHeight,
 }) => {
   const { unit } = useTemperature();
@@ -663,7 +653,6 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
     onDeleteCustomRecipe,
     onShareRecipe,
     onCopyRecipe,
-    customRecipeSharingEnabled,
   };
 
   return (

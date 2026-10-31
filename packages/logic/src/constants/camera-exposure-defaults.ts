@@ -1,4 +1,5 @@
 import type {
+  CameraExposureFormState,
   EVPreset,
   StandardValue,
 } from '../types/camera-exposure-calculator';
@@ -74,3 +75,14 @@ export const EV_PRESETS: EVPreset[] = [
 export const DEFAULT_CAMERA_EXPOSURE_APERTURE = 8;
 export const DEFAULT_CAMERA_EXPOSURE_SHUTTER_SPEED = 1 / 125;
 export const DEFAULT_CAMERA_EXPOSURE_ISO = 100;
+
+/** Initial (and reset) form state for the camera exposure calculator. */
+export const CAMERA_EXPOSURE_DEFAULTS: CameraExposureFormState = {
+  aperture: DEFAULT_CAMERA_EXPOSURE_APERTURE,
+  shutterSpeed: DEFAULT_CAMERA_EXPOSURE_SHUTTER_SPEED,
+  iso: DEFAULT_CAMERA_EXPOSURE_ISO,
+  solveFor: 'shutterSpeed',
+  compareAperture: DEFAULT_CAMERA_EXPOSURE_APERTURE,
+  compareShutterSpeed: DEFAULT_CAMERA_EXPOSURE_SHUTTER_SPEED,
+  compareIso: DEFAULT_CAMERA_EXPOSURE_ISO,
+};

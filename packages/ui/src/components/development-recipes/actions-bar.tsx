@@ -1,6 +1,5 @@
 import { Grid, Plus, Rows, Upload } from 'lucide-react';
 import { cn } from '../../lib/cn';
-import { setStyles } from '../../lib/dom';
 import { getRouteIcon } from '../../lib/navigation';
 import { TemperatureUnitToggle } from './temperature-unit-toggle';
 
@@ -17,11 +16,10 @@ interface DevelopmentActionsBarProps {
   isRefreshing?: boolean;
   /** Whether the initial data load is still in flight; suppresses the "0 pairings" subtitle. */
   isLoading?: boolean;
-  showImportButton?: boolean;
   isMobile?: boolean;
 }
 
-// eslint-disable-next-line react-doctor/no-many-boolean-props -- isRefreshing / isLoading / showImportButton / isMobile are independent display/state flags on a toolbar, not a variant axis; compound-component split would add more indirection than value here
+// eslint-disable-next-line react-doctor/no-many-boolean-props -- isRefreshing / isLoading / isMobile are independent display/state flags on a toolbar, not a variant axis; compound-component split would add more indirection than value here
 export function DevelopmentActionsBar({
   totalResults,
   viewMode,
@@ -31,7 +29,6 @@ export function DevelopmentActionsBar({
   onRefresh,
   isRefreshing,
   isLoading = false,
-  showImportButton = true,
   isMobile = false,
 }: DevelopmentActionsBarProps) {
   return (
@@ -86,35 +83,10 @@ export function DevelopmentActionsBar({
               onClick={() => onViewModeChange('table')}
               className={cn(
                 'flex items-center gap-2 px-3 py-2 transition',
-                viewMode === 'table' && 'darkroom-invert-icon'
-              )}
-              style={
                 viewMode === 'table'
-                  ? {
-                      backgroundColor: 'var(--color-text-primary)',
-                      color: 'var(--color-background)',
-                    }
-                  : {
-                      color: 'var(--color-text-tertiary)',
-                    }
-              }
-              onMouseEnter={(e) => {
-                if (viewMode !== 'table') {
-                  setStyles(e.currentTarget, {
-                    backgroundColor: 'rgba(var(--color-background-rgb), 0.15)',
-                    color: 'var(--color-text-primary)',
-                  });
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (viewMode !== 'table') {
-                  setStyles(e.currentTarget, {
-                    backgroundColor:
-                      'var(--actions-bar-table-bg-hover-leave, transparent)',
-                    color: 'var(--color-text-tertiary)',
-                  });
-                }
-              }}
+                  ? 'darkroom-invert-icon bg-text-primary text-background'
+                  : 'text-tertiary hover:bg-veil-15 hover:text-primary'
+              )}
             >
               <Rows className="size-4" />
               Table
@@ -124,35 +96,10 @@ export function DevelopmentActionsBar({
               onClick={() => onViewModeChange('grid')}
               className={cn(
                 'flex items-center gap-2 px-3 py-2 transition',
-                viewMode === 'grid' && 'darkroom-invert-icon'
-              )}
-              style={
                 viewMode === 'grid'
-                  ? {
-                      backgroundColor: 'var(--color-text-primary)',
-                      color: 'var(--color-background)',
-                    }
-                  : {
-                      color: 'var(--color-text-tertiary)',
-                    }
-              }
-              onMouseEnter={(e) => {
-                if (viewMode !== 'grid') {
-                  setStyles(e.currentTarget, {
-                    backgroundColor: 'rgba(var(--color-background-rgb), 0.15)',
-                    color: 'var(--color-text-primary)',
-                  });
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (viewMode !== 'grid') {
-                  setStyles(e.currentTarget, {
-                    backgroundColor:
-                      'var(--actions-bar-grid-bg-hover-leave, transparent)',
-                    color: 'var(--color-text-tertiary)',
-                  });
-                }
-              }}
+                  ? 'darkroom-invert-icon bg-text-primary text-background'
+                  : 'text-tertiary hover:bg-veil-15 hover:text-primary'
+              )}
             >
               <Grid className="size-4" />
               Cards
@@ -169,73 +116,25 @@ export function DevelopmentActionsBar({
           }}
           disabled={isRefreshing}
           className={cn(
-            'flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition',
+            'flex items-center gap-2 rounded-full border border-primary px-4 py-2 text-sm font-medium text-secondary transition enabled:hover:text-primary',
             isRefreshing && 'cursor-wait opacity-70'
           )}
-          style={{
-            borderColor: 'var(--color-border-primary)',
-            color: 'var(--color-text-secondary)',
-          }}
-          onMouseEnter={(e) => {
-            if (!isRefreshing) {
-              setStyles(e.currentTarget, {
-                borderColor: 'var(--color-border-primary)',
-                color: 'var(--color-text-primary)',
-              });
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isRefreshing) {
-              setStyles(e.currentTarget, {
-                borderColor: 'var(--color-border-primary)',
-                color: 'var(--color-text-secondary)',
-              });
-            }
-          }}
         >
           Refresh
         </button>
 
-        {showImportButton && (
-          <button
-            type="button"
-            onClick={onOpenImportModal}
-            className="flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition"
-            style={{
-              borderColor: 'var(--color-border-primary)',
-              color: 'var(--color-text-secondary)',
-            }}
-            onMouseEnter={(e) => {
-              setStyles(e.currentTarget, {
-                borderColor: 'var(--color-border-primary)',
-                color: 'var(--color-text-primary)',
-              });
-            }}
-            onMouseLeave={(e) => {
-              setStyles(e.currentTarget, {
-                borderColor: 'var(--color-border-primary)',
-                color: 'var(--color-text-secondary)',
-              });
-            }}
-          >
-            <Upload className="size-4" />
-            Import recipe
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={onOpenImportModal}
+          className="flex items-center gap-2 rounded-full border border-primary px-4 py-2 text-sm font-medium text-secondary transition hover:text-primary"
+        >
+          <Upload className="size-4" />
+          Import recipe
+        </button>
         <button
           type="button"
           onClick={onOpenCustomRecipeModal}
-          className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition darkroom-invert-icon"
-          style={{
-            backgroundColor: 'var(--color-text-primary)',
-            color: 'var(--color-background)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = '0.9';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = '1';
-          }}
+          className="flex items-center gap-2 rounded-full bg-text-primary px-4 py-2 text-sm font-semibold text-background transition darkroom-invert-icon hover:opacity-90"
         >
           <Plus className="size-4" />
           Add custom recipe

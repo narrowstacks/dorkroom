@@ -20,7 +20,7 @@ import { type FC, useMemo, useRef, useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { useColumnCount } from '../../hooks/use-column-count';
 import { cn } from '../../lib/cn';
-import { cssVars, hasGlobal } from '../../lib/dom';
+import { hasGlobal } from '../../lib/dom';
 import type { ShareResult } from '../share-button';
 import { ShareButton } from '../share-button';
 import {
@@ -32,10 +32,6 @@ import { SkeletonCard } from '../ui/skeleton';
 import { Tag } from '../ui/tag';
 import { FavoriteMessageSkeleton } from './favorite-message-skeleton';
 import { formatTime } from './recipe-detail-shared';
-import {
-  useDeleteButtonStyles,
-  useRecipeHoverStyles,
-} from './use-recipe-hover-styles';
 import {
   CARD_OVERSCAN,
   CARD_ROW_ESTIMATED_HEIGHT,
@@ -184,8 +180,6 @@ function TempStat({
 interface RecipeCardProps {
   rowData: DevelopmentCombinationView;
   unit: ReturnType<typeof useTemperature>['unit'];
-  cardStyles: ReturnType<typeof useRecipeHoverStyles>['custom'];
-  deleteButtonStyles: ReturnType<typeof useDeleteButtonStyles>;
   isSelected: boolean;
   isMobile: boolean;
   isFavoriteRecipe: boolean;
@@ -209,8 +203,6 @@ interface RecipeCardProps {
 function RecipeCard({
   rowData,
   unit,
-  cardStyles,
-  deleteButtonStyles,
   isSelected,
   isMobile,
   isFavoriteRecipe,
@@ -238,24 +230,15 @@ function RecipeCard({
       className={cn(
         'relative cursor-pointer rounded-2xl border p-3 shadow-subtle transition-all duration-200 hover:scale-[1.02]',
         'animate-slide-fade-bottom',
-        !isSelected && 'hoverable-card'
+        isSelected
+          ? cn(
+              'border-brand',
+              isCustom ? 'bg-recipe-custom-selected' : 'bg-surface-muted'
+            )
+          : isCustom
+            ? 'border-recipe-custom-edge bg-recipe-custom hover:border-recipe-custom-edge-hover hover:bg-recipe-custom-hover'
+            : 'border-secondary bg-veil-25 hover:border-primary hover:bg-veil-35'
       )}
-      style={cssVars({
-        '--card-bg': isSelected
-          ? cardStyles.selected.backgroundColor
-          : cardStyles.default.backgroundColor,
-        '--card-bg-hover': cardStyles.hover.backgroundColor,
-        '--card-border': isSelected
-          ? cardStyles.selected.borderColor
-          : cardStyles.default.borderColor,
-        '--card-border-hover': cardStyles.hover.borderColor,
-        borderColor: isSelected
-          ? cardStyles.selected.borderColor
-          : cardStyles.default.borderColor,
-        backgroundColor: isSelected
-          ? cardStyles.selected.backgroundColor
-          : cardStyles.default.backgroundColor,
-      })}
     >
       {/* Full-card overlay button provides the click/keyboard select target */}
       <button
@@ -415,15 +398,7 @@ function RecipeCard({
                 type="button"
                 onClick={onDelete}
                 aria-label="Delete"
-                className="inline-flex items-center justify-center rounded-md p-1.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-focus-ring)] hoverable-delete-btn"
-                style={cssVars({
-                  '--del-bg': deleteButtonStyles.default.backgroundColor,
-                  '--del-bg-hover': deleteButtonStyles.hover.backgroundColor,
-                  '--del-color': deleteButtonStyles.default.color,
-                  '--del-color-hover': deleteButtonStyles.hover.color,
-                  backgroundColor: deleteButtonStyles.default.backgroundColor,
-                  color: deleteButtonStyles.default.color,
-                })}
+                className="inline-flex items-center justify-center rounded-md bg-delete p-1.5 text-xs text-delete transition hover:bg-delete-hover hover:text-delete-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-focus-ring)]"
                 title="Delete"
               >
                 <Trash2 className="size-3" />
@@ -466,10 +441,6 @@ export const DevelopmentResultsCardsVirtualized: FC<
     null
   );
   const rows = table.getRowModel().rows;
-
-  // Pre-compute hover styles to avoid recalculating on every hover event
-  const hoverStyles = useRecipeHoverStyles();
-  const deleteButtonStyles = useDeleteButtonStyles();
 
   const internalRef = useRef<HTMLDivElement>(null);
   const parentRef = scrollContainerRef || internalRef;
@@ -566,11 +537,6 @@ export const DevelopmentResultsCardsVirtualized: FC<
                     }
                   }
 
-                  // Pre-select styles based on source to avoid calculation in event handlers
-                  const cardStyles =
-                    rowData.source === 'custom'
-                      ? hoverStyles.custom
-                      : hoverStyles.api;
                   const isSelected = id === selectedRecipeId;
 
                   return (
@@ -578,8 +544,6 @@ export const DevelopmentResultsCardsVirtualized: FC<
                       key={combination.uuid || combination.id}
                       rowData={rowData}
                       unit={unit}
-                      cardStyles={cardStyles}
-                      deleteButtonStyles={deleteButtonStyles}
                       isSelected={isSelected}
                       isMobile={isMobile}
                       isFavoriteRecipe={Boolean(isFavorite?.(rowData))}

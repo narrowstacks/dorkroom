@@ -56,11 +56,11 @@ const inSeparatorOf = (typed: string, value: string): string =>
  */
 export const useExposureCalculator = () => {
   const [state, setState] = useState<ExposureCalculatorState>({
-    originalTime: DEFAULT_EXPOSURE_ORIGINAL_TIME,
-    stops: DEFAULT_EXPOSURE_STOPS,
+    originalTime: String(DEFAULT_EXPOSURE_ORIGINAL_TIME),
+    stops: String(DEFAULT_EXPOSURE_STOPS),
     newTime: calculateNewExposureTime(
-      parseFloat(DEFAULT_EXPOSURE_ORIGINAL_TIME),
-      parseFloat(DEFAULT_EXPOSURE_STOPS)
+      DEFAULT_EXPOSURE_ORIGINAL_TIME,
+      DEFAULT_EXPOSURE_STOPS
     ).toString(),
   });
 

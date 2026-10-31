@@ -1,6 +1,7 @@
+import '@testing-library/jest-dom/vitest';
 import type { Combination, Developer, Film } from '@dorkroom/api';
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RecipeDetailPanel } from '../../components/development-recipes/recipe-detail-panel';
 import { TemperatureProvider } from '../../contexts/temperature-context';
@@ -76,26 +77,34 @@ const viewOf = (source: 'api' | 'custom'): DevelopmentCombinationView => ({
   film,
   developer,
   source,
-  canShare: true,
 });
 
-function renderPanel(source: 'api' | 'custom', sharingEnabled: boolean) {
-  return render(
+function renderPanel(
+  source: 'api' | 'custom',
+  handlers: {
+    onShareRecipe?: (view: DevelopmentCombinationView) => void;
+    onCopyRecipe?: (view: DevelopmentCombinationView) => void;
+  } = {}
+) {
+  const view = viewOf(source);
+  const onShareRecipe = handlers.onShareRecipe ?? vi.fn();
+  const onCopyRecipe = handlers.onCopyRecipe ?? vi.fn();
+  render(
     <TemperatureProvider>
       <VolumeProvider>
         <RecipeDetailPanel
-          view={viewOf(source)}
+          view={view}
           isOpen
           onClose={vi.fn()}
           isMobile={false}
           onToggleFavorite={vi.fn()}
-          onShareRecipe={vi.fn()}
-          onCopyRecipe={vi.fn()}
-          customRecipeSharingEnabled={sharingEnabled}
+          onShareRecipe={onShareRecipe}
+          onCopyRecipe={onCopyRecipe}
         />
       </VolumeProvider>
     </TemperatureProvider>
   );
+  return { view, onShareRecipe, onCopyRecipe };
 }
 
 const hasButton = (name: string) =>
@@ -104,24 +113,24 @@ const hasButton = (name: string) =>
 afterEach(cleanup);
 
 describe('RecipeDetailPanel share actions', () => {
-  it.each([false, true])(
-    'always offers Share, never Copy link, on a built-in recipe (sharing %s)',
-    (sharingEnabled) => {
-      renderPanel('api', sharingEnabled);
-      expect(hasButton('Share')).toBe(true);
-      expect(hasButton('Copy link')).toBe(false);
-    }
-  );
-
-  it('hides Share and Copy link on a custom recipe while sharing is off', () => {
-    renderPanel('custom', false);
-    expect(hasButton('Share')).toBe(false);
+  it('offers Share, never Copy link, on a built-in recipe', () => {
+    renderPanel('api');
+    expect(hasButton('Share')).toBe(true);
     expect(hasButton('Copy link')).toBe(false);
   });
 
-  it('shows Share and Copy link on a custom recipe once sharing is on', () => {
-    renderPanel('custom', true);
+  it('offers Share and Copy link on a custom recipe', () => {
+    renderPanel('custom');
     expect(hasButton('Share')).toBe(true);
     expect(hasButton('Copy link')).toBe(true);
+  });
+
+  it('passes the custom recipe to the share and copy callbacks', () => {
+    const { view, onShareRecipe, onCopyRecipe } = renderPanel('custom');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Share' }));
+    expect(onShareRecipe).toHaveBeenCalledWith(view);
+    fireEvent.click(screen.getByRole('button', { name: 'Copy link' }));
+    expect(onCopyRecipe).toHaveBeenCalledWith(view);
   });
 });

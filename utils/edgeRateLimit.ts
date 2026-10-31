@@ -11,32 +11,14 @@
  *
  * Keep this file free of Node-only imports: it ships in the edge bundle.
  */
+import { getRateLimitNamespace, normalizeResetMs } from './rateLimitPolicy';
 import { serverlessWarn } from './serverlessLogger';
-
-/** Anonymous (per-IP) budget on `dorkroom.art/api/*`, shared with `withHandler`. */
-export const ANONYMOUS_RATE_LIMIT = 30;
-export const ANONYMOUS_RATE_WINDOW_MS = 60_000;
 
 const UNKEY_RATELIMIT_URL = 'https://api.unkey.com/v2/ratelimit.limit';
 /** Unkey answers in tens of ms; never let a slow limiter hold up an image. */
 const UNKEY_TIMEOUT_MS = 1500;
 /** IPv4/IPv6 characters only, bounded, so a header can't smuggle junk into an identifier. */
 const IP_LIKE = /^[0-9A-Fa-f:.]{2,45}$/;
-
-/**
- * Namespace for anonymous (per-IP) limits on `dorkroom.art/api/*`. Shared by
- * `withHandler` and edge handlers so both resolve the same pre-created
- * namespace (see `bun run keys:anon-bootstrap`).
- */
-export function getAnonymousNamespace(): string {
-  const configuredNamespace = process.env.UNKEY_ANON_NAMESPACE?.trim();
-  return (
-    configuredNamespace ||
-    (process.env.UNKEY_API_ID
-      ? `${process.env.UNKEY_API_ID}-anonymous`
-      : 'dorkroom-anonymous')
-  );
-}
 
 /**
  * Client IP from a Web `Request`. On Vercel, `x-real-ip` and
@@ -107,7 +89,8 @@ function isUnkeyLimitBody(value: unknown): value is { data: UnkeyLimitData } {
 }
 
 /**
- * Consume one unit from `identifier` in the anonymous namespace.
+ * Consume one unit from `identifier` in the anonymous namespace. Namespace
+ * and budgets come from `rateLimitPolicy.ts`, shared with `withHandler`.
  *
  * Fails OPEN — returns `skipped` — when `UNKEY_ROOT_KEY` is missing (local
  * dev, same as `withHandler`) or when Unkey errors or times out. That differs
@@ -126,7 +109,7 @@ export async function checkEdgeRateLimit(
     return { status: 'skipped', reason: 'unconfigured' };
   }
 
-  const namespace = getAnonymousNamespace();
+  const namespace = getRateLimitNamespace('anonymous');
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), UNKEY_TIMEOUT_MS);
 
@@ -167,9 +150,7 @@ export async function checkEdgeRateLimit(
       status: data.success ? 'allowed' : 'limited',
       limit: data.limit,
       remaining: data.remaining,
-      // Unkey v2 documents `reset` as a unix ms timestamp; tolerate a duration.
-      resetMs:
-        data.reset > 1_000_000_000_000 ? data.reset : Date.now() + data.reset,
+      resetMs: normalizeResetMs(data.reset),
     };
   } catch (cause) {
     serverlessWarn('Rate limiting skipped (Unkey unreachable)', {

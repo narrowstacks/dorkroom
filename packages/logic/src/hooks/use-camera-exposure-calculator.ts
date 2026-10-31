@@ -1,15 +1,12 @@
 import { useCallback, useMemo, useState } from 'react';
-import { z } from 'zod';
 import {
-  DEFAULT_CAMERA_EXPOSURE_APERTURE,
-  DEFAULT_CAMERA_EXPOSURE_ISO,
-  DEFAULT_CAMERA_EXPOSURE_SHUTTER_SPEED,
+  CAMERA_EXPOSURE_DEFAULTS,
   STANDARD_APERTURES,
   STANDARD_ISOS,
   STANDARD_SHUTTER_SPEEDS,
 } from '../constants/camera-exposure-defaults';
+import { cameraExposurePersistence } from '../schemas/camera-exposure-calculator.schema';
 import {
-  CAMERA_EXPOSURE_STORAGE_KEY,
   type CameraExposureFormState,
   type EquivalentExposure,
   type ExposureComparison,
@@ -28,25 +25,7 @@ import {
   solveForISO,
   solveForShutterSpeed,
 } from '../utils/camera-exposure-calculations';
-import {
-  type PersistedValue,
-  useLocalStorageFormPersistence,
-} from './use-local-storage-form-persistence';
-
-const CAMERA_EXPOSURE_DEFAULTS: CameraExposureFormState = {
-  aperture: DEFAULT_CAMERA_EXPOSURE_APERTURE,
-  shutterSpeed: DEFAULT_CAMERA_EXPOSURE_SHUTTER_SPEED,
-  iso: DEFAULT_CAMERA_EXPOSURE_ISO,
-  solveFor: 'shutterSpeed',
-  compareAperture: DEFAULT_CAMERA_EXPOSURE_APERTURE,
-  compareShutterSpeed: DEFAULT_CAMERA_EXPOSURE_SHUTTER_SPEED,
-  compareIso: DEFAULT_CAMERA_EXPOSURE_ISO,
-};
-
-const positiveNumberSchema = z.number().positive();
-
-const positiveNumber = (v: PersistedValue): boolean =>
-  positiveNumberSchema.safeParse(v).success;
+import { usePersistedCalculator } from './use-persisted-calculator';
 
 // No shared ISO formatter exists elsewhere (unlike shutter speed/aperture),
 // so this rounds a solved ISO to a display string for the out-of-range
@@ -100,7 +79,7 @@ export interface UseCameraExposureCalculatorReturn {
 
 /**
  * Hook for the camera exposure calculator. Owns the exposure-triangle settings
- * and a comparison exposure (persisted to localStorage), and derives the EV,
+ * and a comparison exposure (persisted through the storage seam), and derives the EV,
  * equivalent exposures, and the A-vs-B comparison.
  *
  * @example
@@ -132,45 +111,13 @@ export function useCameraExposureCalculator(): UseCameraExposureCalculatorReturn
     []
   );
 
-  // Adapter so the TanStack-Form-shaped persistence hook can drive useState.
-  const persistenceForm = {
-    setFieldValue: (
-      key: keyof CameraExposureFormState,
-      value: CameraExposureFormState[keyof CameraExposureFormState]
-    ) => setValues((prev) => ({ ...prev, [key]: value })),
-    // A preset notice describes the inputs being discarded, so it goes too.
-    reset: () => {
-      setLastPresetEv(null);
-      setValues(CAMERA_EXPOSURE_DEFAULTS);
-    },
-  };
-
-  const { resetToDefaults: reset } = useLocalStorageFormPersistence({
-    storageKey: CAMERA_EXPOSURE_STORAGE_KEY,
-    form: persistenceForm,
-    formValues: values,
-    persistKeys: [
-      'aperture',
-      'shutterSpeed',
-      'iso',
-      'solveFor',
-      'compareAperture',
-      'compareShutterSpeed',
-      'compareIso',
-    ],
-    validators: {
-      aperture: { validate: positiveNumber },
-      shutterSpeed: { validate: positiveNumber },
-      iso: { validate: positiveNumber },
-      solveFor: {
-        validate: (v) =>
-          v === 'shutterSpeed' || v === 'aperture' || v === 'iso',
-      },
-      compareAperture: { validate: positiveNumber },
-      compareShutterSpeed: { validate: positiveNumber },
-      compareIso: { validate: positiveNumber },
-    },
-  });
+  // A preset notice describes the inputs being discarded, so a reset clears
+  // it too.
+  const clearPresetNotice = useCallback(() => setLastPresetEv(null), []);
+  const { resetToDefaults: reset } = usePersistedCalculator(
+    cameraExposurePersistence,
+    { values, setValues, onReset: clearPresetNotice }
+  );
 
   const applyPreset = useCallback((ev: number) => {
     // Functional updater, reading only `prev` — not the `values` closure —

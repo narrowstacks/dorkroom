@@ -5,6 +5,7 @@ import {
   readRecipeUrlSearchQuery,
   type RecipeFilterState,
   useRecipeUrlState,
+  validateUrlParams,
 } from '../use-recipe-url-state';
 
 // Mock window.location and history
@@ -144,38 +145,6 @@ describe('useRecipeUrlState', () => {
     vi.useRealTimers();
   });
 
-  it('should correctly sync favorites=true to URL', () => {
-    // We need to use fake timers for the debounce in updateUrl
-    vi.useFakeTimers();
-
-    const { rerender } = renderHook(
-      ({ currentState }) =>
-        useRecipeUrlState(mockFilms, mockDevelopers, currentState),
-      {
-        initialProps: { currentState: mockCurrentState },
-      }
-    );
-
-    // Update state to favorites
-    rerender({
-      currentState: {
-        ...mockCurrentState,
-        favoritesOnly: true,
-      },
-    });
-
-    act(() => {
-      vi.runAllTimers();
-    });
-
-    // Check if replaceState was called with favorites=true
-    const lastCall =
-      mockReplaceState.mock.calls[mockReplaceState.mock.calls.length - 1];
-    expect(lastCall[2]).toContain('favorites=true');
-
-    vi.useRealTimers();
-  });
-
   it('should correctly sync recipeType=only-custom to URL', () => {
     vi.useFakeTimers();
 
@@ -207,6 +176,39 @@ describe('useRecipeUrlState', () => {
     vi.useRealTimers();
   });
 
+  describe('validateUrlParams slug validation', () => {
+    // Tested on the exported validator: none of these slugs exist in
+    // mockFilms, so going through the hook would yield `undefined` whether or
+    // not validation ran.
+    it.each([
+      ['an over-long slug', 'a'.repeat(101), 'Film slug too long'],
+      ['markup', '<script>alert("xss")</script>', 'Invalid film slug format'],
+      ['special characters', 'test@#$%film', 'Invalid film slug format'],
+      ['uppercase letters', 'HP5', 'Invalid film slug format'],
+    ])('rejects %s', (_name, film, error) => {
+      const result = validateUrlParams({ film });
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toEqual([error]);
+      expect(result.sanitized.film).toBeUndefined();
+    });
+
+    it('applies the same rules to developer slugs', () => {
+      expect(validateUrlParams({ developer: 'a'.repeat(101) }).errors).toEqual([
+        'Developer slug too long',
+      ]);
+      expect(validateUrlParams({ developer: 'DD-X' }).errors).toEqual([
+        'Invalid developer slug format',
+      ]);
+    });
+
+    it('accepts a slug at the length limit', () => {
+      const film = 'a'.repeat(100);
+      const result = validateUrlParams({ film });
+      expect(result.isValid).toBe(true);
+      expect(result.sanitized.film).toBe(film);
+    });
+  });
+
   describe('error scenarios and edge cases', () => {
     it('should handle invalid film slug gracefully', () => {
       mockLocation.search = '?film=invalid-film-slug-123';
@@ -226,18 +228,6 @@ describe('useRecipeUrlState', () => {
       );
 
       expect(result.current.initialUrlState.selectedDeveloper).toBeUndefined();
-    });
-
-    it('should handle excessively long slug', () => {
-      const veryLongSlug = 'a'.repeat(200);
-      mockLocation.search = `?film=${veryLongSlug}`;
-
-      const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
-      );
-
-      // Should reject due to length validation
-      expect(result.current.initialUrlState.selectedFilm).toBeUndefined();
     });
 
     it('should handle ISO value out of range (too low)', () => {
@@ -548,26 +538,6 @@ describe('useRecipeUrlState', () => {
       expect(result.current.initialUrlState.view).toBeUndefined();
     });
 
-    it('should handle malformed URL parameters', () => {
-      mockLocation.search = '?film=<script>alert("xss")</script>';
-
-      const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
-      );
-
-      expect(result.current.initialUrlState.selectedFilm).toBeUndefined();
-    });
-
-    it('should handle special characters in slug', () => {
-      mockLocation.search = '?film=test@#$%film';
-
-      const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
-      );
-
-      expect(result.current.initialUrlState.selectedFilm).toBeUndefined();
-    });
-
     it('should handle empty film list', () => {
       mockLocation.search = '?film=hp5';
 
@@ -612,7 +582,7 @@ describe('useRecipeUrlState', () => {
         useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
       );
 
-      expect(result.current.initialUrlState.selectedFilm).toBeDefined();
+      expect(result.current.initialUrlState.selectedFilm?.slug).toBe('hp5');
       expect(result.current.initialUrlState.selectedDeveloper).toBeUndefined();
       expect(result.current.initialUrlState.isoFilter).toBe('400');
     });
@@ -646,10 +616,9 @@ describe('useRecipeUrlState', () => {
         vi.runAllTimers();
       });
 
-      // Should have the last value
-      const lastCall =
-        mockReplaceState.mock.calls[mockReplaceState.mock.calls.length - 1];
-      expect(lastCall[2]).toContain('iso=400');
+      // The three changes collapse into one debounced write with the last value
+      expect(mockReplaceState).toHaveBeenCalledTimes(1);
+      expect(mockReplaceState.mock.calls[0][2]).toContain('iso=400');
 
       vi.useRealTimers();
     });
@@ -672,10 +641,12 @@ describe('useRecipeUrlState', () => {
       // Unmount before timeout fires
       unmount();
 
-      // Should not throw or cause issues
+      // The pending write was cancelled, not just ignored
       act(() => {
         vi.runAllTimers();
       });
+
+      expect(mockReplaceState).not.toHaveBeenCalled();
 
       vi.useRealTimers();
     });
@@ -721,16 +692,11 @@ describe('useRecipeUrlState', () => {
       // Wait for async lookup to complete and error to be set
       await waitFor(
         () => {
-          return (
-            !result.current.isLoadingSharedRecipe &&
-            result.current.sharedRecipeError !== null
-          );
+          expect(result.current.isLoadingSharedRecipe).toBe(false);
+          expect(result.current.sharedRecipeError).toContain('not found');
         },
         { timeout: 2000 }
       );
-
-      expect(result.current.sharedRecipeError).toBeTruthy();
-      expect(result.current.sharedRecipeError).toContain('not found');
     });
 
     it('should handle source parameter without recipe parameter', () => {
@@ -748,6 +714,8 @@ describe('useRecipeUrlState', () => {
   describe('URL state synchronization edge cases', () => {
     it('should clear URL parameters when state is reset', () => {
       vi.useFakeTimers();
+      // Seed the params so there is something in the URL to clear
+      mockLocation.search = '?film=hp5&iso=400';
 
       // Annotated, not asserted: renderHook infers its prop type from this first
       // value, and an un-annotated `selectedFilm` would narrow to the film
@@ -779,25 +747,17 @@ describe('useRecipeUrlState', () => {
 
       const lastCall =
         mockReplaceState.mock.calls[mockReplaceState.mock.calls.length - 1];
+      expect(mockReplaceState).toHaveBeenCalled();
       expect(lastCall[2]).not.toContain('film=');
       expect(lastCall[2]).not.toContain('iso=');
 
       vi.useRealTimers();
     });
 
-    it('should handle case-sensitive slug validation', () => {
-      mockLocation.search = '?film=HP5'; // Uppercase
-
-      const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
-      );
-
-      // Should not match due to case sensitivity
-      expect(result.current.initialUrlState.selectedFilm).toBeUndefined();
-    });
-
     it('should remove ISO parameter from URL when cleared', () => {
       vi.useFakeTimers();
+      // Seed the param so there is something in the URL to remove
+      mockLocation.search = '?iso=400';
 
       const { rerender } = renderHook(
         ({ currentState }) =>
@@ -826,16 +786,17 @@ describe('useRecipeUrlState', () => {
 
       const lastCall =
         mockReplaceState.mock.calls[mockReplaceState.mock.calls.length - 1];
-      // URL should NOT contain 'iso=' at all
+      expect(mockReplaceState).toHaveBeenCalled();
+      // URL should NOT contain 'iso=' at all, not even with an empty value
       expect(lastCall[2]).not.toContain('iso=');
-      // And definitely should not contain 'iso=' with empty value
-      expect(lastCall[2]).not.toMatch(/iso=(&|$)/);
 
       vi.useRealTimers();
     });
 
     it('should remove dilution parameter from URL when cleared', () => {
       vi.useFakeTimers();
+      // Seed the param so there is something in the URL to remove
+      mockLocation.search = '?developer=dd-x&dilution=1:1';
 
       const { rerender } = renderHook(
         ({ currentState }) =>

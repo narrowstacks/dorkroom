@@ -7,6 +7,7 @@ import {
   SLUG_RE,
   UUID_RE,
 } from '../utils/queryPatterns';
+import { type HandlerContext, withEnvelope } from '../utils/requestEnvelope';
 import type { MetadataQuery } from '../utils/routeMetadata';
 import {
   getRouteMetadata,
@@ -134,9 +135,10 @@ function extractMetadataQuery(
  * Fetches the static index.html, rewrites meta tags for the requested path,
  * and returns the modified HTML.
  */
-export default async function handler(
+async function renderMeta(
   req: VercelRequest,
-  res: VercelResponse
+  res: VercelResponse,
+  ctx: HandlerContext
 ): Promise<void> {
   if (hasQueryIssue(req.query)) {
     // Unknown/duplicated params never change the rendered card, so redirect
@@ -145,7 +147,7 @@ export default async function handler(
     // hard failure would break their previews. The redirect itself is
     // cheaply cached; the crawler re-requests the clean URL and gets a 200.
     const canonicalUrl = buildCanonicalUrl(req.query);
-    res.setHeader('cache-control', 'public, s-maxage=86400');
+    ctx.setCacheControl('public, s-maxage=86400');
     res.redirect(308, canonicalUrl);
     return;
   }
@@ -198,7 +200,7 @@ export default async function handler(
     );
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.setHeader('x-robots-tag', 'noindex');
-    res.setHeader('cache-control', 'public, s-maxage=3600');
+    ctx.setCacheControl('public, s-maxage=3600');
     res.status(404).send(html);
     return;
   }
@@ -264,9 +266,15 @@ export default async function handler(
   );
 
   res.setHeader('content-type', 'text/html; charset=utf-8');
-  res.setHeader(
-    'cache-control',
-    'public, s-maxage=86400, stale-while-revalidate=3600'
-  );
+  ctx.setCacheControl('public, s-maxage=86400, stale-while-revalidate=3600');
   res.status(200).send(html);
 }
+
+/**
+ * Crawlers fetch with GET, and some probe with HEAD first, so both are served;
+ * anything else is a 405 from the envelope.
+ */
+export default withEnvelope(
+  { name: 'meta', methods: ['GET', 'HEAD'], cors: 'none' },
+  renderMeta
+);

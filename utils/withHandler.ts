@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 import { isIP } from 'node:net';
 import { Unkey } from '@unkey/api';
 import type {
@@ -9,15 +8,32 @@ import type {
 import {
   ANONYMOUS_RATE_LIMIT,
   ANONYMOUS_RATE_WINDOW_MS,
-  getAnonymousNamespace,
-} from './edgeRateLimit';
+  CLIENT_IP_RATE_LIMIT,
+  CLIENT_RATE_LIMIT,
+  CLIENT_RATE_WINDOW_MS,
+  getRateLimitNamespace,
+  normalizeResetMs,
+} from './rateLimitPolicy';
 import {
-  logApiError,
-  logApiRequest,
-  serverlessError,
-  serverlessLog,
-  serverlessWarn,
-} from './serverlessLogger';
+  type EnvelopeHandler,
+  getHeaderValue,
+  type HandlerContext,
+  withEnvelope,
+} from './requestEnvelope';
+import { serverlessError, serverlessWarn } from './serverlessLogger';
+
+export type { HandlerContext } from './requestEnvelope';
+
+/**
+ * The API-key layer for data endpoints: Unkey key verification and rate
+ * limiting, run inside the request envelope (`requestEnvelope.ts`), which owns
+ * request IDs, CORS, the method guard, cache policy, env checks and error
+ * mapping. Limits and namespaces come from `rateLimitPolicy.ts`.
+ *
+ *  - `api.dorkroom.art` (and unknown hosts): `X-API-Key` verified through
+ *    Unkey, the key's own tier limit, plus optional per-client limits.
+ *  - `dorkroom.art`: no key, anonymous per-IP limit.
+ */
 
 interface VerifyRateLimit {
   limit: number;
@@ -26,23 +42,21 @@ interface VerifyRateLimit {
   exceeded: boolean;
 }
 
-/** The two Unkey calls this module makes, taken off the SDK client so the signatures cannot drift. */
+/**
+ * The Unkey seam: the two calls this module makes, taken off the SDK client so
+ * the signatures cannot drift. Production builds the real SDK client
+ * (`createRealUnkeyClient`); tests inject a stand-in through
+ * `HandlerConfig.createUnkeyClient`.
+ */
 export interface UnkeyClient {
   keys: Pick<Unkey['keys'], 'verifyKey'>;
   ratelimit: Pick<Unkey['ratelimit'], 'limit'>;
 }
 
-type CreateUnkeyClient = (rootKey: string) => UnkeyClient;
+export type CreateUnkeyClient = (rootKey: string) => UnkeyClient;
 
 const createRealUnkeyClient: CreateUnkeyClient = (rootKey) =>
   new Unkey({ rootKey });
-
-export interface HandlerContext {
-  requestId: string;
-  startTime: number;
-  userAgent: string;
-  isPublicApi: boolean;
-}
 
 export interface HandlerConfig {
   name: string;
@@ -59,106 +73,16 @@ export interface HandlerConfig {
   createUnkeyClient?: CreateUnkeyClient;
 }
 
-// Per-client rate limiting on the keyed (api.dorkroom.art) path — see
-// applyClientIdentityRateLimit. The shared key's own Unkey ratelimit remains
-// a global DDoS brake; these bound a single install / IP address instead.
-const CLIENT_RATE_LIMIT = 60;
-const CLIENT_IP_RATE_LIMIT = 240;
-const CLIENT_RATE_WINDOW_MS = 60_000;
 // Accepts `generateId()` output (timestamp+random, base36) and any future
 // UUID-shaped identity. Anything else is treated as an absent header rather
 // than rejected, so a malformed value never turns into a 4xx.
 const CLIENT_ID_REGEX = /^[A-Za-z0-9_-]{8,64}$/;
-const PUBLIC_API_HOST = 'api.dorkroom.art';
-const ALLOWED_ANONYMOUS_HOSTS = new Set([
-  'dorkroom.art',
-  'www.dorkroom.art',
-  'localhost',
-  '127.0.0.1',
-  '::1',
-]);
+
+/** Cache-Control for every keyed response: per-key data must never be shared. */
+const PUBLIC_API_CACHE_CONTROL = 'private, no-store';
 
 let unkeyClient: UnkeyClient | null = null;
 let unkeyInitialized = false;
-
-function getHeaderValue(value: string | string[] | undefined): string {
-  if (Array.isArray(value)) {
-    return value[0] ?? '';
-  }
-
-  return value ?? '';
-}
-
-function normalizeHost(value: string): string {
-  const first = value.split(',')[0]?.trim().toLowerCase() ?? '';
-  if (!first) {
-    return '';
-  }
-
-  if (first.startsWith('[')) {
-    return first;
-  }
-
-  const separatorIndex = first.indexOf(':');
-  if (separatorIndex === -1) {
-    return first;
-  }
-
-  return first.slice(0, separatorIndex);
-}
-
-function isPublicApiRequest(req: VercelRequest, requestId: string): boolean {
-  const host = normalizeHost(getHeaderValue(req.headers.host));
-  const forwardedHost = normalizeHost(
-    getHeaderValue(req.headers['x-forwarded-host'])
-  );
-  const observedHosts = [host, forwardedHost].filter(Boolean);
-
-  if (host && forwardedHost && host !== forwardedHost) {
-    serverlessWarn('Host header mismatch detected', {
-      requestId,
-      host,
-      forwardedHost,
-    });
-  }
-
-  if (observedHosts.includes(PUBLIC_API_HOST)) {
-    return true;
-  }
-
-  if (observedHosts.length === 0) {
-    serverlessWarn('Missing host headers, enforcing API-key auth', {
-      requestId,
-    });
-    return true;
-  }
-
-  if (
-    observedHosts.every(
-      (observedHost) =>
-        ALLOWED_ANONYMOUS_HOSTS.has(observedHost) ||
-        observedHost.endsWith('.vercel.app')
-    )
-  ) {
-    return false;
-  }
-
-  serverlessWarn('Unknown host, enforcing API-key auth', {
-    requestId,
-    host,
-    forwardedHost,
-  });
-  return true;
-}
-
-function normalizeResetMs(reset: number): number {
-  // Some responses use a reset duration, others a unix timestamp in ms.
-  if (reset > 1_000_000_000_000) {
-    return reset;
-  }
-
-  return Date.now() + reset;
-}
 
 function retryAfterSeconds(resetMs: number): string {
   const seconds = Math.ceil((resetMs - Date.now()) / 1000);
@@ -384,16 +308,6 @@ async function applyPublicApiKeyAuth(
   return true;
 }
 
-function getClientNamespace(): string {
-  const configuredNamespace = process.env.UNKEY_CLIENT_NAMESPACE?.trim();
-  return (
-    configuredNamespace ||
-    (process.env.UNKEY_API_ID
-      ? `${process.env.UNKEY_API_ID}-client`
-      : 'dorkroom-client')
-  );
-}
-
 /**
  * Per-client rate limiting for the keyed (api.dorkroom.art) path. Applied
  * only when the request carries a well-formed `X-Client-Id` (see
@@ -417,7 +331,7 @@ async function applyClientIdentityRateLimit(
   clientId: string,
   createUnkeyClient: CreateUnkeyClient
 ): Promise<boolean> {
-  const namespace = getClientNamespace();
+  const namespace = getRateLimitNamespace('client');
   const clientIp = getClientIp(req);
 
   const [clientOk, ipOk] = await Promise.all([
@@ -583,15 +497,11 @@ async function applyAnonymousRateLimit(
   createUnkeyClient: CreateUnkeyClient
 ): Promise<boolean> {
   return applyNamespaceRateLimit(res, requestId, createUnkeyClient, {
-    namespace: getAnonymousNamespace(),
+    namespace: getRateLimitNamespace('anonymous'),
     identifier: getClientIp(req),
     limit: ANONYMOUS_RATE_LIMIT,
     durationMs: ANONYMOUS_RATE_WINDOW_MS,
   });
-}
-
-function hasRequiredEnv(requiredEnv: string[]): string[] {
-  return requiredEnv.filter((envVar) => !process.env[envVar]);
 }
 
 function setVaryHeader(res: VercelResponse, value: string): void {
@@ -611,143 +521,48 @@ function setVaryHeader(res: VercelResponse, value: string): void {
   res.setHeader('Vary', Array.from(values).join(', '));
 }
 
-export function withHandler(config: HandlerConfig): VercelApiHandler {
-  return async function wrappedHandler(
-    req: VercelRequest,
-    res: VercelResponse
-  ) {
-    const startTime = Date.now();
-    const requestId = randomUUID();
-    const userAgent =
-      getHeaderValue(req.headers['user-agent']) || 'DorkroomReact-API';
-
-    logApiRequest(
-      requestId,
-      req.method || 'GET',
-      req.url || `/api/${config.name}`,
-      userAgent
-    );
-
-    const isPublicApi = isPublicApiRequest(req, requestId);
-
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-
-    // Only set permissive CORS on the public API (api.dorkroom.art).
-    // Internal same-origin requests (dorkroom.art) don't need CORS headers;
-    // omitting them blocks cross-origin reads from other sites.
-    if (isPublicApi) {
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-      res.setHeader(
-        'Access-Control-Allow-Headers',
-        'Content-Type, Authorization, X-Requested-With, X-API-Key, X-Client-Id'
-      );
-      res.setHeader('Access-Control-Max-Age', '86400');
+/**
+ * The API-key layer on its own: `Vary`, then Unkey auth (public host) or the
+ * anonymous per-IP limit, then `handler`. Runs inside `withEnvelope`.
+ */
+export function withApiKey(
+  handler: HandlerConfig['handler'],
+  createUnkeyClient: CreateUnkeyClient = createRealUnkeyClient
+): EnvelopeHandler {
+  return async (req, res, ctx) => {
+    setVaryHeader(res, 'Host');
+    if (ctx.isPublicApi) {
+      setVaryHeader(res, 'X-API-Key');
+      setVaryHeader(res, 'X-Client-Id');
     }
 
-    if (req.method === 'OPTIONS') {
-      serverlessLog('CORS preflight request handled', {
-        requestId,
-        endpoint: config.name,
-      });
-      res.status(200).end();
+    const passedChecks = ctx.isPublicApi
+      ? await applyPublicApiKeyAuth(req, res, ctx.requestId, createUnkeyClient)
+      : await applyAnonymousRateLimit(
+          req,
+          res,
+          ctx.requestId,
+          createUnkeyClient
+        );
+
+    if (!passedChecks) {
       return;
     }
 
-    if (req.method !== 'GET') {
-      serverlessWarn('Method not allowed', {
-        requestId,
-        endpoint: config.name,
-        method: req.method,
-      });
-      res.status(405).json({
-        error: 'Method not allowed',
-        allowed: ['GET', 'OPTIONS'],
-        requestId,
-      });
-      return;
-    }
-
-    try {
-      const requiredEnv = config.requiredEnv ?? [];
-      const missingEnv = hasRequiredEnv(requiredEnv);
-
-      if (missingEnv.length > 0) {
-        serverlessError('Required environment variables are not set', {
-          requestId,
-          endpoint: config.name,
-          missingEnv: missingEnv.join(','),
-        });
-
-        res.status(500).json({
-          error: 'API configuration error',
-          message: 'Missing required environment configuration',
-          requestId,
-        });
-        return;
-      }
-      setVaryHeader(res, 'Host');
-      if (isPublicApi) {
-        setVaryHeader(res, 'X-API-Key');
-        setVaryHeader(res, 'X-Client-Id');
-        res.setHeader('Cache-Control', 'private, no-store');
-      }
-
-      const createUnkeyClient =
-        config.createUnkeyClient ?? createRealUnkeyClient;
-      const passedChecks = isPublicApi
-        ? await applyPublicApiKeyAuth(req, res, requestId, createUnkeyClient)
-        : await applyAnonymousRateLimit(req, res, requestId, createUnkeyClient);
-
-      if (!passedChecks) {
-        return;
-      }
-
-      await config.handler(req, res, {
-        requestId,
-        startTime,
-        userAgent,
-        isPublicApi,
-      });
-    } catch (error) {
-      const responseTime = Date.now() - startTime;
-      logApiError(
-        requestId,
-        error instanceof Error ? error : String(error),
-        500,
-        { responseTime, endpoint: config.name }
-      );
-
-      if (res.writableEnded) {
-        return;
-      }
-
-      if (
-        error instanceof Error &&
-        (error.name === 'AbortError' || error.name === 'TimeoutError')
-      ) {
-        res.status(504).json({
-          error: 'Request timeout',
-          message: 'Request to upstream service timed out',
-          requestId,
-        });
-        return;
-      }
-
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        res.status(502).json({
-          error: 'Network error',
-          message: 'Could not connect to upstream API',
-          requestId,
-        });
-        return;
-      }
-
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'An unexpected error occurred',
-        requestId,
-      });
-    }
+    await handler(req, res, ctx);
   };
+}
+
+/** A keyed GET data endpoint: the request envelope plus the API-key layer. */
+export function withHandler(config: HandlerConfig): VercelApiHandler {
+  return withEnvelope(
+    {
+      name: config.name,
+      methods: ['GET'],
+      cors: 'public-api',
+      cache: { publicApi: PUBLIC_API_CACHE_CONTROL },
+      requiredEnv: config.requiredEnv,
+    },
+    withApiKey(config.handler, config.createUnkeyClient)
+  );
 }

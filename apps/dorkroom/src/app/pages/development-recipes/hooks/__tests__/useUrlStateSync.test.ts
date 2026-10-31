@@ -145,7 +145,6 @@ const NO_CUSTOM_RECIPES: CustomRecipe[] = [];
 const SHARED_CUSTOM_VIEW: DevelopmentCombinationView = {
   combination: HP5_DDX,
   source: 'custom',
-  canShare: false,
 };
 
 /**

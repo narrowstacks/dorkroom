@@ -4,23 +4,38 @@
    Main border calculator hook - orchestrates all sub-hooks
    -------------------------------------------------------------
    Exports:
-     - useBorderCalculator: Main hook that composes all functionality
+     - useStandaloneBorderCalculator: Main hook that composes all functionality
 \* ------------------------------------------------------------------ */
 
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { CALCULATION_CONSTANTS } from '../../constants/calculations';
 import type { BorderCalculation } from '../../types/border-calculator';
 import { computeBorderLayout } from '../../utils/border-layout';
 import type { MeasurementUnit } from '../../utils/unit-conversion';
 import { useWindowDimensions } from '../use-window-dimensions';
-import { useAlertSystem } from './use-alert-system';
 import { useBorderCalculatorState } from './use-border-calculator-state';
-import { useImageHandling } from './use-image-handling';
 import { useInputHandlers } from './use-input-handlers';
 
+type BorderWarnings = Pick<
+  BorderCalculation,
+  'offsetWarning' | 'bladeWarning' | 'minBorderWarning' | 'paperSizeWarning'
+>;
+
+const NO_WARNINGS: BorderWarnings = {
+  offsetWarning: null,
+  bladeWarning: null,
+  minBorderWarning: null,
+  paperSizeWarning: null,
+};
+
+const WARNING_DELAY = CALCULATION_CONSTANTS.DEBOUNCE_WARNING_DELAY;
+
 /**
- * Main border calculator hook that orchestrates all border calculation functionality.
- * This is the primary interface for darkroom border calculations, composing multiple
- * specialized sub-hooks and `computeBorderLayout` to provide a comprehensive calculation system.
+ * Self-contained border calculator: it owns its state (a reducer persisted to
+ * `borderCalculatorState_v2`) and derives everything else with
+ * `computeBorderLayout`. The iOS border screen uses it. The web page builds a
+ * TanStack form instead and reads it through `@dorkroom/ui`'s
+ * `useBorderCalculator` context hook, which is why this one is not called that.
  *
  * @param unit - Measurement unit the hook's warnings are written in. Results
  *   and state stay in inches either way. Defaults to imperial.
@@ -36,7 +51,7 @@ import { useInputHandlers } from './use-input-handlers';
  *   setAspectRatio,
  *   setPaperSize,
  *   setMinBorder
- * } = useBorderCalculator();
+ * } = useStandaloneBorderCalculator();
  *
  * // Set up calculation parameters
  * setAspectRatio('3:2');
@@ -47,7 +62,9 @@ import { useInputHandlers } from './use-input-handlers';
  * console.log(`Print size: ${calculation.printWidth}" x ${calculation.printHeight}"`);
  * ```
  */
-export const useBorderCalculator = (unit: MeasurementUnit = 'imperial') => {
+export const useStandaloneBorderCalculator = (
+  unit: MeasurementUnit = 'imperial'
+) => {
   // Core state management
   const { state, dispatch } = useBorderCalculatorState();
 
@@ -63,20 +80,55 @@ export const useBorderCalculator = (unit: MeasurementUnit = 'imperial') => {
     [state, unit, viewportWidth, viewportHeight]
   );
 
-  // Alert system management
-  useAlertSystem(state, dispatch, {
-    offsetWarning: calculation.offsetWarning,
-    bladeWarning: calculation.bladeWarning,
-    minBorderWarning: calculation.minBorderWarning,
-    paperSizeWarning: calculation.paperSizeWarning,
-    lastValidMinBorder: calculation.lastValidMinBorder,
-  });
+  // lastValidMinBorder is real state (persisted, and the fallback the layout
+  // uses while minBorder is out of range), so it is written back right away.
+  useEffect(() => {
+    if (calculation.lastValidMinBorder !== state.lastValidMinBorder) {
+      dispatch({
+        type: 'SET_FIELD',
+        key: 'lastValidMinBorder',
+        value: calculation.lastValidMinBorder,
+      });
+    }
+  }, [calculation.lastValidMinBorder, state.lastValidMinBorder, dispatch]);
 
-  // Image handling helpers
-  const imageHandling = useImageHandling(state, dispatch);
+  // Warnings are derived, never stored in the reducer. The top-level ones
+  // trail the calculation by DEBOUNCE_WARNING_DELAY so the warnings card does
+  // not flash while a slider is dragged. Memoising on the four strings keeps
+  // the object stable until one of them changes, so the delay restarts only
+  // then, as it did when they were copied into reducer state.
+  const liveWarnings: BorderWarnings = useMemo(
+    () => ({
+      offsetWarning: calculation.offsetWarning,
+      bladeWarning: calculation.bladeWarning,
+      minBorderWarning: calculation.minBorderWarning,
+      paperSizeWarning: calculation.paperSizeWarning,
+    }),
+    [
+      calculation.offsetWarning,
+      calculation.bladeWarning,
+      calculation.minBorderWarning,
+      calculation.paperSizeWarning,
+    ]
+  );
+  const [warnings, setWarnings] = useState(liveWarnings);
+  useEffect(() => {
+    const timeout = setTimeout(() => setWarnings(liveWarnings), WARNING_DELAY);
+    return () => clearTimeout(timeout);
+  }, [liveWarnings]);
 
   // Input handlers
-  const inputHandlers = useInputHandlers(state, dispatch);
+  const { resetToDefaults: resetState, ...inputHandlers } = useInputHandlers(
+    state,
+    dispatch
+  );
+
+  // Reset clears the shown warnings at once, as the old reducer RESET did,
+  // instead of letting them linger for the debounce.
+  const resetToDefaults = useCallback(() => {
+    setWarnings(NO_WARNINGS);
+    resetState();
+  }, [resetState]);
 
   /* =============================================================== *
      Public API
@@ -100,16 +152,13 @@ export const useBorderCalculator = (unit: MeasurementUnit = 'imperial') => {
     isLandscape: state.isLandscape,
     isRatioFlipped: state.isRatioFlipped,
 
-    /* warnings */
-    offsetWarning: state.offsetWarning,
-    bladeWarning: state.bladeWarning,
-    minBorderWarning: state.minBorderWarning,
-    paperSizeWarning: state.paperSizeWarning,
+    /* warnings (debounced; `calculation` carries the live ones) */
+    offsetWarning: warnings.offsetWarning,
+    bladeWarning: warnings.bladeWarning,
+    minBorderWarning: warnings.minBorderWarning,
+    paperSizeWarning: warnings.paperSizeWarning,
     clampedHorizontalOffset: calculation.clampedHorizontalOffset,
     clampedVerticalOffset: calculation.clampedVerticalOffset,
-
-    /* image helpers */
-    ...imageHandling,
 
     /* geometry results */
     calculation: {
@@ -154,13 +203,13 @@ export const useBorderCalculator = (unit: MeasurementUnit = 'imperial') => {
 
     /* setters (from input handlers) */
     ...inputHandlers,
+    resetToDefaults,
   };
 };
 
-export default useBorderCalculator;
+export default useStandaloneBorderCalculator;
 
 export * from '../../types/border-calculator';
-export { useAlertSystem } from './use-alert-system';
 // Re-export sub-hooks for testing or advanced usage
 export {
   initialState,
@@ -168,7 +217,6 @@ export {
 } from './use-border-calculator-state';
 export type { PresetShareMethod } from './use-calculator-sharing';
 export { useCalculatorSharing } from './use-calculator-sharing';
-export { useImageHandling } from './use-image-handling';
 export { useInputHandlers } from './use-input-handlers';
 // UI-focused hooks
 export { usePaperDimensionInput } from './use-paper-dimension-input';

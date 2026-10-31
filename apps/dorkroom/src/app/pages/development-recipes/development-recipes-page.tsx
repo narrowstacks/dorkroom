@@ -5,7 +5,6 @@ import {
   useDevelopmentRecipes,
   useDevelopmentTable,
   useFavorites,
-  useFeatureFlags,
   useRecipeSharing,
   useRecipeUrlState,
   useViewPreference,
@@ -109,7 +108,6 @@ export default function DevelopmentRecipesPage() {
     decodeSharedCustomRecipe,
   } = useRecipeSharing();
 
-  const { flags } = useFeatureFlags();
   const { isFavorite, toggleFavorite, addFavorite } = useFavorites();
   const isMobile = useIsMobile();
   const { viewMode, setViewMode } = useViewPreference();
@@ -226,7 +224,6 @@ export default function DevelopmentRecipesPage() {
     customRecipeFilter,
     favoritesOnly,
     sharedCustomRecipe,
-    flags,
     isFavorite,
     getFilmById,
     getDeveloperById,
@@ -302,7 +299,6 @@ export default function DevelopmentRecipesPage() {
     getDeveloperById,
     allFilms,
     allDevelopers,
-    customRecipeSharingEnabled: flags.CUSTOM_RECIPE_SHARING,
   });
 
   // URL state synchronization
@@ -596,7 +592,6 @@ export default function DevelopmentRecipesPage() {
       onDeleteCustomRecipe={handleDeleteCustomRecipe}
       onShareRecipe={handleShareCombination}
       onCopyRecipe={handleCopyCombination}
-      customRecipeSharingEnabled={flags.CUSTOM_RECIPE_SHARING}
       maxHeight={isMobile ? undefined : mainContentHeight}
     />
   );
@@ -633,7 +628,6 @@ export default function DevelopmentRecipesPage() {
           onRefresh={handleRefreshAll}
           isRefreshing={isRefreshingData}
           isLoading={isLoading}
-          showImportButton={flags.RECIPE_IMPORT}
           isMobile={isMobile}
         />
 

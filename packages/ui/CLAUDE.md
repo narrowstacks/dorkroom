@@ -84,6 +84,13 @@ disagrees, prefer the scale for new code; don't mass-refactor.
   inline `style` only where a class can't express it (dynamic var names).
 - Theme tokens are defined in `apps/dorkroom/src/styles/theme.css`, one block
   per `[data-theme]`. Adding a token means adding it to every theme.
+- Hover and focus colour changes are Tailwind variants on those tokens
+  (`hover:bg-accent hover:text-background`), never `onMouseEnter`/`onMouseLeave`
+  handlers writing `element.style`. An inline `style` colour beats a variant
+  class, so move any property that changes on hover out of `style` and into
+  classes. Hover surfaces a monochrome theme could paint invisible
+  (`hover:bg-hover-surface`) are guarded by
+  `apps/dorkroom/src/styles/__tests__/hover-contrast.test.ts`.
 
 ### Radius
 

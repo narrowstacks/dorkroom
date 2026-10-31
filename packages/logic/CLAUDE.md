@@ -17,7 +17,7 @@ sibling (Metro picks it up automatically; see `use-window-dimensions.native.ts`)
 
 ```
 src/
-├── constants/           # Per-calculator defaults, storage keys, feature flags
+├── constants/           # Per-calculator defaults, storage keys
 ├── hooks/               # Calculator hooks (use-*-calculator.ts) at the top level
 │   ├── api/             # TanStack Query hooks
 │   ├── border-calculator/
@@ -26,7 +26,7 @@ src/
 │   └── films/
 ├── queries/             # Query keys and fetch functions
 ├── schemas/             # Zod validation schemas
-├── services/            # filmdev.org client, localStorage wrapper, custom recipe store
+├── services/            # filmdev.org client, storage seam + localStorage wrapper, custom recipe store
 ├── types/               # TypeScript definitions
 ├── utils/               # Pure calculation and parsing helpers
 └── index.ts             # Public exports (the only entry point)
@@ -79,9 +79,34 @@ export type MyFormData = z.infer<typeof mySchema>;
 
 ### Persistence
 
-Persisted state goes through `globalThis.localStorage` with a key from
-`constants/storage-keys.ts`. On iOS that global is an MMKV shim installed at app
-startup, so keep reads synchronous and never assume a browser `Storage` object.
+Persisted state is keyed from `constants/storage-keys.ts` and goes through the
+`KeyValueStorage` seam (`services/key-value-storage.ts`: synchronous
+`getItem` / `setItem` / `removeItem` of strings). Adapters: localStorage (web,
+the default), in-memory (`createMemoryStorage`, tests), and MMKV (iOS, in
+`apps/mobile/src/lib/mmkv-storage.ts`, since this package must not depend on
+`react-native-mmkv`).
+
+Calculators persist through `usePersistedCalculator(definition, binding)`
+(`hooks/use-persisted-calculator.ts`). It owns hydrate (once on mount, each
+field checked by its validator, an invalid field keeps its default), the
+300ms debounced write, clear, and reset. The definition comes from
+`definePersistedCalculator(storageKey, fieldSchemas, defaults)` next to the
+calculator's schema; the binding is `{ form, values }` for a TanStack Form or
+`{ values, setValues, onReset? }` for `useState`. Storage keys and persist-key
+order are pinned by `__tests__/schemas/calculator-persistence.test.ts` and the
+web hydration tests, because changing either drops users' saved state.
+
+The hook reads its storage from `PersistenceStorageProvider`. The iOS app
+provides MMKV once in `app/_layout.tsx`; with no provider it falls back to
+`localStorage`, and a development build warns once if the host has none.
+The border reducer (`use-border-calculator-state.ts`) validates its snapshot
+whole rather than per field, so it does not use the hook, but it reads the
+same provider.
+
+Other persisted state (custom recipes, border presets, view preference) still
+uses `globalThis.localStorage` through `createStorageManager`. On iOS that
+global is an MMKV shim installed at app startup over the same MMKV instance,
+so keep reads synchronous and never assume a browser `Storage` object.
 
 ## Testing
 

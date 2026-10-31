@@ -14,10 +14,10 @@ import { removeSupersededStorageKeys } from '../../services/local-storage';
 import type {
   BorderCalculatorAction,
   BorderCalculatorState,
-  BorderPresetSettings,
 } from '../../types/border-calculator';
 import { computeMaxAllowedMinBorder } from '../../utils/border-calculations';
-import { isBrowser } from '../../utils/environment';
+import { definePersistedCalculator } from '../../utils/persisted-calculator';
+import { usePersistenceStorage } from '../use-persisted-calculator';
 
 /**
  * Field bounds for the persisted border-calculator snapshot: the preset
@@ -76,20 +76,26 @@ const createInitialState = (): BorderCalculatorState => {
     isLandscape: BORDER_CALCULATOR_DEFAULTS.isLandscape,
     isRatioFlipped: BORDER_CALCULATOR_DEFAULTS.isRatioFlipped,
     hasManuallyFlippedPaper: false,
-    offsetWarning: null,
-    bladeWarning: null,
-    minBorderWarning: null,
-    paperSizeWarning: null,
     lastValidMinBorder: BORDER_CALCULATOR_DEFAULTS.minBorder,
-    selectedImageUri: null,
-    imageDimensions: { width: 0, height: 0 },
-    isCropping: false,
-    cropOffset: { x: 0, y: 0 },
-    cropScale: 1,
   };
 };
 
+/**
+ * Defaults for every persisted field, and nothing else: the iOS reducer starts
+ * from it and the web form uses it as its default values.
+ */
 export const initialState = createInitialState();
+
+/**
+ * Storage key, persist keys, per-key hydration validators and defaults for
+ * the web form, which hydrates field by field (a bad field falls back on its
+ * own). The defaults hold exactly the persisted fields.
+ */
+export const borderCalculatorPersistence = definePersistedCalculator(
+  BORDER_CALCULATOR_STORAGE_KEY,
+  persistedBorderCalculatorFieldSchemas,
+  initialState
+);
 
 function reducer(
   state: BorderCalculatorState,
@@ -123,23 +129,8 @@ function reducer(
     case 'SET_ASPECT_RATIO':
       return { ...state, aspectRatio: action.value, isRatioFlipped: false };
 
-    case 'SET_IMAGE_FIELD':
-      return { ...state, [action.key]: action.value };
-
-    case 'SET_IMAGE_DIMENSIONS':
-      return { ...state, imageDimensions: action.value };
-
-    case 'SET_CROP_OFFSET':
-      return { ...state, cropOffset: action.value };
-
-    case 'SET_IMAGE_CROP_DATA':
-      return { ...state, ...action.payload };
-
     case 'RESET':
       return createInitialState();
-
-    case 'INTERNAL_UPDATE':
-      return { ...state, ...action.payload };
 
     case 'BATCH_UPDATE':
       return { ...state, ...action.payload };
@@ -175,43 +166,44 @@ function reducer(
  */
 export const useBorderCalculatorState = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const storage = usePersistenceStorage();
   const persistTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const persistableState: BorderPresetSettings & Required<PersistedState> =
-    useMemo(
-      () => ({
-        aspectRatio: state.aspectRatio,
-        paperSize: state.paperSize,
-        customAspectWidth: state.customAspectWidth,
-        customAspectHeight: state.customAspectHeight,
-        customPaperWidth: state.customPaperWidth,
-        customPaperHeight: state.customPaperHeight,
-        minBorder: state.minBorder,
-        enableOffset: state.enableOffset,
-        ignoreMinBorder: state.ignoreMinBorder,
-        horizontalOffset: state.horizontalOffset,
-        verticalOffset: state.verticalOffset,
-        showBlades: state.showBlades,
-        showBladeReadings: state.showBladeReadings,
-        isLandscape: state.isLandscape,
-        isRatioFlipped: state.isRatioFlipped,
-        hasManuallyFlippedPaper: state.hasManuallyFlippedPaper,
-        lastValidCustomAspectWidth: state.lastValidCustomAspectWidth,
-        lastValidCustomAspectHeight: state.lastValidCustomAspectHeight,
-        lastValidCustomPaperWidth: state.lastValidCustomPaperWidth,
-        lastValidCustomPaperHeight: state.lastValidCustomPaperHeight,
-        lastValidMinBorder: state.lastValidMinBorder,
-      }),
-      [state]
-    );
+  const persistableState: Required<PersistedState> = useMemo(
+    () => ({
+      aspectRatio: state.aspectRatio,
+      paperSize: state.paperSize,
+      customAspectWidth: state.customAspectWidth,
+      customAspectHeight: state.customAspectHeight,
+      customPaperWidth: state.customPaperWidth,
+      customPaperHeight: state.customPaperHeight,
+      minBorder: state.minBorder,
+      enableOffset: state.enableOffset,
+      ignoreMinBorder: state.ignoreMinBorder,
+      horizontalOffset: state.horizontalOffset,
+      verticalOffset: state.verticalOffset,
+      showBlades: state.showBlades,
+      showBladeReadings: state.showBladeReadings,
+      isLandscape: state.isLandscape,
+      isRatioFlipped: state.isRatioFlipped,
+      hasManuallyFlippedPaper: state.hasManuallyFlippedPaper,
+      lastValidCustomAspectWidth: state.lastValidCustomAspectWidth,
+      lastValidCustomAspectHeight: state.lastValidCustomAspectHeight,
+      lastValidCustomPaperWidth: state.lastValidCustomPaperWidth,
+      lastValidCustomPaperHeight: state.lastValidCustomPaperHeight,
+      lastValidMinBorder: state.lastValidMinBorder,
+    }),
+    [state]
+  );
 
+  // Hydrate once on mount. This reducer path validates the snapshot whole
+  // (see persistedBorderCalculatorSchema) rather than field by field, so it
+  // does not go through usePersistedCalculator, but it uses the same storage.
   useEffect(() => {
-    if (!isBrowser()) return;
-
     try {
-      const raw = window.localStorage.getItem(BORDER_CALCULATOR_STORAGE_KEY);
+      const raw = storage.getItem(BORDER_CALCULATOR_STORAGE_KEY);
       if (!raw) return;
-      removeSupersededStorageKeys(BORDER_CALCULATOR_STORAGE_KEY);
+      removeSupersededStorageKeys(BORDER_CALCULATOR_STORAGE_KEY, storage);
 
       const cached = persistedBorderCalculatorSchema.safeParse(JSON.parse(raw));
       if (cached.success) {
@@ -220,18 +212,17 @@ export const useBorderCalculatorState = () => {
     } catch (error) {
       console.warn('Failed to load calculator state', error);
     }
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- mount-only hydration; the storage provider is fixed for the app's lifetime
   }, []);
 
   useEffect(() => {
-    if (!isBrowser()) return;
-
     if (persistTimeout.current) {
       clearTimeout(persistTimeout.current);
     }
 
     persistTimeout.current = setTimeout(() => {
       try {
-        window.localStorage.setItem(
+        storage.setItem(
           BORDER_CALCULATOR_STORAGE_KEY,
           JSON.stringify(persistableState)
         );
@@ -246,7 +237,7 @@ export const useBorderCalculatorState = () => {
         persistTimeout.current = null;
       }
     };
-  }, [persistableState]);
+  }, [storage, persistableState]);
 
   useEffect(
     () => () => {

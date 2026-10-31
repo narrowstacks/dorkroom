@@ -3,7 +3,7 @@ import {
   RECIPROCITY_STORAGE_KEY,
   reciprocityCalculatorPersistence,
   type ReciprocityFormState,
-  useLocalStorageFormPersistence,
+  usePersistedCalculator,
 } from '@dorkroom/logic';
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -29,15 +29,13 @@ const hydrate = (stored: Partial<Record<string, PersistedValue>>) => {
   const values: ReciprocityFormState = { ...DEFAULTS };
 
   renderHook(() =>
-    useLocalStorageFormPersistence({
-      ...reciprocityCalculatorPersistence,
+    usePersistedCalculator(reciprocityCalculatorPersistence, {
       form: {
         setFieldValue: (key, value) => {
           Object.assign(values, { [key]: value });
         },
       },
-      formValues: values,
-      disablePersistence: true,
+      values,
     })
   );
 
@@ -133,5 +131,9 @@ describe('reciprocityHydrationValidators (issue #239)', () => {
     expect(values.filmType).toBe(DEFAULTS.filmType);
     expect(values.meteredTime).toBe(DEFAULTS.meteredTime);
     expect(values.customFactor).toBe(1.45);
+  });
+
+  it('bundles the form defaults the page starts from and resets to', () => {
+    expect(reciprocityCalculatorPersistence.defaults).toEqual(DEFAULTS);
   });
 });

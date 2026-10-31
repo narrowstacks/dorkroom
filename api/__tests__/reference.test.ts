@@ -39,6 +39,6 @@ describe('reference endpoint', () => {
     handler(req, res);
 
     expect(res._status).toBe(405);
-    expect(res._headers.allow).toBe('GET');
+    expect(res._headers.allow).toBe('GET, OPTIONS');
   });
 });
