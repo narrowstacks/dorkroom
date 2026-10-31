@@ -54,7 +54,8 @@ export type HomeLinkTarget =
     }
   | { to: '/exposure'; search: LinkSearch<typeof CAMERA_EXPOSURE_LINK_PARAMS> }
   | { to: '/development'; search: DevelopmentLinkSearch }
-  | { to: '/films'; search: { film?: string } };
+  | { to: '/films'; search: { film?: string } }
+  | { to: '/negative-inverter'; search: Record<string, never> };
 
 /** Every route the home search can point at. */
 export type HomeToolRoute = HomeLinkTarget['to'];

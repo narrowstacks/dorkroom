@@ -21,6 +21,18 @@ const TOOL_WORDS = {
   '/lenses': ['lens', 'lenses', 'equivalent', 'equivalency', 'crop', 'focal'],
   '/exposure': ['exposure', 'camera', 'aperture', 'shutter', 'ev', 'meter'],
   '/films': ['films', 'film', 'stock', 'stocks', 'database', 'brand'],
+  '/negative-inverter': [
+    'invert',
+    'inverter',
+    'inversion',
+    'negative',
+    'negatives',
+    'positive',
+    'scan',
+    'scanning',
+    'digitize',
+    'convert',
+  ],
 } as const satisfies Record<HomeToolRoute, readonly string[]>;
 
 // SAFETY: TOOL_WORDS is a Record over exactly HomeToolRoute; Object.keys

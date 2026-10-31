@@ -860,6 +860,9 @@ describe('searchHome', () => {
       ['lenses', '/lenses'],
       ['exposure', '/exposure'],
       ['films', '/films'],
+      ['negative inverter', '/negative-inverter'],
+      ['invert', '/negative-inverter'],
+      ['scan negatives', '/negative-inverter'],
     ])('finds the %s tool by its name', (query, route) => {
       const tools = searchHome(query, FIXTURE_DATA).groups.find(
         (g) => g.key === 'tools'
