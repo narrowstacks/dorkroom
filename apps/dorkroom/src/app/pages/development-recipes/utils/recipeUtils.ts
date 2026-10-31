@@ -1,4 +1,4 @@
-import type { CustomRecipeFormData } from '@dorkroom/logic';
+import type { CustomRecipe, CustomRecipeFormData } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 
 /**
@@ -24,38 +24,25 @@ export const CUSTOM_RECIPE_FORM_DEFAULT: CustomRecipeFormData = {
   isFavorite: false,
 };
 
-const CUSTOM_FILM_PREFIX = 'custom_film_';
-const CUSTOM_DEVELOPER_PREFIX = 'custom_dev_';
-
-/**
- * Whether a view's film is the user's own. The view carries no flag, but
- * `getCustomRecipeFilm` builds a `custom_film_<recipeId>` entity exactly when
- * the stored `isCustomFilm` flag is set, so that entity is the flag. The
- * combination's `filmStockId` prefix is the fallback for old data. The stored
- * id alone cannot decide: recipes saved before #510 can hold a catalogue uuid
- * with `isCustomFilm: true`.
- */
-export const isCustomFilmView = (view: DevelopmentCombinationView): boolean =>
-  Boolean(view.film?.uuid.startsWith(CUSTOM_FILM_PREFIX)) ||
-  view.combination.filmStockId.startsWith(CUSTOM_FILM_PREFIX);
-
-/** Developer counterpart of {@link isCustomFilmView}. */
-export const isCustomDeveloperView = (
-  view: DevelopmentCombinationView
-): boolean =>
-  Boolean(view.developer?.uuid.startsWith(CUSTOM_DEVELOPER_PREFIX)) ||
-  view.combination.developerId.startsWith(CUSTOM_DEVELOPER_PREFIX);
-
 /**
  * Converts a DevelopmentCombinationView to CustomRecipeFormData
- * Used when editing an existing recipe
+ * Used when editing an existing recipe. Pass the stored record when there is
+ * one so its custom flags decide custom-ness.
  */
 export const convertRecipeToFormData = (
-  view: DevelopmentCombinationView
+  view: DevelopmentCombinationView,
+  stored?: CustomRecipe
 ): CustomRecipeFormData => {
   const combination = view.combination;
-  const isCustomFilm = isCustomFilmView(view);
-  const isCustomDeveloper = isCustomDeveloperView(view);
+  // The stored flags decide, never the id: recipes saved before #510 can hold
+  // a catalogue uuid with `isCustomFilm: true`. The id prefix is only the
+  // fallback when there is no stored record to ask.
+  const isCustomFilm = stored
+    ? stored.isCustomFilm
+    : combination.filmStockId.startsWith('custom_film_');
+  const isCustomDeveloper = stored
+    ? stored.isCustomDeveloper
+    : combination.developerId.startsWith('custom_dev_');
 
   return {
     name: combination.name || '',

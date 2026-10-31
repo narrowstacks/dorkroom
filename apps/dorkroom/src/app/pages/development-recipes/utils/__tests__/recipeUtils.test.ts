@@ -101,7 +101,8 @@ const storedRecipe = (overrides: Partial<CustomRecipe>): CustomRecipe => ({
 
 describe('convertRecipeToFormData custom flags (#510)', () => {
   it('loads a catalogue recipe as existing film and developer', () => {
-    const form = convertRecipeToFormData(viewOf(storedRecipe({})));
+    const recipe = storedRecipe({});
+    const form = convertRecipeToFormData(viewOf(recipe), recipe);
     expect(form.useExistingFilm).toBe(true);
     expect(form.selectedFilmId).toBe('film-uuid');
     expect(form.useExistingDeveloper).toBe(true);
@@ -109,18 +110,15 @@ describe('convertRecipeToFormData custom flags (#510)', () => {
   });
 
   it('loads a prefixed custom recipe as custom', () => {
-    const form = convertRecipeToFormData(
-      viewOf(
-        storedRecipe({
-          filmId: 'custom_film_9',
-          developerId: 'custom_dev_9',
-          isCustomFilm: true,
-          isCustomDeveloper: true,
-          customFilm,
-          customDeveloper,
-        })
-      )
-    );
+    const recipe = storedRecipe({
+      filmId: 'custom_film_9',
+      developerId: 'custom_dev_9',
+      isCustomFilm: true,
+      isCustomDeveloper: true,
+      customFilm,
+      customDeveloper,
+    });
+    const form = convertRecipeToFormData(viewOf(recipe), recipe);
     expect(form.useExistingFilm).toBe(false);
     expect(form.customFilm?.name).toBe('Brew');
     expect(form.useExistingDeveloper).toBe(false);
@@ -128,16 +126,13 @@ describe('convertRecipeToFormData custom flags (#510)', () => {
   });
 
   it('trusts the flag over the id for the already-broken stored shape', () => {
-    const form = convertRecipeToFormData(
-      viewOf(
-        storedRecipe({
-          isCustomFilm: true,
-          isCustomDeveloper: true,
-          customFilm,
-          customDeveloper,
-        })
-      )
-    );
+    const recipe = storedRecipe({
+      isCustomFilm: true,
+      isCustomDeveloper: true,
+      customFilm,
+      customDeveloper,
+    });
+    const form = convertRecipeToFormData(viewOf(recipe), recipe);
     expect(form.useExistingFilm).toBe(false);
     expect(form.selectedFilmId).toBe('');
     expect(form.customFilm?.name).toBe('Brew');
@@ -145,7 +140,7 @@ describe('convertRecipeToFormData custom flags (#510)', () => {
     expect(form.customDeveloper?.name).toBe('Soup');
   });
 
-  it('falls back to the id prefix when a view has no entities', () => {
+  it('falls back to the id prefix when there is no stored record', () => {
     const recipe = storedRecipe({
       filmId: 'custom_film_9',
       developerId: 'custom_dev_9',
@@ -171,7 +166,7 @@ describe('editing a custom recipe twice keeps the custom film (#510)', () => {
 
     // First edit: switch to a custom film and developer.
     const switched: CustomRecipeFormData = {
-      ...convertRecipeToFormData(viewOf(created)),
+      ...convertRecipeToFormData(viewOf(created), created),
       useExistingFilm: false,
       selectedFilmId: '',
       customFilm,
@@ -182,7 +177,7 @@ describe('editing a custom recipe twice keeps the custom film (#510)', () => {
     const afterFirst = store.update(created.id, switched);
 
     // Second edit: open the form and save without changes.
-    const reopened = convertRecipeToFormData(viewOf(afterFirst));
+    const reopened = convertRecipeToFormData(viewOf(afterFirst), afterFirst);
     expect(reopened.useExistingFilm).toBe(false);
     expect(reopened.useExistingDeveloper).toBe(false);
     const afterSecond = store.update(created.id, reopened);
@@ -204,13 +199,15 @@ describe('editing a custom recipe twice keeps the custom film (#510)', () => {
     const store = createCustomRecipeStore(createMemoryRecipeAdapter([broken]));
     const saved = store.update(
       broken.id,
-      convertRecipeToFormData(viewOf(broken))
+      convertRecipeToFormData(viewOf(broken), broken)
     );
 
     expect(saved.filmId).toMatch(/^custom_film_/);
     expect(saved.developerId).toMatch(/^custom_dev_/);
     expect(saved.customFilm?.name).toBe('Brew');
     // And it keeps loading as custom afterwards.
-    expect(convertRecipeToFormData(viewOf(saved)).useExistingFilm).toBe(false);
+    expect(convertRecipeToFormData(viewOf(saved), saved).useExistingFilm).toBe(
+      false
+    );
   });
 });
