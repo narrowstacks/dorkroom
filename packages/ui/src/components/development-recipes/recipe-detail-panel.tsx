@@ -1,8 +1,8 @@
-import type { Dilution } from '@dorkroom/api';
 import {
   calculatePushPull,
   type DevelopmentCombinationView,
   formatTemperatureWithUnit,
+  getCombinationDilution,
   isFilmDevOrgUrl,
 } from '@dorkroom/logic';
 import { ExternalLink, Star } from 'lucide-react';
@@ -48,15 +48,7 @@ export interface RecipeDetailPanelProps {
 /** Resolve the human-readable dilution label for a recipe view. */
 function getDilutionLabel(view: DevelopmentCombinationView): string {
   const { combination, developer } = view;
-  return (
-    combination.customDilution ||
-    (developer && combination.dilutionId
-      ? developer.dilutions.find(
-          (d: Dilution) => String(d.id) === String(combination.dilutionId)
-        )?.dilution
-      : undefined) ||
-    'Stock'
-  );
+  return getCombinationDilution(combination, developer);
 }
 
 interface FilmCollapsibleSectionProps {

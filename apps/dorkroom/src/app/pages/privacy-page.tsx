@@ -74,6 +74,13 @@ const TRACKED_EVENTS: TrackedEvent[] = [
       'Which page, and how many filters were active. Never the search text.',
   },
   {
+    name: 'home_search',
+    fires:
+      'A search on the home page settles (once per search, not per keystroke).',
+    records:
+      'What kind of answer it showed (a recipe, a calculator, a list of matches, or nothing) and how many matches it listed. Never the search text.',
+  },
+  {
     name: 'detail_opened',
     fires: 'You open a film or recipe detail view.',
     records: 'Whether it was a film or a recipe.',

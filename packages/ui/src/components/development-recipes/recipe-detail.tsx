@@ -1,8 +1,8 @@
-import type { Dilution } from '@dorkroom/api';
 import {
   calculatePushPull,
   type DevelopmentCombinationView,
   formatTemperatureWithUnit,
+  getCombinationDilution,
   isFilmDevOrgUrl,
 } from '@dorkroom/logic';
 import { Edit2, ExternalLink, Share2, Star, Trash2 } from 'lucide-react';
@@ -54,14 +54,7 @@ export function DevelopmentRecipeDetail({
     : (combination.pushPull ?? 0);
 
   // Get dilution label for volume mixer
-  const dilutionLabel =
-    combination.customDilution ||
-    (developer && combination.dilutionId
-      ? developer.dilutions.find(
-          (d: Dilution) => String(d.id) === String(combination.dilutionId)
-        )?.dilution
-      : undefined) ||
-    'Stock';
+  const dilutionLabel = getCombinationDilution(combination, developer);
 
   return (
     <div className="space-y-5 text-sm">

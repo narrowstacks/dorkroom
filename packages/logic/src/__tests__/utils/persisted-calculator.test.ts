@@ -119,7 +119,7 @@ describe('definePersistedCalculator', () => {
 
   it('can express the border calculator field map', async () => {
     const { initialState, persistedBorderCalculatorFieldSchemas } =
-      await import('../../hooks/border-calculator/use-border-calculator-state');
+      await import('../../schemas/border-calculator-persistence');
     const border = definePersistedCalculator(
       'border',
       persistedBorderCalculatorFieldSchemas,

@@ -1,3 +1,4 @@
+import { officialTagMaker } from '@dorkroom/logic';
 import { Beaker, Check } from 'lucide-react';
 import { useCallback, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -20,12 +21,7 @@ interface TooltipPosition {
 
 // eslint-disable-next-line react-doctor/only-export-components -- tag-classification helper colocated with the badge it gates; consumers import it from this module and moving it is out of scope here
 export function isOfficialTag(tag: string): boolean {
-  return tag.startsWith('official-');
-}
-
-function getManufacturerFromTag(tag: string): string {
-  const name = tag.replace('official-', '');
-  return name.charAt(0).toUpperCase() + name.slice(1);
+  return officialTagMaker(tag) !== null;
 }
 
 function usePortalTooltip() {
@@ -80,7 +76,7 @@ function PortalTooltip({
 
 export function OfficialBadge({ tag, showTooltip = true }: OfficialBadgeProps) {
   const themeStyle = getTagThemeStyle(tag);
-  const manufacturer = getManufacturerFromTag(tag);
+  const manufacturer = officialTagMaker(tag) ?? tag;
   const tooltipText = `Official ${manufacturer} Recipe`;
   const { ref, pos, show, hide, tooltipId } = usePortalTooltip();
 

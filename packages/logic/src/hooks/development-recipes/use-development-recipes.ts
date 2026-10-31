@@ -1,9 +1,10 @@
-import type { Combination, Developer, Dilution, Film } from '@dorkroom/api';
+import type { Combination, Developer, Film } from '@dorkroom/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { queryKeys } from '../../queries/query-keys';
 import type { CustomRecipeFilter } from '../../schemas/development-recipes.schema';
 import type { InitialUrlState } from '../../types/development-recipes-url';
+import { getCombinationDilution } from '../../utils/combination-dilution';
 import { debugError, debugLog } from '../../utils/debug-logger';
 import {
   buildFilmSlugIndex,
@@ -365,18 +366,7 @@ export const useDevelopmentRecipes = (
     );
 
     combinations.forEach((combo) => {
-      // Handle null/undefined dilutionId by using null-safe lookup
-      const foundDilution = combo.dilutionId
-        ? selectedDeveloper.dilutions?.find(
-            (d: Dilution) => d.id === combo.dilutionId
-          )
-        : null;
-
-      // Priority: customDilution > developer dilution lookup > fallback to 'Stock'
-      const dilutionInfo =
-        combo.customDilution?.trim() ||
-        foundDilution?.dilution?.trim() ||
-        'Stock';
+      const dilutionInfo = getCombinationDilution(combo, selectedDeveloper);
 
       if (dilutionInfo) {
         dilutionSet.add(dilutionInfo);
@@ -557,18 +547,7 @@ export const useDevelopmentRecipes = (
     // Filter by dilution
     if (dilutionFilter && selectedDeveloper) {
       combinations = combinations.filter((combo) => {
-        // Handle null/undefined dilutionId by using null-safe lookup
-        const foundDilution = combo.dilutionId
-          ? selectedDeveloper.dilutions?.find(
-              (d: Dilution) => d.id === combo.dilutionId
-            )
-          : null;
-
-        // Priority: customDilution > developer dilution lookup > fallback to 'Stock'
-        const dilutionInfo =
-          combo.customDilution?.trim() ||
-          foundDilution?.dilution?.trim() ||
-          'Stock';
+        const dilutionInfo = getCombinationDilution(combo, selectedDeveloper);
 
         return dilutionInfo.toLowerCase() === dilutionFilter.toLowerCase();
       });
@@ -598,13 +577,7 @@ export const useDevelopmentRecipes = (
       combinations = combinations.filter((combo) => {
         const film = getFilmById(combo.filmStockId);
         const dev = getDeveloperById(combo.developerId);
-        const foundDilution = combo.dilutionId
-          ? dev?.dilutions?.find((d: Dilution) => d.id === combo.dilutionId)
-          : null;
-        const dilutionLabel =
-          combo.customDilution?.trim() ||
-          foundDilution?.dilution?.trim() ||
-          'Stock';
+        const dilutionLabel = getCombinationDilution(combo, dev);
         const haystack = [
           film ? `${film.brand} ${film.name}` : '',
           dev ? `${dev.manufacturer} ${dev.name}` : '',
