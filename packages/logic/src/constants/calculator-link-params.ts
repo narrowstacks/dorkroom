@@ -16,8 +16,8 @@ import type { CalculatorLinkParamMap } from '../utils/calculator-url-params';
  */
 
 /**
- * Border calculator. Lengths are inches. The names stay clear of `preset`,
- * which carries a shared preset.
+ * Border calculator. Lengths and offsets are inches. The names stay clear of
+ * `preset`, which carries a shared preset.
  */
 export const BORDER_CALCULATOR_LINK_PARAMS = {
   paper: 'paperSize',
@@ -29,6 +29,10 @@ export const BORDER_CALCULATOR_LINK_PARAMS = {
   border: 'minBorder',
   landscape: 'isLandscape',
   flip: 'isRatioFlipped',
+  offsets: 'enableOffset',
+  offsetH: 'horizontalOffset',
+  offsetV: 'verticalOffset',
+  ignoreMin: 'ignoreMinBorder',
 } as const satisfies CalculatorLinkParamMap;
 
 /** Stops calculator: the original time in seconds and the stops to add. */

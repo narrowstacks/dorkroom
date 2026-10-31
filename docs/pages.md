@@ -492,7 +492,8 @@ does. `landscape` pins the paper orientation, as Flip Paper does, even for
 custom paper. A link that sets the paper (`paper`, `paperW` or `paperH`)
 without `landscape` orients it the way picking that paper in the form does:
 landscape for a standard size, and from the width and height for custom
-paper.
+paper. `offsetH` or `offsetV` turns offsets on (unless `offsets=false`), and a
+link that sets the paper or ratio without any offset param centres the print.
 
 Lengths are inches and times are seconds, as the calculators store them,
 whatever unit the viewer has picked in `/settings`. Numbers accept a comma
@@ -510,6 +511,10 @@ decimal (`12,5`) or a simple fraction (`1/125`, `-1/3`). Booleans accept `true`,
 |                | `border`       | Minimum border            | inches                                                    |
 |                | `landscape`    | Landscape paper           | boolean                                                   |
 |                | `flip`         | Flip the aspect ratio     | boolean                                                   |
+|                | `offsets`      | Offsets on                | boolean                                                   |
+|                | `offsetH`      | Horizontal offset         | inches, -3 to 3                                           |
+|                | `offsetV`      | Vertical offset           | inches, -3 to 3                                           |
+|                | `ignoreMin`    | Offsets may cross the minimum border | boolean                                        |
 | `/stops`       | `time`         | Original time             | seconds                                                   |
 |                | `stops`        | Stops to add              | number (negative removes)                                 |
 | `/resize`      | `height`       | Enlarger height mode      | boolean                                                   |

@@ -9,6 +9,7 @@ import {
   RECIPROCITY_CALCULATOR_LINK_PARAMS,
   RESIZE_CALCULATOR_LINK_PARAMS,
 } from '../../constants/calculator-link-params';
+import { borderCalculatorLink } from '../../hooks/border-calculator/use-border-calculator-state';
 import { cameraExposureLink } from '../../schemas/camera-exposure-calculator.schema';
 import { lensCalculatorLink } from '../../schemas/lens-calculator.schema';
 import { matCalculatorLink } from '../../schemas/mat-calculator.schema';
@@ -193,6 +194,10 @@ describe('calculator link param names', () => {
         'border',
         'landscape',
         'flip',
+        'offsets',
+        'offsetH',
+        'offsetV',
+        'ignoreMin',
       ],
     ],
     ['stops', EXPOSURE_CALCULATOR_LINK_PARAMS, ['time', 'stops']],
@@ -230,6 +235,21 @@ describe('calculator link param names', () => {
     ],
   ] as const)('%s', (_route, params, names) => {
     expect(Object.keys(params)).toEqual(names);
+  });
+
+  it('reads border offsets within the slider bounds', () => {
+    expect(
+      borderCalculatorLink.read({
+        offsetH: '1.5',
+        offsetV: '-4',
+        offsets: 'true',
+        ignoreMin: '1',
+      })
+    ).toEqual({
+      horizontalOffset: 1.5,
+      enableOffset: true,
+      ignoreMinBorder: true,
+    });
   });
 
   it('keeps the border link clear of the shared-preset param', () => {

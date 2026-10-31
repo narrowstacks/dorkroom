@@ -478,6 +478,57 @@ describe('useBorderCalculatorController link values', () => {
     });
   });
 
+  it('turns offsets on for a link that carries an offset', () => {
+    window.localStorage.setItem(
+      BORDER_CALCULATOR_STORAGE_KEY,
+      JSON.stringify({ enableOffset: false, horizontalOffset: 0 })
+    );
+
+    const { result } = renderWithLink({ horizontalOffset: 1.5 });
+
+    expect(result.current.formValues).toMatchObject({
+      enableOffset: true,
+      horizontalOffset: 1.5,
+    });
+  });
+
+  it('keeps offsets off when the link says so, even with an offset value', () => {
+    const { result } = renderWithLink({
+      enableOffset: false,
+      verticalOffset: -1,
+    });
+
+    expect(result.current.formValues.enableOffset).toBe(false);
+  });
+
+  it('centres a link that sets up the print without offsets, whatever was stored', () => {
+    window.localStorage.setItem(
+      BORDER_CALCULATOR_STORAGE_KEY,
+      JSON.stringify({ enableOffset: true, horizontalOffset: 2 })
+    );
+
+    const { result } = renderWithLink({
+      paperSize: '8x10',
+      aspectRatio: '3:2',
+    });
+
+    expect(result.current.formValues.enableOffset).toBe(false);
+  });
+
+  it("leaves the viewer's offsets alone for a link that only sets the border", () => {
+    window.localStorage.setItem(
+      BORDER_CALCULATOR_STORAGE_KEY,
+      JSON.stringify({ enableOffset: true, horizontalOffset: 2 })
+    );
+
+    const { result } = renderWithLink({ minBorder: 0.75 });
+
+    expect(result.current.formValues).toMatchObject({
+      enableOffset: true,
+      horizontalOffset: 2,
+    });
+  });
+
   it('orients link standard paper as landscape, as picking it in the form does', () => {
     window.localStorage.setItem(
       BORDER_CALCULATOR_STORAGE_KEY,

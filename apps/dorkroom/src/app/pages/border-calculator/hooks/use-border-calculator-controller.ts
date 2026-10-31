@@ -65,6 +65,19 @@ function borderLinkOverrides(
     const value = link[field];
     if (value !== undefined) overrides[mirror] = value;
   }
+  // An offset in the link turns offsets on; a link that sets up the print
+  // (paper or ratio) without one centres it, whatever the viewer had stored.
+  if (overrides.enableOffset === undefined) {
+    const setsOffset =
+      link.horizontalOffset !== undefined || link.verticalOffset !== undefined;
+    const setsPrint =
+      link.paperSize !== undefined ||
+      link.customPaperWidth !== undefined ||
+      link.customPaperHeight !== undefined ||
+      link.aspectRatio !== undefined;
+    if (setsOffset) overrides.enableOffset = true;
+    else if (setsPrint) overrides.enableOffset = false;
+  }
   if (link.isLandscape !== undefined) {
     return { ...overrides, hasManuallyFlippedPaper: true };
   }
