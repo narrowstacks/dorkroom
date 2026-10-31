@@ -1,13 +1,15 @@
+import { EXPOSURE_CALCULATOR_LINK_PARAMS } from '@dorkroom/logic';
 import { ROUTE_DESCRIPTIONS, ROUTE_TITLES } from '@dorkroom/ui';
 import { createFileRoute } from '@tanstack/react-router';
-import { lazy, Suspense } from 'react';
-import { LoadingSpinner } from '../components/loading-spinner';
+import { lazy } from 'react';
+import { calculatorRoute } from '../components/calculator-route';
 
 const ExposureCalculatorPage = lazy(
   () => import('../app/pages/exposure-calculator/exposure-calculator-page')
 );
 
 export const Route = createFileRoute('/stops')({
+  ...calculatorRoute(EXPOSURE_CALCULATOR_LINK_PARAMS, ExposureCalculatorPage),
   head: () => ({
     meta: [
       { title: `${ROUTE_TITLES['/stops']} - Dorkroom` },
@@ -16,9 +18,4 @@ export const Route = createFileRoute('/stops')({
       { property: 'og:description', content: ROUTE_DESCRIPTIONS['/stops'] },
     ],
   }),
-  component: () => (
-    <Suspense fallback={<LoadingSpinner />}>
-      <ExposureCalculatorPage />
-    </Suspense>
-  ),
 });

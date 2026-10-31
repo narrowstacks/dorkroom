@@ -1,5 +1,6 @@
 import {
   formatFocalLength,
+  lensCalculatorLink,
   SENSOR_FORMATS,
   useLensCalculator,
 } from '@dorkroom/logic';
@@ -20,6 +21,7 @@ import {
 } from '@dorkroom/ui/calculator';
 import { ArrowRightLeft } from 'lucide-react';
 import { type FC, useCallback } from 'react';
+import type { CalculatorLinkProps } from '../../../components/calculator-route';
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
 
@@ -91,7 +93,10 @@ const FOCAL_LENGTH_PRESETS = [
 ];
 
 // eslint-disable-next-line react-doctor/no-giant-component -- size is dominated by the inline How-it-works info section and the results card; a results-card extraction stays deferred to avoid regression risk on this flagship page
-export default function LensCalculatorPage() {
+export default function LensCalculatorPage({
+  linkSearch,
+}: CalculatorLinkProps<typeof lensCalculatorLink>) {
+  const linkOverrides = lensCalculatorLink.read(linkSearch ?? {});
   useCalculatorAnalytics({ tool: 'lenses' });
 
   const {
@@ -102,7 +107,7 @@ export default function LensCalculatorPage() {
     swapFormats,
     reset,
     calculation,
-  } = useLensCalculator();
+  } = useLensCalculator({ overrides: linkOverrides });
 
   // The focal length itself is the preset identity, and it is one of our own
   // constants rather than anything the user typed.

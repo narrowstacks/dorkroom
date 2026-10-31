@@ -1,3 +1,4 @@
+import { borderCalculatorLink } from '@dorkroom/logic';
 import {
   BorderCalculatorProvider,
   getEaselBladeReadings,
@@ -5,11 +6,16 @@ import {
   ResponsiveBorderLayout,
 } from '@dorkroom/ui/border-calculator';
 import { ResultAnnouncer, spokenLength } from '@dorkroom/ui/calculator';
+import type { CalculatorLinkProps } from '../../../components/calculator-route';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
 import { useBorderCalculatorController } from './hooks/use-border-calculator-controller';
 
-export default function BorderCalculatorPage() {
-  const { isDesktop, ...contextValue } = useBorderCalculatorController();
+export default function BorderCalculatorPage({
+  linkSearch,
+}: CalculatorLinkProps<typeof borderCalculatorLink>) {
+  const linkOverrides = borderCalculatorLink.read(linkSearch ?? {});
+  const { isDesktop, ...contextValue } =
+    useBorderCalculatorController(linkOverrides);
 
   // The offsets toggle is the calculator's mode: with it off every border is
   // the same width, with it on the print is deliberately shifted on the paper.

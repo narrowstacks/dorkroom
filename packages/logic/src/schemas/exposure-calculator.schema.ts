@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { EXPOSURE_CALCULATOR_LINK_PARAMS } from '../constants/calculator-link-params';
 import {
   DEFAULT_EXPOSURE_ORIGINAL_TIME,
   DEFAULT_EXPOSURE_STOPS,
@@ -7,6 +8,7 @@ import {
   EXPOSURE_STORAGE_KEY,
   type ExposureFormState,
 } from '../types/exposure-calculator';
+import { defineCalculatorLink } from '../utils/calculator-url-params';
 import { definePersistedCalculator } from '../utils/persisted-calculator';
 import { exposureTimeValidator, stopsValidator } from './validators';
 
@@ -41,4 +43,10 @@ export const exposureCalculatorPersistence = definePersistedCalculator(
   EXPOSURE_STORAGE_KEY,
   exposureCalculatorFieldSchemas,
   EXPOSURE_FORM_DEFAULTS
+);
+
+/** Link that opens the stops calculator pre-filled (params: `EXPOSURE_CALCULATOR_LINK_PARAMS`). */
+export const exposureCalculatorLink = defineCalculatorLink(
+  exposureCalculatorPersistence,
+  EXPOSURE_CALCULATOR_LINK_PARAMS
 );

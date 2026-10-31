@@ -1,13 +1,15 @@
+import { MAT_CALCULATOR_LINK_PARAMS } from '@dorkroom/logic';
 import { ROUTE_DESCRIPTIONS, ROUTE_TITLES } from '@dorkroom/ui';
 import { createFileRoute } from '@tanstack/react-router';
-import { lazy, Suspense } from 'react';
-import { LoadingSpinner } from '../components/loading-spinner';
+import { lazy } from 'react';
+import { calculatorRoute } from '../components/calculator-route';
 
 const MatCalculatorPage = lazy(
   () => import('../app/pages/mat-calculator/mat-calculator-page')
 );
 
 export const Route = createFileRoute('/mat')({
+  ...calculatorRoute(MAT_CALCULATOR_LINK_PARAMS, MatCalculatorPage),
   head: () => ({
     meta: [
       { title: `${ROUTE_TITLES['/mat']} - Dorkroom` },
@@ -16,9 +18,4 @@ export const Route = createFileRoute('/mat')({
       { property: 'og:description', content: ROUTE_DESCRIPTIONS['/mat'] },
     ],
   }),
-  component: () => (
-    <Suspense fallback={<LoadingSpinner />}>
-      <MatCalculatorPage />
-    </Suspense>
-  ),
 });

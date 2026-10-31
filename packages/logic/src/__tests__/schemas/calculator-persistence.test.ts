@@ -111,10 +111,10 @@ describe('calculator persistence contract', () => {
       expected: T
     ) => {
       expect(definition.defaults).toEqual(expected);
-      // Validate the defaults as they would come back out of storage.
-      const stored = persistedSnapshotSchema.parse(
-        JSON.parse(JSON.stringify(definition.defaults))
-      );
+      // Validate the defaults as they would come back out of storage: written
+      // as JSON, then read back.
+      const written = JSON.stringify(definition.defaults);
+      const stored = persistedSnapshotSchema.parse(JSON.parse(written));
       for (const key of definition.persistKeys) {
         expect(
           definition.validators[key].validate(stored[key]),

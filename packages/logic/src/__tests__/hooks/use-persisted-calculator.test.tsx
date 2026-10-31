@@ -165,6 +165,109 @@ describe('usePersistedCalculator', () => {
     });
   });
 
+  describe('overrides', () => {
+    const renderWithOverrides = (
+      overrides: Partial<State>,
+      onHydrated?: (loaded: Partial<State>) => void
+    ) =>
+      renderHook(
+        () => {
+          const [values, setValues] = useState<State>(DEFAULTS);
+          usePersistedCalculator(definition, {
+            values,
+            setValues,
+            overrides,
+            onHydrated,
+          });
+          return values;
+        },
+        { wrapper: withStorage(storage) }
+      );
+
+    it('win over the stored values they name, and keep the rest', () => {
+      storage.setItem(KEY, JSON.stringify({ time: 42, mode: 'b', label: 'x' }));
+      const { result } = renderWithOverrides({ time: 80 });
+      expect(result.current).toEqual({
+        ...DEFAULTS,
+        time: 80,
+        mode: 'b',
+        label: 'x',
+      });
+    });
+
+    it('apply when nothing is stored, and then persist', () => {
+      vi.useFakeTimers();
+      const { result } = renderWithOverrides({ mode: 'b' });
+      expect(result.current).toEqual({ ...DEFAULTS, mode: 'b' });
+
+      act(() => vi.advanceTimersByTime(PERSIST_DEBOUNCE_MS));
+      expect(storage.getItem(KEY)).toBe(
+        JSON.stringify({ time: 10, mode: 'b', label: 'base' })
+      );
+    });
+
+    it('apply over an unreadable snapshot', () => {
+      storage.setItem(KEY, '{not json');
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const { result } = renderWithOverrides({ label: 'link' });
+      expect(result.current).toEqual({ ...DEFAULTS, label: 'link' });
+    });
+
+    it('are reported to onHydrated together with the stored fields', () => {
+      storage.setItem(KEY, JSON.stringify({ time: 20, label: 'stored' }));
+      const onHydrated = vi.fn();
+      const { rerender } = renderWithOverrides(
+        { mode: 'b', time: 5 },
+        onHydrated
+      );
+      rerender();
+      expect(onHydrated).toHaveBeenCalledTimes(1);
+      expect(onHydrated).toHaveBeenCalledWith({
+        time: 5,
+        mode: 'b',
+        label: 'stored',
+      });
+    });
+
+    it('call onHydrated when only overrides apply', () => {
+      const onHydrated = vi.fn();
+      renderWithOverrides({ time: 5 }, onHydrated);
+      expect(onHydrated).toHaveBeenCalledWith({ time: 5 });
+    });
+
+    it('do not call onHydrated when nothing is stored and none apply', () => {
+      const onHydrated = vi.fn();
+      renderWithOverrides({ time: 500 }, onHydrated);
+      expect(onHydrated).not.toHaveBeenCalled();
+    });
+
+    it('drop invalid values and keys the definition does not persist', () => {
+      storage.setItem(KEY, JSON.stringify({ time: 42 }));
+      const invalid: Partial<State> = {
+        time: 500,
+        transient: 'from a link',
+        label: 'ok',
+      };
+      const { result } = renderWithOverrides(invalid);
+      expect(result.current).toEqual({ ...DEFAULTS, time: 42, label: 'ok' });
+    });
+
+    it('are read once: a later change does not re-apply', () => {
+      let overrides: Partial<State> = { time: 5 };
+      const { result, rerender } = renderHook(
+        () => {
+          const [values, setValues] = useState<State>(DEFAULTS);
+          usePersistedCalculator(definition, { values, setValues, overrides });
+          return values;
+        },
+        { wrapper: withStorage(storage) }
+      );
+      overrides = { time: 6 };
+      rerender();
+      expect(result.current.time).toBe(5);
+    });
+  });
+
   describe('persistence', () => {
     it('writes only the persisted keys, in definition order, after the debounce', () => {
       vi.useFakeTimers();

@@ -96,6 +96,18 @@ calculator's schema; the binding is `{ form, values }` for a TanStack Form or
 order are pinned by `__tests__/schemas/calculator-persistence.test.ts` and the
 web hydration tests, because changing either drops users' saved state.
 
+A calculator opens pre-filled from a URL through its link:
+`defineCalculatorLink(definition, PARAMS)` next to the persistence definition,
+with the param map in `constants/calculator-link-params.ts` (no runtime
+imports, so web routes can read it cheaply). `link.read(search)` returns
+validated field values, which go to `usePersistedCalculator` as `overrides`
+(applied once on mount, after the stored snapshot); `link.build(values)` goes
+the other way. A map is flat (one param, one field): a field another field
+must mirror is the calculator's business, as border does in its web
+controller. Param names are pinned by
+`__tests__/utils/calculator-url-params.test.ts`; see the "Link Parameters"
+section of `docs/pages.md`.
+
 The hook reads its storage from `PersistenceStorageProvider`. The iOS app
 provides MMKV once in `app/_layout.tsx`; with no provider it falls back to
 `localStorage`, and a development build warns once if the host has none.

@@ -8,6 +8,7 @@ import { useEffect, useMemo, useReducer, useRef } from 'react';
 import { z } from 'zod';
 import { PAPER_SIZE_MAP } from '../../constants/border-calculator';
 import { BORDER_CALCULATOR_DEFAULTS } from '../../constants/border-calculator-defaults';
+import { BORDER_CALCULATOR_LINK_PARAMS } from '../../constants/calculator-link-params';
 import { BORDER_CALCULATOR_STORAGE_KEY } from '../../constants/storage-keys';
 import { borderPresetSettingsFieldSchemas } from '../../schemas/border-calculator.schema';
 import { removeSupersededStorageKeys } from '../../services/local-storage';
@@ -16,6 +17,7 @@ import type {
   BorderCalculatorState,
 } from '../../types/border-calculator';
 import { computeMaxAllowedMinBorder } from '../../utils/border-calculations';
+import { defineCalculatorLink } from '../../utils/calculator-url-params';
 import { definePersistedCalculator } from '../../utils/persisted-calculator';
 import { usePersistenceStorage } from '../use-persisted-calculator';
 
@@ -95,6 +97,12 @@ export const borderCalculatorPersistence = definePersistedCalculator(
   BORDER_CALCULATOR_STORAGE_KEY,
   persistedBorderCalculatorFieldSchemas,
   initialState
+);
+
+/** Link that opens the border calculator pre-filled (params: `BORDER_CALCULATOR_LINK_PARAMS`). */
+export const borderCalculatorLink = defineCalculatorLink(
+  borderCalculatorPersistence,
+  BORDER_CALCULATOR_LINK_PARAMS
 );
 
 function reducer(

@@ -453,6 +453,104 @@ keeps its default), writes the persisted fields as one JSON object 300ms after
 the last change, and clears the snapshot on reset. Storage comes from
 `PersistenceStorageProvider` (MMKV on iOS) and falls back to `localStorage`.
 
+### Link Parameters
+
+Every calculator in this section can be opened pre-filled from URL search
+params, for example `/lenses?focal=80&from=film-6x6&to=full-frame`. The
+mechanism is shared; per calculator there is a param map plus a line of
+wiring in each of the link, the route and the page:
+
+1. **Param map** (`packages/logic/src/constants/calculator-link-params.ts`):
+   URL param name to the persisted field it sets, such as
+   `LENS_CALCULATOR_LINK_PARAMS = { focal: 'focalLength', ... }`. It has no
+   runtime imports, so routes can use it without pulling calculator code into
+   the entry chunk.
+2. **Link** (next to the persistence definition):
+   `defineCalculatorLink(lensCalculatorPersistence, LENS_CALCULATOR_LINK_PARAMS)`
+   type-checks the field names and gives `read(search)` and `build(values)`.
+3. **Route**: `...calculatorRoute(params, Page)` from
+   `apps/dorkroom/src/components/calculator-route.tsx` in `createFileRoute`.
+   It supplies `validateSearch` (a catch-all object, so other params such as
+   `?preset=` survive) and a component that captures the link's params on
+   mount, passes them to the page as `linkSearch`, and strips them from the
+   URL. A navigation within the route that adds link params is ignored until
+   the page mounts again.
+4. **Page**: typed `CalculatorLinkProps<typeof lensCalculatorLink>`, so a
+   route that hands it another calculator's params fails to compile. It
+   passes `lensCalculatorLink.read(linkSearch ?? {})` as `overrides` to
+   `usePersistedCalculator` (or its logic hook).
+
+The persistence hook applies overrides over the stored snapshot, and they are
+then saved like any edit, so a reload keeps them without re-applying the link.
+Each value is checked by the field's persistence validator; an invalid or
+unknown param is ignored. `link.build(values)` produces the params for a value
+set.
+
+On `/border`, a link renders the same whatever the viewer had stored. Each
+length also sets the `lastValid*` mirror the layout draws from, as editing it
+does. `landscape` pins the paper orientation, as Flip Paper does, even for
+custom paper. A link that sets the paper (`paper`, `paperW` or `paperH`)
+without `landscape` orients it the way picking that paper in the form does:
+landscape for a standard size, and from the width and height for custom
+paper. `offsetH` or `offsetV` turns offsets on (unless `offsets=false`), and a
+link that sets the paper or ratio without any offset param centres the print.
+
+Lengths are inches and times are seconds, as the calculators store them,
+whatever unit the viewer has picked in `/settings`. Numbers accept a comma
+decimal (`12,5`) or a simple fraction (`1/125`, `-1/3`). Booleans accept `true`,
+`false`, `1` or `0`. An empty param (`artW=`) clears a text field, as clearing
+that input does; on `/mat`, empty artwork sizes turn reveal mode off.
+
+| Route          | Param          | Field                     | Value                                                     |
+| -------------- | -------------- | ------------------------- | --------------------------------------------------------- |
+| `/border`      | `paper`        | Paper size                | `8x10`, `11x14`, `5x7`, ..., or `custom`                  |
+|                | `paperW`       | Custom paper width        | inches                                                    |
+|                | `paperH`       | Custom paper height       | inches                                                    |
+|                | `ratio`        | Aspect ratio              | `3:2`, `5:4`, `1:1`, `even-borders`, ..., or `custom`     |
+|                | `ratioW`       | Custom ratio width        | number                                                    |
+|                | `ratioH`       | Custom ratio height       | number                                                    |
+|                | `border`       | Minimum border            | inches                                                    |
+|                | `landscape`    | Landscape paper           | boolean                                                   |
+|                | `flip`         | Flip the aspect ratio     | boolean                                                   |
+|                | `offsets`      | Offsets on                | boolean                                                   |
+|                | `offsetH`      | Horizontal offset         | inches, -3 to 3                                           |
+|                | `offsetV`      | Vertical offset           | inches, -3 to 3                                           |
+|                | `ignoreMin`    | Offsets may cross the minimum border | boolean                                        |
+| `/stops`       | `time`         | Original time             | seconds                                                   |
+|                | `stops`        | Stops to add              | number (negative removes)                                 |
+| `/resize`      | `height`       | Enlarger height mode      | boolean                                                   |
+|                | `fromW`        | Original print width      | inches                                                    |
+|                | `fromL`        | Original print length     | inches                                                    |
+|                | `toW`          | New print width           | inches                                                    |
+|                | `toL`          | New print length          | inches                                                    |
+|                | `fromH`        | Original enlarger height  | inches                                                    |
+|                | `toH`          | New enlarger height       | inches                                                    |
+|                | `time`         | Original time             | seconds                                                   |
+| `/mat`         | `outerW`       | Outer mat width           | inches, decimal or fraction text (`16`, `3 1/2`)          |
+|                | `outerH`       | Outer mat height          | inches                                                    |
+|                | `top`          | Top border                | inches                                                    |
+|                | `bottom`       | Bottom border             | inches                                                    |
+|                | `left`         | Left border               | inches                                                    |
+|                | `right`        | Right border              | inches                                                    |
+|                | `artW`         | Artwork width             | inches                                                    |
+|                | `artH`         | Artwork height            | inches                                                    |
+|                | `reveal`       | Reveal                    | inches                                                    |
+|                | `bottomWeight` | Bottom weighting          | boolean                                                   |
+| `/reciprocity` | `film`         | Film                      | film id (`hp5`, `tri-x`, ...) or `custom`                 |
+|                | `time`         | Metered time              | `30s`, `1m30s`, `2h`, or plain seconds                    |
+|                | `factor`       | Custom reciprocity factor | number                                                    |
+| `/lenses`      | `focal`        | Focal length              | millimetres                                               |
+|                | `from`         | Source format             | format id (`full-frame`, `film-6x6`, `aps-c-canon`, ...) |
+|                | `to`           | Target format             | format id                                                 |
+| `/exposure`    | `aperture`     | Aperture                  | f-number (`5.6`)                                          |
+|                | `shutter`      | Shutter speed             | seconds (`1/125`, `0.5`)                                  |
+|                | `iso`          | ISO                       | number                                                    |
+|                | `solve`        | Value to solve for        | `shutterSpeed`, `aperture` or `iso`                       |
+
+The param names are a public contract (links already shared depend on them)
+and are pinned by
+`packages/logic/src/__tests__/utils/calculator-url-params.test.ts`.
+
 ### Form Validation
 
 All forms use TanStack Form with Zod validation:

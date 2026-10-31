@@ -82,6 +82,8 @@ export interface UseCameraExposureCalculatorReturn {
  * and a comparison exposure (persisted through the storage seam), and derives the EV,
  * equivalent exposures, and the A-vs-B comparison.
  *
+ * @param options - `overrides`: values applied over the stored ones on
+ *   mount, such as a link's (`cameraExposureLink.read`).
  * @example
  * ```tsx
  * const exposure = useCameraExposureCalculator();
@@ -90,7 +92,9 @@ export interface UseCameraExposureCalculatorReturn {
  * return <span>EV {exposure.exposureValue.ev}</span>;
  * ```
  */
-export function useCameraExposureCalculator(): UseCameraExposureCalculatorReturn {
+export function useCameraExposureCalculator(options?: {
+  overrides?: Partial<CameraExposureFormState>;
+}): UseCameraExposureCalculatorReturn {
   const [values, setValues] = useState<CameraExposureFormState>(
     CAMERA_EXPOSURE_DEFAULTS
   );
@@ -116,7 +120,12 @@ export function useCameraExposureCalculator(): UseCameraExposureCalculatorReturn
   const clearPresetNotice = useCallback(() => setLastPresetEv(null), []);
   const { resetToDefaults: reset } = usePersistedCalculator(
     cameraExposurePersistence,
-    { values, setValues, onReset: clearPresetNotice }
+    {
+      values,
+      setValues,
+      onReset: clearPresetNotice,
+      overrides: options?.overrides,
+    }
   );
 
   const applyPreset = useCallback((ev: number) => {
