@@ -27,13 +27,15 @@ export interface CalculatorLink<T extends object, P extends string = string> {
    * The persisted fields a URL's search params set. Each param present is
    * read as a number, a boolean or a string, whichever its field's
    * persistence validator accepts, so the value always has the field's own
-   * type. Unknown params are ignored and invalid values dropped, as
-   * hydration does.
+   * type. An empty param (`artW=`) clears a field whose validator accepts the
+   * empty string, as clearing that input in the form does. Unknown params
+   * are ignored and invalid values dropped, as hydration does.
    */
   read: (search: CalculatorLinkSearch) => Partial<T>;
   /**
    * Search params that `read` turns back into `values`. A field that is
-   * missing, `null` or the empty string gets no param.
+   * missing or `null` gets no param; an empty string gets an empty param, so
+   * a cleared field stays cleared for whoever opens the link.
    */
   build: (values: Partial<T>) => Partial<Record<P, string>>;
 }
@@ -108,8 +110,9 @@ export function defineCalculatorLink<
     const values: Partial<T> = {};
     for (const [param, field] of entries) {
       const text = search[param]?.trim();
-      if (!text) continue;
-      const value = linkValueReadings(text).find(validators[field].validate);
+      if (text === undefined) continue;
+      const readings: PersistedValue[] = text ? linkValueReadings(text) : [''];
+      const value = readings.find(validators[field].validate);
       if (value !== undefined) values[field] = value;
     }
     return values;
@@ -118,7 +121,7 @@ export function defineCalculatorLink<
   const build = (values: Partial<T>) => {
     const search = entries.flatMap(([param, field]) => {
       const value = values[field];
-      return value === undefined || value === null || value === ''
+      return value === undefined || value === null
         ? []
         : [[param, String(value)] as const];
     });

@@ -515,7 +515,8 @@ link that sets the paper or ratio without any offset param centres the print.
 Lengths are inches and times are seconds, as the calculators store them,
 whatever unit the viewer has picked in `/settings`. Numbers accept a comma
 decimal (`12,5`) or a simple fraction (`1/125`, `-1/3`). Booleans accept `true`,
-`false`, `1` or `0`.
+`false`, `1` or `0`. An empty param (`artW=`) clears a text field, as clearing
+that input does; on `/mat`, empty artwork sizes turn reveal mode off.
 
 | Route          | Param          | Field                     | Value                                                     |
 | -------------- | -------------- | ------------------------- | --------------------------------------------------------- |

@@ -77,7 +77,7 @@ describe('defineCalculatorLink', () => {
       expect(signed.read({ stops: '1/2/3' })).toEqual({});
     });
 
-    it('trims values and ignores empty ones', () => {
+    it('trims values, and ignores empty ones for fields that cannot be empty', () => {
       expect(link.read({ t: ' 7 ', label: '  other ' })).toEqual({
         time: 7,
         label: 'other',
@@ -136,7 +136,7 @@ describe('defineCalculatorLink', () => {
       });
     });
 
-    it('skips missing, null and empty values', () => {
+    it('skips missing and null values', () => {
       expect(link.build({})).toEqual({});
       const values: Partial<TestForm> = { time: undefined };
       expect(link.build(values)).toEqual({});
@@ -272,6 +272,23 @@ describe('calculator link param names', () => {
         bottomWeight: true,
       }
     );
+  });
+
+  it('clears a mat input for an empty param, as clearing it in the form does', () => {
+    expect(matCalculatorLink.read({ artW: '', artH: ' ', reveal: '' })).toEqual(
+      {
+        artW: '',
+        artH: '',
+        reveal: '',
+      }
+    );
+  });
+
+  it('keeps cleared mat inputs in the link it builds', () => {
+    const values = { outerW: '16', artW: '', reveal: '' };
+    const search = matCalculatorLink.build(values);
+    expect(search).toEqual({ outerW: '16', artW: '', reveal: '' });
+    expect(matCalculatorLink.read(search)).toEqual(values);
   });
 
   it('reads a reciprocity film id and metered time', () => {
