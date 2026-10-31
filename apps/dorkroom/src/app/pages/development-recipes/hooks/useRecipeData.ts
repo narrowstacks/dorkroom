@@ -87,8 +87,13 @@ function toCombinationOrNull(
 }
 
 /**
- * Every recipe the page can open by id: the filtered API recipes by uuid,
+ * Every recipe the page can open by id: the whole API catalogue by uuid,
  * overlaid with the user's custom recipes by id.
+ *
+ * Built from the unfiltered catalogue on purpose. A recipe link must open
+ * whatever the URL's search or filters are: `?q=<other>&recipe=<uuid>`
+ * excludes that recipe from the filtered list, and resolving against it
+ * meant the link never opened and `recipe=` was dropped (#508).
  *
  * Separate from `useRecipeData` because it depends only on data available
  * before the URL state hook runs, which needs it to resolve a shared recipe
@@ -97,21 +102,20 @@ function toCombinationOrNull(
  * URL hook through state (#288).
  */
 export function useRecipesByUuid(
-  filteredCombinations: Combination[],
+  allCombinations: Combination[],
   customRecipes: CustomRecipe[]
 ): Map<string, Combination> {
-  // Optimize: Split recipe maps to avoid reprocessing custom recipes (which have validation overhead)
-  // when only the filtered API results change, and vice versa.
+  // Split so a catalogue refetch doesn't reprocess custom recipes (which have
+  // validation overhead), and vice versa.
   const apiRecipesMap = useMemo(() => {
     const map = new Map<string, Combination>();
-    // Add API combinations (already filtered upstream)
-    for (const combo of filteredCombinations) {
+    for (const combo of allCombinations) {
       if (combo.uuid) {
         map.set(combo.uuid, combo);
       }
     }
     return map;
-  }, [filteredCombinations]);
+  }, [allCombinations]);
 
   const customRecipesMap = useMemo(() => {
     const map = new Map<string, Combination>();

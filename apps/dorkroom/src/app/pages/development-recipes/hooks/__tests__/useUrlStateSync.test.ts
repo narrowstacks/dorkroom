@@ -170,7 +170,7 @@ function usePageUrlState() {
     useState(false);
 
   const recipesByUuid = useRecipesByUuid(
-    recipes.filteredCombinations,
+    recipes.allCombinations,
     NO_CUSTOM_RECIPES
   );
   const selectedRecipeId =
@@ -473,6 +473,49 @@ describe('development recipes URL → state', () => {
   });
 
   describe('recipe links', () => {
+    // #508 / Codex on #509: the lookup ran against the filtered list, so a
+    // detail URL whose search excludes its own recipe never opened, and the
+    // next write dropped recipe=. Seeding q at mount made that immediate.
+    describe('a recipe the search excludes', () => {
+      const search = `?q=rodinal&recipe=${TRIX_D76.uuid}`;
+
+      const expectOpenAndKept = async (result: {
+        current: ReturnType<typeof usePageUrlState>;
+      }) => {
+        await waitFor(() => expect(result.current.isDetailOpen).toBe(true));
+        expect(result.current.detailView?.combination.uuid).toBe(TRIX_D76.uuid);
+        expect(result.current.recipes.searchQuery).toBe('rodinal');
+        await flushUrlWrites();
+        expect(currentParams().get('recipe')).toBe(TRIX_D76.uuid);
+        expect(currentParams().get('q')).toBe('rodinal');
+      };
+
+      it('opens from a cached catalogue and keeps recipe= in the URL', async () => {
+        const { result } = await openAt(search);
+        expect(result.current.recipes.filteredCombinations).toEqual([]);
+
+        await expectOpenAndKept(result);
+      });
+
+      it('opens once an uncached catalogue arrives', async () => {
+        seedCatalogue(false);
+        vi.stubGlobal('fetch', () => new Promise<never>(() => undefined));
+        window.history.replaceState(null, '', `/development${search}`);
+        const { result } = renderHook(() => usePageUrlState(), { wrapper });
+
+        act(() => {
+          queryClient.setQueryData(['films', 'list'], [HP5, TRI_X]);
+          queryClient.setQueryData(['developers', 'list'], [DDX, D76]);
+          queryClient.setQueryData(
+            ['combinations', 'list'],
+            [HP5_DDX, TRIX_D76]
+          );
+        });
+
+        await expectOpenAndKept(result);
+      });
+    });
+
     // fec7ff5e: a recipe URL without source=share is the canonical address of
     // a detail view (a reload or a bookmark), not somebody else's share.
     it('opens a direct recipe link in the detail panel without counting a share', async () => {

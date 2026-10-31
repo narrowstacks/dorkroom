@@ -68,6 +68,7 @@ export default function DevelopmentRecipesPage() {
     error,
     allFilms,
     allDevelopers,
+    allCombinations,
     filteredCombinations,
     setDeveloperTypeFilter,
     setDilutionFilter,
@@ -165,7 +166,7 @@ export default function DevelopmentRecipesPage() {
     Map<string, 'adding' | 'removing'>
   >(new Map());
 
-  const recipesByUuid = useRecipesByUuid(filteredCombinations, customRecipes);
+  const recipesByUuid = useRecipesByUuid(allCombinations, customRecipes);
 
   // Get the selected recipe ID for URL syncing
   // Only sync API recipes to URL (not custom recipes which use encoded sharing)
