@@ -80,7 +80,7 @@ export const FilterPanelContainer: FC<FilterPanelContainerProps> = ({
             // Border width and style stay inline: a `border` class on a
             // `rounded-xl` element is repainted by the high-contrast theme's
             // `.rounded-xl.border` rule, which would swallow the hover colours.
-            className="flex size-11 items-center justify-center rounded-xl border-secondary bg-surface-muted text-secondary transition-all duration-200 hover:scale-105 hover:border-brand hover:bg-brand hover:text-background"
+            className="flex size-11 items-center justify-center rounded-xl border-secondary bg-surface-muted text-secondary transition-all duration-200 hover:scale-105 hover:border-brand hover:bg-brand hover:text-background darkroom-hover-invert-icon"
             style={{ borderWidth: 1, borderStyle: 'solid' }}
             aria-label="Expand filters"
             title="Expand filters"
@@ -90,7 +90,12 @@ export const FilterPanelContainer: FC<FilterPanelContainerProps> = ({
 
           <div className="relative flex size-11 items-center justify-center">
             <div
-              className="flex size-full items-center justify-center rounded-xl transition-all duration-200"
+              className={cn(
+                'flex size-full items-center justify-center rounded-xl transition-all duration-200',
+                // The darkroom svg rule pins the icon to the brand colour,
+                // which is also its fill while filters are active.
+                hasActiveFilters && 'darkroom-invert-icon'
+              )}
               style={{
                 backgroundColor: hasActiveFilters
                   ? 'var(--color-brand)'

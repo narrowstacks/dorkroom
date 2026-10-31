@@ -426,7 +426,7 @@ const MIGRATED_HOVER_PAIRS: HoverPair[] = [
     foreground: 'text-primary',
   },
   {
-    name: 'confirm cancel',
+    name: 'confirm cancel / searchable select option',
     background: 'bg-hover-surface',
     foreground: 'text-on-hover-surface',
   },

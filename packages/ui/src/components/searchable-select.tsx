@@ -240,20 +240,17 @@ export function SearchableSelect({
                   }}
                   tabIndex={index === focusedIndex ? 0 : -1}
                   className={cn(
-                    'cursor-pointer px-3 py-2 text-sm transition-colors hover:bg-border-muted',
-                    // An arbitrary value, not `bg-border-muted`: the
-                    // high-contrast theme repaints that class as a bordered
-                    // white panel, which the inline style used to sidestep.
-                    (index === focusedIndex || item.value === selectedValue) &&
-                      'bg-[color:var(--color-border-muted)]'
+                    'cursor-pointer px-3 py-2 text-sm transition-colors',
+                    // Hover, focus and selection share one surface pair. The
+                    // monochrome themes collapse the border and text tokens to
+                    // one value, so these per-theme tokens (guarded by
+                    // hover-contrast.test.ts) keep the label readable. Colour
+                    // lives in classes, not inline style, so `hover:` can win.
+                    index === focusedIndex || item.value === selectedValue
+                      ? 'bg-hover-surface text-on-hover-surface'
+                      : 'text-secondary hover:bg-hover-surface hover:text-on-hover-surface',
+                    item.value === selectedValue ? 'font-medium' : 'font-normal'
                   )}
-                  style={{
-                    color:
-                      item.value === selectedValue
-                        ? 'var(--color-text-primary)'
-                        : 'var(--color-text-secondary)',
-                    fontWeight: item.value === selectedValue ? '500' : 'normal',
-                  }}
                 >
                   {item.label}
                 </div>
