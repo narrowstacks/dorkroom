@@ -15,6 +15,7 @@ Routes use TanStack Router file-based routing in `apps/dorkroom/src/routes/`.
 | `/mat` | Mat Cut Calculator | Printing | Implemented |
 | `/reciprocity` | Reciprocity Calculator | Film | Implemented |
 | `/development` | Film Development Recipes | Film | Implemented |
+| `/negative-inverter` | Negative Inverter | Film | Implemented (Phase 1, web MVP) |
 | `/lenses` | Lens Equivalency Calculator | Camera | Implemented |
 | `/exposure` | Camera Exposure Calculator | Camera | Implemented |
 | `/films` | Film Database | Reference | Implemented |
@@ -183,6 +184,62 @@ build-time prerender snapshots stay deterministic.
 
 - `adjustedTime = meteredTime ^ factor`
 - Factor varies by film stock (e.g., Tri-X = 1.3, Pan F = 1.2)
+
+---
+
+## Negative Inverter (`/negative-inverter`)
+
+**Purpose:** Turn a phone photo of a negative (ideally shot on a light table)
+into a "good enough" positive preview, for black and white or C-41 colour
+film. Issue #527, Phase 1 (web MVP).
+
+**Location:** `apps/dorkroom/src/app/pages/negative-inverter/`
+
+**Features:**
+
+- Load locally: file picker and drag-and-drop, plus a separate camera button
+  (`capture="environment"`). Decoding uses `createImageBitmap` with
+  `imageOrientation: 'from-image'`; a failed decode (HEIC outside Safari, a
+  non-image file) shows a clear message instead of a blank canvas.
+- Film type: Black & White (luminance) or Color (C-41, per channel)
+- Crop rectangle with eight large touch handles plus a move area (pointer
+  events; arrow keys nudge a focused handle). Statistics come only from inside
+  the crop, so the light-table surround cannot wreck the levels.
+- Film base picker and, for C-41, a neutral grey picker. Both show a loupe
+  while the finger is down and pick where it lifts; keyboard users move a
+  crosshair with the arrow keys and press Enter.
+- Negative/positive toggle, exposure and contrast sliders, warmth and tint for
+  C-41
+- Download as JPEG (quality 0.92) or PNG, optionally only the cropped area
+- Images never leave the device; the page says so. No analytics events.
+
+**How it works:**
+
+- On load the photo is decoded once, drawn into a proxy with a 2048 px long
+  edge, and the full-size bitmap is closed. The proxy drives the preview,
+  picking, and the density histograms.
+- Histograms are rebuilt only when the base, crop, or film type changes;
+  sliders only re-derive the coefficients (`deriveCoefficients` in
+  `@dorkroom/logic`) and update shader uniforms.
+- `inversion-shader.ts` holds the WebGL fragment shader (GLSL ES 1.00, so one
+  source serves WebGL 2 and WebGL 1). It mirrors `invertPixel` and adds a
+  4x4 ordered dither before the 8-bit write. Without WebGL,
+  `cpu-inversion.ts` runs `invertPixel` with the same dither.
+- Export (`export-positive.ts`) decodes the original again, crops and fits it
+  under the iOS Safari canvas cap (16,777,216 px) in one `drawImage`, then runs
+  the pixel pass in 2048 px tiles (or smaller, per `MAX_TEXTURE_SIZE` /
+  `MAX_RENDERBUFFER_SIZE`). Above the cap it exports at the largest size that
+  fits and says so ("Exported at 16 MP; original is 48 MP"). Every bitmap,
+  canvas and GL context is released afterwards.
+- Pure, platform-neutral geometry (proxy sizing, export fitting, tiling,
+  coordinate mapping, crop dragging) lives in
+  `packages/logic/src/utils/negative-inverter-geometry.ts` for the iOS app to
+  reuse.
+
+**TODO:** the issue's golden image corpus (reference B&W and C-41 negatives
+shot on a light table, with the Phase 1 outputs saved as goldens) needs real
+photos and is not in the repo yet. Phase 2 (WASM codecs, strip-wise export
+with no canvas cap) is a follow-up.
 
 ---
 

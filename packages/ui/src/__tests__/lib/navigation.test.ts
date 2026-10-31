@@ -41,9 +41,9 @@ describe('navigation utilities', () => {
     });
 
     it('has correct film items', () => {
-      expect(filmItems).toHaveLength(2);
+      expect(filmItems).toHaveLength(3);
       const labels = filmItems.map((item) => item.label);
-      expect(labels).toEqual(['Development', 'Reciprocity']);
+      expect(labels).toEqual(['Development', 'Reciprocity', 'Inverter']);
     });
 
     it('has correct camera items', () => {

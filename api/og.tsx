@@ -307,6 +307,11 @@ export function getRouteIcon(route: string): React.JSX.Element[] | null {
         <line key="3" x1={6} x2={6} y1={2} y2={22} />,
         <line key="4" x1={18} x2={18} y1={2} y2={22} />,
       ];
+    case '/negative-inverter': // Contrast
+      return [
+        <circle key="1" cx={12} cy={12} r={10} />,
+        <path key="2" d="M12 18a6 6 0 0 0 0-12v12z" />,
+      ];
     case '/reciprocity': // Timer
       return [
         <line key="1" x1={10} x2={14} y1={2} y2={2} />,
