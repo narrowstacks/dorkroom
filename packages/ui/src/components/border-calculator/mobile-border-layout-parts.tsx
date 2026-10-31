@@ -251,22 +251,13 @@ export function MobileResetButton({
     <button
       type="button"
       onClick={onReset}
-      className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] ${
+      className={`flex w-full items-center justify-center gap-2 rounded-full border bg-veil-05 px-4 py-3 text-sm font-semibold transition hover:brightness-110 hover:bg-veil-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] ${
         !isHighContrast ? 'shadow-lg' : ''
       }`}
       style={cssVars({
         borderColor: 'var(--color-border-secondary)',
-        backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
         color: 'var(--color-semantic-error)',
       })}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor =
-          'rgba(var(--color-background-rgb), 0.1)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor =
-          'rgba(var(--color-background-rgb), 0.05)';
-      }}
     >
       <RotateCcw className="size-4" />
       Reset to Defaults
