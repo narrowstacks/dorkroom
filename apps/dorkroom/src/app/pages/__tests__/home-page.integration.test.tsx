@@ -475,7 +475,12 @@ describe('HomePage', () => {
       });
       expect(within(answer).getByText('10:00')).toBeInTheDocument();
       expect(within(answer).getByText('Not in source')).toBeInTheDocument();
-      expect(within(answer).getByText('ilfordphoto.com')).toBeInTheDocument();
+      expect(
+        within(answer).getByRole('link', { name: 'View source' })
+      ).toHaveAttribute(
+        'href',
+        'https://www.ilfordphoto.com/amfile/file/download/file/1918/product/681/'
+      );
       expect(
         within(answer).getByRole('link', { name: /open recipe/i })
       ).toHaveAttribute(

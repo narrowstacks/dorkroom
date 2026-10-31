@@ -28,7 +28,7 @@ import {
   plural,
   recipeSourceLabel,
   signed,
-  sourceDomain,
+  sourceFact,
   trimNumber,
 } from './format';
 import { tokenize } from './query';
@@ -453,7 +453,7 @@ export function recipeAnswer(
               recipe.agitationMethod.slice(1)
           : null
       ),
-      fact('Source', sourceDomain(recipe.infoSource)),
+      sourceFact(recipe.infoSource),
     ],
     notes,
     footnote:

@@ -112,11 +112,16 @@ export function formatPushPull(stops: number): string {
   return `${stops > 0 ? 'push' : 'pull'} ${signed(stops, 1)}`;
 }
 
-/** The host of a source URL ("ilfordphoto.com"), or null when it is not a URL. */
-export function sourceDomain(source: string | null): string | null {
-  if (!source) return null;
-  const match = /^https?:\/\/(?:www\.)?([^/?#]+)/i.exec(source.trim());
-  return match ? match[1].toLowerCase() : null;
+/**
+ * A recipe's source as a fact: a fixed "View source" link, so a long URL or
+ * host never widens the card. Only http(s) URLs link; anything else reads
+ * "Not in source".
+ */
+export function sourceFact(source: string | null): HomeAnswerFact {
+  const url = source?.trim();
+  return url && /^https?:\/\/[^/?#\s]+/i.test(url)
+    ? { ...fact('Source', 'View source'), href: url }
+    : fact('Source', null);
 }
 
 /** "Official Ilford" for a recipe tagged `official-ilford`, else "Community". */

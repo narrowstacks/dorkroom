@@ -82,6 +82,8 @@ export interface HomeAnswerFact {
   detail: string | null;
   /** True when the source has no value ("Not in source"). */
   missing: boolean;
+  /** An external page the value links to (a recipe's source). */
+  href?: string;
 }
 
 interface AnswerOf<K extends string, T extends HomeToolRoute> {

@@ -53,7 +53,11 @@ describe('searchHome', () => {
         value: 'EI 800',
         detail: 'push +1',
       });
-      expect(factOf(a, 'Source')?.value).toBe('ilfordphoto.com');
+      // A fixed label, so a long URL never widens the card.
+      expect(factOf(a, 'Source')).toMatchObject({
+        value: 'View source',
+        href: 'https://www.ilfordphoto.com/amfile/file/download/file/1903/product/691/',
+      });
       expect(a.footnote).toBe(
         '3 other recipes for this pair, EI 400, 800, 1600, 3200'
       );
