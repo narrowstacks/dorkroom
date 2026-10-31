@@ -1,4 +1,4 @@
-import { importRecipeSchema } from '@dorkroom/logic';
+import { extractImportRecipeCode, importRecipeSchema } from '@dorkroom/logic';
 import { useForm } from '@tanstack/react-form';
 import { TanStackTextInput } from '../../forms/components/tanstack-text-input';
 import { cn } from '../../lib/cn';
@@ -25,7 +25,7 @@ export function ImportRecipeForm({
       onChange: importRecipeSchema,
     },
     onSubmit: async ({ value }) => {
-      onImport(value.encoded.trim());
+      onImport(extractImportRecipeCode(value.encoded));
     },
   });
 
@@ -44,8 +44,8 @@ export function ImportRecipeForm({
           <TanStackTextInput
             field={field}
             label="Recipe import"
-            description="Paste a filmdev.org URL, recipe ID (e.g., 5001), or shared recipe code"
-            placeholder="Paste a filmdev.org URL, recipe ID (e.g., 5001), or shared recipe code"
+            description="Paste a filmdev.org URL, recipe ID (e.g., 5001), shared recipe code, or Dorkroom share link"
+            placeholder="Paste a filmdev.org URL, recipe ID (e.g., 5001), shared code, or share link"
           />
         )}
       </form.Field>
@@ -89,9 +89,16 @@ export function ImportRecipeForm({
           </button>
         )}
         <form.Subscribe
-          selector={(state) => [state.canSubmit, state.isSubmitting]}
+          selector={(state) => ({
+            // Validation otherwise only runs after the first edit, so the
+            // pristine empty form would look submittable.
+            canSubmit:
+              state.canSubmit &&
+              importRecipeSchema.safeParse(state.values).success,
+            isSubmitting: state.isSubmitting,
+          })}
         >
-          {([canSubmit, isSubmitting]) => (
+          {({ canSubmit, isSubmitting }) => (
             <button
               type="submit"
               disabled={!canSubmit || isProcessing || isSubmitting}

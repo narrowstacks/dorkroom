@@ -1,5 +1,6 @@
 import type React from 'react';
 import { cn } from '../../lib/cn';
+import { formatFieldErrors } from '../utils/format-field-errors';
 
 export interface CheckboxFieldProps {
   field: {
@@ -21,28 +22,6 @@ export interface CheckboxFieldProps {
   disabled?: boolean;
 }
 
-const normalizeErrors = (errors: unknown[]): string => {
-  if (!Array.isArray(errors)) {
-    return '';
-  }
-
-  const errorStrings: string[] = [];
-  for (const error of errors) {
-    if (error === null || error === undefined) {
-      continue;
-    }
-    if (error instanceof Error) {
-      errorStrings.push(error.message);
-    } else if (error instanceof Object) {
-      errorStrings.push(JSON.stringify(error));
-    } else {
-      errorStrings.push(String(error));
-    }
-  }
-
-  return errorStrings.join(', ');
-};
-
 export const CheckboxField: React.FC<CheckboxFieldProps> = ({
   field,
   label,
@@ -50,7 +29,7 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({
   disabled = false,
 }) => {
   const showErrors =
-    field.state.meta.errors.length > 0 &&
+    formatFieldErrors(field.state.meta.errors) !== '' &&
     (field.state.meta.isTouched || field.state.meta.isDirty);
 
   return (
@@ -89,7 +68,7 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({
       </label>
       {showErrors && (
         <p className="text-sm" style={{ color: 'var(--color-semantic-error)' }}>
-          {normalizeErrors(field.state.meta.errors)}
+          {formatFieldErrors(field.state.meta.errors)}
         </p>
       )}
     </div>
