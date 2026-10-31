@@ -161,7 +161,9 @@ async function renderDevelopment() {
       </ThemeProvider>
     </QueryClientProvider>
   );
-  await screen.findAllByText(/Ilford HP5 Plus/);
+  // The real recipes page is heavy; under a full parallel run its first render
+  // can take longer than findAllByText's default 1s.
+  await screen.findAllByText(/Ilford HP5 Plus/, undefined, { timeout: 5000 });
   return router;
 }
 
