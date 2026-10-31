@@ -166,8 +166,14 @@ export function useDevelopmentTable({
     [favoriteIdsSet, sorting]
   );
 
+  // TanStack memoizes the sorted model on the data reference, so hand it a
+  // fresh array when favorites change: the table then re-sorts even if the
+  // caller passes the same `rows` reference.
+  // oxlint-disable-next-line react-hooks/exhaustive-deps
+  const data = useMemo(() => [...rows], [rows, favoriteIdsSet]);
+
   const table = useReactTable({
-    data: rows,
+    data,
     columns,
     state: {
       sorting,

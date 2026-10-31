@@ -321,7 +321,7 @@ describe('useDevelopmentTable', () => {
     }
   );
 
-  it('keeps a favorite first on film and developer descending (#498)', () => {
+  it('keeps a favorite first on film and developer, both directions (#498)', () => {
     const rows = createMockRows();
     rows[0] = { ...rows[0], film: { ...mockFilm, brand: 'Kodak', name: 'A' } };
     rows[1] = { ...rows[1], film: { ...mockFilm, brand: 'Fuji', name: 'B' } };
@@ -372,6 +372,30 @@ describe('useDevelopmentTable', () => {
     expect(
       sortWithFavorites('combination.shootingIso', true, ['c1', 'c3'])
     ).toEqual(['c3', 'c1', 'c2']);
+  });
+
+  it('re-sorts when favorites change but the rows reference does not (#498)', () => {
+    const rows = createMockRows();
+    const columns = createTestColumns();
+    // Stable references, as a memoized caller would pass.
+    const sorting = [{ id: 'combination.shootingIso', desc: true }];
+    let favorites: string[] = [];
+    const { result, rerender } = renderHook(() =>
+      useDevelopmentTable({
+        rows,
+        columns,
+        sorting,
+        onSortingChange: () => {},
+        pageIndex: 0,
+        onPageIndexChange: () => {},
+        isFavorite: (key) => favorites.includes(key),
+      })
+    );
+    expect(uuidsOf(result.current)).toEqual(['c3', 'c1', 'c2']);
+
+    favorites = ['c2'];
+    rerender();
+    expect(uuidsOf(result.current)).toEqual(['c2', 'c3', 'c1']);
   });
 
   it('reports the next sorting state through onSortingChange', () => {
