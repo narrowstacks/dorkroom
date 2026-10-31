@@ -14,7 +14,8 @@ describe('useCameraExposureCalculator', () => {
     expect(result.current.values.aperture).toBe(8);
     expect(result.current.values.iso).toBe(100);
     expect(result.current.exposureValue.isValid).toBe(true);
-    expect(Number.isFinite(result.current.exposureValue.ev)).toBe(true);
+    // f/8, 1/125, ISO 100: log2(64 * 125) = 12.97.
+    expect(result.current.exposureValue.ev).toBeCloseTo(13, 0);
     expect(result.current.equivalentExposures.length).toBeGreaterThan(0);
   });
 
@@ -31,18 +32,19 @@ describe('useCameraExposureCalculator', () => {
     act(() => result.current.set('compareAperture', 16));
 
     expect(result.current.values.compareAperture).toBe(16);
-    // Stopping B down two stops makes B darker than A.
-    expect(result.current.comparison.stopsDifference).not.toBe(0);
+    // Stopping B down two stops (f/8 to f/16) makes B darker than A, so the
+    // A-minus-B difference is exactly -2.
+    expect(result.current.comparison.stopsDifference).toBeCloseTo(-2, 2);
   });
 
   it('solves the selected value to match an EV preset', () => {
     const { result } = renderHook(() => useCameraExposureCalculator());
-    const initialShutter = result.current.values.shutterSpeed;
 
     // solveFor defaults to 'shutterSpeed'; Sunny 16 is EV 15.
     act(() => result.current.applyPreset(15));
 
-    expect(result.current.values.shutterSpeed).not.toBe(initialShutter);
+    // f/8 at ISO 100 needs 64 / 2^15 = 1/512s, nearest standard stop 1/500.
+    expect(result.current.values.shutterSpeed).toBe(1 / 500);
     // Aperture and ISO are untouched when solving for shutter speed.
     expect(result.current.values.aperture).toBe(8);
     expect(result.current.values.iso).toBe(100);

@@ -4,8 +4,6 @@ import type {
 } from '@dorkroom/logic';
 import { ExternalLink } from 'lucide-react';
 import { cn } from '../../lib/cn';
-import { colorMixOr } from '../../lib/color';
-import { setStyles } from '../../lib/dom';
 import { ResponsiveModal } from '../responsive-modal';
 import { DevelopmentRecipeDetail } from './recipe-detail';
 
@@ -69,23 +67,7 @@ export function FilmdevPreviewModal({
         type="button"
         onClick={onClose}
         disabled={isProcessing}
-        className="rounded-full border px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50"
-        style={{
-          borderColor: 'var(--color-border-primary)',
-          color: 'var(--color-text-secondary)',
-        }}
-        onMouseEnter={(e) => {
-          setStyles(e.currentTarget, {
-            borderColor: 'var(--color-border-secondary)',
-            color: 'var(--color-text-primary)',
-          });
-        }}
-        onMouseLeave={(e) => {
-          setStyles(e.currentTarget, {
-            borderColor: 'var(--color-border-primary)',
-            color: 'var(--color-text-secondary)',
-          });
-        }}
+        className="rounded-full border border-primary px-4 py-2 text-sm font-medium text-secondary transition hover:border-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
       >
         Cancel
       </button>
@@ -94,24 +76,9 @@ export function FilmdevPreviewModal({
         onClick={onConfirm}
         disabled={isProcessing}
         className={cn(
-          'rounded-full px-5 py-2 text-sm font-semibold transition',
+          'rounded-full bg-text-primary px-5 py-2 text-sm font-semibold text-background transition hover:bg-text-primary/90',
           isProcessing && 'cursor-wait opacity-70'
         )}
-        style={{
-          backgroundColor: 'var(--color-text-primary)',
-          color: 'var(--color-background)',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = colorMixOr(
-            'var(--color-text-primary)',
-            90,
-            'transparent',
-            'var(--color-text-primary)'
-          );
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
-        }}
       >
         {isProcessing ? 'Adding...' : 'Add to My Recipes'}
       </button>
@@ -135,14 +102,7 @@ export function FilmdevPreviewModal({
           href={originalRecipe.recipe_link}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-sm transition"
-          style={{ color: 'var(--color-text-link)' }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--color-text-link-hover)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--color-text-link)';
-          }}
+          className="inline-flex items-center gap-2 text-sm text-[color:var(--color-text-link,inherit)] transition hover:text-primary"
         >
           <ExternalLink className="size-4" />
           View original on filmdev.org

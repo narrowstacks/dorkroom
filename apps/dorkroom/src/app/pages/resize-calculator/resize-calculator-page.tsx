@@ -8,9 +8,10 @@ import {
   DEFAULT_ORIGINAL_TIME,
   DEFAULT_ORIGINAL_WIDTH,
   matchesAspectRatio,
+  RESIZE_FORM_DEFAULTS,
   resizeCalculatorPersistence,
   type ResizeCalculatorState,
-  useLocalStorageFormPersistence,
+  usePersistedCalculator,
 } from '@dorkroom/logic';
 import {
   AspectPreview,
@@ -224,17 +225,6 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
     </CalculatorCard>
   );
 }
-
-const RESIZE_FORM_DEFAULTS: ResizeCalculatorState = {
-  isEnlargerHeightMode: false,
-  originalWidth: DEFAULT_ORIGINAL_WIDTH,
-  originalLength: DEFAULT_ORIGINAL_LENGTH,
-  newWidth: DEFAULT_NEW_WIDTH,
-  newLength: DEFAULT_NEW_LENGTH,
-  originalTime: DEFAULT_ORIGINAL_TIME,
-  originalHeight: DEFAULT_ORIGINAL_HEIGHT,
-  newHeight: DEFAULT_NEW_HEIGHT,
-};
 
 /** Screen-reader summary of the result; empty while any input is non-positive. */
 function describeResizeResult(values: ResizeCalculatorState): string {
@@ -611,11 +601,10 @@ function useResizeForm() {
   // Persist and hydrate form state to/from localStorage. Persist keys and
   // hydration validators derive from the schema's field bounds, so a tampered
   // stored value falls back to its default.
-  const { resetToDefaults } = useLocalStorageFormPersistence({
-    ...resizeCalculatorPersistence,
-    form,
-    formValues,
-  });
+  const { resetToDefaults } = usePersistedCalculator(
+    resizeCalculatorPersistence,
+    { form, values: formValues }
+  );
 
   return { form, formValues, resetToDefaults };
 }

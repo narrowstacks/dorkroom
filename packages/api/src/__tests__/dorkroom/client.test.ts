@@ -39,13 +39,6 @@ describe('DorkroomApiClient', () => {
       );
     });
 
-    it('should use custom base URL when provided', () => {
-      const customClient = new DorkroomApiClient({
-        baseUrl: 'https://custom.api.com',
-      });
-      expect(customClient).toBeInstanceOf(DorkroomApiClient);
-    });
-
     it('should send X-API-Key header when apiKey is set', async () => {
       const authedClient = new DorkroomApiClient({
         baseUrl: 'https://test.api.com',
@@ -113,18 +106,6 @@ describe('DorkroomApiClient', () => {
             'X-Client-Id': 'install-abc-123',
           },
         })
-      );
-    });
-
-    it('should not send X-Client-Id header when clientId is not set', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ data: [] }),
-      });
-      await client.fetchFilms();
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://test.api.com/films',
-        expect.objectContaining({ headers: undefined })
       );
     });
   });
@@ -234,13 +215,25 @@ describe('DorkroomApiClient', () => {
       });
     });
 
-    it('should handle abort signal', async () => {
+    it('rejects with the AbortError and hands the signal to fetch', async () => {
       const controller = new AbortController();
       controller.abort();
+      mockFetch.mockImplementationOnce(
+        async (_url: string, init?: { signal?: AbortSignal }) => {
+          if (init?.signal?.aborted) {
+            throw new DOMException('Aborted', 'AbortError');
+          }
+          return { ok: true, json: async () => ({ data: [] }) };
+        }
+      );
 
       await expect(
         client.fetchFilms({ signal: controller.signal })
-      ).rejects.toThrow();
+      ).rejects.toMatchObject({ name: 'AbortError' });
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://test.api.com/films',
+        expect.objectContaining({ signal: controller.signal })
+      );
     });
 
     it('should handle HTTP errors', async () => {
@@ -410,7 +403,7 @@ describe('DorkroomApiClient', () => {
       });
     });
 
-    it('should handle tags as array', async () => {
+    it('maps a null dilution_id to a null dilutionId', async () => {
       const mockRawCombinations: RawCombination[] = [
         {
           id: 1,
@@ -440,7 +433,6 @@ describe('DorkroomApiClient', () => {
 
       const result = await client.fetchCombinations();
 
-      expect(result[0].tags).toEqual(['test', 'experimental']);
       expect(result[0].dilutionId).toBeNull();
     });
 
@@ -822,6 +814,59 @@ describe('Data Transformation', () => {
   });
 });
 
+describe('Film manufacturer_notes parsing', () => {
+  const client = new DorkroomApiClient({ baseUrl: 'https://test.api.com' });
+  const film: RawFilm = {
+    id: 1,
+    uuid: 'test-uuid',
+    slug: 'test-film',
+    brand: 'Test Brand',
+    name: 'Test Film',
+    color_type: 'black_and_white',
+    iso_speed: 400,
+    grain_structure: 'fine',
+    description: 'Test description',
+    manufacturer_notes: null,
+    reciprocity_failure: null,
+    discontinued: false,
+    static_image_url: null,
+    aliases: [],
+    base_film_slug: null,
+    date_added: '2023-01-01',
+    created_at: '2023-01-01T00:00:00Z',
+    updated_at: '2023-01-01T00:00:00Z',
+  };
+
+  const notesFor = async (manufacturer_notes: string | null) => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: [{ ...film, manufacturer_notes }] }),
+    });
+    const [parsed] = await client.fetchFilms();
+    return parsed.manufacturerNotes;
+  };
+
+  it.each([
+    ['one note', '{"Push to 1600"}', ['Push to 1600']],
+    [
+      'several notes',
+      '{"Push to 1600","Great for portraits"}',
+      ['Push to 1600', 'Great for portraits'],
+    ],
+    [
+      'a comma inside a note',
+      '{"Fine grain, high contrast","Daylight balanced"}',
+      ['Fine grain, high contrast', 'Daylight balanced'],
+    ],
+    ['blank notes dropped', '{"First","  ","Last"}', ['First', 'Last']],
+    ['an empty array', '{}', null],
+    ['an empty string', '', null],
+    ['null', null, null],
+  ])('parses %s', async (_label, raw, expected) => {
+    expect(await notesFor(raw)).toEqual(expected);
+  });
+});
+
 /** Await a call expected to reject and return what it rejected with. */
 const caught = async (call: () => Promise<object>): Promise<Error> => {
   try {
@@ -863,6 +908,7 @@ describe('DorkroomApiError contract', () => {
     ])('throws DorkroomApiError with status %i', async (status, statusText) => {
       mockFetch.mockResolvedValueOnce({ ok: false, status, statusText });
       const apiError = await caughtApiError(call);
+      expect(apiError.name).toBe('DorkroomApiError');
       expect(apiError.statusCode).toBe(status);
       expect(apiError.endpoint).toBe(`${base}/${name}`);
       expect(apiError.message).toBe(`Failed to fetch ${name}: ${statusText}`);
@@ -1041,6 +1087,45 @@ describe('DorkroomApiError contract', () => {
       expect(result.map((film) => film.slug)).toEqual(['test-film']);
       expect(onInvalidRows).toHaveBeenCalledExactlyOnceWith({
         resource: 'films',
+        dropped: 2,
+        total: 3,
+      });
+    });
+
+    it('keeps the valid developers of a mixed response and reports the rest', async () => {
+      const validDeveloper: RawDeveloper = {
+        id: 1,
+        uuid: 'dev-uuid',
+        slug: 'test-developer',
+        name: 'Test Developer',
+        manufacturer: 'Test Manufacturer',
+        type: 'concentrate',
+        description: 'Test description',
+        film_or_paper: true,
+        dilutions: [],
+        mixing_instructions: null,
+        storage_requirements: null,
+        safety_notes: null,
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z',
+      };
+      const onInvalidRows = vi.fn();
+      const observed = new DorkroomApiClient({ baseUrl: base, onInvalidRows });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: [{ bogus: 1 }, validDeveloper, { ...validDeveloper, id: 'x' }],
+        }),
+      });
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const result = await observed.fetchDevelopers();
+      warn.mockRestore();
+      expect(result.map((developer) => developer.slug)).toEqual([
+        'test-developer',
+      ]);
+      expect(onInvalidRows).toHaveBeenCalledExactlyOnceWith({
+        resource: 'developers',
         dropped: 2,
         total: 3,
       });

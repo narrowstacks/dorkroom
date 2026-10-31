@@ -7,7 +7,7 @@ import {
   formatExposureTime,
   roundStopsToThirds,
   roundToStandardPrecision,
-  useLocalStorageFormPersistence,
+  usePersistedCalculator,
 } from '@dorkroom/logic';
 import { getRouteAccent, getRouteIcon, ResultRow } from '@dorkroom/ui';
 import {
@@ -141,10 +141,7 @@ export default function ExposureCalculatorPage() {
   useCalculatorAnalytics({ tool: 'stops' });
 
   const form = useForm({
-    defaultValues: {
-      originalTime: 10,
-      stops: 1,
-    } satisfies ExposureFormState,
+    defaultValues: exposureCalculatorPersistence.defaults,
     validators: {
       onChange: validateExposureForm,
     },
@@ -154,11 +151,10 @@ export default function ExposureCalculatorPage() {
   const formValues = useStore(form.store, (state) => state.values);
 
   // Persist and hydrate form state to/from localStorage
-  const { resetToDefaults } = useLocalStorageFormPersistence({
-    ...exposureCalculatorPersistence,
-    form,
-    formValues,
-  });
+  const { resetToDefaults } = usePersistedCalculator(
+    exposureCalculatorPersistence,
+    { form, values: formValues }
+  );
 
   const handleAdjustStops = (increment: number) => {
     // The increment is one of EXPOSURE_PRESETS' own stop values, never the

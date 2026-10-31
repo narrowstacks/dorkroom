@@ -10,7 +10,7 @@ import {
   RESIZE_STORAGE_KEY,
   resizeCalculatorPersistence,
   type ResizeCalculatorState,
-  useLocalStorageFormPersistence,
+  usePersistedCalculator,
 } from '@dorkroom/logic';
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -46,15 +46,13 @@ const hydrate = (stored: Partial<Record<string, PersistedValue>>) => {
   const values: ResizeCalculatorState = { ...DEFAULTS };
 
   renderHook(() =>
-    useLocalStorageFormPersistence({
-      ...resizeCalculatorPersistence,
+    usePersistedCalculator(resizeCalculatorPersistence, {
       form: {
         setFieldValue: (key, value) => {
           Object.assign(values, { [key]: value });
         },
       },
-      formValues: values,
-      disablePersistence: true,
+      values,
     })
   );
 
@@ -135,5 +133,9 @@ describe('resizeHydrationValidators (issue #239)', () => {
     expect(values.originalWidth).toBe(DEFAULTS.originalWidth);
     expect(values.newLength).toBe(DEFAULTS.newLength);
     expect(values.isEnlargerHeightMode).toBe(false);
+  });
+
+  it('bundles the form defaults the page starts from and resets to', () => {
+    expect(resizeCalculatorPersistence.defaults).toEqual(DEFAULTS);
   });
 });

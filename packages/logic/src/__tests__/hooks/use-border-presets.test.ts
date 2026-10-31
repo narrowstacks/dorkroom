@@ -2,11 +2,11 @@ import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { BORDER_CALCULATOR_DEFAULTS } from '../../constants/border-calculator-defaults';
 import { useBorderPresets } from '../../hooks/use-border-presets';
-import type { PersistedValue } from '../../hooks/use-local-storage-form-persistence';
 import type {
   BorderPreset,
   BorderPresetSettings,
 } from '../../types/border-calculator';
+import type { PersistedValue } from '../../utils/persisted-calculator';
 
 /** A preset as saved before the two newest settings fields existed. */
 type LegacyStoredPreset = Omit<BorderPreset, 'settings'> & {

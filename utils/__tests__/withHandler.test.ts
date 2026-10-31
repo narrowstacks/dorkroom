@@ -1,4 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  ANONYMOUS_RATE_LIMIT,
+  ANONYMOUS_RATE_WINDOW_MS,
+} from '../rateLimitPolicy';
 import type { HandlerConfig, UnkeyClient } from '../withHandler';
 import { createMockRequest, createMockResponse } from './mock-vercel';
 
@@ -74,6 +78,8 @@ describe('withHandler', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllEnvs();
+    vi.useRealTimers();
   });
 
   /**
@@ -149,7 +155,7 @@ describe('withHandler', () => {
       const res = createMockResponse();
       await handler(req, res);
 
-      expect(res._status).toBe(200);
+      expect(res._status).toBe(204);
       expect(res._headers['x-content-type-options']).toBe('nosniff');
     });
   });
@@ -189,7 +195,7 @@ describe('withHandler', () => {
       expect(res._headers['access-control-max-age']).toBeUndefined();
     });
 
-    it('should handle OPTIONS preflight and return 200', async () => {
+    it('should handle OPTIONS preflight and return 204', async () => {
       const handler = await buildHandler({
         name: 'test',
         handler: async () => {
@@ -201,7 +207,8 @@ describe('withHandler', () => {
       const res = createMockResponse();
       await handler(req, res);
 
-      expect(res._status).toBe(200);
+      expect(res._status).toBe(204);
+      expect(res._headers.allow).toBe('GET, OPTIONS');
       expect(res._ended).toBe(true);
     });
   });
@@ -338,6 +345,64 @@ describe('withHandler', () => {
     });
   });
 
+  describe('cache policy', () => {
+    const WEBSITE_CACHE = 'public, max-age=60, s-maxage=300';
+
+    async function cachingHandler() {
+      return buildHandler({
+        name: 'test',
+        handler: async (_req, res, ctx) => {
+          ctx.setCacheControl(WEBSITE_CACHE);
+          res.status(200).json({ ok: true });
+        },
+      });
+    }
+
+    it('lets the handler choose Cache-Control on the website host', async () => {
+      const handler = await cachingHandler();
+      const res = createMockResponse();
+      await handler(
+        createMockRequest({ headers: { host: 'dorkroom.art' } }),
+        res
+      );
+
+      expect(res._status).toBe(200);
+      expect(res._headers['cache-control']).toBe(WEBSITE_CACHE);
+    });
+
+    it('pins private, no-store on the public API host even when the handler asks for caching', async () => {
+      process.env.UNKEY_ROOT_KEY = 'root-key';
+      process.env.UNKEY_API_ID = 'test-api';
+      process.env.UNKEY_API_KEY_PERMISSION = 'read';
+      verifyKeyMock.mockResolvedValueOnce(validVerification());
+      const handler = await cachingHandler();
+
+      const res = createMockResponse();
+      await handler(
+        createMockRequest({
+          headers: { host: 'api.dorkroom.art', 'x-api-key': 'dk_f_test' },
+        }),
+        res
+      );
+
+      expect(res._status).toBe(200);
+      expect(res._headers['cache-control']).toBe('private, no-store');
+    });
+
+    it('pins private, no-store on public API host rejections too', async () => {
+      const handler = await cachingHandler();
+      const res = createMockResponse();
+      await handler(
+        createMockRequest({ headers: { host: 'api.dorkroom.art' } }),
+        res
+      );
+
+      // No UNKEY_API_ID: the key layer answers 500 before the handler runs.
+      expect(res._status).toBe(500);
+      expect(res._headers['cache-control']).toBe('private, no-store');
+    });
+  });
+
   describe('client identity rate limiting (keyed path)', () => {
     function setupKeyedEnv() {
       process.env.UNKEY_ROOT_KEY = 'root-key';
@@ -419,6 +484,8 @@ describe('withHandler', () => {
     });
 
     it('client-id limit exceeded: 429 + Retry-After, handler not called', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
       setupKeyedEnv();
       verifyKeyMock.mockResolvedValueOnce(validVerification());
       ratelimitLimitMock.mockImplementation(async (opts) =>
@@ -441,10 +508,16 @@ describe('withHandler', () => {
 
       expect(handlerRan).toBe(false);
       expect(res._status).toBe(429);
-      expect(res._headers['retry-after']).toBeDefined();
+      // exceededLimit resets 60s after the frozen clock, which is 1_767_225_660 s
+      expect(res._headers['retry-after']).toBe('60');
+      expect(res._headers['x-ratelimit-limit']).toBe('60');
+      expect(res._headers['x-ratelimit-remaining']).toBe('0');
+      expect(res._headers['x-ratelimit-reset']).toBe('1767225660');
     });
 
     it('IP guard exceeded (client-id fine): 429; headers reflect the IP result', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
       setupKeyedEnv();
       verifyKeyMock.mockResolvedValueOnce(validVerification());
       ratelimitLimitMock.mockImplementation(async (opts) =>
@@ -468,7 +541,9 @@ describe('withHandler', () => {
       expect(handlerRan).toBe(false);
       expect(res._status).toBe(429);
       expect(res._headers['x-ratelimit-limit']).toBe('240');
-      expect(res._headers['retry-after']).toBeDefined();
+      expect(res._headers['x-ratelimit-remaining']).toBe('0');
+      expect(res._headers['x-ratelimit-reset']).toBe('1767225660');
+      expect(res._headers['retry-after']).toBe('60');
     });
 
     it.each(['short', 'has spaces!!', 'x'.repeat(65)])(
@@ -514,6 +589,162 @@ describe('withHandler', () => {
 
       expect(res._status).toBe(401);
       expect(ratelimitLimitMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('key authentication (api.dorkroom.art)', () => {
+    function setupKeyedEnv() {
+      process.env.UNKEY_ROOT_KEY = 'root-key';
+      process.env.UNKEY_API_ID = 'test-api';
+      process.env.UNKEY_API_KEY_PERMISSION = 'read';
+    }
+
+    async function keyedHandler() {
+      const ran = vi.fn();
+      const handler = await buildHandler({
+        name: 'test',
+        handler: async (_req, res) => {
+          ran();
+          res.status(200).json({ ok: true });
+        },
+      });
+      return { handler, ran };
+    }
+
+    it('answers 401 without calling Unkey when X-API-Key is missing', async () => {
+      setupKeyedEnv();
+      const { handler, ran } = await keyedHandler();
+
+      const res = createMockResponse();
+      await handler(
+        createMockRequest({ headers: { host: 'api.dorkroom.art' } }),
+        res
+      );
+
+      expect(res._status).toBe(401);
+      expect(res._json).toMatchObject({
+        error: 'Unauthorized',
+        message: 'Missing API key. Pass X-API-Key header.',
+      });
+      expect(verifyKeyMock).not.toHaveBeenCalled();
+      expect(ran).not.toHaveBeenCalled();
+    });
+
+    it('answers 429 when Unkey reports RATE_LIMITED, even with no ratelimits block', async () => {
+      setupKeyedEnv();
+      verifyKeyMock.mockResolvedValueOnce({
+        meta: { requestId: 'unkey-request' },
+        data: { valid: false, code: 'RATE_LIMITED', ratelimits: [] },
+      });
+      const { handler, ran } = await keyedHandler();
+
+      const res = createMockResponse();
+      await handler(
+        createMockRequest({
+          headers: { host: 'api.dorkroom.art', 'x-api-key': 'a-key' },
+        }),
+        res
+      );
+
+      expect(res._status).toBe(429);
+      expect(res._json).toMatchObject({
+        error: 'Rate limit exceeded',
+        code: 'RATE_LIMITED',
+      });
+      expect(ran).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('anonymous rate limiting (dorkroom.art)', () => {
+    beforeEach(() => {
+      process.env.UNKEY_ROOT_KEY = 'root-key';
+      process.env.UNKEY_API_ID = 'test-api';
+    });
+
+    async function anonymousHandler() {
+      const ran = vi.fn();
+      const handler = await buildHandler({
+        name: 'test',
+        handler: async (_req, res) => {
+          ran();
+          res.status(200).json({ ok: true });
+        },
+      });
+      return { handler, ran };
+    }
+
+    function anonymousRequest(headers: Record<string, string> = {}) {
+      return createMockRequest({
+        headers: { host: 'dorkroom.art', ...headers },
+      });
+    }
+
+    it('limits per IP in the anonymous namespace, trusting the right-most X-Forwarded-For entry', async () => {
+      ratelimitLimitMock.mockResolvedValueOnce(passingLimit(30));
+      const { handler, ran } = await anonymousHandler();
+
+      const res = createMockResponse();
+      // The left-most entry is whatever the caller sent; Vercel appends the real one
+      await handler(
+        anonymousRequest({ 'x-forwarded-for': '198.51.100.9, 203.0.113.5' }),
+        res
+      );
+
+      expect(ratelimitLimitMock).toHaveBeenCalledExactlyOnceWith({
+        namespace: 'test-api-anonymous',
+        identifier: '203.0.113.5',
+        limit: ANONYMOUS_RATE_LIMIT,
+        duration: ANONYMOUS_RATE_WINDOW_MS,
+      });
+      expect(ran).toHaveBeenCalledOnce();
+      expect(res._status).toBe(200);
+    });
+
+    it('answers 429 over the limit and never runs the handler', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
+      ratelimitLimitMock.mockResolvedValueOnce(exceededLimit(30));
+      const { handler, ran } = await anonymousHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest({ 'x-real-ip': '203.0.113.5' }), res);
+
+      expect(res._status).toBe(429);
+      expect(res._json).toMatchObject({ error: 'Rate limit exceeded' });
+      expect(res._headers['retry-after']).toBe('60');
+      expect(ran).not.toHaveBeenCalled();
+    });
+
+    it('fails open outside production when the create_namespace permission is missing', async () => {
+      vi.stubEnv('NODE_ENV', 'development');
+      ratelimitLimitMock.mockRejectedValueOnce(
+        new Error('Missing permission: ratelimit.*.create_namespace')
+      );
+      const { handler, ran } = await anonymousHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest({ 'x-real-ip': '203.0.113.5' }), res);
+
+      expect(res._status).toBe(200);
+      expect(ran).toHaveBeenCalledOnce();
+    });
+
+    it('fails closed in production when the create_namespace permission is missing', async () => {
+      vi.stubEnv('NODE_ENV', 'production');
+      ratelimitLimitMock.mockRejectedValueOnce(
+        new Error('Missing permission: ratelimit.*.create_namespace')
+      );
+      const { handler, ran } = await anonymousHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest({ 'x-real-ip': '203.0.113.5' }), res);
+
+      expect(res._status).toBe(500);
+      expect(res._json).toMatchObject({
+        error: 'API configuration error',
+        message: 'Rate limiting is not configured',
+      });
+      expect(ran).not.toHaveBeenCalled();
     });
   });
 

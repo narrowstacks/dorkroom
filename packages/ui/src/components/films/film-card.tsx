@@ -1,7 +1,7 @@
 import type { Film } from '@dorkroom/api';
 import { type FC, memo } from 'react';
 import { cn } from '../../lib/cn';
-import { cssVars, setStyles } from '../../lib/dom';
+import { cssVars } from '../../lib/dom';
 import { Tag } from '../ui/tag';
 import { FilmImage } from './film-image';
 
@@ -42,18 +42,15 @@ const FilmCardComponent: FC<FilmCardProps> = ({
       aria-pressed={isSelected}
       onClick={() => onClick(film)}
       className={cn(
-        'relative block w-full appearance-none bg-transparent text-left card-grain',
+        'relative block w-full appearance-none text-left card-grain',
         'cursor-pointer rounded-2xl border p-4 shadow-subtle transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]',
+        isSelected
+          ? 'border-primary bg-surface-muted'
+          : 'border-secondary bg-background hover:border-primary hover:bg-surface-muted',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] focus-visible:ring-offset-2',
         className
       )}
       style={cssVars({
-        borderColor: isSelected
-          ? 'var(--color-border-primary)'
-          : 'var(--color-border-secondary)',
-        backgroundColor: isSelected
-          ? 'var(--color-surface-muted)'
-          : 'var(--color-background)',
         // Dark surface — keep the grain restrained.
         '--card-grain-opacity': '0.28',
         // Blend the grain against this surface's own base colour.
@@ -61,22 +58,6 @@ const FilmCardComponent: FC<FilmCardProps> = ({
           ? 'var(--color-surface-muted)'
           : 'var(--color-background)',
       })}
-      onMouseEnter={(e) => {
-        if (!isSelected) {
-          setStyles(e.currentTarget, {
-            borderColor: 'var(--color-border-primary)',
-            backgroundColor: 'var(--color-surface-muted)',
-          });
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isSelected) {
-          setStyles(e.currentTarget, {
-            borderColor: 'var(--color-border-secondary)',
-            backgroundColor: 'var(--color-background)',
-          });
-        }
-      }}
     >
       <div className="relative z-10">
         <div className="flex gap-3 items-start">

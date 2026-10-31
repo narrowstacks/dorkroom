@@ -77,10 +77,8 @@ plans/
 
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
-# Playwright
+# Playwright MCP
 .playwright-mcp
-playwright-report/
-playwright/.cache/
 test-results/
 build-archive.log
 PR_BODY_THEMING.md

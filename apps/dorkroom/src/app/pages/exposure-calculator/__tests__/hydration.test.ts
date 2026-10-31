@@ -3,7 +3,7 @@ import {
   exposureCalculatorPersistence,
   type ExposureFormState,
   type PersistedValue,
-  useLocalStorageFormPersistence,
+  usePersistedCalculator,
 } from '@dorkroom/logic';
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -19,15 +19,13 @@ const hydrate = (stored: Partial<Record<string, PersistedValue>>) => {
   const values: ExposureFormState = { ...DEFAULTS };
 
   renderHook(() =>
-    useLocalStorageFormPersistence({
-      ...exposureCalculatorPersistence,
+    usePersistedCalculator(exposureCalculatorPersistence, {
       form: {
         setFieldValue: (key, value) => {
           Object.assign(values, { [key]: value });
         },
       },
-      formValues: values,
-      disablePersistence: true,
+      values,
     })
   );
 
@@ -82,5 +80,9 @@ describe('exposure calculator hydration (issue #284)', () => {
       originalTime: DEFAULTS.originalTime,
       stops: 2,
     });
+  });
+
+  it('bundles the form defaults the page starts from and resets to', () => {
+    expect(exposureCalculatorPersistence.defaults).toEqual(DEFAULTS);
   });
 });

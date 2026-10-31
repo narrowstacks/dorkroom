@@ -189,16 +189,7 @@ export function SearchableSelect({
               type="button"
               onClick={handleClear}
               aria-label="Clear selection"
-              className="flex size-4 items-center justify-center transition"
-              style={{
-                color: 'var(--color-text-muted)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--color-text-secondary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--color-text-muted)';
-              }}
+              className="flex size-4 items-center justify-center text-muted transition hover:text-secondary"
             >
               <X className="size-3" />
             </button>
@@ -248,27 +239,20 @@ export function SearchableSelect({
                     }
                   }}
                   tabIndex={index === focusedIndex ? 0 : -1}
-                  className="cursor-pointer px-3 py-2 text-sm transition-colors"
+                  className={cn(
+                    'cursor-pointer px-3 py-2 text-sm transition-colors hover:bg-border-muted',
+                    // An arbitrary value, not `bg-border-muted`: the
+                    // high-contrast theme repaints that class as a bordered
+                    // white panel, which the inline style used to sidestep.
+                    (index === focusedIndex || item.value === selectedValue) &&
+                      'bg-[color:var(--color-border-muted)]'
+                  )}
                   style={{
                     color:
                       item.value === selectedValue
                         ? 'var(--color-text-primary)'
                         : 'var(--color-text-secondary)',
-                    backgroundColor:
-                      index === focusedIndex || item.value === selectedValue
-                        ? 'var(--color-border-muted)'
-                        : 'transparent',
                     fontWeight: item.value === selectedValue ? '500' : 'normal',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      'var(--color-border-muted)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      item.value === selectedValue
-                        ? 'var(--color-border-muted)'
-                        : 'transparent';
                   }}
                 >
                   {item.label}
