@@ -390,6 +390,36 @@ describe.each([
     expect(getDetailPanel('Store Brand 400 details', mobile)).toBeVisible();
   });
 
+  it('shares the open film as its ?film= deep link', async () => {
+    // A desktop browser, so the link goes to the clipboard.
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', {
+      userAgent: 'Mozilla/5.0 (X11; Linux x86_64)',
+      maxTouchPoints: 0,
+      clipboard: { writeText },
+    });
+    window.va = vi.fn();
+    await renderFilmsPage({ mobile });
+
+    fireEvent.click(await findFilmCard(/Kodak Portra 400/));
+    const panel = getDetailPanel('Kodak Portra 400 details', mobile);
+    fireEvent.click(
+      within(panel).getByRole('button', { name: 'Share this film' })
+    );
+
+    await waitFor(() =>
+      expect(writeText).toHaveBeenCalledWith(
+        `${window.location.origin}/films?film=portra-400`
+      )
+    );
+    expect(window.va).toHaveBeenCalledWith('event', {
+      name: 'share',
+      data: { tool: 'film', method: 'clipboard' },
+      options: undefined,
+    });
+    delete window.va;
+  });
+
   it('follows the URL: a new slug swaps the film, a removed one closes it', async () => {
     const { router } = await renderFilmsPage({
       mobile,

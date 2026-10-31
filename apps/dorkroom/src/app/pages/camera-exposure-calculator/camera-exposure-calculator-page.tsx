@@ -37,6 +37,7 @@ import { type FC, useCallback, useMemo, useState } from 'react';
 import type { CalculatorLinkProps } from '../../../components/calculator-route';
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
+import { useShareLink } from '../../lib/use-share-link';
 
 const apertureOptions = STANDARD_APERTURES.map((a) => ({
   value: a.label,
@@ -651,6 +652,7 @@ export default function CameraExposureCalculatorPage({
     equivalentExposures,
     comparison,
   } = useCameraExposureCalculator({ overrides: linkOverrides });
+  const { share, manualCopyDialog } = useShareLink('exposure');
 
   useCalculatorAnalytics({
     tool: 'exposure',
@@ -722,6 +724,7 @@ export default function CameraExposureCalculatorPage({
         icon={getRouteIcon('/exposure')}
         accentTone={getRouteAccent('/exposure')}
         onReset={reset}
+        onShare={() => share(cameraExposureLink.build(values))}
         description={
           <>
             Balance aperture, shutter speed, and ISO for correct exposure.
@@ -773,6 +776,7 @@ export default function CameraExposureCalculatorPage({
           />
         </div>
       </CalculatorLayout>
+      {manualCopyDialog}
     </>
   );
 }

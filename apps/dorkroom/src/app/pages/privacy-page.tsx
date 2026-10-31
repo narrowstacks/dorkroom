@@ -14,8 +14,10 @@ interface TrackedEvent {
 const TRACKED_EVENTS: TrackedEvent[] = [
   {
     name: 'share',
-    fires: 'You create a share link for a preset or a recipe.',
-    records: 'Which tool, and whether the link was copied or shared natively.',
+    fires:
+      'You create a share link for a calculation, a preset, a recipe or a film.',
+    records:
+      'Which tool, and whether the link was copied, shared natively, or shown for copying by hand.',
   },
   {
     name: 'share_opened',

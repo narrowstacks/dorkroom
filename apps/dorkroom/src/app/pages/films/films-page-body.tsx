@@ -8,6 +8,7 @@ import {
   FilmFiltersPanel,
   FilmResultsVirtualized,
 } from '@dorkroom/ui/films';
+import { useShareLink } from '../../lib/use-share-link';
 
 interface FilmsPageBodyProps {
   db: UseFilmDatabaseReturn;
@@ -38,6 +39,8 @@ export function FilmsPageBody({
   isFiltersCollapsed,
   onCollapsedChange,
 }: FilmsPageBodyProps) {
+  const { share, manualCopyDialog } = useShareLink('film');
+
   // One props object for whichever filter module the breakpoint mounts.
   const filterProps = {
     searchQuery: db.searchQuery,
@@ -113,8 +116,12 @@ export function FilmsPageBody({
           isOpen={!!selectedFilm}
           onClose={onClosePanel}
           isMobile={isMobile}
+          onShare={(film) =>
+            share({ film: film.slug }, `${film.brand} ${film.name}`)
+          }
         />
       )}
+      {manualCopyDialog}
     </div>
   );
 }
