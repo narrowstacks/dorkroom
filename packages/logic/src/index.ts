@@ -82,7 +82,10 @@ export {
   type RegularRecipeShareOptions,
   useRecipeSharing,
 } from './hooks/development-recipes/use-recipe-sharing';
-export { useRecipeUrlState } from './hooks/development-recipes/use-recipe-url-state';
+export {
+  readRecipeUrlSearchQuery,
+  useRecipeUrlState,
+} from './hooks/development-recipes/use-recipe-url-state';
 export {
   useViewPreference,
   type ViewMode,

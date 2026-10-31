@@ -267,8 +267,15 @@ build-time prerender snapshots stay deterministic.
 
 **URL search params:**
 
+All of these are read, validated and written by `useRecipeUrlState`
+(`packages/logic`), the only writer of the page's query string: one debounced
+(300ms) `history.replaceState`, so filter changes never add history entries.
+`q` seeds the search box at mount; the rest are applied once the catalogue
+loads (`useUrlStateSync`).
+
 ```typescript
 {
+  q?: string;              // Free-text recipe search
   film?: string;           // Film slug
   developer?: string;      // Developer slug
   dilution?: string;

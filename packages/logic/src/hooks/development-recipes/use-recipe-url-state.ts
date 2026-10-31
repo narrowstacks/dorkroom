@@ -24,7 +24,13 @@ const VALIDATION_CONFIG: UrlValidationConfig = {
   dilutionPatterns: [/^stock$/i, /^\d+:\d+$/, /^\d+\+\d+$/, /^\d+$/],
 };
 
+/**
+ * Every query param the recipes page reads or writes. This module is the only
+ * writer of these keys; params outside the list (e.g. `utm_*`) are carried
+ * through untouched.
+ */
 const MANAGED_QUERY_KEYS: Array<keyof RecipeUrlParams> = [
+  'q',
   'film',
   'developer',
   'dilution',
@@ -132,6 +138,15 @@ const getUrlSnapshot = (): RecipeUrlParams => {
 const getServerUrlSnapshot = (): RecipeUrlParams => EMPTY_PARAMS;
 
 /**
+ * The free-text search carried in the URL (`?q=`), for seeding the search
+ * state at mount. Unlike the other params it needs no catalogue data to
+ * resolve, so it is read up front instead of waiting for films and developers
+ * to load; the search box is filled on first paint.
+ */
+export const readRecipeUrlSearchQuery = (): string =>
+  isBrowser() ? (getUrlSnapshot().q ?? '') : '';
+
+/**
  * Find a film entity by slug helper.
  */
 export const slugToFilm = (slug: string, films: Film[]): Film | null => {
@@ -173,6 +188,11 @@ export const validateUrlParams = (
 ): UrlValidationResult => {
   const errors: string[] = [];
   const sanitized: RecipeUrlParams = {};
+
+  // Free text: any value is a valid query.
+  if (params.q) {
+    sanitized.q = params.q;
+  }
 
   if (params.film) {
     if (params.film.length > VALIDATION_CONFIG.maxSlugLength) {
@@ -303,11 +323,13 @@ export interface UseRecipeUrlStateReturn {
 }
 
 /**
- * Hook that keeps development recipe state synchronized with URL parameters.
- * Validates parameters, resolves shared recipes, and exposes helpers for updates.
+ * The live page state `useRecipeUrlState` mirrors into the URL: every managed
+ * param is derived from this one object, so nothing else needs to write the
+ * query string.
  */
-/** The live filter selection `useRecipeUrlState` mirrors into the URL. */
 export interface RecipeFilterState {
+  /** Free-text search, written as `q`. */
+  searchQuery: string;
   selectedFilm: Film | null;
   selectedDeveloper: Developer | null;
   dilutionFilter: string;
@@ -318,6 +340,13 @@ export interface RecipeFilterState {
   selectedRecipeId?: string | null;
 }
 
+/**
+ * The single owner of the development recipes query string. It reads the URL
+ * as an external store, validates it into the state the page seeds from
+ * (`initialUrlState`), resolves shared recipes, and is the only code that
+ * writes the managed params back: one debounced `replaceState`, so the page
+ * never adds history entries and no two writers can race.
+ */
 export const useRecipeUrlState = (
   films: Film[],
   developers: Developer[],
@@ -640,6 +669,8 @@ export const useRecipeUrlState = (
 
     const urlParams: RecipeUrlParams = {};
 
+    urlParams.q = currentState.searchQuery;
+
     // Film & developer
     urlParams.film = currentState.selectedFilm
       ? filmToSlug(currentState.selectedFilm)
@@ -679,6 +710,7 @@ export const useRecipeUrlState = (
 
     updateUrl(urlParams);
   }, [
+    currentState.searchQuery,
     currentState.selectedFilm,
     currentState.selectedDeveloper,
     currentState.dilutionFilter,

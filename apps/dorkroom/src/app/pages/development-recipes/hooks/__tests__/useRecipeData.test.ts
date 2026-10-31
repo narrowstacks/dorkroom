@@ -2,7 +2,11 @@ import type { Developer, Film } from '@dorkroom/api';
 import type { CustomRecipe } from '@dorkroom/logic';
 import { renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useRecipeData, type UseRecipeDataProps } from '../useRecipeData';
+import {
+  useRecipeData,
+  type UseRecipeDataProps,
+  useRecipesByUuid,
+} from '../useRecipeData';
 
 const TIMESTAMP = '2026-01-01T00:00:00.000Z';
 
@@ -206,8 +210,12 @@ describe('useRecipeData with invalid stored recipes', () => {
       result.current.customCombinationViews.map((view) => view.combination.uuid)
     ).toEqual(['custom-valid']);
     expect(result.current.combinedRows).toHaveLength(1);
-    expect(result.current.recipesByUuid.has('custom-valid')).toBe(true);
-    expect(result.current.recipesByUuid.has('custom-invalid')).toBe(false);
+
+    const { result: byUuid } = renderHook(() =>
+      useRecipesByUuid([], [invalid, valid])
+    );
+    expect(byUuid.current.has('custom-valid')).toBe(true);
+    expect(byUuid.current.has('custom-invalid')).toBe(false);
   });
 
   it('returns no shared view for an out-of-range shared recipe', () => {

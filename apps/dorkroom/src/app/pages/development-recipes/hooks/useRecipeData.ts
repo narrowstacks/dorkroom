@@ -37,7 +37,6 @@ export interface UseRecipeDataProps {
 }
 
 export interface UseRecipeDataReturn {
-  recipesByUuid: Map<string, Combination>;
   combinedRows: DevelopmentCombinationView[];
   apiCombinationViews: DevelopmentCombinationView[];
   customCombinationViews: DevelopmentCombinationView[];
@@ -88,30 +87,19 @@ function toCombinationOrNull(
 }
 
 /**
- * Hook that handles all data processing and derived state for development recipes
- * Consolidates recipe maps, combination views, filtering, and sorting
+ * Every recipe the page can open by id: the filtered API recipes by uuid,
+ * overlaid with the user's custom recipes by id.
+ *
+ * Separate from `useRecipeData` because it depends only on data available
+ * before the URL state hook runs, which needs it to resolve a shared recipe
+ * link, while `useRecipeData` needs that hook's decoded shared custom recipe.
+ * Computing it in `useRecipeData` made the page bridge the map back to the
+ * URL hook through state (#288).
  */
-export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
-  const {
-    filteredCombinations,
-    customRecipes,
-    allFilms,
-    allDevelopers,
-    selectedFilm,
-    selectedDeveloper,
-    developerTypeFilter,
-    dilutionFilter,
-    isoFilter,
-    searchQuery,
-    customRecipeFilter,
-    favoritesOnly,
-    sharedCustomRecipe,
-    flags,
-    isFavorite,
-    getFilmById,
-    getDeveloperById,
-  } = props;
-
+export function useRecipesByUuid(
+  filteredCombinations: Combination[],
+  customRecipes: CustomRecipe[]
+): Map<string, Combination> {
   // Optimize: Split recipe maps to avoid reprocessing custom recipes (which have validation overhead)
   // when only the filtered API results change, and vice versa.
   const apiRecipesMap = useMemo(() => {
@@ -137,7 +125,7 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
     return map;
   }, [customRecipes]);
 
-  const recipesByUuid = useMemo(() => {
+  return useMemo(() => {
     // Start with API recipes
     const map = new Map(apiRecipesMap);
     // Overlay custom recipes (they take precedence if IDs collide, though they shouldn't)
@@ -146,6 +134,32 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
     }
     return map;
   }, [apiRecipesMap, customRecipesMap]);
+}
+
+/**
+ * Hook that handles all data processing and derived state for development recipes
+ * Consolidates combination views, filtering, and sorting
+ */
+export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
+  const {
+    filteredCombinations,
+    customRecipes,
+    allFilms,
+    allDevelopers,
+    selectedFilm,
+    selectedDeveloper,
+    developerTypeFilter,
+    dilutionFilter,
+    isoFilter,
+    searchQuery,
+    customRecipeFilter,
+    favoritesOnly,
+    sharedCustomRecipe,
+    flags,
+    isFavorite,
+    getFilmById,
+    getDeveloperById,
+  } = props;
 
   // Memoize expensive shared custom recipe conversion
   const sharedCustomRecipeView = useMemo(() => {
@@ -410,7 +424,6 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
   }, [allDevelopers]);
 
   return {
-    recipesByUuid,
     combinedRows,
     apiCombinationViews,
     customCombinationViews,

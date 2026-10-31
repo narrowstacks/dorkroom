@@ -22,7 +22,6 @@ export interface DevelopmentRecipesState {
   dilutionFilter: string;
   isoFilter: string;
   customRecipeFilter: CustomRecipeFilter;
-  tagFilter: string;
   searchQuery: string;
   /**
    * The query `filteredCombinations` was actually computed from. Lags
@@ -48,7 +47,6 @@ export interface DevelopmentRecipesActions {
   setDilutionFilter: (filter: string) => void;
   setIsoFilter: (filter: string) => void;
   setCustomRecipeFilter: (filter: CustomRecipeFilter) => void;
-  setTagFilter: (filter: string) => void;
   setSearchQuery: (query: string) => void;
   setSortBy: (sort: string) => void;
   setSortDirection: (direction: 'asc' | 'desc') => void;
@@ -228,8 +226,9 @@ export const useDevelopmentRecipes = (
   const [isoFilter, setIsoFilter] = useState(initialUrlState?.isoFilter || '');
   const [customRecipeFilter, setCustomRecipeFilter] =
     useState<CustomRecipeFilter>('all');
-  const [tagFilter, setTagFilter] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(
+    initialUrlState?.searchQuery ?? ''
+  );
   const [sortBy, setSortBy] = useState('filmName');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
@@ -499,7 +498,6 @@ export const useDevelopmentRecipes = (
     setDilutionFilter('');
     setIsoFilter('');
     setCustomRecipeFilter('all');
-    setTagFilter('');
     setSearchQuery('');
   }, []);
 
@@ -674,7 +672,6 @@ export const useDevelopmentRecipes = (
     dilutionFilter,
     isoFilter,
     customRecipeFilter,
-    tagFilter,
     searchQuery,
     debouncedSearchQuery,
     sortBy,
@@ -692,7 +689,6 @@ export const useDevelopmentRecipes = (
     setDilutionFilter,
     setIsoFilter,
     setCustomRecipeFilter,
-    setTagFilter,
     setSearchQuery,
     setSortBy,
     setSortDirection,
