@@ -7,6 +7,7 @@ import CameraExposureCalculatorPage from '../camera-exposure-calculator/camera-e
 import ExposureCalculatorPage from '../exposure-calculator/exposure-calculator-page';
 import LensCalculatorPage from '../lens-calculator/lens-calculator-page';
 import MatCalculatorPage from '../mat-calculator/mat-calculator-page';
+import NegativeInverterPage from '../negative-inverter/negative-inverter-page';
 import ReciprocityCalculatorPage from '../reciprocity-calculator/reciprocity-calculator-page';
 import ResizeCalculatorPage from '../resize-calculator/resize-calculator-page';
 
@@ -19,6 +20,7 @@ const PAGES: { route: string; Page: ComponentType; accent: string }[] = [
   { route: '/lenses', Page: LensCalculatorPage, accent: 'emerald' },
   { route: '/mat', Page: MatCalculatorPage, accent: 'cyan' },
   { route: '/exposure', Page: CameraExposureCalculatorPage, accent: 'teal' },
+  { route: '/negative-inverter', Page: NegativeInverterPage, accent: 'violet' },
 ];
 
 describe.each(PAGES)('$route header accent', ({ Page, accent }) => {

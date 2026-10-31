@@ -10,6 +10,7 @@ export const ROUTE_TITLES = {
   '/reciprocity': 'Reciprocity Failure Calculator',
   '/stops': 'Stops Calculator',
   '/mat': 'Mat Cut Calculator',
+  '/negative-inverter': 'Negative Inverter',
   '/exposure': 'Exposure Calculator',
   '/lenses': 'Lens Equivalency Calculator',
   '/development': 'Development Recipes',
@@ -34,6 +35,8 @@ export const ROUTE_DESCRIPTIONS = {
     'Convert between exposure stops and seconds. Translate f-stop or time adjustments into exposure values.',
   '/mat':
     'Plan single-window mats with independent borders. Get exact window openings and mat cutter guide-bar settings, with best-fit borders for your artwork.',
+  '/negative-inverter':
+    'Turn a phone photo of a black and white or C-41 negative into a positive preview. Pick the film base, crop out the light table, and download. Photos never leave your device.',
   '/exposure':
     'Balance aperture, shutter speed, and ISO for correct exposure. Calculate equivalent exposures across different settings.',
   '/lenses':
