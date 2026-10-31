@@ -498,9 +498,13 @@ describe('DevelopmentRecipesPage across the breakpoint', () => {
     expect(
       screen.queryByRole('region', { name: /recipe details$/ })
     ).not.toBeInTheDocument();
-    // Not asserted: body scroll lock. The closed drawers the page mounts at
-    // the mobile width reset overflow in their own mount effect, which runs
-    // after the panel's and clobbers it (pre-existing, see the PR notes).
+    // The closed drawers the page mounts at the mobile width must not clear
+    // the panel's lock.
+    expect(document.body.style.overflow).toBe('hidden');
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(queryDetailPanel()).toBeNull();
+    expect(document.body.style.overflow).toBe('');
   });
 });
 
@@ -527,6 +531,16 @@ describe('DevelopmentRecipesPage editing from the mobile drawer', () => {
     expect(localStorage.getItem('dorkroom_custom_recipes')).toContain(
       'My HP5 v2'
     );
+    // The returned drawer still holds the page lock after the form's drawer
+    // releases its own...
+    expect(document.body.style.overflow).toBe('hidden');
+
+    // ...and closing it gives the page its scroll back.
+    fireEvent.click(
+      within(getDetailPanel(true)).getByRole('button', { name: 'Close panel' })
+    );
+    expect(queryDetailPanel()).toBeNull();
+    expect(document.body.style.overflow).toBe('');
   });
 
   it('returns the drawer when the edit form is cancelled', async () => {
@@ -540,5 +554,28 @@ describe('DevelopmentRecipesPage editing from the mobile drawer', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
 
     await waitFor(() => expect(queryDetailPanel()).not.toBeNull());
+    expect(document.body.style.overflow).toBe('hidden');
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(queryDetailPanel()).toBeNull();
+    expect(document.body.style.overflow).toBe('');
+  });
+
+  it('gives the page its scroll back when the edit form is dismissed with Escape', async () => {
+    renderPage({ mobile: true, customRecipes: [CUSTOM] });
+    await openRecipe(true, CUSTOM_RECIPE);
+    fireEvent.click(
+      within(getDetailPanel(true)).getByRole('button', { name: 'Edit' })
+    );
+    await screen.findByText('Edit custom recipe');
+    expect(document.body.style.overflow).toBe('hidden');
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await waitFor(() => expect(queryDetailPanel()).not.toBeNull());
+    expect(document.body.style.overflow).toBe('hidden');
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(queryDetailPanel()).toBeNull();
+    expect(document.body.style.overflow).toBe('');
   });
 });

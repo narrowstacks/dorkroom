@@ -1,4 +1,9 @@
-import { cn, MobileSidebar, useBreakpoint } from '@dorkroom/ui';
+import {
+  cn,
+  MobileSidebar,
+  useBodyScrollLock,
+  useBreakpoint,
+} from '@dorkroom/ui';
 import { Menu, X } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { usePresence } from './use-presence';
@@ -37,19 +42,9 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
     wasOpenRef.current = isMobileMenuOpen;
   }, [mounted, isMobileMenuOpen]);
 
-  // Lock body scroll while the menu is open
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      const previousOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = previousOverflow;
-      };
-    }
-
-    document.body.style.removeProperty('overflow');
-    return undefined;
-  }, [isMobileMenuOpen]);
+  // Lock body scroll while the menu is open (the shared counted lock, so the
+  // closed menu never clears a lock some other overlay holds).
+  useBodyScrollLock(isMobileMenuOpen);
 
   // Close when the viewport crosses up past the sm breakpoint (640px), where
   // the toggle is hidden. React's "adjust state when a value changes" pattern:
