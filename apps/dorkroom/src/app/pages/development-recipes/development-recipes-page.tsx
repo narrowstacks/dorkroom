@@ -584,7 +584,10 @@ export default function DevelopmentRecipesPage() {
     <RecipeDetailPanel
       key={isMobile ? 'mobile' : 'desktop'}
       view={detailView}
-      isOpen={isDetailOpen}
+      // On mobile the drawer is portaled above the form drawers (z-[100] vs
+      // z-50), so it steps aside while the custom recipe form is open and
+      // returns, showing the saved recipe, when the form closes.
+      isOpen={isDetailOpen && !(isMobile && isCustomModalOpen)}
       onClose={() => setIsDetailOpen(false)}
       isMobile={isMobile}
       isFavorite={handleCheckFavorite}

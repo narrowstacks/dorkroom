@@ -451,13 +451,20 @@ describe.each([
   // #508: the link must resolve against the whole catalogue, not the rows the
   // current filters leave.
   it('opens a ?recipe= link that the ?q= search filters out, and keeps it in the URL', async () => {
+    const replaceState = vi.spyOn(window.history, 'replaceState');
     renderPage({ mobile, search: `?q=zzz-no-match&recipe=${API_ID}` });
+    const writesBefore = replaceState.mock.calls.length;
 
     const panel = await waitFor(() => getDetailPanel(mobile));
     expect(panel).toHaveAccessibleName(
       'Ilford HP5 Plus with Ilford DD-X recipe details'
     );
-    await new Promise((resolve) => setTimeout(resolve, 700));
+    // The debounced writer rewrites the URL; recipe= must survive it.
+    await waitFor(
+      () =>
+        expect(replaceState.mock.calls.length).toBeGreaterThan(writesBefore),
+      URL_SYNC
+    );
     expect(currentParams().get('recipe')).toBe(API_ID);
     expect(currentParams().get('q')).toBe('zzz-no-match');
   });
@@ -494,5 +501,44 @@ describe('DevelopmentRecipesPage across the breakpoint', () => {
     // Not asserted: body scroll lock. The closed drawers the page mounts at
     // the mobile width reset overflow in their own mount effect, which runs
     // after the panel's and clobbers it (pre-existing, see the PR notes).
+  });
+});
+
+describe('DevelopmentRecipesPage editing from the mobile drawer', () => {
+  it('steps the drawer aside for the edit form, then returns it with the saved recipe', async () => {
+    renderPage({ mobile: true, customRecipes: [CUSTOM] });
+    await openRecipe(true, CUSTOM_RECIPE);
+
+    fireEvent.click(
+      within(getDetailPanel(true)).getByRole('button', { name: 'Edit' })
+    );
+
+    // The form must be reachable: the detail drawer sits above it otherwise.
+    expect(await screen.findByText('Edit custom recipe')).toBeVisible();
+    expect(queryDetailPanel()).toBeNull();
+
+    fireEvent.change(screen.getByDisplayValue('My HP5'), {
+      target: { value: 'My HP5 v2' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save recipe' }));
+
+    await waitFor(() => expect(queryDetailPanel()).not.toBeNull());
+    expect(screen.queryByText('Edit custom recipe')).not.toBeInTheDocument();
+    expect(localStorage.getItem('dorkroom_custom_recipes')).toContain(
+      'My HP5 v2'
+    );
+  });
+
+  it('returns the drawer when the edit form is cancelled', async () => {
+    renderPage({ mobile: true, customRecipes: [CUSTOM] });
+    await openRecipe(true, CUSTOM_RECIPE);
+    fireEvent.click(
+      within(getDetailPanel(true)).getByRole('button', { name: 'Edit' })
+    );
+    await screen.findByText('Edit custom recipe');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+
+    await waitFor(() => expect(queryDetailPanel()).not.toBeNull());
   });
 });
