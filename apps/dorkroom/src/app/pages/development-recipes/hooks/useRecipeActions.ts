@@ -99,8 +99,6 @@ interface UseRecipeActionsProps {
   getDeveloperById: (id: string) => Developer | undefined;
   allFilms: Film[];
   allDevelopers: Developer[];
-
-  // Whether a custom recipe can be shared (currently off in the page)
 }
 
 /**

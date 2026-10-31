@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { importRecipeSchema } from '../../schemas/import-recipe.schema';
-import { encodeCustomRecipe } from '../../utils/recipe-sharing';
+import {
+  encodeCustomRecipe,
+  MAX_ENCODED_LENGTH,
+} from '../../utils/recipe-sharing';
 
 const accepts = (encoded: string) =>
   importRecipeSchema.safeParse({ encoded }).success;
@@ -35,6 +38,11 @@ describe('importRecipeSchema', () => {
     });
     expect(code).toMatch(/[-_]/);
     expect(accepts(code)).toBe(true);
+  });
+
+  it('rejects a code longer than the share limit', () => {
+    expect(accepts('a'.repeat(MAX_ENCODED_LENGTH))).toBe(true);
+    expect(accepts('a'.repeat(MAX_ENCODED_LENGTH + 1))).toBe(false);
   });
 
   it('rejects empty input and text with spaces or punctuation', () => {

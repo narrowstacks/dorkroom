@@ -100,7 +100,10 @@ const encodedCustomRecipeSchema = z.object({
   version: jsonOptional(z.number()),
 }) satisfies z.ZodType<EncodedCustomRecipe>;
 
-const encodedRecipeStringSchema = z.string().regex(/^[A-Za-z0-9_-]+$/);
+const encodedRecipeStringSchema = z
+  .string()
+  .max(MAX_ENCODED_LENGTH)
+  .regex(/^[A-Za-z0-9_-]+$/);
 
 /**
  * Encodes a custom recipe into a URL-safe base64 string for sharing.

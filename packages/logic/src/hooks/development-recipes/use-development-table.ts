@@ -17,7 +17,6 @@ export interface DevelopmentCombinationView {
   film?: Film;
   developer?: Developer;
   source?: 'api' | 'custom';
-  canShare?: boolean;
   canViewDetails?: boolean;
 }
 

@@ -228,7 +228,6 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
       film,
       developer,
       source: 'custom',
-      canShare: true,
     };
 
     return recipeView;
@@ -254,7 +253,6 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
             getDeveloperById
           ),
           source: 'custom',
-          canShare: true,
         } satisfies DevelopmentCombinationView,
       ];
     });
@@ -266,7 +264,6 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
       film: getFilmById(combination.filmStockId),
       developer: getDeveloperById(combination.developerId),
       source: 'api',
-      canShare: true, // Enable sharing for regular recipes
     }));
   }, [filteredCombinations, getFilmById, getDeveloperById]);
 

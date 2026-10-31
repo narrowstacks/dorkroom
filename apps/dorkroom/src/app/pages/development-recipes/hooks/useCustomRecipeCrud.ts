@@ -113,7 +113,6 @@ export function useCustomRecipeCrud({
               getDeveloperById
             ),
             source: 'custom',
-            canShare: true,
           };
           setDetailView(updatedView);
         }

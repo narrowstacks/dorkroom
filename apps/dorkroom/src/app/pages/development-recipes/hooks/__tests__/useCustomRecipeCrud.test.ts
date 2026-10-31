@@ -105,7 +105,6 @@ const createMockDetailView = (
   film: mockFilm,
   developer: mockDeveloper,
   source: 'custom',
-  canShare: true,
 });
 
 const baseFormData: CustomRecipeFormData = {
@@ -244,7 +243,6 @@ describe('useCustomRecipeCrud', () => {
       expect(updatedDetailView.combination.timeMinutes).toBe(10);
       expect(updatedDetailView.combination.shootingIso).toBe(800);
       expect(updatedDetailView.source).toBe('custom');
-      expect(updatedDetailView.canShare).toBe(true);
     });
 
     it('does not update detailView if a different recipe is displayed', async () => {
