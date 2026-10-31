@@ -42,24 +42,48 @@ describe('text-sanitization', () => {
       expect(result).toContain('Hello');
     });
 
-    it('removes javascript: protocol', () => {
-      const input = 'javascript:alert("xss")';
-      const result = sanitizeText(input);
-      expect(result).not.toContain('javascript:');
+    it('keeps scheme-like and handler-like words in prose', () => {
+      // Recipe text is never turned into a URL or markup, so these are plain
+      // words. A URL-valued field must validate its own scheme.
+      expect(sanitizeText('javascript:alert("xss")')).toBe(
+        'javascript:alert("xss")'
+      );
+      expect(sanitizeText('foo onclick=bar')).toBe('foo onclick=bar');
+      expect(sanitizeText('data:text/html,hi')).toBe('data:text/html,hi');
     });
 
-    it('removes event handlers', () => {
-      // Tagless, so the tag regex can't strip them first: only the
-      // event-handler regex removes these.
-      expect(sanitizeText('foo onclick=bar')).toBe('foo bar');
-      expect(sanitizeText('" onmouseover=alert(1) x="')).toBe('" alert(1) x="');
-      expect(sanitizeText('x ONERROR = y')).toBe('x  y');
+    it('does not delete script/object/iframe/embed inside ordinary words', () => {
+      const input =
+        'Objective: embedded subscription, scripted iframe object. onclick= and Online=yes';
+      expect(sanitizeText(input)).toBe(input);
     });
 
-    it('removes data:text/html protocol', () => {
-      const input = 'data:text/html,<script>alert("xss")</script>';
-      const result = sanitizeText(input);
-      expect(result).not.toContain('data:text/html');
+    it('still removes tags around those words', () => {
+      expect(sanitizeText('<script>alert(1)</script>')).toBe('alert(1)');
+      expect(sanitizeText('<iframe src="x"></iframe>ok')).toBe('ok');
+      expect(sanitizeText('<object data=x><embed src=y>text')).toBe('text');
+    });
+
+    it('strips control characters but keeps tab, newline and CR', () => {
+      expect(sanitizeText('a\u0000b\u0007c\u007Fd\u0085e')).toBe('abcde');
+      expect(sanitizeText('line1\nline2\tx\r\ny')).toBe('line1\nline2\tx\r\ny');
+    });
+
+    it('strips bidi overrides and zero-width characters but keeps joiners', () => {
+      expect(sanitizeText('a\u202Eb\u2066c\u200Bd\uFEFFe')).toBe('abcde');
+      expect(sanitizeText('\u{1F468}\u200D\u{1F469}')).toBe(
+        '\u{1F468}\u200D\u{1F469}'
+      );
+    });
+
+    it('does not split a surrogate pair when truncating', () => {
+      const result = sanitizeText('ab\u{1F600}cd', 3);
+      expect(result).toBe('ab...');
+    });
+
+    it('preserves non-Latin prose', () => {
+      const input = 'Révélateur doux, 現像 20°C, Проявитель';
+      expect(sanitizeText(input)).toBe(input);
     });
 
     it('preserves special characters (React handles encoding)', () => {
@@ -111,12 +135,9 @@ describe('text-sanitization', () => {
 
     it('handles multiple XSS vectors at once', () => {
       const input =
-        '<script>alert("xss")</script><img src=x onerror=alert("xss")>javascript:alert("xss")';
+        '<script>alert("xss")</script><img src=x onerror=alert("xss")>';
       const result = sanitizeText(input);
-      expect(result).not.toContain('<script>');
-      expect(result).not.toContain('<img');
-      expect(result).not.toContain('onerror=');
-      expect(result).not.toContain('javascript:');
+      expect(result).toBe('alert("xss")');
     });
 
     it('preserves normal text with punctuation', () => {
@@ -134,29 +155,15 @@ describe('text-sanitization', () => {
       expect(result).toContain('Nested');
     });
 
-    it('handles case-insensitive attack vectors', () => {
-      const input = 'JaVaScRiPt:alert("xss")';
-      const result = sanitizeText(input);
-      expect(result.toLowerCase()).not.toContain('javascript:');
-    });
-
     it('handles numeric character references', () => {
-      // Entities are not decoded (React escapes on render); the bare word
-      // "script" between them is still stripped.
+      // Entities are not decoded (React escapes on render).
       const input = '&#60;script&#62;alert(&#34;xss&#34;)&#60;/script&#62;';
-      expect(sanitizeText(input)).toBe(
-        '&#60;&#62;alert(&#34;xss&#34;)&#60;/&#62;'
-      );
+      expect(sanitizeText(input)).toBe(input);
     });
 
-    it('repeats removals until a spliced token cannot reappear', () => {
-      // One pass turns "scr[script]ipt" into "script"; the fixpoint loop
-      // removes that too.
-      expect(sanitizeText('scrscriptipt')).toBe('');
-      expect(sanitizeText('jajavascript:vascript:alert(1)')).toBe(
-        'java:alert(1)'
-      );
+    it('repeats tag removal until a spliced tag cannot reappear', () => {
       expect(sanitizeText('<scr<script>ipt>alert(1)')).toBe('ipt>alert(1)');
+      expect(sanitizeText('<\u0000script>x')).toBe('x');
     });
   });
 
@@ -185,25 +192,42 @@ describe('text-sanitization', () => {
       expect(sanitizeRecipeName(input)).toBe(input);
     });
 
-    it('removes special characters not in whitelist', () => {
-      const input = 'Recipe@#$%^*+=[]{}|;:<>?/\\';
-      const result = sanitizeRecipeName(input);
-      expect(result).not.toContain('@');
-      expect(result).not.toContain('#');
-      expect(result).not.toContain('$');
-      expect(result).not.toContain('%');
-      expect(result).not.toContain('^');
-      expect(result).not.toContain('*');
-      expect(result).not.toContain('+');
-      expect(result).not.toContain('=');
-      expect(result).not.toContain('[');
-      expect(result).not.toContain(']');
+    it('preserves accented, non-Latin and emoji names', () => {
+      for (const input of [
+        'Caf\u00e9 \u2013 \u201cR\u00e9ponse\u201d 20\u00b0C',
+        'Kodak \u73fe\u50cf \u30ec\u30b7\u30d4',
+        '\u041f\u0440\u043e\u044f\u0432\u0438\u0442\u0435\u043b\u044c 1+1',
+        '\u0645\u062d\u0644\u0648\u0644 \u0627\u0644\u062a\u0637\u0648\u064a\u0631',
+        'Push +2 \u{1F4F7} \u{1F468}\u200D\u{1F469} "quoted" @home #1 50% [a] {b}',
+      ]) {
+        expect(sanitizeRecipeName(input)).toBe(input);
+      }
+    });
+
+    it('keeps prose words that look like markup keywords', () => {
+      expect(sanitizeRecipeName('Objective embedded script')).toBe(
+        'Objective embedded script'
+      );
+    });
+
+    it('strips control and bidi/zero-width characters', () => {
+      expect(sanitizeRecipeName('A\u0000B\u202EC\u200BD\uFEFFE')).toBe('ABCDE');
+    });
+
+    it('collapses whitespace including newlines', () => {
+      expect(sanitizeRecipeName('  A \n\t B   C  ')).toBe('A B C');
     });
 
     it('respects max length of 200 characters', () => {
-      const input = 'Recipe '.repeat(100); // Much longer than 200
+      const input = 'Recipe '.repeat(100);
       const result = sanitizeRecipeName(input);
-      expect(result.length).toBeLessThanOrEqual(203); // 200 + '...'
+      expect(result.length).toBeLessThanOrEqual(203);
+      expect(result.endsWith('...')).toBe(true);
+    });
+
+    it('does not cut an emoji in half at the cap', () => {
+      const result = sanitizeRecipeName(`${'a'.repeat(199)}\u{1F4F7}`);
+      expect(result).toBe(`${'a'.repeat(199)}...`);
     });
 
     it('returns empty string for null', () => {
@@ -234,18 +258,9 @@ describe('text-sanitization', () => {
     ];
 
     xssVectors.forEach((vector) => {
-      it(`sanitizes XSS vector: ${vector.substring(0, 30)}...`, () => {
+      it(`strips tags from XSS vector: ${vector.substring(0, 30)}...`, () => {
         const result = sanitizeText(vector);
-        // Check that dangerous tags and protocols are removed
-        expect(result).not.toContain('<script>');
-        expect(result).not.toContain('<img');
-        expect(result).not.toContain('onerror');
-        expect(result).not.toContain('onload');
-        expect(result).not.toContain('onfocus');
-        expect(result).not.toContain('onstart');
-        // javascript: protocol should be removed
-        const hasJSProtocol = result.includes('javascript:');
-        expect(hasJSProtocol).toBe(false);
+        expect(result).not.toMatch(/<[^>]*>/);
       });
     });
   });
@@ -287,7 +302,7 @@ describe('text-sanitization', () => {
         name: 'HP5 Plus',
         isoSpeed: 400,
         colorType: 'bw',
-        grainStructure: 'Fine alert(1)',
+        grainStructure: 'Fine onclick=alert(1)',
         description: `${'d'.repeat(500)}...`,
       });
     });
@@ -331,7 +346,7 @@ describe('text-sanitization', () => {
         type: 'powder',
         filmOrPaper: 'film',
         workingLifeHours: 24,
-        notes: 'Notes alert(1)',
+        notes: 'Notes javascript:alert(1)',
         mixingInstructions: 'Mix at 50C',
         safetyNotes: 'Gloves',
         dilutions: [

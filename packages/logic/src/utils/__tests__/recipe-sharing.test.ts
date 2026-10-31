@@ -377,8 +377,8 @@ describe('recipe-sharing', () => {
       const decoded = decodeOrFail(encodeCustomRecipe(maliciousRecipe));
       const recipe = createCustomRecipeFromEncoded(decoded);
 
-      // Tags are stripped; the recipe-name pass also drops `"` and `+`.
-      expect(recipe.name).toBe('Rodinal alert(xss) 150');
+      // Tags are stripped; quotes and + are ordinary name characters.
+      expect(recipe.name).toBe('Rodinal alert("xss") 1+50');
       expect(recipe.notes).toBe('Stand develop 1 hour');
       expect(recipe.agitationSchedule).toBe('Agitate  every 30s');
       expect(recipe.customDilution).toBe('1+1');
@@ -434,7 +434,7 @@ describe('recipe-sharing', () => {
         isoSpeed: 400,
         colorType: 'bw',
         grainStructure: 'Fine grain',
-        description: 'Classic alert(1) stock',
+        description: 'Classic onmouseover=alert(1) stock',
       });
     });
 
@@ -465,7 +465,7 @@ describe('recipe-sharing', () => {
         manufacturer: 'Kodakalert(1)',
         name: 'D-76',
         type: 'powder',
-        dilutions: [{ name: 'Stock', dilution: '1+0 alert(1)' }],
+        dilutions: [{ name: 'Stock', dilution: '1+0 onclick=alert(1)' }],
         notes: 'Notes here',
         mixingInstructions: 'Mix at 50C',
         safetyNotes: 'Wear gloves',
@@ -530,6 +530,20 @@ describe('recipe-sharing', () => {
       expect(decoded.dilutionId).toBe(mockCustomRecipe.dilutionId);
       expect(decoded.customDilution).toBe(mockCustomRecipe.customDilution);
       expect(decoded.isPublic).toBe(mockCustomRecipe.isPublic);
+    });
+
+    it('preserves Unicode names and prose through encode, decode and import', () => {
+      const recipe: CustomRecipe = {
+        ...mockCustomRecipe,
+        name: 'Caf\u00e9 \u2013 \u201cR\u00e9ponse\u201d 20\u00b0C \u73fe\u50cf \u{1F4F7}',
+        notes: 'Objective: embedded subscription, onclick= is just text',
+      };
+      const decoded = decodeOrFail(encodeCustomRecipe(recipe));
+      expect(decoded.name).toBe(recipe.name);
+
+      const imported = createCustomRecipeFromEncoded(decoded);
+      expect(imported.name).toBe(recipe.name);
+      expect(imported.notes).toBe(recipe.notes);
     });
 
     it('preserves custom film data through encode-decode cycle', () => {
