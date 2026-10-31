@@ -34,7 +34,6 @@ export interface UseRecipeDataProps {
 }
 
 export interface UseRecipeDataReturn {
-  recipesByUuid: Map<string, Combination>;
   combinedRows: DevelopmentCombinationView[];
   apiCombinationViews: DevelopmentCombinationView[];
   customCombinationViews: DevelopmentCombinationView[];
@@ -85,8 +84,62 @@ function toCombinationOrNull(
 }
 
 /**
+ * Every recipe the page can open by id: the whole API catalogue by uuid,
+ * overlaid with the user's custom recipes by id.
+ *
+ * Built from the unfiltered catalogue on purpose. A recipe link must open
+ * whatever the URL's search or filters are: `?q=<other>&recipe=<uuid>`
+ * excludes that recipe from the filtered list, and resolving against it
+ * meant the link never opened and `recipe=` was dropped (#508).
+ *
+ * Separate from `useRecipeData` because it depends only on data available
+ * before the URL state hook runs, which needs it to resolve a shared recipe
+ * link, while `useRecipeData` needs that hook's decoded shared custom recipe.
+ * Computing it in `useRecipeData` made the page bridge the map back to the
+ * URL hook through state (#288).
+ */
+export function useRecipesByUuid(
+  allCombinations: Combination[],
+  customRecipes: CustomRecipe[]
+): Map<string, Combination> {
+  // Split so a catalogue refetch doesn't reprocess custom recipes (which have
+  // validation overhead), and vice versa.
+  const apiRecipesMap = useMemo(() => {
+    const map = new Map<string, Combination>();
+    for (const combo of allCombinations) {
+      if (combo.uuid) {
+        map.set(combo.uuid, combo);
+      }
+    }
+    return map;
+  }, [allCombinations]);
+
+  const customRecipesMap = useMemo(() => {
+    const map = new Map<string, Combination>();
+    // Add custom recipes (convert to Combination format)
+    for (const recipe of customRecipes) {
+      const combination = toCombinationOrNull(recipe);
+      if (combination) {
+        map.set(recipe.id, combination);
+      }
+    }
+    return map;
+  }, [customRecipes]);
+
+  return useMemo(() => {
+    // Start with API recipes
+    const map = new Map(apiRecipesMap);
+    // Overlay custom recipes (they take precedence if IDs collide, though they shouldn't)
+    for (const [id, combo] of customRecipesMap) {
+      map.set(id, combo);
+    }
+    return map;
+  }, [apiRecipesMap, customRecipesMap]);
+}
+
+/**
  * Hook that handles all data processing and derived state for development recipes
- * Consolidates recipe maps, combination views, filtering, and sorting
+ * Consolidates combination views, filtering, and sorting
  */
 export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
   const {
@@ -107,41 +160,6 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
     getFilmById,
     getDeveloperById,
   } = props;
-
-  // Optimize: Split recipe maps to avoid reprocessing custom recipes (which have validation overhead)
-  // when only the filtered API results change, and vice versa.
-  const apiRecipesMap = useMemo(() => {
-    const map = new Map<string, Combination>();
-    // Add API combinations (already filtered upstream)
-    for (const combo of filteredCombinations) {
-      if (combo.uuid) {
-        map.set(combo.uuid, combo);
-      }
-    }
-    return map;
-  }, [filteredCombinations]);
-
-  const customRecipesMap = useMemo(() => {
-    const map = new Map<string, Combination>();
-    // Add custom recipes (convert to Combination format)
-    for (const recipe of customRecipes) {
-      const combination = toCombinationOrNull(recipe);
-      if (combination) {
-        map.set(recipe.id, combination);
-      }
-    }
-    return map;
-  }, [customRecipes]);
-
-  const recipesByUuid = useMemo(() => {
-    // Start with API recipes
-    const map = new Map(apiRecipesMap);
-    // Overlay custom recipes (they take precedence if IDs collide, though they shouldn't)
-    for (const [id, combo] of customRecipesMap) {
-      map.set(id, combo);
-    }
-    return map;
-  }, [apiRecipesMap, customRecipesMap]);
 
   // Memoize expensive shared custom recipe conversion
   const sharedCustomRecipeView = useMemo(() => {
@@ -398,7 +416,6 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
   }, [allDevelopers]);
 
   return {
-    recipesByUuid,
     combinedRows,
     apiCombinationViews,
     customCombinationViews,

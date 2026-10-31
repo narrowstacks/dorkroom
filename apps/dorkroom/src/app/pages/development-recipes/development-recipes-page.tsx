@@ -1,6 +1,6 @@
-import type { Combination } from '@dorkroom/api';
 import type { CustomRecipeFilter } from '@dorkroom/logic';
 import {
+  readRecipeUrlSearchQuery,
   useCustomRecipes,
   useDevelopmentRecipes,
   useDevelopmentTable,
@@ -46,7 +46,7 @@ import { RecipeResultsSection } from './components/recipe-results-section';
 import { SharedRecipeNotice } from './components/shared-recipe-notice';
 import { useClearFilters } from './hooks/useClearFilters';
 import { useRecipeActions } from './hooks/useRecipeActions';
-import { useRecipeData } from './hooks/useRecipeData';
+import { useRecipeData, useRecipesByUuid } from './hooks/useRecipeData';
 import { useRecipeModals } from './hooks/useRecipeModals';
 import { useResultsPagination } from './hooks/useResultsPagination';
 import { useUrlStateSync } from './hooks/useUrlStateSync';
@@ -67,6 +67,7 @@ export default function DevelopmentRecipesPage() {
     error,
     allFilms,
     allDevelopers,
+    allCombinations,
     filteredCombinations,
     setDeveloperTypeFilter,
     setDilutionFilter,
@@ -81,40 +82,9 @@ export default function DevelopmentRecipesPage() {
     getDeveloperById,
     getAvailableDilutions,
     getAvailableISOs,
-  } = useDevelopmentRecipes();
-
-  // Sync free-text search with the `q` URL param. Reads/writes only the `q`
-  // key on the live URL (read-modify-write) so it coexists with the other
-  // filters, which are synced separately via useRecipeUrlState's own raw
-  // history writes further down. Applied once on mount and on browser
-  // back/forward; writes are debounced to match the hook's search debounce.
-  useEffect(() => {
-    const applyFromUrl = () => {
-      const q = new URLSearchParams(window.location.search).get('q') ?? '';
-      setSearchQuery(q);
-    };
-
-    applyFromUrl();
-    window.addEventListener('popstate', applyFromUrl);
-    return () => window.removeEventListener('popstate', applyFromUrl);
-    // eslint-disable-next-line react-doctor/exhaustive-deps -- setSearchQuery is a stable dispatch function; only wire the listener once
-  }, []);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      const params = new URLSearchParams(window.location.search);
-      if (searchQuery) {
-        params.set('q', searchQuery);
-      } else {
-        params.delete('q');
-      }
-      const search = params.toString();
-      const newUrl = `${window.location.pathname}${search ? `?${search}` : ''}${window.location.hash}`;
-      window.history.replaceState(null, '', newUrl);
-    }, 300);
-
-    return () => clearTimeout(timeout);
-  }, [searchQuery]);
+    // `q` is the one URL param that needs no catalogue data, so it seeds the
+    // search state at mount; useRecipeUrlState below writes it back.
+  } = useDevelopmentRecipes({ searchQuery: readRecipeUrlSearchQuery() });
 
   const {
     customRecipes,
@@ -194,11 +164,7 @@ export default function DevelopmentRecipesPage() {
     Map<string, 'adding' | 'removing'>
   >(new Map());
 
-  // URL state - must come before useRecipeData to provide sharedCustomRecipe
-  // Note: recipesByUuid is passed from useRecipeData below (works because effects re-run)
-  const [recipesByUuidState, setRecipesByUuidState] = useState<
-    Map<string, Combination>
-  >(new Map());
+  const recipesByUuid = useRecipesByUuid(allCombinations, customRecipes);
 
   // Get the selected recipe ID for URL syncing
   // Only sync API recipes to URL (not custom recipes which use encoded sharing)
@@ -217,6 +183,7 @@ export default function DevelopmentRecipesPage() {
     allFilms,
     allDevelopers,
     {
+      searchQuery,
       selectedFilm,
       selectedDeveloper,
       dilutionFilter,
@@ -226,12 +193,11 @@ export default function DevelopmentRecipesPage() {
       favoritesOnly,
       selectedRecipeId,
     },
-    recipesByUuidState
+    recipesByUuid
   );
 
   // Data processing and derived state
   const {
-    recipesByUuid,
     combinedRows,
     sharedCustomRecipeView,
     filmOptions,
@@ -260,16 +226,6 @@ export default function DevelopmentRecipesPage() {
   // responsive. The table renders with the previous rows until React has idle
   // time to commit the new filtered set, keeping INP low on filter changes.
   const deferredCombinedRows = useDeferredValue(combinedRows);
-
-  // Sync recipesByUuid to state for useRecipeUrlState (API recipe lookup)
-  // recipesByUuid is produced by useRecipeData (below), but its value feeds
-  // useRecipeUrlState (above) — a forward reference that can't be resolved with
-  // useMemo, so the effect bridges the later-computed value back into state.
-  // eslint-disable-next-line react-doctor/no-derived-state-effect -- forward-reference cycle: value is computed by a hook ordered after its consumer, not render-derivable here
-  useEffect(() => {
-    // eslint-disable-next-line react-doctor/no-derived-state -- forward-reference cycle: value is computed by a hook ordered after its consumer, not render-derivable here
-    setRecipesByUuidState(recipesByUuid);
-  }, [recipesByUuid]);
 
   // Action handlers
   const {

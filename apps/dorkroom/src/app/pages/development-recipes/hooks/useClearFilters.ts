@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 
 export interface UseClearFiltersProps {
   /** Resets every filter owned by `useDevelopmentRecipes` (developer type,
-   * dilution, ISO, recipe type, tag, search). It has no knowledge of
+   * dilution, ISO, recipe type, search). It has no knowledge of
    * `favoritesOnly`, which is page-level state. */
   clearFilters: () => void;
   setFavoritesOnly: (value: boolean) => void;

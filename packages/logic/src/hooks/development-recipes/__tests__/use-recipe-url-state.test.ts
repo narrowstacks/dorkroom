@@ -2,6 +2,7 @@ import type { Combination, Developer, Film } from '@dorkroom/api';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  readRecipeUrlSearchQuery,
   type RecipeFilterState,
   useRecipeUrlState,
   validateUrlParams,
@@ -76,6 +77,7 @@ describe('useRecipeUrlState', () => {
   }
   const noRecipeData: RecipeDataProps = { films: [], developers: [] };
   const mockCurrentState: RecipeFilterState = {
+    searchQuery: '',
     selectedFilm: null,
     selectedDeveloper: null,
     dilutionFilter: '',
@@ -1036,6 +1038,79 @@ describe('useRecipeUrlState', () => {
         mockReplaceState.mock.calls[mockReplaceState.mock.calls.length - 1];
       expect(lastCall[2]).toContain('film=hp5');
       expect(lastCall[2]).not.toContain(`${key}=`);
+
+      vi.useRealTimers();
+    });
+  });
+
+  // `q` used to be written by a second, page-level debounced writer racing
+  // this hook on the same history entry (#288). It is a managed param now.
+  describe('free-text search (q)', () => {
+    it('reads q for the mount-time seed', () => {
+      mockLocation.search = '?q=hp5%20dd-x&film=hp5';
+      expect(readRecipeUrlSearchQuery()).toBe('hp5 dd-x');
+
+      mockLocation.search = '?film=hp5';
+      expect(readRecipeUrlSearchQuery()).toBe('');
+    });
+
+    it('writes q together with the filters in a single replaceState', () => {
+      vi.useFakeTimers();
+      const { rerender } = renderHook(
+        ({ currentState }) =>
+          useRecipeUrlState(mockFilms, mockDevelopers, currentState),
+        { initialProps: { currentState: mockCurrentState } }
+      );
+      act(() => {
+        vi.runAllTimers();
+      });
+      mockReplaceState.mockClear();
+
+      rerender({
+        currentState: {
+          ...mockCurrentState,
+          searchQuery: 'rodinal',
+          favoritesOnly: true,
+        },
+      });
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      expect(mockReplaceState).toHaveBeenCalledTimes(1);
+      const url = new URL(mockReplaceState.mock.calls[0][2], 'https://x.test');
+      expect(url.searchParams.get('q')).toBe('rodinal');
+      expect(url.searchParams.get('favorites')).toBe('true');
+
+      vi.useRealTimers();
+    });
+
+    it('drops q once the search is cleared, keeping unmanaged params', () => {
+      vi.useFakeTimers();
+      mockLocation.search = '?q=rodinal&utm_source=forum';
+      const { rerender } = renderHook(
+        ({ currentState }) =>
+          useRecipeUrlState(mockFilms, mockDevelopers, currentState),
+        {
+          initialProps: {
+            currentState: { ...mockCurrentState, searchQuery: 'rodinal' },
+          },
+        }
+      );
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      rerender({ currentState: { ...mockCurrentState, searchQuery: '' } });
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      const lastCall =
+        mockReplaceState.mock.calls[mockReplaceState.mock.calls.length - 1];
+      const url = new URL(lastCall[2], 'https://x.test');
+      expect(url.searchParams.has('q')).toBe(false);
+      expect(url.searchParams.get('utm_source')).toBe('forum');
 
       vi.useRealTimers();
     });
