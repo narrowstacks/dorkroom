@@ -45,6 +45,7 @@ const LINKED_PATHS = [
   '/mat',
   '/reciprocity',
   '/development',
+  '/negative-inverter',
   '/lenses',
   '/exposure',
   '/films',
@@ -258,6 +259,14 @@ describe('HomePage', () => {
           description: 'B&W film development database',
           icon: 'flask-conical',
           accent: 'rose',
+        },
+        {
+          title: 'Negative Inverter',
+          href: '/negative-inverter',
+          category: 'Film',
+          description: 'Quick positives from phone photos',
+          icon: 'contrast',
+          accent: 'violet',
         },
         {
           title: 'Lens Equivalency',

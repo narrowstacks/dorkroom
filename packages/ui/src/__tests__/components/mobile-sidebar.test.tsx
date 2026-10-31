@@ -288,6 +288,7 @@ describe('MobileSidebar', () => {
         'Film',
         'Development',
         'Reciprocity',
+        'Inverter',
         'Camera',
         'Lenses',
         'Exposure',

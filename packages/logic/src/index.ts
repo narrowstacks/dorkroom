@@ -200,6 +200,8 @@ export {
   formatFocalLength,
 } from './utils/lens-calculations';
 export * from './utils/light-meter';
+export * from './utils/negative-inversion';
+export * from './utils/negative-inverter-geometry';
 export * from './utils/object-comparison';
 export * from './utils/persisted-calculator';
 export * from './utils/precision';

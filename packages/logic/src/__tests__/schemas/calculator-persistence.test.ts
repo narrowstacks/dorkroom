@@ -111,10 +111,11 @@ describe('calculator persistence contract', () => {
       expected: T
     ) => {
       expect(definition.defaults).toEqual(expected);
-      // Validate the defaults as they would come back out of storage: written
-      // as JSON, then read back.
-      const written = JSON.stringify(definition.defaults);
-      const stored = persistedSnapshotSchema.parse(JSON.parse(written));
+      // Validate the defaults as they would come back out of storage.
+      const stored = persistedSnapshotSchema.parse(
+        // eslint-disable-next-line react-doctor/no-json-parse-stringify-clone -- a localStorage round trip on purpose, not a deep clone: structuredClone would keep values JSON drops
+        JSON.parse(JSON.stringify(definition.defaults))
+      );
       for (const key of definition.persistKeys) {
         expect(
           definition.validators[key].validate(stored[key]),
