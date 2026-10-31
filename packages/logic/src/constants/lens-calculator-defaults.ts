@@ -2,7 +2,7 @@
  * Default settings and sensor format definitions for the Lens Calculator
  */
 
-import type { SensorFormat } from '../types/lens-calculator';
+import type { LensFormState, SensorFormat } from '../types/lens-calculator';
 
 /**
  * Longest focal length the calculator accepts and persists. Real lenses reach
@@ -125,3 +125,10 @@ export const SENSOR_FORMATS: SensorFormat[] = [
  */
 export const SENSOR_FORMAT_MAP: Record<string, SensorFormat> =
   Object.fromEntries(SENSOR_FORMATS.map((format) => [format.id, format]));
+
+/** Initial (and reset) form state for the lens calculator. */
+export const LENS_DEFAULTS: LensFormState = {
+  focalLength: 50,
+  sourceFormat: 'full-frame',
+  targetFormat: 'aps-c-nikon',
+};

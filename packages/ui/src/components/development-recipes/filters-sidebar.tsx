@@ -1,8 +1,7 @@
 import type { CustomRecipeFilter, SelectItem } from '@dorkroom/logic';
 import type { SortingState } from '@tanstack/react-table';
 import { Search } from 'lucide-react';
-import { type FC, useRef } from 'react';
-import { cssVars, setStyles } from '../../lib/dom';
+import type { FC } from 'react';
 import { optionChangeHandler } from '../../lib/select-options';
 import { FilterPanelContainer } from '../filters/filter-panel-container';
 import { FilterPanelHeader } from '../filters/filter-panel-header';
@@ -116,8 +115,6 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
   collapsed,
   defaultCollapsed = false,
 }) => {
-  const searchIconRef = useRef<SVGSVGElement>(null);
-
   const hasSelections = selectedFilm || selectedDeveloper;
 
   const hasActiveFilters =
@@ -187,12 +184,8 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
         >
           Search recipes
         </label>
-        <div className="relative">
-          <Search
-            ref={searchIconRef}
-            className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 transition-colors"
-            style={{ color: 'var(--color-text-muted)' }}
-          />
+        <div className="group relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted transition-colors group-focus-within:text-brand" />
           <input
             id="recipe-search"
             type="text"
@@ -200,30 +193,7 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search film, developer…"
-            className="w-full rounded-lg border px-3 py-2.5 pl-10 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
-            style={cssVars({
-              borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'var(--color-surface-muted)',
-              color: 'var(--color-text-primary)',
-            })}
-            onFocus={(e) => {
-              setStyles(e.target, {
-                borderColor: 'var(--color-brand)',
-                backgroundColor: 'var(--color-background)',
-              });
-              if (searchIconRef.current) {
-                searchIconRef.current.style.color = 'var(--color-brand)';
-              }
-            }}
-            onBlur={(e) => {
-              setStyles(e.target, {
-                borderColor: 'var(--color-border-secondary)',
-                backgroundColor: 'var(--color-surface-muted)',
-              });
-              if (searchIconRef.current) {
-                searchIconRef.current.style.color = 'var(--color-text-muted)';
-              }
-            }}
+            className="w-full rounded-lg border border-secondary bg-surface-muted px-3 py-2.5 pl-10 text-sm font-medium text-primary transition-all duration-200 focus:border-brand focus:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
           />
         </div>
       </div>
@@ -251,25 +221,7 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
           <button
             type="button"
             onClick={onClearFilters}
-            className="self-start rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all duration-200"
-            style={{
-              color: 'var(--color-text-secondary)',
-              border: '1px solid var(--color-border-secondary)',
-            }}
-            onMouseEnter={(e) => {
-              setStyles(e.currentTarget, {
-                backgroundColor: 'var(--color-accent)',
-                color: 'var(--color-background)',
-                borderColor: 'var(--color-accent)',
-              });
-            }}
-            onMouseLeave={(e) => {
-              setStyles(e.currentTarget, {
-                backgroundColor: 'transparent',
-                color: 'var(--color-text-secondary)',
-                borderColor: 'var(--color-border-secondary)',
-              });
-            }}
+            className="self-start rounded-lg border border-secondary px-2.5 py-1.5 text-xs font-semibold text-secondary transition-all duration-200 hover:border-accent hover:bg-accent hover:text-background"
           >
             Clear filters
           </button>

@@ -1,5 +1,7 @@
 import {
   calculateExposureAdjustment,
+  DEFAULT_EXPOSURE_ORIGINAL_TIME,
+  DEFAULT_EXPOSURE_STOPS,
   EXPOSURE_PRESETS,
   exposureCalculatorPersistence,
   type ExposureFormState,
@@ -142,8 +144,8 @@ export default function ExposureCalculatorPage() {
 
   const form = useForm({
     defaultValues: {
-      originalTime: 10,
-      stops: 1,
+      originalTime: DEFAULT_EXPOSURE_ORIGINAL_TIME,
+      stops: DEFAULT_EXPOSURE_STOPS,
     } satisfies ExposureFormState,
     validators: {
       onChange: validateExposureForm,

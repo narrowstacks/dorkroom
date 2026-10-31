@@ -3,8 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useWindowDimensions } from '../../hooks/use-window-dimensions';
 
 // Test constants
-const INITIAL_WIDTH = 1024;
-const INITIAL_HEIGHT = 768;
+const INITIAL_WIDTH = 1337;
+const INITIAL_HEIGHT = 777;
 const DEBOUNCE_DELAY_MS = 150;
 
 describe('useWindowDimensions', () => {
@@ -43,7 +43,7 @@ describe('useWindowDimensions', () => {
     expect(result.current.width).toBe(INITIAL_WIDTH);
     expect(result.current.height).toBe(INITIAL_HEIGHT);
 
-    // Change window dimensions multiple times rapidly
+    // First resize at t=0
     act(() => {
       window.innerWidth = 800;
       window.innerHeight = 600;
@@ -55,21 +55,29 @@ describe('useWindowDimensions', () => {
     expect(result.current.height).toBe(INITIAL_HEIGHT);
 
     act(() => {
+      vi.advanceTimersByTime(100);
+    });
+
+    // Second resize at t=100 restarts the debounce window
+    act(() => {
       window.innerWidth = 1200;
       window.innerHeight = 900;
       window.dispatchEvent(new Event('resize'));
     });
 
-    // Still should not update (debounce period not elapsed)
+    // t=150: the first resize's delay has elapsed, but the second one reset
+    // it, so a working debounce has still not updated.
+    act(() => {
+      vi.advanceTimersByTime(50);
+    });
     expect(result.current.width).toBe(INITIAL_WIDTH);
     expect(result.current.height).toBe(INITIAL_HEIGHT);
 
-    // Advance timers by debounce delay to trigger the update
+    // t=250: a full delay after the second resize, so one update with the
+    // latest values (the intermediate 800x600 is never rendered).
     act(() => {
-      vi.advanceTimersByTime(DEBOUNCE_DELAY_MS);
+      vi.advanceTimersByTime(DEBOUNCE_DELAY_MS - 50);
     });
-
-    // Should now have the updated values (no need for waitFor with fake timers)
     expect(result.current.width).toBe(1200);
     expect(result.current.height).toBe(900);
   });
@@ -98,8 +106,14 @@ describe('useWindowDimensions', () => {
       window.dispatchEvent(new Event('resize'));
     });
 
+    // A resize left a debounce timer pending
+    expect(vi.getTimerCount()).toBe(1);
+
     // Unmount before debounce completes
     unmount();
+
+    // The pending debounce timer was cleared, not merely left to fire
+    expect(vi.getTimerCount()).toBe(0);
 
     // Advance timers beyond debounce delay to ensure any pending timeout would have fired
     act(() => {
