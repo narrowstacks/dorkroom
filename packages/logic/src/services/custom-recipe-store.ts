@@ -130,6 +130,21 @@ const resolveDilution = (
   };
 };
 
+const CUSTOM_FILM_ID_PREFIX = 'custom_film_';
+const CUSTOM_DEVELOPER_ID_PREFIX = 'custom_dev_';
+
+/**
+ * Id for a custom film or developer. A base id is kept only when it already
+ * carries the custom prefix: a catalogue uuid left over from before the user
+ * switched to a custom entry must not survive, or later readers that sniff the
+ * prefix would load the catalogue entry and drop the custom data (#510).
+ */
+const reuseCustomId = (
+  baseId: string | undefined,
+  prefix: string,
+  timestamp: number
+): string => (baseId?.startsWith(prefix) ? baseId : `${prefix}${timestamp}`);
+
 const createRecipeFromFormData = (
   formData: CustomRecipeFormData,
   base?: CustomRecipe
@@ -146,13 +161,13 @@ const createRecipeFromFormData = (
 
   const filmId = formData.useExistingFilm
     ? formData.selectedFilmId || base?.filmId || `fallback_film_${timestamp}`
-    : (base?.filmId ?? `custom_film_${timestamp}`);
+    : reuseCustomId(base?.filmId, CUSTOM_FILM_ID_PREFIX, timestamp);
 
   const developerId = formData.useExistingDeveloper
     ? formData.selectedDeveloperId ||
       base?.developerId ||
       `fallback_dev_${timestamp}`
-    : (base?.developerId ?? `custom_dev_${timestamp}`);
+    : reuseCustomId(base?.developerId, CUSTOM_DEVELOPER_ID_PREFIX, timestamp);
 
   return {
     ...base,

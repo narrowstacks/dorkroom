@@ -474,3 +474,94 @@ describe('custom recipe dilution persistence (#322)', () => {
     expect(saved.customDilution).toBe('1+100');
   });
 });
+
+describe('custom film and developer ids (#510)', () => {
+  const customFilm = {
+    brand: 'Home',
+    name: 'Brew',
+    isoSpeed: 200,
+    colorType: 'bw' as const,
+  };
+  const customDeveloper = {
+    manufacturer: 'Home',
+    name: 'Soup',
+    type: 'powder' as const,
+    filmOrPaper: 'film' as const,
+    dilutions: [{ name: 'Stock', dilution: 'Stock' }],
+  };
+  const customForm: CustomRecipeFormData = {
+    ...baseFormData,
+    useExistingFilm: false,
+    selectedFilmId: '',
+    customFilm,
+    useExistingDeveloper: false,
+    selectedDeveloperId: '',
+    customDeveloper,
+  };
+
+  it('mints custom ids when a catalogue recipe switches to custom', () => {
+    const base = createStoredRecipe({
+      filmId: 'film-uuid',
+      developerId: 'dev-uuid',
+    });
+    const store = memoryStore([base]);
+
+    const saved = store.update(base.id, customForm);
+
+    expect(saved.filmId).toMatch(/^custom_film_/);
+    expect(saved.developerId).toMatch(/^custom_dev_/);
+    expect(saved.isCustomFilm).toBe(true);
+    expect(saved.isCustomDeveloper).toBe(true);
+  });
+
+  it('keeps existing custom ids when a custom recipe stays custom', () => {
+    const base = createStoredRecipe({
+      filmId: 'custom_film_123',
+      developerId: 'custom_dev_456',
+      isCustomFilm: true,
+      isCustomDeveloper: true,
+      customFilm,
+      customDeveloper,
+    });
+    const saved = memoryStore([base]).update(base.id, customForm);
+
+    expect(saved.filmId).toBe('custom_film_123');
+    expect(saved.developerId).toBe('custom_dev_456');
+  });
+
+  it('repairs a recipe stored with a catalogue id and the custom flag', () => {
+    const broken = createStoredRecipe({
+      filmId: 'film-uuid',
+      developerId: 'dev-uuid',
+      isCustomFilm: true,
+      isCustomDeveloper: true,
+      customFilm,
+      customDeveloper,
+    });
+    const saved = memoryStore([broken]).update(broken.id, customForm);
+
+    expect(saved.filmId).toMatch(/^custom_film_/);
+    expect(saved.developerId).toMatch(/^custom_dev_/);
+  });
+
+  it('uses the selected catalogue ids when a custom recipe switches back', () => {
+    const base = createStoredRecipe({
+      filmId: 'custom_film_123',
+      developerId: 'custom_dev_456',
+      isCustomFilm: true,
+      isCustomDeveloper: true,
+      customFilm,
+      customDeveloper,
+    });
+    const saved = memoryStore([base]).update(base.id, {
+      ...baseFormData,
+      selectedFilmId: 'film-9',
+      selectedDeveloperId: 'dev-9',
+    });
+
+    expect(saved.filmId).toBe('film-9');
+    expect(saved.developerId).toBe('dev-9');
+    expect(saved.isCustomFilm).toBe(false);
+    expect(saved.isCustomDeveloper).toBe(false);
+  });
+});
