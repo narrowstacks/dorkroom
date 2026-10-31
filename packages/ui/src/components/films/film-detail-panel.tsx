@@ -1,6 +1,6 @@
 import type { Film } from '@dorkroom/api';
-import { ExternalLink } from 'lucide-react';
-import type { FC } from 'react';
+import { ExternalLink, Share2 } from 'lucide-react';
+import type { FC, ReactNode } from 'react';
 import { DetailPanel } from '../detail-panel/detail-panel';
 import { Tag } from '../ui/tag';
 import { FilmImage } from './film-image';
@@ -27,6 +27,8 @@ interface FilmDetailPanelProps {
   onClose: () => void;
   /** Whether to render in mobile mode (bottom drawer) vs desktop mode (sidebar) */
   isMobile: boolean;
+  /** Share a link to this film. When provided, the panel shows a Share button. */
+  onShare?: (film: Film) => void;
 }
 
 /**
@@ -59,6 +61,7 @@ const FormattedDateAdded: FC<{ dateAdded: string }> = ({ dateAdded }) => {
  * @param isOpen - Whether the panel is visible
  * @param onClose - Callback invoked to request closing the panel
  * @param isMobile - If true, renders as mobile bottom drawer; if false, renders as desktop sidebar
+ * @param onShare - Shares a link to the film; omitted, no Share button renders
  * @returns The panel element, or null when closed or in SSR
  *
  * @public
@@ -69,12 +72,27 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
   isOpen,
   onClose,
   isMobile,
+  onShare,
 }) => {
   if (!film) {
     return null;
   }
 
   const developmentRecipesUrl = `/development?film=${film.slug}`;
+
+  // Same pill as the recipe detail panel's Share action.
+  const shareButton = onShare && (
+    <button
+      type="button"
+      onClick={() => onShare(film)}
+      aria-label="Share this film"
+      title="Share this film"
+      className="inline-flex items-center gap-2 rounded-full bg-border-muted px-3 py-1 text-xs font-medium text-secondary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] hoverable-action-btn"
+    >
+      <Share2 className="size-4" aria-hidden="true" />
+      Share
+    </button>
+  );
 
   const ariaLabel = `${film.brand} ${film.name} details`;
 
@@ -84,6 +102,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
       film={film}
       baseFilm={baseFilm}
       developmentRecipesUrl={developmentRecipesUrl}
+      shareButton={shareButton}
     />
   );
 
@@ -132,6 +151,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
               </Tag>
             )}
           </div>
+          {shareButton}
         </div>
 
         <FilmRebrandInfo film={film} baseFilm={baseFilm} />
@@ -262,6 +282,8 @@ interface FilmDetailContentProps {
   film: Film;
   baseFilm: Film | null;
   developmentRecipesUrl: string;
+  /** The panel's Share button, or nothing when sharing is off. */
+  shareButton?: ReactNode;
 }
 
 /**
@@ -272,6 +294,7 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
   film,
   baseFilm,
   developmentRecipesUrl,
+  shareButton,
 }) => {
   return (
     <div className="space-y-6">
@@ -321,6 +344,8 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
           </Tag>
         )}
       </div>
+
+      {shareButton}
 
       <FilmRebrandInfo film={film} baseFilm={baseFilm} />
 

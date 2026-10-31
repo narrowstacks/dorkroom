@@ -24,6 +24,7 @@ import { type FC, useCallback } from 'react';
 import type { CalculatorLinkProps } from '../../../components/calculator-route';
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
+import { useShareLink } from '../../lib/use-share-link';
 
 const HOW_TO_USE = [
   'Select the source format — the sensor or film size you know the focal length for.',
@@ -98,6 +99,7 @@ export default function LensCalculatorPage({
 }: CalculatorLinkProps<typeof lensCalculatorLink>) {
   const linkOverrides = lensCalculatorLink.read(linkSearch ?? {});
   useCalculatorAnalytics({ tool: 'lenses' });
+  const { share, manualCopyDialog } = useShareLink('lenses');
 
   const {
     values,
@@ -127,6 +129,8 @@ export default function LensCalculatorPage({
         accentTone={getRouteAccent('/lenses')}
         title="Lens Equivalency Calculator"
         onReset={reset}
+        onShare={() => share(lensCalculatorLink.build(values))}
+        shareDisabled={!calculation}
         description="Calculate equivalent focal lengths between different sensor and film formats. Find out what lens gives you the same field of view when switching between cameras or formats."
       />
 
@@ -329,6 +333,7 @@ export default function LensCalculatorPage({
           </div>
         </CalculatorCard>
       </div>
+      {manualCopyDialog}
     </div>
   );
 }

@@ -38,6 +38,7 @@ import { useMemo, useState } from 'react';
 import type { CalculatorLinkProps } from '../../../components/calculator-route';
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
+import { useShareLink } from '../../lib/use-share-link';
 
 const validateReciprocityForm = createZodFormValidator(
   reciprocityCalculatorSchema
@@ -478,9 +479,13 @@ export default function ReciprocityCalculatorPage({
 }: CalculatorLinkProps<typeof reciprocityCalculatorLink>) {
   const linkOverrides = reciprocityCalculatorLink.read(linkSearch ?? {});
   useCalculatorAnalytics({ tool: 'reciprocity' });
+  const { share, manualCopyDialog } = useShareLink('reciprocity');
 
   const { form, filmOptions, parsedDisplay, resetToDefaults } =
     useReciprocityForm(linkOverrides);
+  // A field the form rejects would be dropped from the link, so the
+  // recipient would see a different calculation: no sharing until it's fixed.
+  const canShare = useStore(form.store, (state) => state.canSubmit);
 
   const [showChart, setShowChart] = useState(false);
   const [isWideChart, setIsWideChart] = useState(false);
@@ -538,6 +543,10 @@ export default function ReciprocityCalculatorPage({
         icon={getRouteIcon('/reciprocity')}
         accentTone={getRouteAccent('/reciprocity')}
         onReset={resetToDefaults}
+        onShare={() =>
+          share(reciprocityCalculatorLink.build(form.state.values))
+        }
+        shareDisabled={!canShare}
         description={
           <>
             Long exposures need more time than your meter says.
@@ -556,6 +565,7 @@ export default function ReciprocityCalculatorPage({
           parsedDisplay={parsedDisplay}
         />
       </CalculatorLayout>
+      {manualCopyDialog}
     </>
   );
 }
