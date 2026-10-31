@@ -2,6 +2,7 @@ import type { InversionAdjustments, NegativeFilmType } from '@dorkroom/logic';
 import { LabeledSliderInput } from '@dorkroom/ui';
 import { CalculatorCard } from '@dorkroom/ui/calculator';
 import { Pipette } from 'lucide-react';
+import type { Ref } from 'react';
 import { ActionButton } from './controls';
 
 interface AdjustmentsCardProps {
@@ -14,6 +15,8 @@ interface AdjustmentsCardProps {
   /** Opens the neutral picker, or closes it while it is open. */
   onToggleNeutralPicker: () => void;
   onClearNeutral: () => void;
+  /** The button that opens the neutral picker, so focus can return to it. */
+  neutralButtonRef?: Ref<HTMLButtonElement>;
   className?: string;
 }
 
@@ -73,6 +76,7 @@ export function AdjustmentsCard({
   onAdjust,
   onToggleNeutralPicker,
   onClearNeutral,
+  neutralButtonRef,
   className,
 }: AdjustmentsCardProps) {
   if (!enabled) {
@@ -122,7 +126,11 @@ export function AdjustmentsCard({
           <div className="flex flex-wrap gap-2">
             {/* Stays enabled while picking, so keyboard focus is never
                 dropped onto a disabled button. */}
-            <ActionButton icon={Pipette} onClick={onToggleNeutralPicker}>
+            <ActionButton
+              ref={neutralButtonRef}
+              icon={Pipette}
+              onClick={onToggleNeutralPicker}
+            >
               {pickingNeutral
                 ? 'Cancel picking'
                 : hasNeutral

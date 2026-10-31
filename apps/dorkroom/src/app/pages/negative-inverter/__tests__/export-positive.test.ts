@@ -12,6 +12,7 @@ import {
   loadNegative,
 } from '../decode-image';
 import {
+  CPU_EXPORT_TILE_SIDE,
   exportFileName,
   exportPositive,
   JPEG_QUALITY,
@@ -207,6 +208,27 @@ describe('exportPositive', () => {
       format: 'jpeg',
     });
     expect(plan).toMatchObject({ width: 150, height: 100, downscaled: false });
+  });
+
+  it('uses small tiles on the CPU so the page can paint between them', async () => {
+    const width = CPU_EXPORT_TILE_SIDE * 2 + 40;
+    const height = CPU_EXPORT_TILE_SIDE + 20;
+    env = installFakeCanvas(() => syntheticNegative(width, height));
+    const loaded = await loadNegative(photo());
+    const progress: number[] = [];
+    await exportPositive({
+      file: loaded.file,
+      original: loaded.original,
+      region: { x: 0, y: 0, width, height },
+      coefficients: coefficientsFor(loaded.proxy),
+      format: 'jpeg',
+      createRenderer: (options) =>
+        createInversionRenderer({ ...options, forceCpu: true }),
+      onProgress: (fraction) => progress.push(fraction),
+    });
+    // 3 columns by 2 rows of CPU tiles, where a GPU tile would be one.
+    expect(progress).toHaveLength(6);
+    expect(progress.at(-1)).toBe(1);
   });
 
   it('releases the canvas and bitmap when encoding fails', async () => {

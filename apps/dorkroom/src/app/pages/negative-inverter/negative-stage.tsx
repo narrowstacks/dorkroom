@@ -43,11 +43,13 @@ interface NegativeStageProps {
 }
 
 /**
- * Long edge of the CPU preview. The CPU pass re-runs on every slider step,
- * and over the full 2048 px proxy that takes most of a second; a quarter of
- * the pixels keeps the sliders usable. The browser scales it up to fit.
+ * Long edge of the CPU preview. The CPU pass re-runs on every slider step on
+ * the main thread: over the full 2048 px proxy that takes most of a second,
+ * and even at 1024 px about 300 ms on a desktop. At 640 px a frame is about
+ * a tenth of the proxy's pixels, so the sliders stay usable on a phone. The
+ * browser scales it up to fit.
  */
-const CPU_PREVIEW_LONG_EDGE = 1024;
+const CPU_PREVIEW_LONG_EDGE = 640;
 
 /** How long to wait for a lost GPU context to come back before switching
  *  the preview to the CPU. */
@@ -106,7 +108,18 @@ export function NegativeStage({
   const { width, height } = proxy;
 
   useEffect(() => {
-    negativeRef.current?.getContext('2d')?.putImageData(proxy, 0, 0);
+    const canvas = negativeRef.current;
+    if (!canvas) return undefined;
+    // React resets the size attributes from props before this runs again.
+    canvas.width = proxy.width;
+    canvas.height = proxy.height;
+    canvas.getContext('2d')?.putImageData(proxy, 0, 0);
+    // iOS Safari counts a canvas's pixels against the tab's budget until it
+    // is collected, so give them back as soon as the photo goes away.
+    return () => {
+      canvas.width = 0;
+      canvas.height = 0;
+    };
   }, [proxy]);
 
   // One renderer per photo. Its canvas lives outside React's tree because a
@@ -167,7 +180,9 @@ export function NegativeStage({
   };
 
   return (
-    <div className="flex justify-center">
+    // While cropping, the bottom handles' hit areas reach 22px below the
+    // photo; the margin keeps them off the controls underneath.
+    <div className={cn('flex justify-center', tool === 'crop' && 'mb-3')}>
       <figure
         ref={frameRef}
         aria-label={showPositive ? 'Positive preview' : 'Negative'}

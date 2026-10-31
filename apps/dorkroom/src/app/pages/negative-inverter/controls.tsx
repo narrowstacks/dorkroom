@@ -1,5 +1,5 @@
 import { cn } from '@dorkroom/ui';
-import type { ComponentType, ReactNode } from 'react';
+import type { ComponentType, ReactNode, Ref } from 'react';
 
 export interface SegmentOption<T extends string> {
   value: T;
@@ -14,6 +14,8 @@ interface SegmentedControlProps<T extends string> {
   value: T | null;
   onChange: (value: T) => void;
   className?: string;
+  /** The fieldset; each button carries its option as `data-option`. */
+  ref?: Ref<HTMLFieldSetElement>;
 }
 
 /**
@@ -26,9 +28,11 @@ export function SegmentedControl<T extends string>({
   value,
   onChange,
   className,
+  ref,
 }: SegmentedControlProps<T>) {
   return (
     <fieldset
+      ref={ref}
       className={cn('flex gap-1 rounded-2xl border p-1', className)}
       style={{
         borderColor: 'var(--color-border-muted)',
@@ -43,6 +47,7 @@ export function SegmentedControl<T extends string>({
             key={option}
             type="button"
             aria-pressed={active}
+            data-option={option}
             disabled={disabled}
             onClick={() => onChange(option)}
             className={cn(
@@ -70,6 +75,7 @@ interface ActionButtonProps {
   disabled?: boolean;
   icon?: ComponentType<{ className?: string }>;
   className?: string;
+  ref?: Ref<HTMLButtonElement>;
 }
 
 export function ActionButton({
@@ -79,9 +85,11 @@ export function ActionButton({
   disabled,
   icon: Icon,
   className,
+  ref,
 }: ActionButtonProps) {
   return (
     <button
+      ref={ref}
       type="button"
       onClick={onClick}
       disabled={disabled}

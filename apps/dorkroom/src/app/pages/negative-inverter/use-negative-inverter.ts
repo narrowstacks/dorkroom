@@ -66,7 +66,7 @@ type InverterAction =
       key: keyof InversionAdjustments;
       value: number;
     }
-  | { type: 'reset-adjustments' }
+  | { type: 'reset' }
   | { type: 'tool'; tool: InverterTool | null }
   | { type: 'view'; view: InverterView };
 
@@ -137,11 +137,15 @@ function reducer(state: InverterState, action: InverterAction): InverterState {
         ...state,
         adjustments: { ...state.adjustments, [action.key]: action.value },
       };
-    case 'reset-adjustments':
+    case 'reset':
+      // Back to the page's defaults, keeping the photo, crop and base: the
+      // work of framing and picking is not what "reset" should undo.
       return {
         ...state,
+        filmType: INITIAL_STATE.filmType,
         adjustments: DEFAULT_INVERSION_ADJUSTMENTS,
         neutral: null,
+        tool: state.tool === 'neutral' ? null : state.tool,
       };
     case 'tool':
       return {
@@ -255,7 +259,7 @@ export function useNegativeInverter() {
       clearNeutral: () => dispatch({ type: 'neutral', sample: null }),
       adjust: (key: keyof InversionAdjustments, value: number) =>
         dispatch({ type: 'adjust', key, value }),
-      resetAdjustments: () => dispatch({ type: 'reset-adjustments' }),
+      reset: () => dispatch({ type: 'reset' }),
       setTool: (tool: InverterTool | null) => dispatch({ type: 'tool', tool }),
       setView: (view: InverterView) => dispatch({ type: 'view', view }),
     }),

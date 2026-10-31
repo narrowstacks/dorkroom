@@ -2,7 +2,7 @@ import { type NegativeFilmType, scaleRect } from '@dorkroom/logic';
 import { getRouteAccent, getRouteIcon } from '@dorkroom/ui';
 import { CalculatorCard, CalculatorLayout } from '@dorkroom/ui/calculator';
 import { Crop, ImagePlus, Pipette, SwatchBook } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AdjustmentsCard } from './adjustments-card';
 import { ActionButton, SegmentedControl, type SegmentOption } from './controls';
 import { ExportCard } from './export-card';
@@ -52,6 +52,28 @@ export default function NegativeInverterPage() {
   const [focusNeutralPicker, setFocusNeutralPicker] = useState(false);
   const converted = coefficients !== null;
 
+  // A pick puts its picker away, and the picker had focus. Hand focus back to
+  // whatever opened it, so a keyboard user carries on from there rather than
+  // from the top of the page.
+  const toolControlRef = useRef<HTMLFieldSetElement>(null);
+  const neutralButtonRef = useRef<HTMLButtonElement>(null);
+  const previousTool = useRef(tool);
+  useEffect(() => {
+    const was = previousTool.current;
+    previousTool.current = tool;
+    if (tool !== null || (was !== 'base' && was !== 'neutral')) return;
+    const active = document.activeElement;
+    if (active && active !== document.body) return;
+    if (was === 'neutral' && focusNeutralPicker) {
+      // In the sidebar, below the photo on phones: do not scroll away.
+      neutralButtonRef.current?.focus({ preventScroll: true });
+      return;
+    }
+    toolControlRef.current
+      ?.querySelector<HTMLButtonElement>(`[data-option="${was}"]`)
+      ?.focus();
+  }, [tool, focusNeutralPicker]);
+
   const toolOptions: SegmentOption<InverterTool>[] = [
     { value: 'crop', label: 'Crop', icon: Crop },
     { value: 'base', label: 'Film base', icon: SwatchBook },
@@ -77,7 +99,7 @@ export default function NegativeInverterPage() {
       title="Negative Inverter"
       icon={getRouteIcon('/negative-inverter')}
       accentTone={getRouteAccent('/negative-inverter')}
-      onReset={actions.resetAdjustments}
+      onReset={actions.reset}
       description="Turn a phone photo of a negative into a positive preview, for black and white or C-41 colour film. Everything runs in your browser; your photos never leave this device."
       sidebar={
         // A flex column so that on phones, once converted, the adjustments
@@ -110,6 +132,7 @@ export default function NegativeInverterPage() {
               actions.setTool(tool === 'neutral' ? null : 'neutral');
             }}
             onClearNeutral={actions.clearNeutral}
+            neutralButtonRef={neutralButtonRef}
             className={converted ? 'max-md:order-first' : undefined}
           />
           <ExportCard
@@ -139,6 +162,7 @@ export default function NegativeInverterPage() {
               focusNeutralPicker={focusNeutralPicker}
             />
             <SegmentedControl
+              ref={toolControlRef}
               legend="Tool"
               options={toolOptions}
               value={tool}

@@ -225,6 +225,8 @@ describe('NegativeInverterPage', () => {
     // Neutral grey needs a base first.
     expect(screen.getByRole('button', { name: 'Neutral grey' })).toBeDisabled();
     await pickBaseAt(10, 150);
+    // The base picker is put away; focus goes back to the tool that opened it.
+    expect(screen.getByRole('button', { name: 'Film base' })).toHaveFocus();
 
     expect(
       screen.getByRole('spinbutton', { name: 'Warmth' })
@@ -247,6 +249,8 @@ describe('NegativeInverterPage', () => {
     expect(
       await screen.findByText(/Colour balanced on the grey you picked/)
     ).toBeInTheDocument();
+    // The picker is put away; focus returns to the button that opened it.
+    expect(screen.getByRole('button', { name: 'Pick again' })).toHaveFocus();
 
     // A neutral pick makes the picked spot grey: its channels converge.
     await waitFor(() => {
@@ -260,6 +264,16 @@ describe('NegativeInverterPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Clear neutral' }));
     expect(
       screen.getByText(/Tap something that should be neutral grey/)
+    ).toBeInTheDocument();
+
+    // Reset to defaults goes back to B&W too, keeping the photo and base.
+    fireEvent.click(screen.getByRole('button', { name: 'Reset to defaults' }));
+    expect(
+      screen.getByRole('button', { name: 'Black & White' })
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByRole('spinbutton', { name: 'Warmth' })).toBeNull();
+    expect(
+      screen.getByRole('figure', { name: 'Positive preview' })
     ).toBeInTheDocument();
   });
 

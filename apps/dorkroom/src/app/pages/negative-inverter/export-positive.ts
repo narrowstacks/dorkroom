@@ -27,6 +27,14 @@ export const JPEG_QUALITY = 0.92;
  */
 export const EXPORT_TILE_SIDE = 2048;
 
+/**
+ * Tile side when the pass runs on the CPU. The CPU pass blocks the main
+ * thread for the whole tile (a 2048 px tile takes over a second on a desktop),
+ * so smaller tiles let the page paint progress and stay responsive between
+ * them. Also a multiple of 4, for the dither.
+ */
+export const CPU_EXPORT_TILE_SIDE = 512;
+
 export interface ExportRequest {
   file: File;
   /** Size of the decoded original. */
@@ -156,7 +164,9 @@ export async function exportPositive({
     // the remaining tiles to the CPU without replanning.
     const tiles = planTiles(
       plan,
-      Math.min(EXPORT_TILE_SIDE, renderer.maxSourceSide)
+      renderer.backend === 'cpu'
+        ? CPU_EXPORT_TILE_SIDE
+        : Math.min(EXPORT_TILE_SIDE, renderer.maxSourceSide)
     );
     for (const [index, tile] of tiles.entries()) {
       const pixels = ctx.getImageData(tile.x, tile.y, tile.width, tile.height);

@@ -103,6 +103,17 @@ function Loupe({ image, point, below, patchSize, getSource }: LoupeProps) {
     ctx.strokeRect(at, at, side, side);
   }, [getSource, image.width, patchSize, point]);
 
+  // Release the backing store on unmount; iOS Safari only frees canvas
+  // memory on collection otherwise.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    return () => {
+      if (!canvas) return;
+      canvas.width = 0;
+      canvas.height = 0;
+    };
+  }, []);
+
   return (
     <div
       aria-hidden="true"
