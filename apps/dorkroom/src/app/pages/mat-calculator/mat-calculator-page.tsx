@@ -24,6 +24,7 @@ import { useCallback, useMemo } from 'react';
 import type { CalculatorLinkProps } from '../../../components/calculator-route';
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
+import { useShareLink } from '../../lib/use-share-link';
 import { FractionField } from './fraction-field';
 import { MatDiagram } from './mat-diagram';
 import { MatInfoSection } from './mat-info-section';
@@ -482,6 +483,7 @@ export default function MatCalculatorPage({
 }: CalculatorLinkProps<typeof matCalculatorLink>) {
   const linkOverrides = matCalculatorLink.read(linkSearch ?? {});
   useCalculatorAnalytics({ tool: 'mat' });
+  const { share, manualCopyDialog } = useShareLink('mat');
 
   const { unit } = useMeasurement();
 
@@ -534,6 +536,7 @@ export default function MatCalculatorPage({
         icon={getRouteIcon('/mat')}
         accentTone={getRouteAccent('/mat')}
         onReset={calc.reset}
+        onShare={() => share(matCalculatorLink.build(calc.values))}
         description="Plan single-window mats with independent borders and get exact window openings and cutter guide-bar settings."
         results={results}
         sidebar={
@@ -558,6 +561,7 @@ export default function MatCalculatorPage({
           hasRevealMismatch={calc.hasRevealMismatch}
         />
       </CalculatorLayout>
+      {manualCopyDialog}
     </>
   );
 }

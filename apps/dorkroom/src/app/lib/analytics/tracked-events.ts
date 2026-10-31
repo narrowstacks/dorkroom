@@ -1,7 +1,10 @@
 import { track } from '@vercel/analytics';
 
-/** A tool that can hand the user a shareable link. */
-export type ShareTool = 'border' | 'recipe' | 'custom_recipe';
+/**
+ * A tool that can hand the user a shareable link: every calculator (its
+ * current inputs), a recipe, or a film's detail view.
+ */
+export type ShareTool = CalculatorTool | 'recipe' | 'custom_recipe' | 'film';
 
 /** How a share link actually reached the user. */
 export type ShareMethod = 'native' | 'clipboard' | 'manual';

@@ -1,8 +1,11 @@
+import { Share2 } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
+import { commitFocusedField } from '../../lib/commit-focused-field';
 import type { AccentTone } from './accent-tone';
 import { CalculatorResetButton } from './calculator-reset-button';
+import { HEADER_ACTION_CLASS } from './header-action';
 
 interface CalculatorPageHeaderProps {
   title: string;
@@ -22,6 +25,17 @@ interface CalculatorPageHeaderProps {
    * of the title row. Pages that persist their inputs pass this.
    */
   onReset?: () => void;
+  /**
+   * When provided, renders a "Share" control before Reset that hands the
+   * current inputs on as a link. The page builds the link and runs the share
+   * flow; a half-typed field is committed first.
+   */
+  onShare?: () => void;
+  /**
+   * Disables the Share control, e.g. while a field is invalid: a link would
+   * drop that field and open a different calculation.
+   */
+  shareDisabled?: boolean;
   children?: ReactNode;
 }
 
@@ -33,6 +47,8 @@ export function CalculatorPageHeader({
   accentTone,
   align = 'center',
   onReset,
+  onShare,
+  shareDisabled = false,
   children,
 }: CalculatorPageHeaderProps) {
   // An icon anchors the header to the left regardless of the align default.
@@ -106,11 +122,35 @@ export function CalculatorPageHeader({
             {description}
           </div>
         </div>
-        {onReset && (
-          <CalculatorResetButton
-            onReset={onReset}
-            className={cn('ml-auto', Icon && 'self-start')}
-          />
+        {(onShare || onReset) && (
+          <div
+            className={cn(
+              'ml-auto flex shrink-0 items-center gap-2',
+              Icon && 'self-start'
+            )}
+          >
+            {onShare && (
+              <button
+                type="button"
+                onClick={() => {
+                  commitFocusedField();
+                  onShare();
+                }}
+                disabled={shareDisabled}
+                aria-label="Share this calculation"
+                title={
+                  shareDisabled
+                    ? 'Fix the highlighted fields to share this calculation'
+                    : 'Share this calculation'
+                }
+                className={HEADER_ACTION_CLASS}
+              >
+                <Share2 className="size-4" aria-hidden="true" />
+                <span className="sr-only sm:not-sr-only">Share</span>
+              </button>
+            )}
+            {onReset && <CalculatorResetButton onReset={onReset} />}
+          </div>
         )}
       </div>
       {children && (

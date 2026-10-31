@@ -91,6 +91,8 @@ build-time prerender snapshots stay deterministic.
 - Shows percentage change and multiplier
 - Formula display: `time × 2^stops`
 - State persistence to localStorage
+- Share button in the header: hands on a link that reopens the current
+  inputs (see [Link Parameters](#link-parameters))
 
 **Calculations:**
 
@@ -115,6 +117,8 @@ build-time prerender snapshots stay deterministic.
 - Calculated new exposure time and stops difference
 - Unit conversion (imperial/metric via settings)
 - State persistence to localStorage
+- Share button in the header: hands on a link that reopens the current
+  inputs (see [Link Parameters](#link-parameters))
 
 **Calculations:**
 
@@ -151,6 +155,8 @@ build-time prerender snapshots stay deterministic.
   inputs and results, while form state, presets, and persistence stay in
   inches. `mat-units.ts` is the whole boundary.
 - State persistence to localStorage
+- Share button in the header: hands on a link that reopens the current
+  inputs (see [Link Parameters](#link-parameters))
 
 **Key hook:**
 
@@ -178,6 +184,8 @@ build-time prerender snapshots stay deterministic.
 - Adjusted exposure result
 - Interactive reciprocity curve chart (collapsible, expandable)
 - State persistence to localStorage
+- Share button in the header: hands on a link that reopens the current
+  inputs (see [Link Parameters](#link-parameters))
 
 **Calculations:**
 
@@ -202,6 +210,8 @@ build-time prerender snapshots stay deterministic.
 - Source and target crop factor display
 - Formula display: `focalLength × (sourceCropFactor / targetCropFactor)`
 - State persistence to localStorage
+- Share button in the header: hands on a link that reopens the current
+  inputs (see [Link Parameters](#link-parameters))
 
 **Calculations:**
 
@@ -231,6 +241,8 @@ build-time prerender snapshots stay deterministic.
 - "Solve for" selector: adjust shutter speed, aperture, or ISO when applying a preset
 - Formula display: `EV = log₂(N² × 100 / t × S)`
 - State persistence to localStorage
+- Share button in the header: hands on a link that reopens the current
+  inputs (see [Link Parameters](#link-parameters))
 
 **Calculations:**
 
@@ -311,7 +323,8 @@ loaded, `q` included, so if loading fails the URL keeps what the link carried.
 - Filters: color type (B&W, color, slide), ISO, brand, discontinued status
 - Collapsible filter panel (desktop) / mobile filter layout
 - Virtualized film results list (TanStack Virtual)
-- Film detail panel with expandable info
+- Film detail panel with expandable info, and a Share button that hands on
+  the film's `?film=slug` link
 - Direct-link support via URL `?film=slug` parameter
 - Debounced URL sync for all filter state (500ms)
 - Accessibility: skip-to-results link, ARIA live region for result counts
@@ -428,6 +441,10 @@ All calculator pages follow a consistent pattern:
 5. **Results card:** `CalculatorCard` with the page's accent tone
 6. **Info cards:** How-to-use and educational content in sidebar
 7. **State persistence:** localStorage via `usePersistedCalculator()`
+8. **Sharing:** the page passes `onShare` to `CalculatorLayout` (or
+   `CalculatorPageHeader`), which shows a Share button next to Reset. See
+   [Sharing a calculation](#sharing-a-calculation). `/border` shares through
+   its presets instead.
 
 ### State Persistence Pattern
 
@@ -549,6 +566,29 @@ decimal (`12,5`) or a simple fraction (`1/125`, `-1/3`). Booleans accept `true`,
 The param names are a public contract (links already shared depend on them)
 and are pinned by
 `packages/logic/src/__tests__/utils/calculator-url-params.test.ts`.
+
+#### Sharing a calculation
+
+`/stops`, `/resize`, `/mat`, `/reciprocity`, `/lenses` and `/exposure` each
+have a Share button in the page header. It builds
+`<origin><route>?<link.build(current values)>`, so the link carries only the
+fields the calculator's link params cover, and runs it through
+`useShareLink(tool)` (`apps/dorkroom/src/app/lib/use-share-link.tsx`). That
+hook is the one share flow for app pages: the share sheet on mobile, the
+clipboard otherwise (with a "Link copied" toast), the shared `ShareModal` with
+the link to copy by hand when neither works, and the `share` analytics event
+for the tool. The tool sets the route, so a page only passes
+`link.build(values)`, and renders the hook's `manualCopyDialog` once. The film
+detail panel on `/films` uses the same hook for its `?film=slug` link.
+
+On the form-backed calculators (`/stops`, `/resize`, `/reciprocity`) the
+button is disabled while a field fails validation (`shareDisabled`): the link
+would drop that field, and the recipient would see their own value in its
+place.
+
+`/border` keeps its preset sharing (`useCalculatorSharing`, `?preset=`), which
+carries a named preset rather than the bare inputs, so it has no second Share
+button.
 
 ### Form Validation
 

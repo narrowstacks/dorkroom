@@ -30,6 +30,7 @@ import { type ChangeEvent, type FC, useMemo, useRef, useState } from 'react';
 import type { CalculatorLinkProps } from '../../../components/calculator-route';
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
+import { useShareLink } from '../../lib/use-share-link';
 
 const validateExposureForm = createZodFormValidator(exposureCalculatorSchema);
 
@@ -149,6 +150,7 @@ export default function ExposureCalculatorPage({
       ? link
       : { ...link, stops: roundToStandardPrecision(link.stops) };
   useCalculatorAnalytics({ tool: 'stops' });
+  const { share, manualCopyDialog } = useShareLink('stops');
 
   const form = useForm({
     defaultValues: exposureCalculatorPersistence.defaults,
@@ -159,6 +161,9 @@ export default function ExposureCalculatorPage({
 
   // Subscribe to form values
   const formValues = useStore(form.store, (state) => state.values);
+  // A field the form rejects would be dropped from the link, so the
+  // recipient would see a different calculation: no sharing until it's fixed.
+  const canShare = useStore(form.store, (state) => state.canSubmit);
 
   // Persist and hydrate form state to/from localStorage
   const { resetToDefaults } = usePersistedCalculator(
@@ -258,6 +263,8 @@ export default function ExposureCalculatorPage({
         icon={getRouteIcon('/stops')}
         accentTone={getRouteAccent('/stops')}
         onReset={resetToDefaults}
+        onShare={() => share(exposureCalculatorLink.build(form.state.values))}
+        shareDisabled={!canShare}
         description={
           <>
             Adjust exposure times by stops for darkroom printing.
@@ -416,6 +423,7 @@ export default function ExposureCalculatorPage({
           </fieldset>
         </CalculatorCard>
       </CalculatorLayout>
+      {manualCopyDialog}
     </>
   );
 }

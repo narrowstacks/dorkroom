@@ -40,6 +40,7 @@ import { useStore } from '@tanstack/react-store';
 import { useMemo } from 'react';
 import type { CalculatorLinkProps } from '../../../components/calculator-route';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
+import { useShareLink } from '../../lib/use-share-link';
 
 const validateResizeForm = createZodFormValidator(resizeCalculatorSchema);
 
@@ -619,6 +620,10 @@ export default function ResizeCalculatorPage({
   const unitLabel = unit === 'imperial' ? 'in' : 'cm';
   const { toInches, toDisplay } = useMeasurementConverter();
   const { form, formValues, resetToDefaults } = useResizeForm(linkOverrides);
+  const { share, manualCopyDialog } = useShareLink('resize');
+  // A field the form rejects would be dropped from the link, so the
+  // recipient would see a different calculation: no sharing until it's fixed.
+  const canShare = useStore(form.store, (state) => state.canSubmit);
 
   useCalculatorAnalytics({
     tool: 'resize',
@@ -643,6 +648,8 @@ export default function ResizeCalculatorPage({
         icon={getRouteIcon('/resize')}
         accentTone={getRouteAccent('/resize')}
         onReset={resetToDefaults}
+        onShare={() => share(resizeCalculatorLink.build(form.state.values))}
+        shareDisabled={!canShare}
         description="Scale a print up or down and get a solid starting exposure without burning through paper."
         results={results}
         sidebar={
@@ -657,6 +664,7 @@ export default function ResizeCalculatorPage({
           formValues={formValues}
         />
       </CalculatorLayout>
+      {manualCopyDialog}
     </>
   );
 }
