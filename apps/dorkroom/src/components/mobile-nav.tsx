@@ -70,13 +70,16 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
 
   return (
     <>
-      {/* size-12 + this bottom offset is what __root.tsx's `<main>` reserves
+      {/* z-[60] keeps the toggle above the z-50 drawer so it stays the topmost
+          tap target while open (#516; #367 dropped this bump, then the drawer
+          covered the toggle again). The drawer pads its bottom edge to match
+          so the footer sits clear of it. size-12 + this bottom offset is what __root.tsx's `<main>` reserves
           `calc(env(safe-area-inset-bottom)+5rem)` of bottom padding for
           (#345) — resize this button and update that reservation to match. */}
       <button
         ref={toggleButtonRef}
         type="button"
-        className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-50 flex size-12 items-center justify-center rounded-full shadow-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] sm:hidden"
+        className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-[60] flex size-12 items-center justify-center rounded-full shadow-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] sm:hidden"
         style={{
           color: 'var(--color-background)',
           borderColor: 'var(--color-background)',
@@ -120,7 +123,7 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
           <nav
             id="mobile-navigation"
             className={cn(
-              'fixed right-0 top-0 z-50 h-dvh w-72 border-l shadow-xl backdrop-blur transition-transform duration-300 ease-out sm:hidden',
+              'fixed right-0 top-0 z-50 h-dvh w-72 border-l pb-[calc(env(safe-area-inset-bottom)+5rem)] shadow-xl backdrop-blur transition-transform duration-300 ease-out sm:hidden',
               visible ? 'translate-x-0' : 'translate-x-full'
             )}
             style={{
