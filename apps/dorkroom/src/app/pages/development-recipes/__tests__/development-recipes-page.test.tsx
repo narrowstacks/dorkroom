@@ -309,8 +309,11 @@ describe.each([
     expect(
       within(panel).getByRole('button', { name: 'Add to favorites' })
     ).toBeInTheDocument();
+    expect(
+      within(panel).getByRole('button', { name: 'Share' })
+    ).toBeInTheDocument();
     // Custom-only actions stay off an API recipe.
-    for (const name of ['Share', 'Copy link', 'Edit', 'Delete']) {
+    for (const name of ['Copy link', 'Edit', 'Delete']) {
       expect(
         within(panel).queryByRole('button', { name })
       ).not.toBeInTheDocument();
@@ -343,6 +346,20 @@ describe.each([
     }
     // Custom recipes are not written to the URL.
     expect(currentParams().get('recipe')).toBeNull();
+  });
+
+  it('shares a built-in recipe from the panel through the list share flow', async () => {
+    renderPage({ mobile });
+    await openRecipe(mobile, API_RECIPE);
+
+    fireEvent.click(
+      within(getDetailPanel(mobile)).getByRole('button', { name: 'Share' })
+    );
+
+    // happy-dom has no share sheet, so the shared flow lands on the clipboard.
+    await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
+    expect(writeText.mock.calls[0]?.[0]).toContain(API_ID);
+    expect(await screen.findByText('Link copied to clipboard!')).toBeVisible();
   });
 
   it('copies the share link of a custom recipe from the panel', async () => {
@@ -429,6 +446,20 @@ describe.each([
     expect(panel).toHaveAccessibleName(
       'Ilford HP5 Plus with Ilford DD-X recipe details'
     );
+  });
+
+  // #508: the link must resolve against the whole catalogue, not the rows the
+  // current filters leave.
+  it('opens a ?recipe= link that the ?q= search filters out, and keeps it in the URL', async () => {
+    renderPage({ mobile, search: `?q=zzz-no-match&recipe=${API_ID}` });
+
+    const panel = await waitFor(() => getDetailPanel(mobile));
+    expect(panel).toHaveAccessibleName(
+      'Ilford HP5 Plus with Ilford DD-X recipe details'
+    );
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    expect(currentParams().get('recipe')).toBe(API_ID);
+    expect(currentParams().get('q')).toBe('zzz-no-match');
   });
 
   it('opens a shared custom recipe in the shared recipe dialog, not the panel', async () => {

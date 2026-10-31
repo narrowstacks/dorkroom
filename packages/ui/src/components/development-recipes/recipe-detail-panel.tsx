@@ -199,7 +199,9 @@ const SidebarActionButtons: FC<
         {isFav ? 'Favorited' : 'Add to favorites'}
       </button>
     )}
-    {onShareRecipe && isCustomRecipe && customRecipeSharingEnabled && (
+    {/* Built-in recipes always share (as the list does); custom ones are
+        gated by the sharing flag. */}
+    {onShareRecipe && (!isCustomRecipe || customRecipeSharingEnabled) && (
       <button
         type="button"
         onClick={() => onShareRecipe(view)}
