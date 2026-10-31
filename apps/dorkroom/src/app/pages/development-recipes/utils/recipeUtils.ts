@@ -24,6 +24,28 @@ export const CUSTOM_RECIPE_FORM_DEFAULT: CustomRecipeFormData = {
   isFavorite: false,
 };
 
+const CUSTOM_FILM_PREFIX = 'custom_film_';
+const CUSTOM_DEVELOPER_PREFIX = 'custom_dev_';
+
+/**
+ * Whether a view's film is the user's own. The view carries no flag, but
+ * `getCustomRecipeFilm` builds a `custom_film_<recipeId>` entity exactly when
+ * the stored `isCustomFilm` flag is set, so that entity is the flag. The
+ * combination's `filmStockId` prefix is the fallback for old data. The stored
+ * id alone cannot decide: recipes saved before #510 can hold a catalogue uuid
+ * with `isCustomFilm: true`.
+ */
+export const isCustomFilmView = (view: DevelopmentCombinationView): boolean =>
+  Boolean(view.film?.uuid.startsWith(CUSTOM_FILM_PREFIX)) ||
+  view.combination.filmStockId.startsWith(CUSTOM_FILM_PREFIX);
+
+/** Developer counterpart of {@link isCustomFilmView}. */
+export const isCustomDeveloperView = (
+  view: DevelopmentCombinationView
+): boolean =>
+  Boolean(view.developer?.uuid.startsWith(CUSTOM_DEVELOPER_PREFIX)) ||
+  view.combination.developerId.startsWith(CUSTOM_DEVELOPER_PREFIX);
+
 /**
  * Converts a DevelopmentCombinationView to CustomRecipeFormData
  * Used when editing an existing recipe
@@ -32,14 +54,14 @@ export const convertRecipeToFormData = (
   view: DevelopmentCombinationView
 ): CustomRecipeFormData => {
   const combination = view.combination;
+  const isCustomFilm = isCustomFilmView(view);
+  const isCustomDeveloper = isCustomDeveloperView(view);
 
   return {
     name: combination.name || '',
-    useExistingFilm: !combination.filmStockId.startsWith('custom_film_'),
-    selectedFilmId: combination.filmStockId.startsWith('custom_film_')
-      ? ''
-      : combination.filmStockId,
-    customFilm: combination.filmStockId.startsWith('custom_film_')
+    useExistingFilm: !isCustomFilm,
+    selectedFilmId: isCustomFilm ? '' : combination.filmStockId,
+    customFilm: isCustomFilm
       ? {
           brand: view.film?.brand || '',
           name: view.film?.name || '',
@@ -52,11 +74,9 @@ export const convertRecipeToFormData = (
           description: view.film?.description || '',
         }
       : undefined,
-    useExistingDeveloper: !combination.developerId.startsWith('custom_dev_'),
-    selectedDeveloperId: combination.developerId.startsWith('custom_dev_')
-      ? ''
-      : combination.developerId,
-    customDeveloper: combination.developerId.startsWith('custom_dev_')
+    useExistingDeveloper: !isCustomDeveloper,
+    selectedDeveloperId: isCustomDeveloper ? '' : combination.developerId,
+    customDeveloper: isCustomDeveloper
       ? {
           manufacturer: view.developer?.manufacturer || '',
           name: view.developer?.name || '',
