@@ -9,7 +9,7 @@ const LensCalculatorPage = lazy(
 );
 
 export const Route = createFileRoute('/lenses')({
-  ...calculatorRoute(LENS_CALCULATOR_LINK_PARAMS, LensCalculatorPage),
+  ...calculatorRoute('lenses', LENS_CALCULATOR_LINK_PARAMS, LensCalculatorPage),
   head: () => ({
     meta: [
       { title: `${ROUTE_TITLES['/lenses']} - Dorkroom` },

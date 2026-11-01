@@ -127,6 +127,18 @@ describe('useBorderCalculatorController sharing', () => {
     expect(window.va).toHaveBeenCalledWith(...shareEvent('clipboard'));
   });
 
+  it('tracks each preset link once, and a different link again', async () => {
+    stubClipboard(vi.fn().mockResolvedValue(undefined));
+    const result = renderController();
+
+    await act(() => result.current.handleCopyToClipboard('https://x.test/a'));
+    await act(() => result.current.handleCopyToClipboard('https://x.test/a'));
+    expect(window.va).toHaveBeenCalledTimes(1);
+
+    await act(() => result.current.handleCopyToClipboard('https://x.test/b'));
+    expect(window.va).toHaveBeenCalledTimes(2);
+  });
+
   it('rethrows a failed copy without tracking it', async () => {
     stubClipboard(vi.fn().mockRejectedValue(new Error('denied')));
     const result = renderController();

@@ -62,7 +62,11 @@ async function renderApp(url: string) {
       createRoute({
         getParentRoute: () => rootRoute,
         path: '/lenses',
-        ...calculatorRoute(LENS_CALCULATOR_LINK_PARAMS, LensCalculatorPage),
+        ...calculatorRoute(
+          'lenses',
+          LENS_CALCULATOR_LINK_PARAMS,
+          LensCalculatorPage
+        ),
       }),
       ...STUB_PATHS.map((path) =>
         createRoute({
@@ -353,6 +357,32 @@ describe('nav search', () => {
       const sent = JSON.stringify(va.mock.calls);
       expect(sent).not.toContain('11x14');
       expect(sent).not.toContain('home_search');
+    });
+
+    it('opens a calculator answer without counting it as an opened share', async () => {
+      const router = await renderApp('/lenses');
+      const focalLength = () =>
+        screen.findByRole('spinbutton', { name: /Focal length/ });
+      await focalLength();
+
+      fireEvent.keyDown(document.body, { key: 'k', ctrlKey: true });
+      await findDialog();
+      type('80mm on 6x6');
+      const answer = await screen.findByRole('article', {
+        name: '80mm on 6×6 as Full Frame',
+      });
+      const link = within(answer).getByRole('link', {
+        name: /open in lens equivalency/i,
+      });
+      // The answer links with the calculator's own params, never the marker.
+      expect(link.getAttribute('href')).toContain('focal=80');
+      expect(link.getAttribute('href')).not.toContain('source=');
+      fireEvent.click(link);
+
+      await waitFor(async () => expect(await focalLength()).toHaveValue(80));
+      await waitFor(() => expect(router.state.location.search).toEqual({}));
+      const sent = JSON.stringify(va.mock.calls);
+      expect(sent).not.toContain('share_opened');
     });
   });
 });

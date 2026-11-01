@@ -1,8 +1,12 @@
 import type { CustomRecipe } from '@dorkroom/logic';
-import { debugError } from '@dorkroom/logic';
+import {
+  buildCustomRecipeShareUrl,
+  buildRecipeShareUrl,
+  debugError,
+} from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { useCallback } from 'react';
-import { trackEvent } from '../../../lib/analytics/tracked-events';
+import { useShareTracker } from '../../../lib/analytics/use-share-analytics';
 
 /**
  * Internal result type from sharing functions.
@@ -57,6 +61,8 @@ export function useRecipeSharingActions({
   copyRegularRecipeToClipboard,
   showToast,
 }: UseRecipeSharingActionsProps): UseRecipeSharingActionsReturn {
+  const trackShare = useShareTracker();
+
   // Helper function to execute sharing action and show appropriate toast
   const executeRecipeShare = useCallback(
     async (
@@ -69,6 +75,9 @@ export function useRecipeSharingActions({
         );
 
         let result: SharingResult | undefined;
+        // The link the share functions hand over, rebuilt here so `share`
+        // counts once per link. It stays in memory and is never sent.
+        let link: string;
         if (view.source === 'custom') {
           const recipe = customRecipes.find(
             (item) => item.id === combinationId
@@ -77,6 +86,7 @@ export function useRecipeSharingActions({
             return undefined;
           }
 
+          link = buildCustomRecipeShareUrl({ recipe }) ?? `custom:${recipe.id}`;
           result =
             shareMethod === 'share'
               ? await shareCustomRecipe({ recipe })
@@ -90,6 +100,7 @@ export function useRecipeSharingActions({
             developerSlug: view.developer?.slug,
           };
 
+          link = buildRecipeShareUrl(recipeOptions);
           result =
             shareMethod === 'share'
               ? await shareRegularRecipe(recipeOptions)
@@ -97,13 +108,14 @@ export function useRecipeSharingActions({
         }
 
         if (result?.success && result.method) {
-          trackEvent('share', {
-            tool: view.source === 'custom' ? 'custom_recipe' : 'recipe',
+          trackShare(
+            link,
+            view.source === 'custom' ? 'custom_recipe' : 'recipe',
             // The hook reports the Web Share API as 'webShare'; analytics
             // calls the same thing 'native' so /border and /development
             // stay comparable in one breakdown.
-            method: result.method === 'webShare' ? 'native' : 'clipboard',
-          });
+            result.method === 'webShare' ? 'native' : 'clipboard'
+          );
         }
 
         // Show toast if the result indicates we should
@@ -132,6 +144,7 @@ export function useRecipeSharingActions({
       shareRegularRecipe,
       copyRegularRecipeToClipboard,
       showToast,
+      trackShare,
     ]
   );
 

@@ -677,7 +677,7 @@ wiring in each of the link, the route and the page:
 2. **Link** (next to the persistence definition):
    `defineCalculatorLink(lensCalculatorPersistence, LENS_CALCULATOR_LINK_PARAMS)`
    type-checks the field names and gives `read(search)` and `build(values)`.
-3. **Route**: `...calculatorRoute(params, Page)` from
+3. **Route**: `...calculatorRoute(tool, params, Page)` from
    `apps/dorkroom/src/components/calculator-route.tsx` in `createFileRoute`.
    It supplies `validateSearch` (a catch-all object, so other params such as
    `?preset=` survive) and a component that captures the link's params on
@@ -774,19 +774,38 @@ The param names are a public contract (links already shared depend on them)
 and are pinned by
 `packages/logic/src/__tests__/utils/calculator-url-params.test.ts`.
 
+**Shared-link marker.** A link from a Share button also carries
+`source=share` (`SHARED_LINK_MARKER` in `calculator-link-params.ts`), the same
+marker `/development` recipe links carry. It sets no field: `link.read`
+ignores it like any unknown param, and no calculator may use `source` as a
+param name (pinned by the same test). On a calculator route,
+`calculatorRoute` reports `share_opened` for the tool once per capture that
+carries `source=share`, then strips the marker with the link params (a marker
+with another value is stripped and counts for nothing). On `/films`, a
+`?film=slug&source=share` link reports `share_opened` for `film` once, and the
+page's debounced URL sync drops the marker. Links the app builds for its own
+navigation (home and nav search answers, built with `link.build`) never carry
+it, so following one is not an opened share. `api/meta.ts` accepts `source`,
+so a shared film or recipe link is not redirected for it.
+
 #### Sharing a calculation
 
 `/stops`, `/resize`, `/mat`, `/reciprocity`, `/lenses` and `/exposure` each
 have a Share button in the page header. It builds
-`<origin><route>?<link.build(current values)>`, so the link carries only the
-fields the calculator's link params cover, and runs it through
+`<origin><route>?<link.build(current values)>&source=share`, so the link
+carries only the fields the calculator's link params cover plus the
+shared-link marker, and runs it through
 `useShareLink(tool)` (`apps/dorkroom/src/app/lib/use-share-link.tsx`). That
 hook is the one share flow for app pages: the share sheet on mobile, the
 clipboard otherwise (with a "Link copied" toast), the shared `ShareModal` with
 the link to copy by hand when neither works, and the `share` analytics event
-for the tool. The tool sets the route, so a page only passes
-`link.build(values)`, and renders the hook's `manualCopyDialog` once. The film
-detail panel on `/films` uses the same hook for its `?film=slug` link.
+for the tool, sent once per link while the page is mounted (`useShareTracker`
+in `app/lib/analytics/use-share-analytics.ts`): sharing the same inputs again
+sends nothing, and changed inputs make a new link that counts. The tool sets
+the route, so a page only passes `link.build(values)`, and renders the hook's
+`manualCopyDialog` once. The film detail panel on `/films` uses the same hook
+for its `?film=slug&source=share` link. Border preset and recipe shares use
+the same once-per-link tracker.
 
 On the form-backed calculators (`/stops`, `/resize`, `/reciprocity`) the
 button is disabled while a field fails validation (`shareDisabled`): the link

@@ -11,6 +11,7 @@ const ReciprocityCalculatorPage = lazy(
 
 export const Route = createFileRoute('/reciprocity')({
   ...calculatorRoute(
+    'reciprocity',
     RECIPROCITY_CALCULATOR_LINK_PARAMS,
     ReciprocityCalculatorPage
   ),

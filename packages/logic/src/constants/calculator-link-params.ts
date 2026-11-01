@@ -103,3 +103,16 @@ export const CAMERA_EXPOSURE_LINK_PARAMS = {
   iso: 'iso',
   solve: 'solveFor',
 } as const satisfies CalculatorLinkParamMap;
+
+/**
+ * The marker a link handed over through a Share button carries on top of its
+ * own params: `?source=share`. The page that opens it counts the arrival as an
+ * opened share, then strips the marker with the link's other params. Links the
+ * app builds for its own navigation (the home and nav search answers, built
+ * with `link.build`) never carry it, so following one is not an opened share.
+ *
+ * `/development` recipe links carried the same marker before calculator links
+ * existed, so one name covers every shared link. No calculator's param map
+ * may use `source` as a param name.
+ */
+export const SHARED_LINK_MARKER = { param: 'source', value: 'share' } as const;

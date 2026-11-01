@@ -8,6 +8,7 @@ import {
   MAT_CALCULATOR_LINK_PARAMS,
   RECIPROCITY_CALCULATOR_LINK_PARAMS,
   RESIZE_CALCULATOR_LINK_PARAMS,
+  SHARED_LINK_MARKER,
 } from '../../constants/calculator-link-params';
 import { borderCalculatorLink } from '../../schemas/border-calculator-persistence';
 import { cameraExposureLink } from '../../schemas/camera-exposure-calculator.schema';
@@ -254,6 +255,28 @@ describe('calculator link param names', () => {
 
   it('keeps the border link clear of the shared-preset param', () => {
     expect(BORDER_CALCULATOR_LINK_PARAMS).not.toHaveProperty('preset');
+  });
+
+  it('pins the shared-link marker, the one recipe links already carry', () => {
+    expect(SHARED_LINK_MARKER).toEqual({ param: 'source', value: 'share' });
+  });
+
+  it.each([
+    BORDER_CALCULATOR_LINK_PARAMS,
+    EXPOSURE_CALCULATOR_LINK_PARAMS,
+    RESIZE_CALCULATOR_LINK_PARAMS,
+    LENS_CALCULATOR_LINK_PARAMS,
+    RECIPROCITY_CALCULATOR_LINK_PARAMS,
+    MAT_CALCULATOR_LINK_PARAMS,
+    CAMERA_EXPOSURE_LINK_PARAMS,
+  ])('keeps every link clear of the shared-link marker', (params) => {
+    expect(params).not.toHaveProperty(SHARED_LINK_MARKER.param);
+  });
+
+  it('reads a shared link as if the marker were absent', () => {
+    expect(lensCalculatorLink.read({ focal: '80', source: 'share' })).toEqual(
+      lensCalculatorLink.read({ focal: '80' })
+    );
   });
 
   it('reads a camera shutter speed written as a fraction', () => {

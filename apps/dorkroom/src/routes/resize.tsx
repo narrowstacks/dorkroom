@@ -9,7 +9,11 @@ const ResizeCalculatorPage = lazy(
 );
 
 export const Route = createFileRoute('/resize')({
-  ...calculatorRoute(RESIZE_CALCULATOR_LINK_PARAMS, ResizeCalculatorPage),
+  ...calculatorRoute(
+    'resize',
+    RESIZE_CALCULATOR_LINK_PARAMS,
+    ResizeCalculatorPage
+  ),
   head: () => ({
     meta: [
       { title: `${ROUTE_TITLES['/resize']} - Dorkroom` },

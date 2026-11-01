@@ -10,7 +10,11 @@ const CameraExposureCalculatorPage = lazy(
 );
 
 export const Route = createFileRoute('/exposure')({
-  ...calculatorRoute(CAMERA_EXPOSURE_LINK_PARAMS, CameraExposureCalculatorPage),
+  ...calculatorRoute(
+    'exposure',
+    CAMERA_EXPOSURE_LINK_PARAMS,
+    CameraExposureCalculatorPage
+  ),
   head: () => ({
     meta: [
       { title: `${ROUTE_TITLES['/exposure']} - Dorkroom` },

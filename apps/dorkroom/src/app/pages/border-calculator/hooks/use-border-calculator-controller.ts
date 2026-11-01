@@ -31,6 +31,7 @@ import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
 import { useCallback, useEffect, useMemo } from 'react';
 import { trackEvent } from '../../../lib/analytics/tracked-events';
+import { useShareTracker } from '../../../lib/analytics/use-share-analytics';
 
 const validateBorderCalculator = createZodFormValidator(borderCalculatorSchema);
 
@@ -414,6 +415,7 @@ export function useBorderCalculatorController(
     [selectPreset]
   );
 
+  const trackShare = useShareTracker();
   const {
     isShareModalOpen,
     isSaveBeforeShareOpen,
@@ -433,8 +435,9 @@ export function useBorderCalculatorController(
     currentSettings,
     presetName,
     onAddPreset: addPreset,
-    onShared: (method) => {
-      trackEvent('share', { tool: 'border', method });
+    // Once per preset link: copying the same link again sends nothing.
+    onShared: (method, url) => {
+      trackShare(url, 'border', method);
     },
   });
 
