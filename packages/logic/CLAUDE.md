@@ -45,7 +45,7 @@ src/
   fails if its import graph reaches `hooks/`, `services/`, or any package but
   zod.
 
-Both resolve to the built `dist/` (run `bun run build`, or turbo's `^build`).
+Both resolve to the built `dist/` (run `bun run build`, or turbo's `^build`; Vercel's `buildCommand` builds logic explicitly, since the web app reaches it through a path alias).
 The subpath is declared twice in `package.json`: in `exports` for Node, Vite,
 vitest and Vercel's function tracer, and in `typesVersions` for TypeScript's
 `node10` resolution, which `api/tsconfig.json` (TypeScript 6) still uses and

@@ -166,8 +166,12 @@ All under `/utils`:
   React), never the package root, so the param names, validation (each
   calculator's `*Link.read`) and math are the calculator's own rather than
   copies. That entry resolves to logic's built `dist/`:
-  - Vercel: the functions are traced after the build command (which builds
-    logic through turbo's `^build`). `@vercel/node` follows the `exports`
+  - Vercel: the functions are traced after the build command. The app
+    reaches logic through a path alias, not a package dependency, so turbo's
+    `^build` does not build logic for it: `vercel.json`'s `buildCommand`
+    filters `@dorkroom/logic` in explicitly. Drop that filter and the
+    functions fail to build (`Cannot find module
+    '@dorkroom/logic/calculators'`). `@vercel/node` follows the `exports`
     map to `dist/calculators.js` for both the Node and the edge function,
     and compiles the ESM output to CommonJS for Node
   - `typecheck:api` (TypeScript 6, `node10` resolution, which ignores
