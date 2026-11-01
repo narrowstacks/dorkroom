@@ -57,6 +57,22 @@ beforeEach(() => {
         ],
       };
     }
+    if (file.name.startsWith('grey')) {
+      // A neutral B&W negative: grey rebate, denser frame. B&W detection
+      // finds its base; C-41 detection treats neutral pixels as light.
+      const width = resize?.width ?? WIDTH;
+      const height = resize?.height ?? HEIGHT;
+      const rebate = Math.max(1, Math.round(width / 10));
+      return {
+        width,
+        height,
+        close: vi.fn(),
+        paint: (x: number): Rgb => {
+          const v = x < rebate ? 200 : 60 + Math.round((x / width) * 90);
+          return [v, v, v];
+        },
+      };
+    }
     if (file.name.startsWith('blank')) {
       // Bare light table: nothing to find a film base in.
       const width = resize?.width ?? WIDTH;
@@ -377,6 +393,35 @@ describe('NegativeInverterPage', () => {
     expect(
       screen.getByRole('figure', { name: 'Positive preview' })
     ).toBeInTheDocument();
+  });
+
+  it('detects the base for the film type chosen while the photo decodes', async () => {
+    let finish: () => void = () => {};
+    const decoding = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    const decode = globalThis.createImageBitmap;
+    vi.stubGlobal(
+      'createImageBitmap',
+      async (...args: Parameters<typeof decode>) => {
+        await decoding;
+        return decode(...args);
+      }
+    );
+    render(<NegativeInverterPage />);
+    fireEvent.click(screen.getByRole('button', { name: 'Color (C-41)' }));
+    fireEvent.change(screen.getByLabelText('Choose a photo of a negative'), {
+      target: {
+        files: [
+          new File(['jpeg bytes'], 'grey-frame.jpg', { type: 'image/jpeg' }),
+        ],
+      },
+    });
+    // Switched to B&W before the decode lands.
+    fireEvent.click(screen.getByRole('button', { name: 'Black & White' }));
+    finish();
+    await screen.findByRole('figure', { name: 'Positive preview' });
+    expect(screen.getByTitle('Auto base')).toBeInTheDocument();
   });
 
   it('hides the B&W-irrelevant colour controls', async () => {

@@ -14,7 +14,7 @@ import {
   type Rgb,
   samplePatch,
 } from '@dorkroom/logic';
-import { useCallback, useMemo, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import {
   decodeFailureMessage,
   ImageDecodeFailure,
@@ -224,33 +224,36 @@ export function useNegativeInverter() {
   const loadId = useRef(0);
 
   const { filmType, crop } = state;
-  const loadFile = useCallback(
-    async (file: File) => {
-      const id = ++loadId.current;
-      dispatch({ type: 'load-start' });
-      try {
-        const negative = await loadNegative(file);
-        if (id !== loadId.current) return;
-        dispatch({
-          type: 'load-success',
-          negative,
-          // Proposed on the whole photo; it is proposed again as the crop
-          // changes, until a base is picked by hand.
-          autoBase: detectFilmBase(negative.proxy, filmType),
-        });
-      } catch (failure) {
-        if (id !== loadId.current) return;
-        dispatch({
-          type: 'load-failure',
-          error:
-            failure instanceof ImageDecodeFailure
-              ? failure.message
-              : decodeFailureMessage('unreadable'),
-        });
-      }
-    },
-    [filmType]
-  );
+  // The film type can change while a photo decodes (the control stays
+  // enabled), so detection reads the current one, not the one at load start.
+  const filmTypeRef = useRef(filmType);
+  useEffect(() => {
+    filmTypeRef.current = filmType;
+  }, [filmType]);
+  const loadFile = useCallback(async (file: File) => {
+    const id = ++loadId.current;
+    dispatch({ type: 'load-start' });
+    try {
+      const negative = await loadNegative(file);
+      if (id !== loadId.current) return;
+      dispatch({
+        type: 'load-success',
+        negative,
+        // Proposed on the whole photo; it is proposed again as the crop
+        // changes, until a base is picked by hand.
+        autoBase: detectFilmBase(negative.proxy, filmTypeRef.current),
+      });
+    } catch (failure) {
+      if (id !== loadId.current) return;
+      dispatch({
+        type: 'load-failure',
+        error:
+          failure instanceof ImageDecodeFailure
+            ? failure.message
+            : decodeFailureMessage('unreadable'),
+      });
+    }
+  }, []);
 
   const proxy = state.negative?.proxy ?? null;
 
