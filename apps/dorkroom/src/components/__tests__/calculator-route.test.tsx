@@ -280,6 +280,23 @@ describe('calculatorRoute opened shares', () => {
     expect(shareOpenedCalls()).toHaveLength(1);
   });
 
+  it('reports the same shared link again when it lands on the inputs it already applied', async () => {
+    const router = renderLensesRoute('/lenses?focal=80&source=share');
+    await waitFor(async () => expect(await focalLengthInput()).toHaveValue(80));
+    await waitFor(() => expect(router.state.location.search).toEqual({}));
+    expect(shareOpenedCalls()).toHaveLength(1);
+
+    await act(() =>
+      router.navigate({
+        to: '/lenses',
+        search: { focal: '80', source: 'share' },
+      })
+    );
+    await waitFor(() => expect(router.state.location.search).toEqual({}));
+    expect(await focalLengthInput()).toHaveValue(80);
+    expect(shareOpenedCalls()).toHaveLength(2);
+  });
+
   it('reports a second shared link that lands while the route is open', async () => {
     const router = renderLensesRoute('/lenses?focal=50&source=share');
     await waitFor(async () => expect(await focalLengthInput()).toHaveValue(50));
