@@ -38,10 +38,14 @@ export function configureDorkroomApi(): void {
   });
   configured = true;
 
-  if (__DEV__ && !API_KEY) {
+  // Logged in release builds too: a build made without the key (a local EAS
+  // build skips the gitignored .env) otherwise fails every API call with only
+  // a generic "couldn't load" message on screen.
+  if (!API_KEY) {
     console.warn(
-      '[dorkroom] EXPO_PUBLIC_DORKROOM_API_KEY is unset — live API requests ' +
-        'will be rejected. Set it in apps/mobile/.env (see .env.example).'
+      '[dorkroom] EXPO_PUBLIC_DORKROOM_API_KEY is unset: live API requests ' +
+        'will be rejected. Set it in apps/mobile/.env for Metro, or as an EAS ' +
+        'environment variable for EAS builds (see .env.example).'
     );
   }
 }
