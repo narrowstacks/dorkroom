@@ -2,25 +2,16 @@ import { useCallback, useMemo, useState } from 'react';
 import {
   LENS_DEFAULTS,
   MAX_FOCAL_LENGTH_MM,
-  SENSOR_FORMAT_MAP,
 } from '../constants/lens-calculator-defaults';
 import { lensCalculatorPersistence } from '../schemas/lens-calculator.schema';
-import type { LensFormState, SensorFormat } from '../types/lens-calculator';
+import type { LensFormState } from '../types/lens-calculator';
 import {
-  calculateEquivalentFocalLength,
-  calculateFieldOfView,
+  calculateLensEquivalency,
+  type LensCalculatorResult,
 } from '../utils/lens-calculations';
 import { usePersistedCalculator } from './use-persisted-calculator';
 
-/** Derived lens equivalency result, or null when inputs are invalid. */
-export interface LensCalculatorResult {
-  focalLength: number;
-  equivalentFocalLength: number;
-  sourceFormat: SensorFormat;
-  targetFormat: SensorFormat;
-  cropFactorRatio: number;
-  fieldOfView: number;
-}
+export type { LensCalculatorResult };
 
 export interface UseLensCalculatorReturn {
   values: LensFormState;
@@ -87,28 +78,7 @@ export function useLensCalculator(options?: {
     { values, setValues, overrides: options?.overrides }
   );
 
-  const calculation = useMemo<LensCalculatorResult | null>(() => {
-    const { focalLength } = values;
-    const sourceFormat = SENSOR_FORMAT_MAP[values.sourceFormat];
-    const targetFormat = SENSOR_FORMAT_MAP[values.targetFormat];
-
-    if (!sourceFormat || !targetFormat || focalLength <= 0) {
-      return null;
-    }
-
-    return {
-      focalLength,
-      equivalentFocalLength: calculateEquivalentFocalLength(
-        focalLength,
-        sourceFormat,
-        targetFormat
-      ),
-      sourceFormat,
-      targetFormat,
-      cropFactorRatio: sourceFormat.cropFactor / targetFormat.cropFactor,
-      fieldOfView: calculateFieldOfView(focalLength, sourceFormat),
-    };
-  }, [values]);
+  const calculation = useMemo(() => calculateLensEquivalency(values), [values]);
 
   return {
     values,

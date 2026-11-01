@@ -132,6 +132,93 @@ export function formatSignedMatValue(
     : formatted;
 }
 
+/** The mat geometry a set of form values describes, in inches. */
+export interface MatLayout {
+  /** Outer mat width and height. */
+  ow: number;
+  oh: number;
+  /** Borders: top, bottom, left, right. */
+  bt: number;
+  bb: number;
+  bl: number;
+  br: number;
+  /** Artwork width and height (NaN when not given). */
+  aw: number;
+  ah: number;
+  /** Reveal, 0 when not given. */
+  revVal: number;
+  /** Window (sight opening) width and height. */
+  windowW: number;
+  windowH: number;
+  /** Whether the outer mat has a positive size on both axes. */
+  outerValid: boolean;
+  /** Whether the outer mat and borders leave a positive window on both axes. */
+  valid: boolean;
+  /** Whether the artwork size is given and positive (reveal mode). */
+  artValid: boolean;
+  /** Mat coverage onto the artwork per side; NaN without artwork. */
+  overlapLeft: number;
+  overlapTop: number;
+}
+
+/**
+ * Parse the mat form's fraction-friendly strings and derive the window and
+ * reveal geometry. The mat hook and the shared-link preview card both read
+ * their numbers from here.
+ *
+ * @example
+ * ```typescript
+ * const layout = calculateMatLayout(MAT_CALCULATOR_DEFAULTS);
+ * // layout.windowW === 10.5, layout.windowH === 13.5
+ * ```
+ */
+export function calculateMatLayout(values: MatCalculatorState): MatLayout {
+  const ow = parseMatInput(values.outerW);
+  const oh = parseMatInput(values.outerH);
+  const bt = parseMatInput(values.borderTop);
+  const bb = parseMatInput(values.borderBottom);
+  const bl = parseMatInput(values.borderLeft);
+  const br = parseMatInput(values.borderRight);
+  const aw = parseMatInput(values.artW);
+  const ah = parseMatInput(values.artH);
+  const rev = parseMatInput(values.reveal);
+  const revVal = isNaN(rev) ? 0 : rev;
+
+  const bordersValid =
+    !isNaN(bt) &&
+    !isNaN(bb) &&
+    !isNaN(bl) &&
+    !isNaN(br) &&
+    bt >= 0 &&
+    bb >= 0 &&
+    bl >= 0 &&
+    br >= 0;
+  const outerValid = !isNaN(ow) && !isNaN(oh) && ow > 0 && oh > 0;
+  const windowW = ow - bl - br;
+  const windowH = oh - bt - bb;
+  const valid = outerValid && bordersValid && windowW > 0 && windowH > 0;
+  const artValid = !isNaN(aw) && !isNaN(ah) && aw > 0 && ah > 0;
+
+  return {
+    ow,
+    oh,
+    bt,
+    bb,
+    bl,
+    br,
+    aw,
+    ah,
+    revVal,
+    windowW,
+    windowH,
+    outerValid,
+    valid,
+    artValid,
+    overlapLeft: artValid ? (aw - windowW) / 2 : NaN,
+    overlapTop: artValid ? (ah - windowH) / 2 : NaN,
+  };
+}
+
 /** Extra bottom border (optical centering) scaled to the total vertical border. */
 export function bottomWeightFor(vTotal: number): number {
   if (vTotal > 12) return 1;

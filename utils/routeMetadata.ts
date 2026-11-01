@@ -454,7 +454,8 @@ export function decodeBorderPreset(
   }
 }
 
-function normalizePath(pathname: string): string {
+/** `pathname` without trailing slashes (`/` stays `/`). */
+export function normalizePath(pathname: string): string {
   const trimmed = pathname.replace(/\/+$/, '') || '/';
   return trimmed;
 }

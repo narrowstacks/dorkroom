@@ -29,9 +29,14 @@ Everything else:
   rewrites any non-`/api/` path to it when the user-agent matches a known
   crawler, so link previews get per-route titles out of an SPA. Unknown or
   duplicated query params get a 308 to the canonical URL rather than a 400,
-  because shared links routinely carry `utm_*` junk.
+  because shared links routinely carry `utm_*` junk. A calculator route also
+  accepts its link params, and every route accepts the share marker `source`
+  (any value, never part of the card). A calculator link gets its own title,
+  description and card (`utils/calculatorShare.ts`).
 - `og.tsx` - Open Graph card images via `@vercel/og` (edge runtime). Reads
-  `route`, `film`, `developer`, and `recipe` params. See the `og-image-routes`
+  `route`, `film`, `developer`, and `recipe` params, plus a calculator
+  route's link params, for which it draws the result (border, lens, resize,
+  mat) or a text card (stops, reciprocity, exposure). See the `og-image-routes`
   skill. `og.tsx` runs on the edge, outside the Node-only envelope, so it
   carries its own guards: unknown params 400; malformed values (checked by
   `utils/queryPatterns.ts`, the same patterns `meta.ts` uses) are treated as
@@ -155,6 +160,15 @@ All under `/utils`:
 - `queryValidation.ts` - allowlist-based query sanitization
 - `serverlessLogger.ts` - structured serverless logs
 - `routeMetadata.ts` - per-route titles and descriptions used by `meta.ts` and `og.tsx`
+- `calculatorShare.ts` - shared calculator link previews for `meta.ts` and
+  `og.tsx`: accepted link params, title, description and drawing. It imports
+  `@dorkroom/logic`'s pure modules **from source**
+  (`../packages/logic/src/...`), never the package root or a hook, so the
+  param names, validation (each calculator's `*Link.read`) and math are the
+  calculator's own rather than copies. `api/tsconfig.json` includes the logic
+  source minus hooks, so `typecheck:api` checks it under TypeScript 6, and
+  turbo's `typecheck:api`/`test:serverless` inputs include it. The edge
+  bundle for `og.tsx` grows by zod (about 100 KB gzipped)
 - `htmlEscape.ts` - `escapeHtml` for the HTML that `meta.ts` emits
 
 ## Authentication + Rate Limiting

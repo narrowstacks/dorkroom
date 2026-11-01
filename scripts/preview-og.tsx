@@ -104,6 +104,108 @@ const previews = [
       preset: 'U3F1YXJlJTIwb24lMjAxMXgxNC00LTMtNTAtMC0xMDAwMC0w',
     },
   },
+  // Shared calculator link cards (params as the calculators' links build them)
+  {
+    name: 'share-border',
+    params: { route: '/border', paper: '8x10', ratio: '3:2', border: '0.5' },
+  },
+  {
+    name: 'share-border-custom',
+    params: {
+      route: '/border',
+      paper: 'custom',
+      paperW: '9.5',
+      paperH: '12',
+      ratio: '1:1',
+      border: '1',
+      offsetH: '-1',
+    },
+  },
+  {
+    name: 'share-lens',
+    params: {
+      route: '/lenses',
+      focal: '80',
+      from: 'film-6x6',
+      to: 'full-frame',
+    },
+  },
+  {
+    name: 'share-lens-large-format',
+    params: {
+      route: '/lenses',
+      focal: '150',
+      from: 'film-4x5',
+      to: 'micro-four-thirds',
+    },
+  },
+  {
+    name: 'share-resize',
+    params: {
+      route: '/resize',
+      fromW: '8',
+      fromL: '10',
+      toW: '11',
+      toL: '14',
+      time: '12',
+    },
+  },
+  {
+    name: 'share-resize-height',
+    params: {
+      route: '/resize',
+      height: 'true',
+      fromH: '20',
+      toH: '30',
+      time: '10',
+    },
+  },
+  {
+    name: 'share-mat',
+    params: {
+      route: '/mat',
+      outerW: '16',
+      outerH: '20',
+      top: '3',
+      bottom: '3 1/2',
+      left: '2 3/4',
+      right: '2 3/4',
+      artW: '11',
+      artH: '14',
+      reveal: '1/4',
+    },
+  },
+  {
+    name: 'share-mat-no-art',
+    params: {
+      route: '/mat',
+      outerW: '11',
+      outerH: '14',
+      top: '2',
+      bottom: '2 1/2',
+      left: '2',
+      right: '2',
+      artW: '',
+      artH: '',
+    },
+  },
+  {
+    name: 'share-stops',
+    params: { route: '/stops', time: '12', stops: '1.5' },
+  },
+  {
+    name: 'share-reciprocity',
+    params: { route: '/reciprocity', film: 'hp5', time: '1m30s' },
+  },
+  {
+    name: 'share-exposure',
+    params: {
+      route: '/exposure',
+      aperture: '16',
+      shutter: '1/125',
+      iso: '100',
+    },
+  },
 ];
 
 await mkdir(outDir, { recursive: true });

@@ -713,6 +713,88 @@ describe('og handler - border preset', () => {
   });
 });
 
+describe('og handler - shared calculator links', () => {
+  const shares: [string, Record<string, string>][] = [
+    ['/border', { paper: '8x10', ratio: '3:2', border: '0.5' }],
+    ['/lenses', { focal: '80', from: 'film-6x6', to: 'full-frame' }],
+    ['/resize', { fromW: '8', fromL: '10', toW: '11', toL: '14', time: '12' }],
+    ['/resize', { height: 'true', fromH: '20', toH: '30', time: '10' }],
+    [
+      '/mat',
+      { outerW: '16', outerH: '20', artW: '11', artH: '14', reveal: '1/4' },
+    ],
+    ['/mat', { outerW: '16', outerH: '20', artW: '', artH: '' }],
+    ['/stops', { time: '10', stops: '1' }],
+    ['/reciprocity', { film: 'tri-x', time: '30s' }],
+    ['/exposure', { aperture: '16', shutter: '1/125', iso: '100' }],
+  ];
+
+  it.each(shares)(
+    'draws a share card for %s, not the generic one, with no upstream lookup',
+    async (route, params) => {
+      const fetchMock = stubFetch(() =>
+        Promise.resolve(jsonResponse(EMPTY_LIST))
+      );
+      const generic = await renderCard({ route });
+      const share = await renderCard({ route, ...params });
+
+      expect(share.equals(generic)).toBe(false);
+      expect(
+        fetchMock.mock.calls.filter(([input]) => !isFontRequest(String(input)))
+      ).toHaveLength(0);
+    }
+  );
+
+  it('draws different cards for different values', async () => {
+    const [a, b] = await Promise.all([
+      renderCard({ route: '/lenses', focal: '80' }),
+      renderCard({ route: '/lenses', focal: '50' }),
+    ]);
+
+    expect(a.equals(b)).toBe(false);
+  });
+
+  it.each([
+    ['/lenses', { focal: 'abc' }],
+    ['/lenses', { from: 'not-a-format' }],
+    ['/stops', { time: '-5' }],
+    ['/mat', { outerW: '8', left: '4', right: '4' }],
+    ['/exposure', { aperture: '0' }],
+  ])(
+    'falls back to the generic card for %s when no value is usable',
+    async (route, params) => {
+      const generic = await renderCard({ route });
+      const invalid = await renderCard({ route, ...params });
+
+      expect(invalid.equals(generic)).toBe(true);
+    }
+  );
+
+  it('rejects another calculator’s param with a 400', async () => {
+    const res = await handler(
+      makeRequest({ route: '/stops', time: '10', focal: '80' })
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects link params on a non-calculator route', async () => {
+    const res = await handler(makeRequest({ route: '/films', focal: '80' }));
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects the share marker, which meta.ts never puts in a card URL', async () => {
+    const res = await handler(
+      makeRequest({ route: '/lenses', focal: '80', source: 'share' })
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('keeps the long success cache header', async () => {
+    const res = await handler(makeRequest({ route: '/lenses', focal: '80' }));
+    expect(res.headers.get('cache-control')).toContain('s-maxage=86400');
+  });
+});
+
 describe('loadFontData - module-scope cache', () => {
   const FONT = 'https://fonts.gstatic.com/s/test/font.ttf';
 
@@ -966,6 +1048,20 @@ describe('og handler - rate limiting', () => {
     expect(fetchMock.mock.calls.map(([input]) => String(input))).toEqual([
       UNKEY_URL,
     ]);
+  });
+
+  it('sends an over-limit calculator link to that calculator’s static card', async () => {
+    stubFetchWithUnkey(() => unkeyAnswer(false));
+
+    const res = await handler(
+      ogRequest({ route: '/lenses', focal: '80', from: 'film-6x6' })
+    );
+
+    expect(res.status).toBe(307);
+    expect(res.headers.get('location')).toBe(
+      'https://dorkroom.art/api/og?route=%2Flenses'
+    );
+    expect(res.headers.get('cache-control')).toBe('no-store');
   });
 
   it('sends an over-limit unknown route to the home card', async () => {

@@ -19,12 +19,23 @@
     "baseUrl": "../",
     "jsx": "react-jsx",
     "types": ["node"],
-    "lib": ["es2020", "dom"],
+    // es2023 for the logic source the OG card and meta functions import
+    // (`toSorted`); Node 24 and the edge runtime both ship it.
+    "lib": ["es2023", "dom"],
     "paths": {
       "@/*": ["./*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", "openapi-spec.json", "../utils/**/*.ts"],
+  // The calculator share cards import @dorkroom/logic's pure modules from
+  // source (see utils/calculatorShare.ts). Hooks are left out on purpose: a
+  // function that reached one would fail here (TS6307) rather than ship React.
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "openapi-spec.json",
+    "../utils/**/*.ts",
+    "../packages/logic/src/**/*.ts"
+  ],
   "exclude": [
     "node_modules",
     "**/*.test.ts",
@@ -32,7 +43,10 @@
     "../node_modules",
     "../**/*.test.ts",
     "../**/__mocks__/**",
-    "../**/__tests__/**"
+    "../**/__tests__/**",
+    "../packages/logic/src/index.ts",
+    "../packages/logic/src/hooks/**",
+    "../packages/logic/src/test-setup.ts"
   ],
   "references": []
 }

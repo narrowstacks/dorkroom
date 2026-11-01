@@ -55,6 +55,8 @@ export {
   type PersistedBorderCalculatorState,
   borderCalculatorLink,
   borderCalculatorPersistence,
+  borderStateFromLink,
+  completeBorderLinkValues,
   persistedBorderCalculatorFieldSchemas,
   persistedBorderCalculatorSchema,
 } from './schemas/border-calculator-persistence';
@@ -195,6 +197,7 @@ export * from './utils/input-validation';
 export {
   calculateEquivalentFocalLength,
   calculateFieldOfView,
+  calculateLensEquivalency,
   formatFocalLength,
 } from './utils/lens-calculations';
 export * from './utils/light-meter';

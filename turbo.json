@@ -83,7 +83,7 @@
       ]
     },
     "//#typecheck:api": {
-      "inputs": ["api/**", "!api/dist/**", "utils/**"]
+      "inputs": ["api/**", "!api/dist/**", "utils/**", "packages/logic/src/**"]
     },
     "//#doctor": {
       "inputs": [
@@ -111,6 +111,7 @@
         "api/**",
         "!api/dist/**",
         "utils/**",
+        "packages/logic/src/**",
         "scripts/**",
         "README.md",
         "docs/API.md",

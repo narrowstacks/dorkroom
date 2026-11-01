@@ -1,5 +1,5 @@
 import {
-  calculateReciprocity,
+  calculateReciprocityForForm,
   formatReciprocityTime,
   parseReciprocityTime,
   RECIPROCITY_EXPOSURE_PRESETS,
@@ -55,27 +55,6 @@ const TIPS = [
   'The effect varies by emulsion, and not simply with speed. T-Max 100 needs far less correction than Tri-X, while Pan F+ and Delta 3200 behave alike.',
   'Worth checking for night landscapes, astro, interiors, and anything over about a second.',
 ];
-
-/**
- * Adapts the form's values to the shared reciprocity calculation, which the iOS
- * screen and the reciprocity chart also use. Keeping the arithmetic there is
- * what stops the page's readout and the plotted curve from disagreeing.
- */
-function selectReciprocityCalculation(
-  values: ReciprocityFormState
-): ReciprocityCalculation | null {
-  const meteredSeconds = parseReciprocityTime(values.meteredTime);
-
-  if (meteredSeconds === null) {
-    return null;
-  }
-
-  return calculateReciprocity({
-    meteredSeconds,
-    filmType: values.filmType,
-    customFactor: values.customFactor,
-  });
-}
 
 /** Screen-reader summary of the result; empty while the metered time is unparseable. */
 function describeReciprocityResult(
@@ -495,7 +474,7 @@ export default function ReciprocityCalculatorPage({
   // Build the wide chart footer section
   const wideChartFooter = showChart && isWideChart && (
     <form.Subscribe
-      selector={(state) => selectReciprocityCalculation(state.values)}
+      selector={(state) => calculateReciprocityForForm(state.values)}
     >
       {(calculation) =>
         calculation ? (
@@ -511,7 +490,7 @@ export default function ReciprocityCalculatorPage({
   const results = useMemo(
     () => (
       <form.Subscribe
-        selector={(state) => selectReciprocityCalculation(state.values)}
+        selector={(state) => calculateReciprocityForForm(state.values)}
       >
         {(calculation) =>
           calculation ? (
@@ -533,7 +512,7 @@ export default function ReciprocityCalculatorPage({
     <>
       <form.Subscribe
         selector={(state) =>
-          describeReciprocityResult(selectReciprocityCalculation(state.values))
+          describeReciprocityResult(calculateReciprocityForForm(state.values))
         }
       >
         {(message) => <ResultAnnouncer message={message} />}

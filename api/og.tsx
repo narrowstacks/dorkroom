@@ -1,4 +1,10 @@
 import { ImageResponse } from '@vercel/og';
+import {
+  type CalculatorDrawing,
+  calculatorLinkParamNames,
+  type CalculatorShare,
+  readCalculatorShare,
+} from '../utils/calculatorShare';
 import { checkEdgeRateLimit, getRequestIp } from '../utils/edgeRateLimit';
 import {
   BRAND_RE,
@@ -18,6 +24,7 @@ import {
   getRouteMetadata,
   isKnownRoutePath,
   prettifySlug,
+  ROUTE_TITLES,
   SITE_NAME,
 } from '../utils/routeMetadata';
 import { serverlessError } from '../utils/serverlessLogger';
@@ -25,8 +32,9 @@ import { serverlessError } from '../utils/serverlessLogger';
 export const config = { runtime: 'edge' };
 
 /**
- * Every query param this endpoint reads (verified against every
- * `searchParams.get(...)` call in this file). Anything else is rejected
+ * Every query param this endpoint reads on any route (verified against every
+ * `searchParams.get(...)` call in this file). A calculator route also reads
+ * its link params (`calculatorLinkParamNames`). Anything else is rejected
  * before any font fetch, upstream lookup, or image render — see the guard
  * at the top of `handler`. Keep this in sync when adding a new param.
  */
@@ -43,9 +51,14 @@ const ALLOWED_PARAMS = new Set([
 ]);
 
 function rejectUnknownParams(searchParams: URLSearchParams): boolean {
+  const linkParams = new Set(
+    calculatorLinkParamNames(searchParams.get('route') ?? '/')
+  );
   const seen = new Set<string>();
   for (const key of searchParams.keys()) {
-    if (!ALLOWED_PARAMS.has(key) || seen.has(key)) return true;
+    if ((!ALLOWED_PARAMS.has(key) && !linkParams.has(key)) || seen.has(key)) {
+      return true;
+    }
     seen.add(key);
   }
   return false;
@@ -612,6 +625,409 @@ function OgCard({
   );
 }
 
+// ---- Shared calculator link cards ----
+//
+// Drawn previews for a calculator link: the text on the left, a to-scale
+// picture of the result on the right. Every number comes from the share
+// (`utils/calculatorShare.ts`), which takes it from @dorkroom/logic.
+
+/** Box the picture is fitted into, and the room left under it for captions. */
+const DRAWING_W = 440;
+const DRAWING_H = 380;
+const PAPER = '#f4f4f5';
+const MAT_BOARD = '#ece7dc';
+const IMAGE_AREA = '#18181b';
+const SECOND_FRAME = '#7dd6ff';
+const CAPTION_STYLE = {
+  display: 'flex',
+  marginTop: '18px',
+  fontSize: '24px',
+  color: TEXT_SECONDARY,
+} as const;
+/** Smallest side drawn, so a tiny print or frame still shows up. */
+const MIN_SIDE_PX = 6;
+/** Narrowest box that still gets a label written inside it. */
+const MIN_LABELLED_PX = 170;
+
+/** Pixels per unit that fit a `w` x `h` thing into a `boxW` x `boxH` box. */
+function fitScale(w: number, h: number, boxW: number, boxH: number): number {
+  return Math.min(boxW / w, boxH / h);
+}
+
+function px(value: number): number {
+  return Math.max(MIN_SIDE_PX, Math.round(value));
+}
+
+// eslint-disable-next-line react-doctor/only-export-components -- Vercel OG serverless function: JSX is rendered server-side to an image, not a Fast Refresh component module
+function BorderPicture({
+  drawing,
+  accent,
+}: {
+  drawing: Extract<CalculatorDrawing, { kind: 'border' }>;
+  accent: string;
+}) {
+  const s = fitScale(drawing.paperW, drawing.paperH, DRAWING_W, DRAWING_H);
+  const printW = px(drawing.printW * s);
+  return (
+    <div
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          position: 'relative',
+          width: `${px(drawing.paperW * s)}px`,
+          height: `${px(drawing.paperH * s)}px`,
+          backgroundColor: PAPER,
+          borderRadius: '4px',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            position: 'absolute',
+            left: `${Math.round(drawing.printLeft * s)}px`,
+            top: `${Math.round(drawing.printTop * s)}px`,
+            width: `${printW}px`,
+            height: `${px(drawing.printH * s)}px`,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: IMAGE_AREA,
+            border: `3px solid ${accent}`,
+            color: accent,
+            fontSize: '30px',
+            fontWeight: 700,
+          }}
+        >
+          {printW >= MIN_LABELLED_PX ? drawing.printLabel : ''}
+        </div>
+      </div>
+      <div style={CAPTION_STYLE}>{drawing.caption}</div>
+    </div>
+  );
+}
+
+// eslint-disable-next-line react-doctor/only-export-components -- Vercel OG serverless function: JSX is rendered server-side to an image, not a Fast Refresh component module
+function LensPicture({
+  drawing,
+  accent,
+}: {
+  drawing: Extract<CalculatorDrawing, { kind: 'lens' }>;
+  accent: string;
+}) {
+  const { source, target } = drawing;
+  const unionW = Math.max(source.w, target.w);
+  const unionH = Math.max(source.h, target.h);
+  // Leave room under the frames for the two-line legend.
+  const s = fitScale(unionW, unionH, DRAWING_W, DRAWING_H - 90);
+  const frames = [
+    { frame: source, color: accent, line: 'solid' },
+    { frame: target, color: SECOND_FRAME, line: 'dashed' },
+  ] as const;
+  return (
+    <div
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          position: 'relative',
+          width: `${px(unionW * s)}px`,
+          height: `${px(unionH * s)}px`,
+        }}
+      >
+        {frames.map(({ frame, color, line }) => (
+          <div
+            key={line}
+            style={{
+              display: 'flex',
+              position: 'absolute',
+              left: `${Math.round(((unionW - frame.w) / 2) * s)}px`,
+              top: `${Math.round(((unionH - frame.h) / 2) * s)}px`,
+              width: `${px(frame.w * s)}px`,
+              height: `${px(frame.h * s)}px`,
+              border: `4px ${line} ${color}`,
+              backgroundColor: hexToRgba(color, 0.1),
+            }}
+          />
+        ))}
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          marginTop: '22px',
+          gap: '10px',
+        }}
+      >
+        {frames.map(({ frame, color, line }) => (
+          <div
+            key={line}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '14px',
+              fontSize: '26px',
+              color: TEXT_SECONDARY,
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                width: '26px',
+                height: '18px',
+                border: `3px ${line} ${color}`,
+              }}
+            />
+            {frame.label}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// eslint-disable-next-line react-doctor/only-export-components -- Vercel OG serverless function: JSX is rendered server-side to an image, not a Fast Refresh component module
+function ResizePicture({
+  drawing,
+  accent,
+}: {
+  drawing: Extract<CalculatorDrawing, { kind: 'resize' }>;
+  accent: string;
+}) {
+  const gap = 48;
+  const { from, to } = drawing;
+  // One scale for both prints, leaving room for two caption lines under each.
+  const s = Math.min(
+    (DRAWING_W - gap) / (from.w + to.w),
+    (DRAWING_H - 50) / Math.max(from.h, to.h)
+  );
+  const prints = [
+    { print: from, color: '#a1a1aa', fill: 0.06, key: 'from' },
+    { print: to, color: accent, fill: 0.15, key: 'to' },
+  ] as const;
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: `${gap}px` }}>
+      {prints.map(({ print, color, fill, key }) => (
+        <div
+          key={key}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              width: `${px(print.w * s)}px`,
+              height: `${px(print.h * s)}px`,
+              border: `3px solid ${color}`,
+              backgroundColor: hexToRgba(color, fill),
+            }}
+          />
+          <div style={{ ...CAPTION_STYLE, fontSize: '22px' }}>
+            {print.label}
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              fontSize: '32px',
+              fontWeight: 700,
+              color: key === 'to' ? accent : TEXT_PRIMARY,
+            }}
+          >
+            {print.time}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// eslint-disable-next-line react-doctor/only-export-components -- Vercel OG serverless function: JSX is rendered server-side to an image, not a Fast Refresh component module
+function MatPicture({
+  drawing,
+  accent,
+}: {
+  drawing: Extract<CalculatorDrawing, { kind: 'mat' }>;
+  accent: string;
+}) {
+  const s = fitScale(drawing.boardW, drawing.boardH, DRAWING_W, DRAWING_H);
+  const { window: opening, art } = drawing;
+  const rectStyle = (rect: typeof opening) =>
+    ({
+      display: 'flex',
+      position: 'absolute',
+      left: `${Math.round(rect.left * s)}px`,
+      top: `${Math.round(rect.top * s)}px`,
+      width: `${px(rect.w * s)}px`,
+      height: `${px(rect.h * s)}px`,
+    }) as const;
+  const windowW = px(opening.w * s);
+  return (
+    <div
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          position: 'relative',
+          width: `${px(drawing.boardW * s)}px`,
+          height: `${px(drawing.boardH * s)}px`,
+          backgroundColor: MAT_BOARD,
+          borderRadius: '4px',
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ ...rectStyle(opening), backgroundColor: IMAGE_AREA }} />
+        {art ? (
+          <div style={{ ...rectStyle(art), border: `3px dashed ${accent}` }} />
+        ) : null}
+        <div
+          style={{
+            ...rectStyle(opening),
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: TEXT_PRIMARY,
+            fontSize: '24px',
+            fontWeight: 700,
+          }}
+        >
+          {windowW >= MIN_LABELLED_PX ? drawing.windowLabel : ''}
+        </div>
+      </div>
+      <div style={CAPTION_STYLE}>{drawing.caption}</div>
+    </div>
+  );
+}
+
+// eslint-disable-next-line react-doctor/only-export-components -- Vercel OG serverless function: JSX is rendered server-side to an image, not a Fast Refresh component module
+function SharePicture({
+  drawing,
+  accent,
+}: {
+  drawing: CalculatorDrawing;
+  accent: string;
+}) {
+  switch (drawing.kind) {
+    case 'border':
+      return <BorderPicture drawing={drawing} accent={accent} />;
+    case 'lens':
+      return <LensPicture drawing={drawing} accent={accent} />;
+    case 'resize':
+      return <ResizePicture drawing={drawing} accent={accent} />;
+    case 'mat':
+      return <MatPicture drawing={drawing} accent={accent} />;
+  }
+}
+
+// eslint-disable-next-line react-doctor/only-export-components -- Vercel OG serverless function: JSX is rendered server-side to an image, not a Fast Refresh component module
+function ShareDrawingCard({
+  share,
+  drawing,
+}: {
+  share: CalculatorShare;
+  drawing: CalculatorDrawing;
+}) {
+  const accent = getRouteAccent(share.route);
+  return (
+    <div
+      style={{
+        display: 'flex',
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        fontFamily: 'Montserrat',
+        background: `radial-gradient(circle at 78% 40%, ${hexToRgba(accent, 0.16)}, transparent 50%), radial-gradient(circle at 25% 80%, ${hexToRgba(accent, 0.07)}, transparent 60%), ${BG}`,
+      }}
+    >
+      <div style={SITE_NAME_STYLE}>dorkroom.art</div>
+
+      {/* Text column, bottom left */}
+      <div
+        style={{
+          display: 'flex',
+          position: 'absolute',
+          left: '72px',
+          bottom: '56px',
+          width: '560px',
+          flexDirection: 'column',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            fontSize: '24px',
+            color: accent,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            marginBottom: '12px',
+          }}
+        >
+          {ROUTE_TITLES[share.route]}
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            width: '80px',
+            height: '3px',
+            backgroundColor: accent,
+            borderRadius: '2px',
+            marginBottom: '20px',
+          }}
+        />
+        <div
+          style={{
+            display: 'flex',
+            fontSize: share.title.length > 40 ? '46px' : '56px',
+            fontWeight: 700,
+            color: TEXT_PRIMARY,
+            lineHeight: 1.15,
+            marginBottom: '24px',
+          }}
+        >
+          {share.title}
+        </div>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          {share.details.map((detail) => (
+            <div
+              key={detail}
+              style={{
+                display: 'flex',
+                padding: '8px 20px',
+                borderRadius: '999px',
+                border: `1px solid ${hexToRgba(accent, 0.3)}`,
+                backgroundColor: hexToRgba(accent, 0.08),
+                color: PILL_TEXT,
+                fontSize: '22px',
+              }}
+            >
+              {detail}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Picture, right */}
+      <div
+        style={{
+          display: 'flex',
+          position: 'absolute',
+          right: '64px',
+          top: '56px',
+          bottom: '56px',
+          width: `${DRAWING_W + 16}px`,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <SharePicture drawing={drawing} accent={accent} />
+      </div>
+    </div>
+  );
+}
+
 /** Never cached: a limited or failed request must not stick to its URL at the CDN. */
 const NO_STORE = 'no-store';
 
@@ -631,6 +1047,11 @@ interface OgParams {
   brand: string | null;
   status: string | null;
   preset: string | null;
+  /**
+   * The route's calculator link params as sent. They are validated by the
+   * calculator's own link (`readCalculatorShare`), which drops bad values.
+   */
+  linkSearch: Record<string, string>;
 }
 
 function validated(value: string | null, pattern: RegExp): string | null {
@@ -638,8 +1059,15 @@ function validated(value: string | null, pattern: RegExp): string | null {
 }
 
 function parseOgParams(searchParams: URLSearchParams): OgParams {
+  const route = searchParams.get('route') ?? '/';
+  const linkSearch: Record<string, string> = {};
+  for (const name of calculatorLinkParamNames(route)) {
+    const value = searchParams.get(name);
+    if (value !== null) linkSearch[name] = value;
+  }
   return {
-    route: searchParams.get('route') ?? '/',
+    route,
+    linkSearch,
     film: validated(searchParams.get('film'), SLUG_RE),
     developer: validated(searchParams.get('developer'), SLUG_RE),
     recipe: validated(searchParams.get('recipe'), UUID_RE),
@@ -957,6 +1385,27 @@ async function renderCard(params: OgParams): Promise<Response> {
         );
       }
     }
+  }
+
+  // Shared calculator link card (e.g. /lenses?focal=80&from=film-6x6). The
+  // values are validated and the numbers computed by @dorkroom/logic; a link
+  // with nothing usable falls through to the generic card for the route.
+  const share = readCalculatorShare(route, params.linkSearch);
+  if (share) {
+    return renderImage(
+      share.drawing ? (
+        <ShareDrawingCard share={share} drawing={share.drawing} />
+      ) : (
+        <OgCard
+          accent={getRouteAccent(route)}
+          category={ROUTE_TITLES[share.route]}
+          title={share.title}
+          subtitle={share.subtitle}
+          details={share.details}
+          iconChildren={getRouteIcon(route) ?? undefined}
+        />
+      )
+    );
   }
 
   // Generic page card (static routes)

@@ -23,7 +23,11 @@ endpoint that has metadata.
    `getRouteIcon()`. Download the SVG from
    `unpkg.com/lucide-static@latest/icons/<name>.svg` to get exact element data.
 3. **Update `api/meta.ts`** if the route needs dynamic metadata (query params
-   like `film`, `developer`).
+   like `film`, `developer`). Calculator link params need no edit here: both
+   `meta.ts` and `og.tsx` read them from
+   `packages/logic/src/constants/calculator-link-params.ts` through
+   `utils/calculatorShare.ts`. A new calculator link needs an entry in that
+   module's route map and a builder (title, description, drawing).
 4. **Regenerate previews** — run `bun run scripts/preview-og.tsx` and visually
    verify the output in `og-previews/` (generated; gitignored).
 
