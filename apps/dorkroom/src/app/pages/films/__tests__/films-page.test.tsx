@@ -409,7 +409,7 @@ describe.each([
 
     await waitFor(() =>
       expect(writeText).toHaveBeenCalledWith(
-        `${window.location.origin}/films?film=portra-400`
+        `${window.location.origin}/films?film=portra-400&source=share`
       )
     );
     expect(window.va).toHaveBeenCalledWith('event', {
@@ -417,6 +417,92 @@ describe.each([
       data: { tool: 'film', method: 'clipboard' },
       options: undefined,
     });
+
+    // Sharing the same film again hands over the same link: not recounted.
+    fireEvent.click(
+      within(panel).getByRole('button', { name: 'Share this film' })
+    );
+    await waitFor(() => expect(writeText).toHaveBeenCalledTimes(2));
+    const shares = vi
+      .mocked(window.va)
+      .mock.calls.filter((call) => JSON.stringify(call).includes('"share"'));
+    expect(shares).toHaveLength(1);
+    delete window.va;
+  });
+
+  it('counts a shared film link once on arrival and strips the marker', async () => {
+    const va = vi.fn();
+    window.va = va;
+    const { router } = await renderFilmsPage({
+      mobile,
+      url: '/films?film=hp5-plus&source=share',
+    });
+    await waitFor(() => getDetailPanel('Ilford HP5 Plus details', mobile));
+
+    await waitFor(
+      () => expect(urlSearch(router)).toEqual({ film: 'hp5-plus' }),
+      URL_SYNC
+    );
+    const opened = va.mock.calls.filter((call) =>
+      JSON.stringify(call).includes('"share_opened"')
+    );
+    expect(opened).toEqual([
+      [
+        'event',
+        { name: 'share_opened', data: { tool: 'film' }, options: undefined },
+      ],
+    ]);
+    delete window.va;
+  });
+
+  it('counts a shared link to the film already open, and the same link again', async () => {
+    const va = vi.fn();
+    window.va = va;
+    const shareOpenedCount = () =>
+      va.mock.calls.filter((call) =>
+        JSON.stringify(call).includes('"share_opened"')
+      ).length;
+    const { router } = await renderFilmsPage({
+      mobile,
+      url: '/films?film=hp5-plus',
+    });
+    await waitFor(() => getDetailPanel('Ilford HP5 Plus details', mobile));
+    // Let the debounced sync settle so nothing else is pending.
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    expect(shareOpenedCount()).toBe(0);
+
+    // The same film, now through its shared link: no film or filter change.
+    const arrive = () =>
+      act(() =>
+        router.navigate({
+          to: '/films',
+          search: { film: 'hp5-plus', source: 'share' },
+        })
+      );
+    await arrive();
+    await waitFor(
+      () => expect(urlSearch(router)).toEqual({ film: 'hp5-plus' }),
+      URL_SYNC
+    );
+    expect(shareOpenedCount()).toBe(1);
+
+    await arrive();
+    await waitFor(
+      () => expect(urlSearch(router)).toEqual({ film: 'hp5-plus' }),
+      URL_SYNC
+    );
+    expect(shareOpenedCount()).toBe(2);
+    expect(getDetailPanel('Ilford HP5 Plus details', mobile)).toBeVisible();
+    delete window.va;
+  });
+
+  it('does not count a film link without the marker', async () => {
+    const va = vi.fn();
+    window.va = va;
+    await renderFilmsPage({ mobile, url: '/films?film=hp5-plus' });
+    await waitFor(() => getDetailPanel('Ilford HP5 Plus details', mobile));
+
+    expect(JSON.stringify(va.mock.calls)).not.toContain('share_opened');
     delete window.va;
   });
 

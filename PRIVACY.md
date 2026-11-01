@@ -34,8 +34,8 @@ The catalog below is generated from, and must stay in sync with,
 
 | Event | When it fires | What it records |
 | --- | --- | --- |
-| `share` | You create a share link for a calculation, a preset, a recipe or a film. | Which tool, and whether the link was copied, shared natively, or shown for copying by hand. |
-| `share_opened` | You open a link someone else shared with you. | Which tool the link points at. |
+| `share` | You create a share link for a calculation, a preset, a recipe or a film. Sharing the same link again on the same page is not counted again. | Which tool, and whether the link was copied, shared natively, or shown for copying by hand. |
+| `share_opened` | You open a link someone else shared with you. Links from a Share button carry a `source=share` marker so the page can tell; links from the site search never do. | Which tool the link points at. |
 | `recipe_saved` | You save a custom development recipe. | Whether it was new or an edit, and whether you typed it or imported it. |
 | `recipe_deleted` | You delete a custom recipe. | Nothing else; there is no bulk-delete action. |
 | `recipe_imported` | You import a recipe from filmdev.org. | Whether the import succeeded. |

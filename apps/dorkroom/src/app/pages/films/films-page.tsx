@@ -2,6 +2,7 @@ import type { Film } from '@dorkroom/api';
 import {
   buildFilmSlugIndex,
   getBaseFilm,
+  SHARED_LINK_MARKER,
   useFilmDatabase,
 } from '@dorkroom/logic';
 import {
@@ -13,9 +14,13 @@ import {
 import { CalculatorPageHeader } from '@dorkroom/ui/calculator';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { filmColorFilterSchema } from '../../../routes/search-schemas';
+import {
+  filmColorFilterSchema,
+  type FilmsSearchParams,
+} from '../../../routes/search-schemas';
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useSearchDeadEndAnalytics } from '../../lib/analytics/use-search-analytics';
+import { useShareOpened } from '../../lib/analytics/use-share-analytics';
 import { FilmsPageBody } from './films-page-body';
 import { useUrlFilterSync } from './use-url-filter-sync';
 
@@ -71,6 +76,24 @@ export default function FilmsPage() {
   }, [films, urlFilmSlug]);
 
   useUrlFilterSync(searchParams, db);
+
+  // A film's Share link carries `source=share`: counted once per arrival,
+  // then stripped straight away. The strip is its own effect, keyed on the
+  // marker alone, because the debounced sync below only reruns when the film
+  // or a filter changes, and a marked link to the film already open changes
+  // neither. Stripping also ends the arrival (`null`), so the same link
+  // opened again later counts again.
+  const sharedArrival = searchParams.source === SHARED_LINK_MARKER.value;
+  useShareOpened('film', sharedArrival ? (urlFilmSlug ?? '') : null);
+  useEffect(() => {
+    if (!sharedArrival) return;
+    void navigate({
+      to: '/films',
+      search: (prev: FilmsSearchParams) => ({ ...prev, source: undefined }),
+      replace: true,
+      resetScroll: false,
+    });
+  }, [sharedArrival, navigate]);
 
   // Select film from URL param when data loads or URL changes
   useEffect(() => {

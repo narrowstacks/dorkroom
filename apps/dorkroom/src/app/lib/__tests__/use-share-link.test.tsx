@@ -39,13 +39,13 @@ const LENS_SEARCH: ShareLinkSearch = {
   to: 'full-frame',
 };
 
-const LENS_URL = `${window.location.origin}/lenses?focal=80&to=full-frame`;
+const LENS_URL = `${window.location.origin}/lenses?focal=80&to=full-frame&source=share`;
 
 /**
- * Shares `search` from the lens calculator, rendering the hook's manual-copy
- * dialog the way a page does.
+ * Mounts the lens calculator's share hook, rendering its manual-copy dialog
+ * the way a page does. `share` can be called repeatedly on the one mount.
  */
-async function share(search: ShareLinkSearch = LENS_SEARCH) {
+function mountShare() {
   let dialog: ReactNode = null;
   const wrapper = ({ children }: { children: ReactNode }) => (
     <ToastProvider>
@@ -56,11 +56,22 @@ async function share(search: ShareLinkSearch = LENS_SEARCH) {
   const { result, rerender } = renderHook(() => useShareLink('lenses'), {
     wrapper,
   });
-  const outcome = await act(() => result.current.share(search));
-  dialog = result.current.manualCopyDialog;
-  rerender();
-  return outcome;
+  return async (search: ShareLinkSearch = LENS_SEARCH) => {
+    const outcome = await act(() => result.current.share(search));
+    dialog = result.current.manualCopyDialog;
+    rerender();
+    return outcome;
+  };
 }
+
+/** Shares `search` once from a fresh mount. */
+const share = (search: ShareLinkSearch = LENS_SEARCH) => mountShare()(search);
+
+/** The `share` events sent so far. */
+const shareEvents = () =>
+  vi
+    .mocked(window.va ?? vi.fn())
+    .mock.calls.filter((call) => JSON.stringify(call).includes('"share"'));
 
 /**
  * `window.va` is the queue `@vercel/analytics` forwards to, so the `share`
@@ -94,13 +105,15 @@ describe('useShareLink', () => {
     expect(screen.getByText('Link copied')).toBeInTheDocument();
   });
 
-  it('adds no query string when there are no params', async () => {
+  it('adds only the shared-link marker when there are no params', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     stubDesktop(writeText);
 
     await share({});
 
-    expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/lenses`);
+    expect(writeText).toHaveBeenCalledWith(
+      `${window.location.origin}/lenses?source=share`
+    );
   });
 
   it('keeps an empty value as an empty param and skips a missing one', async () => {
@@ -110,7 +123,7 @@ describe('useShareLink', () => {
     await share({ focal: '80', from: '', to: undefined });
 
     expect(writeText).toHaveBeenCalledWith(
-      `${window.location.origin}/lenses?focal=80&from=`
+      `${window.location.origin}/lenses?focal=80&from=&source=share`
     );
   });
 
@@ -172,5 +185,56 @@ describe('useShareLink', () => {
       options: undefined,
     });
     expect(screen.queryByText('Link copied')).not.toBeInTheDocument();
+  });
+
+  it('reports the same link once, however often it is shared', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    stubDesktop(writeText);
+    const shareAgain = mountShare();
+
+    await shareAgain();
+    await shareAgain();
+    await shareAgain();
+
+    expect(writeText).toHaveBeenCalledTimes(3);
+    expect(shareEvents()).toHaveLength(1);
+  });
+
+  it('reports a new link after the inputs change', async () => {
+    stubDesktop(vi.fn().mockResolvedValue(undefined));
+    const shareAgain = mountShare();
+
+    await shareAgain({ focal: '80' });
+    await shareAgain({ focal: '80' });
+    await shareAgain({ focal: '50' });
+    await shareAgain({ focal: '80' });
+
+    expect(shareEvents()).toHaveLength(2);
+  });
+
+  it('does not count a cancelled share sheet, so a later share still reports', async () => {
+    const nativeShare = vi
+      .fn()
+      .mockRejectedValueOnce(
+        Object.assign(new Error('Share canceled'), { name: 'AbortError' })
+      )
+      .mockResolvedValue(undefined);
+    stubPhone(nativeShare);
+    const shareAgain = mountShare();
+
+    await shareAgain();
+    expect(shareEvents()).toHaveLength(0);
+    await shareAgain();
+    expect(shareEvents()).toHaveLength(1);
+  });
+
+  it('never puts the link in the event', async () => {
+    stubDesktop(vi.fn().mockResolvedValue(undefined));
+
+    await share();
+
+    const sent = JSON.stringify(vi.mocked(window.va ?? vi.fn()).mock.calls);
+    expect(sent).not.toContain('focal');
+    expect(sent).not.toContain('/lenses');
   });
 });

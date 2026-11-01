@@ -86,7 +86,8 @@ export const ToolCard = memo(function ToolCard({
       {...componentProps}
       aria-label={title}
       className={cn(
-        'group relative overflow-hidden rounded-2xl border p-5 transition-all focus-visible:outline-none focus-visible:ring-2',
+        // `tool-card` is the hook for the two-tone themes' border (components.css).
+        'tool-card group relative overflow-hidden rounded-2xl border p-5 transition-all focus-visible:outline-none focus-visible:ring-2',
         'border-[color:var(--color-border-primary)]',
         'hover:bg-[color:var(--color-surface-muted)]',
         'focus-visible:ring-[color:var(--color-focus-ring)]',

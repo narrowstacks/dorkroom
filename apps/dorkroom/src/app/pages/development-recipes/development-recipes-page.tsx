@@ -1,4 +1,4 @@
-import type { CustomRecipeFilter } from '@dorkroom/logic';
+import type { CustomRecipeFilter, RecipeUrlBinding } from '@dorkroom/logic';
 import {
   readRecipeUrlSearchQuery,
   useCustomRecipes,
@@ -59,7 +59,15 @@ const DEVELOPER_TYPE_OPTIONS = [
 ];
 
 // eslint-disable-next-line react-doctor/no-giant-component, react-doctor/prefer-useReducer -- top-level page that wires together many independent feature hooks; splitting/reducer-izing was attempted but regressed behavior, so it is kept as the composition root (tracked as follow-up)
-export default function DevelopmentRecipesPage() {
+export default function DevelopmentRecipesPage({
+  url,
+}: {
+  /**
+   * The route's search and its replace writer. The page reads and writes its
+   * URL state only through this, so it renders without a router.
+   */
+  url: RecipeUrlBinding;
+}) {
   const {
     developerTypeFilter,
     dilutionFilter,
@@ -91,7 +99,9 @@ export default function DevelopmentRecipesPage() {
     getAvailableISOs,
     // `q` is the one URL param that needs no catalogue data, so it seeds the
     // search state at mount; useRecipeUrlState below writes it back.
-  } = useDevelopmentRecipes({ searchQuery: readRecipeUrlSearchQuery() });
+  } = useDevelopmentRecipes({
+    searchQuery: readRecipeUrlSearchQuery(url.search),
+  });
 
   const {
     customRecipes,
@@ -187,6 +197,7 @@ export default function DevelopmentRecipesPage() {
     dismissSharedRecipeError,
     sharedCustomRecipe,
   } = useRecipeUrlState(
+    url,
     allFilms,
     allDevelopers,
     {

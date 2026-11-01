@@ -479,31 +479,13 @@
     color: var(--color-text-primary);
   }
 
-  /* Calculator links: black borders in high-contrast. */
-  [data-theme="high-contrast"] main a[href*="/border"],
-  [data-theme="high-contrast"] main a[href*="/stops"],
-  [data-theme="high-contrast"] main a[href*="/resize"],
-  [data-theme="high-contrast"] main a[href*="/exposure"],
-  [data-theme="high-contrast"] main a[href*="/reciprocity"],
-  [data-theme="high-contrast"] main a[href*="/development"] {
+  /* Home-page tool cards: a heavier brand border in the two-tone themes,
+     where the card's own accent border is too faint to read as a button.
+     Keyed to the card itself, so other links to the same routes are left
+     alone. */
+  [data-theme="high-contrast"] .tool-card,
+  [data-theme="darkroom"] .tool-card {
     border: 2px solid var(--color-brand);
-  }
-
-  /* Calculator links: red borders in darkroom. */
-  [data-theme="darkroom"] main a[href*="/border"],
-  [data-theme="darkroom"] main a[href*="/stops"],
-  [data-theme="darkroom"] main a[href*="/resize"],
-  [data-theme="darkroom"] main a[href*="/exposure"],
-  [data-theme="darkroom"] main a[href*="/reciprocity"],
-  [data-theme="darkroom"] main a[href*="/development"] {
-    border: 2px solid var(--color-brand);
-  }
-
-  /* The search panel's answer and result links point at the same routes but
-     are text links and list rows, where a framed stroke reads as noise. */
-  [data-theme="high-contrast"] main .search-panel a,
-  [data-theme="darkroom"] main .search-panel a {
-    border-width: 0;
   }
 
   /* Home hero panel: subtle red movie-grain texture over the surface color

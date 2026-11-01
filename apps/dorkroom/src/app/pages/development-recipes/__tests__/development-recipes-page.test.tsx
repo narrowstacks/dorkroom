@@ -19,6 +19,7 @@ import {
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import DevelopmentRecipesPage from '../development-recipes-page';
+import { useBrowserUrlBinding } from './browser-url-binding';
 
 /**
  * Page-level coverage for /development at both breakpoints through one tree
@@ -26,9 +27,14 @@ import DevelopmentRecipesPage from '../development-recipes-page';
  * the catalogue (seeded into the query cache, as the URL tests do) and the
  * viewport (matchMedia and element boxes).
  *
- * The page keeps its state in `window.location`, not the router, so URL
- * assertions read that directly.
+ * The page reads and writes its URL state through the `url` binding its route
+ * hands it; here that is `useBrowserUrlBinding`, a router stand-in over the
+ * browser history, so URL assertions read `window.location` directly.
  */
+
+function PageAtBrowserUrl() {
+  return <DevelopmentRecipesPage url={useBrowserUrlBinding()} />;
+}
 
 const TIMESTAMP = '2026-01-01T00:00:00.000Z';
 const API_ID = '11111111-1111-4111-8111-111111111111';
@@ -207,7 +213,7 @@ function renderPage({
         <MeasurementProvider>
           <VolumeProvider>
             <ToastProvider>
-              <DevelopmentRecipesPage />
+              <PageAtBrowserUrl />
             </ToastProvider>
           </VolumeProvider>
         </MeasurementProvider>

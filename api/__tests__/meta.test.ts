@@ -115,6 +115,19 @@ describe('meta handler - border preset injection', () => {
   });
 });
 
+describe('meta handler - shared-link marker', () => {
+  it('renders a shared film link directly, without a redirect', async () => {
+    const req = createMockRequest({
+      query: { path: '/films', film: 'kodak-tri-x-400', source: 'share' },
+    });
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res._status).toBe(200);
+  });
+});
+
 describe('meta handler - unknown query params', () => {
   it('redirects with a 308 for a request carrying an unknown param', async () => {
     const fetchMock = vi

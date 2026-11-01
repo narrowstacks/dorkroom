@@ -1,37 +1,80 @@
-import { useRouter, useRouterState } from '@tanstack/react-router';
-import { lazy, Suspense } from 'react';
+import type { RecipeUrlBinding, RecipeUrlSearch } from '@dorkroom/logic';
+import { useNavigate, useRouterState } from '@tanstack/react-router';
+import { lazy, Suspense, useCallback, useMemo } from 'react';
 import { LoadingSpinner } from './loading-spinner';
+
+declare module '@tanstack/react-router' {
+  interface HistoryState {
+    /**
+     * The history key of the navigation that mounted the recipes page,
+     * carried through the page's own URL writes (see `DevelopmentRoute`).
+     */
+    developmentPageKey?: string;
+  }
+}
 
 const DevelopmentRecipesPage = lazy(
   () => import('../app/pages/development-recipes/development-recipes-page')
 );
 
 /**
- * The /development route's component. The page reads its link params (film,
- * developer, recipe, ...) only on mount. It keeps the URL in step with its
- * filters through `history.replaceState` with the entry's existing state, so
- * its own writes keep the location's history key; only a real navigation
- * that lands here while the page is open (a search answer, the nav) brings a
- * new key, and remounting the page on it applies the link.
+ * The /development route's component. It hands the page the router's search
+ * (flat strings, which `useRecipeUrlState` parses and validates param by
+ * param) and a writer that applies the page's filter changes as replace
+ * navigations, keeping the hash, the scroll position and any other param
+ * (the writer starts from the search `developmentSearchSchema` validated),
+ * so a filter change never adds a history entry.
  *
- * The router writes a navigation to the browser in a microtask, and a link
- * click renders before that: the remounted page would read the old URL and
- * its URL writer would put the old filters back. Flushing the pending write
- * first (a no-op when nothing is pending) makes `window.location` match.
+ * The page seeds its filters from the URL only on mount, so a real navigation
+ * that lands here while it is open (a search answer, the nav) must remount
+ * it. Every navigation gets a fresh history key, the page's own writes
+ * included, so those carry the key of the navigation that mounted the page in
+ * `developmentPageKey`, and the page is keyed on that, falling back to the
+ * entry's own key: its own writes keep it mounted, anything else remounts it.
  *
  * Outside the route file, like `calculatorRoute`: a router hook typed against
  * the route tree, called in the file that defines a route, makes that
  * route's type circular.
  */
 export function DevelopmentRoute() {
-  const router = useRouter();
-  const locationKey = useRouterState({
-    select: (state) => state.location.state.__TSR_key,
+  // The search and the page key come from the same location. The route's
+  // match (`useSearch`) takes the new search a render after the location, and
+  // a page remounted on the new key in between would seed from the old one.
+  // Search values are flat strings: see parseSearch in routes/search-params.
+  const search = useRouterState({
+    select: (state): RecipeUrlSearch => state.location.search,
   });
-  router.history.flush();
+  const pageKey = useRouterState({
+    select: (state) =>
+      state.location.state.developmentPageKey ?? state.location.state.__TSR_key,
+  });
+  const navigate = useNavigate();
+
+  const replaceSearch = useCallback<RecipeUrlBinding['replaceSearch']>(
+    (update) => {
+      void navigate({
+        to: '.',
+        replace: true,
+        resetScroll: false,
+        hash: true,
+        state: (prev) => ({
+          ...prev,
+          developmentPageKey: prev.developmentPageKey ?? prev.__TSR_key,
+        }),
+        search: (prev: RecipeUrlSearch) => update(prev),
+      });
+    },
+    [navigate]
+  );
+
+  const url = useMemo<RecipeUrlBinding>(
+    () => ({ search, replaceSearch }),
+    [search, replaceSearch]
+  );
+
   return (
     <Suspense fallback={<LoadingSpinner />}>
-      <DevelopmentRecipesPage key={locationKey} />
+      <DevelopmentRecipesPage key={pageKey} url={url} />
     </Suspense>
   );
 }

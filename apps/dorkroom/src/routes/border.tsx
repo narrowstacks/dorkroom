@@ -9,7 +9,11 @@ const BorderCalculatorPage = lazy(
 );
 
 export const Route = createFileRoute('/border')({
-  ...calculatorRoute(BORDER_CALCULATOR_LINK_PARAMS, BorderCalculatorPage),
+  ...calculatorRoute(
+    'border',
+    BORDER_CALCULATOR_LINK_PARAMS,
+    BorderCalculatorPage
+  ),
   head: () => ({
     meta: [
       { title: `${ROUTE_TITLES['/border']} - Dorkroom` },

@@ -32,9 +32,10 @@ const STATUS_VALUES = new Set(['active', 'discontinued', 'all']);
  * rejected before the origin `fetch` — see the guard at the top of `handler`.
  * Keep this in sync when adding a new param.
  *
- * `source` is the share marker (`?source=share`): accepted with any value and
- * never part of the card. A calculator route also accepts its link params,
- * see `cardParams`.
+ * `source` is the shared-link marker (`source=share`) every Share button adds.
+ * It is accepted with any value and never changes the card, which spares a
+ * shared film or recipe link the redirect an unknown param gets. A calculator
+ * route also accepts its link params, see `cardParams`.
  */
 const ALLOWED_PARAMS = new Set([
   'path',
