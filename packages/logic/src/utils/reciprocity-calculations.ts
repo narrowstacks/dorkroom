@@ -1,6 +1,9 @@
 import { RECIPROCITY_FILM_TYPES } from '../constants/reciprocity';
 import { RECIPROCITY_MAX_BAR_WIDTH } from '../constants/reciprocity-calculator-defaults';
-import type { ReciprocityCalculation } from '../types/reciprocity';
+import type {
+  ReciprocityCalculation,
+  ReciprocityFormState,
+} from '../types/reciprocity';
 import { parseDecimalInput } from './input-validation';
 
 /**
@@ -127,6 +130,30 @@ export const calculateReciprocity = ({
     timeBarWidth: logScale(meteredSeconds),
     adjustedTimeBarWidth: logScale(adjustedTime),
   };
+};
+
+/**
+ * The reciprocity result for the calculator's form values: parses the metered
+ * time text ("30s", "1m30s") and runs {@link calculateReciprocity}. The web
+ * page and the shared-link preview card both go through it.
+ *
+ * @returns The calculation, or null while the metered time is unparseable or
+ *   not a usable duration
+ */
+export const calculateReciprocityForForm = (
+  values: ReciprocityFormState
+): ReciprocityCalculation | null => {
+  const meteredSeconds = parseReciprocityTime(values.meteredTime);
+
+  if (meteredSeconds === null) {
+    return null;
+  }
+
+  return calculateReciprocity({
+    meteredSeconds,
+    filmType: values.filmType,
+    customFactor: values.customFactor,
+  });
 };
 
 const roundToOneDecimal = (value: number): number =>

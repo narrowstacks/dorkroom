@@ -1,4 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import {
+  calculatorLinkParamNames,
+  getCalculatorShareMetadata,
+  readCalculatorShare,
+} from '../utils/calculatorShare';
 import { escapeHtml } from '../utils/htmlEscape';
 import {
   BRAND_RE,
@@ -8,10 +13,12 @@ import {
   UUID_RE,
 } from '../utils/queryPatterns';
 import { type HandlerContext, withEnvelope } from '../utils/requestEnvelope';
-import type { MetadataQuery } from '../utils/routeMetadata';
+import type { MetadataQuery, RouteMetadata } from '../utils/routeMetadata';
 import {
+  decodeBorderPreset,
   getRouteMetadata,
   isKnownRoutePath,
+  normalizePath,
   SITE_NAME,
 } from '../utils/routeMetadata';
 
@@ -26,8 +33,9 @@ const STATUS_VALUES = new Set(['active', 'discontinued', 'all']);
  * Keep this in sync when adding a new param.
  *
  * `source` is the shared-link marker (`source=share`) every Share button adds.
- * It never changes the card, but accepting it spares a shared film or recipe
- * link the redirect an unknown param gets.
+ * It is accepted with any value and never changes the card, which spares a
+ * shared film or recipe link the redirect an unknown param gets. A calculator
+ * route also accepts its link params, see `cardParams`.
  */
 const ALLOWED_PARAMS = new Set([
   'path',
@@ -48,21 +56,39 @@ function singleValue(value: string | string[] | undefined): string | undefined {
 }
 
 /**
- * True when `query` carries a key outside the allowlist, or an allowed key
- * repeated (Vercel collapses `?film=a&film=b` into an array-valued
- * `query.film`, which is how a duplicate shows up here).
+ * Params `pathname` accepts, in canonical order: `ALLOWED_PARAMS`, then the
+ * route's calculator link params (`calculatorLinkParamNames`, read from
+ * @dorkroom/logic, so a link the calculator builds is never redirected away).
+ */
+function cardParams(pathname: string): string[] {
+  const params = new Set<string>(ALLOWED_PARAMS);
+  for (const name of calculatorLinkParamNames(normalizePath(pathname))) {
+    params.add(name);
+  }
+  return [...params];
+}
+
+/** Pathname the request asks for, parsed on the fixed origin. */
+function requestedPathname(query: VercelRequest['query']): string {
+  const path = singleValue(query.path) ?? '/';
+  return new URL(path, 'https://dorkroom.art').pathname;
+}
+
+/**
+ * True when `query` carries a key the requested route does not accept, or an
+ * accepted key repeated (Vercel collapses `?film=a&film=b` into an
+ * array-valued `query.film`, which is how a duplicate shows up here).
  */
 function hasQueryIssue(query: VercelRequest['query']): boolean {
-  const keys = Object.keys(query);
-  if (keys.length > ALLOWED_PARAMS.size) return true;
-  return keys.some(
-    (key) => !ALLOWED_PARAMS.has(key) || Array.isArray(query[key])
+  const accepted = new Set(cardParams(requestedPathname(query)));
+  return Object.keys(query).some(
+    (key) => !accepted.has(key) || Array.isArray(query[key])
   );
 }
 
 /**
  * Build the canonical public URL for a request, keeping only the requested
- * path and the allowlisted params present as a single string value. Used to
+ * path and the card params present (the first value of a duplicate). Used to
  * redirect requests carrying unknown or duplicated params to a clean,
  * cacheable target rather than 400ing them (crawlers/link-preview bots often
  * arrive with tracking params like `utm_source` tacked on).
@@ -82,7 +108,7 @@ function buildCanonicalUrl(query: VercelRequest['query']): string {
   url.pathname = parsed.pathname;
 
   const search = new URLSearchParams();
-  for (const key of ALLOWED_PARAMS) {
+  for (const key of cardParams(parsed.pathname)) {
     if (key === 'path') continue;
     const raw = query[key];
     // Duplicated allowed param — keep the first value.
@@ -134,6 +160,33 @@ function extractMetadataQuery(
 }
 
 /**
+ * Metadata for the requested page. A valid border `preset` keeps priority
+ * (it predates calculator links). Otherwise a calculator link whose params
+ * leave the calculator with a result gets its own title and card, and
+ * anything else falls back to the route's metadata.
+ */
+function resolveMetadata(
+  url: URL,
+  query: MetadataQuery | undefined
+): RouteMetadata {
+  const route = normalizePath(url.pathname);
+  const hasBorderPreset =
+    route === '/border' &&
+    query?.preset !== undefined &&
+    decodeBorderPreset(query.preset) !== null;
+  if (!hasBorderPreset) {
+    const linkSearch: Record<string, string> = {};
+    for (const name of calculatorLinkParamNames(route)) {
+      const value = url.searchParams.get(name);
+      if (value !== null) linkSearch[name] = value;
+    }
+    const share = readCalculatorShare(route, linkSearch);
+    if (share) return getCalculatorShareMetadata(share);
+  }
+  return getRouteMetadata(url.pathname, query);
+}
+
+/**
  * Bot meta tag endpoint.
  *
  * Called via Vercel routing when a bot UA is detected.
@@ -161,7 +214,7 @@ async function renderMeta(
   const url = new URL(path, 'https://dorkroom.art');
 
   // Merge any query params from the original URL
-  for (const key of ALLOWED_PARAMS) {
+  for (const key of cardParams(url.pathname)) {
     if (key === 'path') continue;
     const value = singleValue(req.query[key]);
     if (value !== undefined) url.searchParams.set(key, value);
@@ -169,7 +222,7 @@ async function renderMeta(
 
   const isKnownRoute = isKnownRoutePath(url.pathname);
   const query = extractMetadataQuery(url.searchParams);
-  const meta = getRouteMetadata(url.pathname, query);
+  const meta = resolveMetadata(url, query);
   const safeTitle = escapeHtml(meta.title);
   const safeDescription = escapeHtml(meta.description);
   const safeUrl = escapeHtml(meta.url);

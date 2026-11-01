@@ -4,12 +4,24 @@
   "license": "AGPL-3.0-only",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "calculators": [
+        "./dist/calculators.d.ts"
+      ]
+    }
+  },
   "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
+    },
+    "./calculators": {
+      "types": "./dist/calculators.d.ts",
+      "import": "./dist/calculators.js",
+      "default": "./dist/calculators.js"
     },
     "./package.json": "./package.json"
   },

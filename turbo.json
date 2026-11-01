@@ -83,6 +83,7 @@
       ]
     },
     "//#typecheck:api": {
+      "dependsOn": ["@dorkroom/logic#build"],
       "inputs": ["api/**", "!api/dist/**", "utils/**"]
     },
     "//#doctor": {

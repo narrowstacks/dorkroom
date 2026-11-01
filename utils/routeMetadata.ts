@@ -23,6 +23,53 @@ export const ROUTE_TITLES = {
 /** A route with static title/description metadata. */
 type StaticRoute = keyof typeof ROUTE_TITLES;
 
+/**
+ * Each page's accent tone, copied from the tool manifest's `accent`
+ * (`TOOL_LIST` in packages/ui/src/lib/navigation.ts), which the edge
+ * functions cannot import (it pulls React and lucide). Pages the manifest
+ * gives no tone are absent. `tools/__tests__/route-accent-sync.test.ts`
+ * fails if this drifts from the manifest.
+ */
+export const ROUTE_ACCENT_TONES = {
+  '/border': 'indigo',
+  '/resize': 'teal',
+  '/stops': 'blue',
+  '/mat': 'cyan',
+  '/development': 'rose',
+  '/reciprocity': 'amber',
+  '/negative-inverter': 'violet',
+  '/lenses': 'emerald',
+  '/exposure': 'teal',
+  '/films': 'cyan',
+} as const satisfies Partial<Record<StaticRoute, string>>;
+
+/**
+ * The accent tones as the dark theme draws them (`--accent-<tone>-text` under
+ * `[data-theme="dark"]` in apps/dorkroom/src/styles/theme.css), converted from
+ * oklch to hex because the OG renderer takes hex. The cards are dark, so the
+ * dark values are the right ones; each clears 5.5:1 against the card
+ * background. `tools/__tests__/route-accent-sync.test.ts` converts theme.css
+ * and fails if these drift.
+ */
+export const ACCENT_TONE_HEX = {
+  indigo: '#7c86ff',
+  blue: '#51a2ff',
+  violet: '#a684ff',
+  teal: '#00d5be',
+  amber: '#ffb900',
+  rose: '#ff637e',
+  cyan: '#00d3f2',
+  emerald: '#00d492',
+  sky: '#00bcff',
+} as const satisfies Record<string, `#${string}`>;
+
+/** Hex accent for `route` from the manifest tone, or null when it has none. */
+export function routeAccentHex(route: string): string | null {
+  return hasOwn(ROUTE_ACCENT_TONES, route)
+    ? ACCENT_TONE_HEX[ROUTE_ACCENT_TONES[route]]
+    : null;
+}
+
 export const ROUTE_DESCRIPTIONS = {
   '/': 'Film photography calculators and resources for analog photographers. Development recipes, printing calculators, and exposure tools.',
   '/border':
@@ -454,7 +501,8 @@ export function decodeBorderPreset(
   }
 }
 
-function normalizePath(pathname: string): string {
+/** `pathname` without trailing slashes (`/` stays `/`). */
+export function normalizePath(pathname: string): string {
   const trimmed = pathname.replace(/\/+$/, '') || '/';
   return trimmed;
 }

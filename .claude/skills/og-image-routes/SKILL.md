@@ -20,10 +20,18 @@ endpoint that has metadata.
    verbatim copies, and `tools/__tests__/route-metadata-sync.test.ts` fails if
    they diverge.
 2. **Update `api/og.tsx`** — add a Lucide icon for the new route in
-   `getRouteIcon()`. Download the SVG from
+   `getRouteIcon()`. The card's accent is the page's manifest tone: if the
+   new tool has an `accent` in `TOOL_LIST` (`packages/ui/src/lib/navigation.ts`),
+   add the same route and tone to `ROUTE_ACCENT_TONES` in
+   `utils/routeMetadata.ts` (`tools/__tests__/route-accent-sync.test.ts`
+   fails until you do). Download the SVG from
    `unpkg.com/lucide-static@latest/icons/<name>.svg` to get exact element data.
 3. **Update `api/meta.ts`** if the route needs dynamic metadata (query params
-   like `film`, `developer`).
+   like `film`, `developer`). Calculator link params need no edit here: both
+   `meta.ts` and `og.tsx` read them from
+   `packages/logic/src/constants/calculator-link-params.ts` through
+   `utils/calculatorShare.ts`. A new calculator link needs an entry in that
+   module's route map and a builder (title, description, drawing).
 4. **Regenerate previews** — run `bun run scripts/preview-og.tsx` and visually
    verify the output in `og-previews/` (generated; gitignored).
 

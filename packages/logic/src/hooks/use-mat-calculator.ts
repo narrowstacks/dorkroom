@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import {
   bestFitBorders,
+  calculateMatLayout,
   formatSignedMatValue,
   makeMatFormatter,
   MAT_CALCULATOR_DEFAULTS,
@@ -9,7 +10,6 @@ import {
   type MatCalculatorState,
   matRevealTolerance,
   matSnapStep,
-  parseMatInput,
 } from '../constants/mat-calculator';
 import { matCalculatorPersistence } from '../schemas/mat-calculator.schema';
 import type { MeasurementUnit } from '../utils/unit-conversion';
@@ -113,34 +113,27 @@ export function useMatCalculator(
     { values, setValues, overrides: options?.overrides }
   );
 
-  const ow = parseMatInput(values.outerW);
-  const oh = parseMatInput(values.outerH);
-  const bt = parseMatInput(values.borderTop);
-  const bb = parseMatInput(values.borderBottom);
-  const bl = parseMatInput(values.borderLeft);
-  const br = parseMatInput(values.borderRight);
-  const aw = parseMatInput(values.artW);
-  const ah = parseMatInput(values.artH);
-  const rev = parseMatInput(values.reveal);
-  const revVal = isNaN(rev) ? 0 : rev;
-
-  const bordersValid =
-    !isNaN(bt) &&
-    !isNaN(bb) &&
-    !isNaN(bl) &&
-    !isNaN(br) &&
-    bt >= 0 &&
-    bb >= 0 &&
-    bl >= 0 &&
-    br >= 0;
-  const outerValid = !isNaN(ow) && !isNaN(oh) && ow > 0 && oh > 0;
-  const windowW = ow - bl - br;
-  const windowH = oh - bt - bb;
-  const valid = outerValid && bordersValid && windowW > 0 && windowH > 0;
+  const {
+    ow,
+    oh,
+    bt,
+    bb,
+    bl,
+    br,
+    aw,
+    ah,
+    revVal,
+    windowW,
+    windowH,
+    outerValid,
+    valid,
+    artValid,
+    overlapLeft,
+    overlapTop,
+  } = calculateMatLayout(values);
 
   const fmt = makeMatFormatter(valid, options?.formatValue);
 
-  const artValid = !isNaN(aw) && !isNaN(ah) && aw > 0 && ah > 0;
   const revealMode = artValid;
   const unit = options?.unit ?? 'imperial';
   const snapStep = matSnapStep(unit);
@@ -152,8 +145,6 @@ export function useMatCalculator(
   const targetWindowH = revealMode ? ah - 2 * revVal : windowH;
   const windowMismatchW = revealMode ? windowW - targetWindowW : 0;
   const windowMismatchH = revealMode ? windowH - targetWindowH : 0;
-  const overlapLeft = revealMode ? (aw - windowW) / 2 : NaN;
-  const overlapTop = revealMode ? (ah - windowH) / 2 : NaN;
   const hasRevealMismatch =
     valid &&
     revealMode &&

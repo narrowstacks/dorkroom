@@ -2,7 +2,8 @@
  * Pure calculation functions for lens equivalency across sensor/film formats
  */
 
-import type { SensorFormat } from '../types/lens-calculator';
+import { SENSOR_FORMAT_MAP } from '../constants/lens-calculator-defaults';
+import type { LensFormState, SensorFormat } from '../types/lens-calculator';
 import { roundToStandardPrecision } from './precision';
 
 /**
@@ -44,4 +45,56 @@ export const formatFocalLength = (focalLength: number): string => {
     return `${Math.round(rounded)}mm`;
   }
   return `${rounded.toFixed(1)}mm`;
+};
+
+/** Derived lens equivalency result, or null when inputs are invalid. */
+export interface LensCalculatorResult {
+  focalLength: number;
+  equivalentFocalLength: number;
+  sourceFormat: SensorFormat;
+  targetFormat: SensorFormat;
+  cropFactorRatio: number;
+  fieldOfView: number;
+}
+
+/**
+ * The lens calculator's result for a set of form values: the equivalent focal
+ * length on the target format and the field of view on the source format.
+ * The web hook and the shared-link preview card both derive their numbers
+ * here, so the two can never disagree.
+ *
+ * @returns The result, or null for an unknown format id or a focal length
+ *   that is not positive
+ * @example
+ * ```typescript
+ * calculateLensEquivalency({
+ *   focalLength: 80,
+ *   sourceFormat: 'film-6x6',
+ *   targetFormat: 'full-frame',
+ * })?.equivalentFocalLength; // ~43.7
+ * ```
+ */
+export const calculateLensEquivalency = (
+  values: LensFormState
+): LensCalculatorResult | null => {
+  const { focalLength } = values;
+  const sourceFormat = SENSOR_FORMAT_MAP[values.sourceFormat];
+  const targetFormat = SENSOR_FORMAT_MAP[values.targetFormat];
+
+  if (!sourceFormat || !targetFormat || focalLength <= 0) {
+    return null;
+  }
+
+  return {
+    focalLength,
+    equivalentFocalLength: calculateEquivalentFocalLength(
+      focalLength,
+      sourceFormat,
+      targetFormat
+    ),
+    sourceFormat,
+    targetFormat,
+    cropFactorRatio: sourceFormat.cropFactor / targetFormat.cropFactor,
+    fieldOfView: calculateFieldOfView(focalLength, sourceFormat),
+  };
 };

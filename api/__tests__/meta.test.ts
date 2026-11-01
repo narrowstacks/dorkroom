@@ -405,3 +405,158 @@ describe('meta handler - origin failure', () => {
     }
   );
 });
+
+describe('meta handler - shared calculator links', () => {
+  const lensQuery = {
+    path: '/lenses',
+    focal: '80',
+    from: 'film-6x6',
+    to: 'full-frame',
+  };
+
+  async function render(query: Record<string, string | string[]>) {
+    const req = createMockRequest({ query });
+    const res = createMockResponse();
+    await handler(req, res);
+    return res;
+  }
+
+  it('accepts a calculator’s link params and renders its own title', async () => {
+    const res = await render(lensQuery);
+
+    expect(res._status).toBe(200);
+    expect(res._sent).toContain(
+      '<title>80mm on 6×6 ≈ 43.7mm on Full Frame | Dorkroom</title>'
+    );
+    expect(res._sent).toContain(
+      'property="og:image" content="https://dorkroom.art/api/og?route=%2Flenses&amp;focal=80&amp;from=film-6x6&amp;to=full-frame"'
+    );
+    expect(res._sent).toContain(
+      '<link rel="canonical" href="https://dorkroom.art/lenses?focal=80&amp;from=film-6x6&amp;to=full-frame" />'
+    );
+  });
+
+  it.each([
+    ['/border', { paper: '8x10', ratio: '3:2', border: '0.5' }, '3:2 on 8x10'],
+    ['/stops', { time: '10', stops: '1' }, '10s +1 stop = 20s'],
+    [
+      '/resize',
+      { fromW: '8', fromL: '10', toW: '11', toL: '14', time: '12' },
+      '23.1s at 11×14in',
+    ],
+    ['/reciprocity', { film: 'tri-x', time: '30s' }, '3m 8.3s'],
+    ['/mat', { outerW: '16', outerH: '20' }, 'mat with a'],
+    ['/exposure', { aperture: '16', shutter: '1/125', iso: '100' }, 'EV 15'],
+  ])('renders a share title for %s', async (path, params, expected) => {
+    const res = await render({ path, ...params });
+
+    expect(res._status).toBe(200);
+    expect(res._sent).toContain(expected);
+  });
+
+  it('accepts the share marker with any value and leaves it out of the card', async () => {
+    const res = await render({ ...lensQuery, source: 'anything' });
+
+    expect(res._status).toBe(200);
+    expect(res._sent).toContain('80mm on 6×6 ≈ 43.7mm on Full Frame');
+    expect(res._sent).not.toContain('source=');
+  });
+
+  it('accepts the share marker on a shared film link', async () => {
+    const res = await render({
+      path: '/films',
+      film: 'kodak-tri-x-400',
+      source: 'share',
+    });
+
+    expect(res._status).toBe(200);
+  });
+
+  it('redirects away another calculator’s param', async () => {
+    const res = await render({ path: '/stops', time: '10', focal: '80' });
+
+    expect(res._status).toBe(308);
+    expect(String(res.getHeader('location'))).toBe(
+      'https://dorkroom.art/stops?time=10'
+    );
+  });
+
+  it('keeps link params (and drops junk) in the canonical redirect', async () => {
+    const res = await render({ ...lensQuery, utm_source: 'x' });
+
+    expect(res._status).toBe(308);
+    expect(String(res.getHeader('location'))).toBe(
+      'https://dorkroom.art/lenses?focal=80&from=film-6x6&to=full-frame'
+    );
+  });
+
+  it('redirects a duplicated link param to its first value', async () => {
+    const res = await render({ path: '/lenses', focal: ['80', '50'] });
+
+    expect(res._status).toBe(308);
+    expect(String(res.getHeader('location'))).toBe(
+      'https://dorkroom.art/lenses?focal=80'
+    );
+  });
+
+  it('accepts the link params on a trailing-slash path', async () => {
+    const res = await render({ ...lensQuery, path: '/lenses/' });
+
+    expect(res._status).toBe(200);
+    expect(res._sent).toContain('80mm on 6×6 ≈ 43.7mm on Full Frame');
+  });
+
+  it('treats invalid values as absent and falls back to the generic card', async () => {
+    const res = await render({ path: '/lenses', focal: 'abc', to: 'nope' });
+
+    expect(res._status).toBe(200);
+    expect(res._sent).toContain(
+      '<title>Lens Equivalency Calculator | Dorkroom</title>'
+    );
+    expect(res._sent).toContain(
+      'property="og:image" content="https://dorkroom.art/api/og?route=%2Flenses"'
+    );
+    expect(res._sent).toContain(
+      '<link rel="canonical" href="https://dorkroom.art/lenses" />'
+    );
+  });
+
+  it('drops an invalid value from the canonical URL but keeps the valid ones', async () => {
+    const res = await render({ path: '/lenses', focal: '80', to: 'nope' });
+
+    expect(res._sent).toContain(
+      '<link rel="canonical" href="https://dorkroom.art/lenses?focal=80" />'
+    );
+  });
+
+  it('never echoes a free-text link value that fails validation', async () => {
+    const res = await render({
+      path: '/reciprocity',
+      time: '"><svg onload=alert(1)>',
+    });
+
+    expect(res._status).toBe(200);
+    expect(res._sent).not.toContain('<svg');
+    expect(res._sent).not.toContain('onload');
+  });
+
+  it('keeps a valid border preset ahead of link params', async () => {
+    const res = await render({
+      path: '/border',
+      // 35mm on 8x10, as in the OG preview script
+      preset: 'MzVtbSUyMG9uJTIwOHgxMCUyQyUyMDZ4OWluLTAtMi01MC0wLTEwMDAwLTg',
+      paper: '11x14',
+    });
+
+    expect(res._status).toBe(200);
+    expect(res._sent).toContain(
+      '<title>35mm on 8x10, 6x9in | Dorkroom</title>'
+    );
+  });
+
+  it('keeps the long cache header on a share card', async () => {
+    const res = await render(lensQuery);
+
+    expect(res.getHeader('cache-control')).toContain('s-maxage=86400');
+  });
+});
