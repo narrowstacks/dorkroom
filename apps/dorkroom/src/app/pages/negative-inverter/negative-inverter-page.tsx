@@ -38,9 +38,15 @@ function stageHint(state: InverterState): string {
     case 'neutral':
       return 'Tap something that should be neutral grey.';
     default:
-      return state.base
-        ? 'Converted. Adjust it, or switch to Negative to compare.'
-        : 'Next, choose Film base and tap a clear part of the film.';
+      if (!state.base) {
+        return 'Next, choose Film base and tap a clear part of the film.';
+      }
+      if (state.base.auto && !state.base.confident) {
+        return 'The film base could not be found for certain, so this preview may be off. Choose Film base and tap clear, unexposed film to set it.';
+      }
+      return state.base.auto
+        ? 'Converted with a film base found automatically. If the colours look off, choose Film base and tap clear film to pick it yourself.'
+        : 'Converted. Adjust it, or switch to Negative to compare.';
   }
 }
 
@@ -76,7 +82,13 @@ export default function NegativeInverterPage() {
 
   const toolOptions: SegmentOption<InverterTool>[] = [
     { value: 'crop', label: 'Crop', icon: Crop },
-    { value: 'base', label: 'Film base', icon: SwatchBook },
+    {
+      value: 'base',
+      label: 'Film base',
+      icon: SwatchBook,
+      // An unsure automatic base asks for a pick: point at the tool.
+      attention: Boolean(state.base?.auto && !state.base.confident),
+    },
   ];
   if (filmType === 'c41') {
     toolOptions.push({

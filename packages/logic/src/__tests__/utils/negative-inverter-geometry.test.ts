@@ -3,7 +3,6 @@ import {
   dragCropRect,
   fitLongEdge,
   formatMegapixels,
-  histogramStep,
   isFullCrop,
   MAX_CANVAS_PIXELS,
   planExportSize,
@@ -154,20 +153,6 @@ describe('coordinate mapping', () => {
       x: 0,
       y: 1535,
     });
-  });
-});
-
-describe('histogramStep', () => {
-  it('samples every pixel of a small crop', () => {
-    expect(histogramStep({ width: 400, height: 300 })).toBe(1);
-  });
-
-  it('strides a full proxy down to roughly the target', () => {
-    const step = histogramStep({ width: 2048, height: 1536 });
-    expect(step).toBe(3);
-    const samples = Math.ceil(2048 / step) * Math.ceil(1536 / step);
-    expect(samples).toBeGreaterThan(250_000);
-    expect(samples).toBeLessThan(400_000);
   });
 });
 

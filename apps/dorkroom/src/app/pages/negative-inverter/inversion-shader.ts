@@ -1,4 +1,11 @@
-import type { InversionCoefficients, Rgb } from '@dorkroom/logic';
+import {
+  type InversionCoefficients,
+  PRINT_DMAX,
+  PRINT_DMIN,
+  PRINT_SHOULDER,
+  PRINT_TOE,
+  type Rgb,
+} from '@dorkroom/logic';
 
 /**
  * The WebGL pixel pass for the negative inverter. The fragment shader mirrors
@@ -14,6 +21,12 @@ export const DITHER_AMOUNT = 1 / 255;
 
 /** Mean of the sixteen 4x4 Bayer thresholds, so the dither averages to zero. */
 export const BAYER_MEAN = 0.46875;
+
+/** A number as a GLSL float literal (always with a decimal point). */
+function glslFloat(n: number): string {
+  const text = String(n);
+  return /[.e]/.test(text) ? text : `${text}.0`;
+}
 
 /** Full-screen triangle strip; image row 0 lands at the top of the canvas. */
 export const VERTEX_SHADER = `
@@ -35,8 +48,10 @@ uniform sampler2D u_image;
 uniform vec3 u_base;
 uniform vec3 u_densityLow;
 uniform vec3 u_densityHigh;
-uniform float u_contrast;
 uniform vec3 u_offset;
+uniform float u_grade;
+uniform float u_pivot;
+uniform float u_saturation;
 uniform float u_bw;
 
 // Ordered dither before the 8-bit framebuffer write.
@@ -46,6 +61,15 @@ uniform float u_height;
 const float MIN_TRANSMITTANCE = 1e-4;
 const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
 const float INV_LN10 = 0.43429448190325176;
+const float LN10 = 2.302585092994046;
+
+// The print curve, from @dorkroom/logic.
+const float PRINT_DMIN = ${glslFloat(PRINT_DMIN)};
+const float PRINT_DMAX = ${glslFloat(PRINT_DMAX)};
+const float PRINT_SHOULDER = ${glslFloat(PRINT_SHOULDER)};
+const float PRINT_TOE = ${glslFloat(PRINT_TOE)};
+const float PAPER_WHITE = ${glslFloat(10 ** -PRINT_DMIN)};
+const float PAPER_BLACK = ${glslFloat(10 ** -PRINT_DMAX)};
 
 vec3 srgbToLinear(vec3 c) {
   vec3 lo = c / 12.92;
@@ -53,8 +77,25 @@ vec3 srgbToLinear(vec3 c) {
   return mix(hi, lo, step(c, vec3(0.04045)));
 }
 
+vec3 linearToSrgb(vec3 c) {
+  vec3 lo = c * 12.92;
+  vec3 hi = 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055;
+  return mix(hi, lo, step(c, vec3(0.0031308)));
+}
+
 float density(float value, float base) {
   return -log(max(value / base, MIN_TRANSMITTANCE)) * INV_LN10;
+}
+
+// log(1 + e^x) that cannot overflow.
+float softplus(float x) {
+  return max(x, 0.0) + log(1.0 + exp(-abs(x)));
+}
+
+float printCurve(float v) {
+  float shouldered =
+    PRINT_DMIN + softplus(PRINT_SHOULDER * (v - PRINT_DMIN)) / PRINT_SHOULDER;
+  return PRINT_DMAX - softplus(PRINT_TOE * (PRINT_DMAX - shouldered)) / PRINT_TOE;
 }
 
 float bayer2(vec2 a) {
@@ -81,8 +122,15 @@ void main() {
     );
   }
 
-  vec3 stretched = (d - u_densityLow) / (u_densityHigh - u_densityLow);
-  vec3 outColor = (stretched - 0.5) * u_contrast + 0.5 + u_offset;
+  vec3 s = (d - u_densityLow) / (u_densityHigh - u_densityLow);
+  vec3 v = u_grade * (u_pivot - (s + u_offset));
+  vec3 printed = vec3(printCurve(v.r), printCurve(v.g), printCurve(v.b));
+  float mean = (printed.r + printed.g + printed.b) / 3.0 - PRINT_DMIN;
+  vec3 saturated =
+    PRINT_DMIN + mean + u_saturation * (printed - PRINT_DMIN - mean);
+  vec3 reflectance =
+    (exp(-saturated * LN10) - PAPER_BLACK) / (PAPER_WHITE - PAPER_BLACK);
+  vec3 outColor = linearToSrgb(clamp(reflectance, 0.0, 1.0));
 
   // Column and row from the top-left, matching the CPU fallback.
   vec2 pixel = floor(vec2(gl_FragCoord.x, u_height - gl_FragCoord.y));
@@ -115,8 +163,10 @@ export interface InversionUniforms {
   u_base: Rgb;
   u_densityLow: Rgb;
   u_densityHigh: Rgb;
-  u_contrast: number;
   u_offset: Rgb;
+  u_grade: number;
+  u_pivot: number;
+  u_saturation: number;
   u_bw: number;
 }
 
@@ -128,8 +178,10 @@ export function inversionUniforms(
     u_base: coeffs.base,
     u_densityLow: coeffs.densityLow,
     u_densityHigh: coeffs.densityHigh,
-    u_contrast: coeffs.contrast,
     u_offset: coeffs.offset,
+    u_grade: coeffs.grade,
+    u_pivot: coeffs.pivot,
+    u_saturation: coeffs.saturation,
     u_bw: coeffs.filmType === 'bw' ? 1 : 0,
   };
 }

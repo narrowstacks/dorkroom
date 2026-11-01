@@ -55,14 +55,25 @@ const UNIFORM_NAMES = [
   'u_base',
   'u_densityLow',
   'u_densityHigh',
-  'u_contrast',
   'u_offset',
+  'u_grade',
+  'u_pivot',
+  'u_saturation',
   'u_bw',
   'u_ditherAmount',
   'u_height',
 ] as const;
 
 type UniformName = (typeof UNIFORM_NAMES)[number];
+
+/** The coefficient uniforms, by GLSL type. */
+const VEC3_UNIFORMS = [
+  'u_base',
+  'u_densityLow',
+  'u_densityHigh',
+  'u_offset',
+] as const;
+const FLOAT_UNIFORMS = ['u_grade', 'u_pivot', 'u_saturation', 'u_bw'] as const;
 
 /** CPU sources are bounded only by canvas limits; this keeps tiles sane. */
 const CPU_MAX_SOURCE_SIDE = 4096;
@@ -208,22 +219,11 @@ function createGlRenderer(
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, resources.texture);
     gl.uniform1i(loc.u_image, 0);
-    gl.uniform3f(loc.u_base, u.u_base[0], u.u_base[1], u.u_base[2]);
-    gl.uniform3f(
-      loc.u_densityLow,
-      u.u_densityLow[0],
-      u.u_densityLow[1],
-      u.u_densityLow[2]
-    );
-    gl.uniform3f(
-      loc.u_densityHigh,
-      u.u_densityHigh[0],
-      u.u_densityHigh[1],
-      u.u_densityHigh[2]
-    );
-    gl.uniform1f(loc.u_contrast, u.u_contrast);
-    gl.uniform3f(loc.u_offset, u.u_offset[0], u.u_offset[1], u.u_offset[2]);
-    gl.uniform1f(loc.u_bw, u.u_bw);
+    for (const name of VEC3_UNIFORMS) {
+      const value = u[name];
+      gl.uniform3f(loc[name], value[0], value[1], value[2]);
+    }
+    for (const name of FLOAT_UNIFORMS) gl.uniform1f(loc[name], u[name]);
     gl.uniform1f(loc.u_ditherAmount, DITHER_AMOUNT);
     gl.uniform1f(loc.u_height, canvas.height);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);

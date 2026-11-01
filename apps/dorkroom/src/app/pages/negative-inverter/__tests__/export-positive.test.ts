@@ -1,5 +1,5 @@
 import {
-  buildDensityHistograms,
+  analyzeNegative,
   deriveCoefficients,
   type InversionCoefficients,
   samplePatch,
@@ -105,9 +105,7 @@ function coefficientsFor(image: ImageData): InversionCoefficients {
   const base = samplePatch(image, 2, image.height / 2, 3);
   if (!base) throw new Error('no base');
   return deriveCoefficients({
-    filmType: 'c41',
-    base,
-    histograms: buildDensityHistograms(image, base, 'c41'),
+    statistics: analyzeNegative({ image, filmType: 'c41', base }),
   });
 }
 

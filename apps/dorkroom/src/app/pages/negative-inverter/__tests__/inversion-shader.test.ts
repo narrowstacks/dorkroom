@@ -1,10 +1,12 @@
 import {
-  buildDensityHistograms,
+  analyzeNegative,
   deriveCoefficients,
   type InversionCoefficients,
   invertImage,
   linearToSrgb,
   type NegativeFilmType,
+  PRINT_DMAX,
+  PRINT_DMIN,
   type Rgb,
   type RgbaImage,
   samplePatch,
@@ -54,10 +56,14 @@ function coefficientsFor(
   const base = samplePatch(image, 3, image.height / 2, 5);
   if (!base) throw new Error('no base');
   return deriveCoefficients({
-    filmType,
-    base,
-    histograms: buildDensityHistograms(image, base, filmType),
-    adjustments: { exposure: 0.3, contrast: 1.2, warmth: 0.2, tint: -0.1 },
+    statistics: analyzeNegative({ image, filmType, base }),
+    adjustments: {
+      exposure: 0.3,
+      contrast: 1.2,
+      warmth: 0.2,
+      tint: -0.1,
+      saturation: 1.3,
+    },
   });
 }
 
@@ -110,6 +116,17 @@ describe('fragment shader source', () => {
     expect(FRAGMENT_SHADER).toContain('vec3(0.2126, 0.7152, 0.0722)');
     expect(FRAGMENT_SHADER).toContain('0.04045');
     expect(FRAGMENT_SHADER).toContain(`${BAYER_MEAN}`);
+    // The print model, step for step as `invertPixel` writes it.
+    for (const line of [
+      'vec3 v = u_grade * (u_pivot - (s + u_offset));',
+      'max(x, 0.0) + log(1.0 + exp(-abs(x)))',
+      `PRINT_DMIN = ${PRINT_DMIN}`,
+      `PRINT_DMAX = ${PRINT_DMAX}`,
+      'PRINT_DMIN + mean + u_saturation * (printed - PRINT_DMIN - mean)',
+      '0.0031308',
+    ]) {
+      expect(FRAGMENT_SHADER).toContain(line);
+    }
   });
 });
 
@@ -122,9 +139,19 @@ describe('inversionUniforms', () => {
     expect(u.u_base).toEqual(bw.base);
     expect(u.u_densityLow).toEqual(bw.densityLow);
     expect(u.u_densityHigh).toEqual(bw.densityHigh);
-    expect(u.u_contrast).toBe(bw.contrast);
+    expect(u.u_grade).toBe(bw.grade);
+    expect(u.u_pivot).toBe(bw.pivot);
+    expect(u.u_saturation).toBe(1);
     expect(u.u_offset).toEqual(bw.offset);
     expect(inversionUniforms(coefficientsFor(image, 'c41')).u_bw).toBe(0);
+  });
+
+  it('passes the C-41 print settings through', () => {
+    const c41 = coefficientsFor(negative([0.7, 0.42, 0.2]), 'c41');
+    const u = inversionUniforms(c41);
+    expect(u.u_grade).toBe(c41.grade);
+    expect(u.u_pivot).toBe(c41.pivot);
+    expect(u.u_saturation).toBe(1.3);
   });
 });
 
