@@ -29,8 +29,27 @@ src/
 ├── services/            # filmdev.org client, storage seam + localStorage wrapper, custom recipe store
 ├── types/               # TypeScript definitions
 ├── utils/               # Pure calculation and parsing helpers
-└── index.ts             # Public exports (the only entry point)
+├── calculators.ts       # `@dorkroom/logic/calculators` entry (pure, no React)
+└── index.ts             # Public exports (the root entry)
 ```
+
+## Entry Points
+
+- **`@dorkroom/logic`** (`src/index.ts`): everything, hooks included. The web
+  and iOS apps use this.
+- **`@dorkroom/logic/calculators`** (`src/calculators.ts`): calculator link
+  params, links, defaults, math and formatting, for code outside React. The
+  serverless functions use it (`utils/calculatorShare.ts`, for `api/meta.ts`
+  and the edge-runtime `api/og.tsx`). Re-export only from `constants/`,
+  `schemas/`, `types/` and `utils/`; `__tests__/calculators-entry.test.ts`
+  fails if its import graph reaches `hooks/`, `services/`, or any package but
+  zod.
+
+Both resolve to the built `dist/` (run `bun run build`, or turbo's `^build`).
+The subpath is declared twice in `package.json`: in `exports` for Node, Vite,
+vitest and Vercel's function tracer, and in `typesVersions` for TypeScript's
+`node10` resolution, which `api/tsconfig.json` (TypeScript 6) still uses and
+which ignores `exports`. Add a new subpath to both.
 
 `utils/` is where the actual math lives (`border-calculations.ts`,
 `exposure-calculations.ts`, `light-meter.ts`, …). Keep those functions pure and

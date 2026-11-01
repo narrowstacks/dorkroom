@@ -83,7 +83,8 @@
       ]
     },
     "//#typecheck:api": {
-      "inputs": ["api/**", "!api/dist/**", "utils/**", "packages/logic/src/**"]
+      "dependsOn": ["@dorkroom/logic#build"],
+      "inputs": ["api/**", "!api/dist/**", "utils/**"]
     },
     "//#doctor": {
       "inputs": [
@@ -111,7 +112,6 @@
         "api/**",
         "!api/dist/**",
         "utils/**",
-        "packages/logic/src/**",
         "scripts/**",
         "README.md",
         "docs/API.md",

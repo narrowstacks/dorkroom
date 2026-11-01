@@ -95,11 +95,13 @@ ruleset, `doctor.config.json` policy, and which rules are suppressed and why.
    are on recent majors (Tailwind 4, TanStack Router/Form v1) whose APIs differ
    from older examples
 2. **Never use `any`**. Use specific types or `unknown`
-3. **Import only published entry points.** `@dorkroom/logic` and `@dorkroom/api`
-   expose a single root entry. `@dorkroom/ui` also publishes subpaths
-   (`/forms`, `/calculator`, `/border-calculator`, `/development-recipes`,
-   `/films`) declared in its `exports` map. Anything not in an `exports` map is
-   an internal path and off limits.
+3. **Import only published entry points.** `@dorkroom/api` exposes a single
+   root entry. `@dorkroom/logic` also publishes `/calculators` (pure calculator
+   modules, no React, for `api/` and `utils/`). `@dorkroom/ui` also publishes
+   subpaths (`/forms`, `/calculator`, `/border-calculator`,
+   `/development-recipes`, `/films`). All are declared in each package's
+   `exports` map. Anything not in an `exports` map is an internal path and off
+   limits.
 4. **Avoid circular dependencies** between packages
 5. **Avoid using "warning" or "error" in file names**, which raises false warning and error flags in the build log.
 

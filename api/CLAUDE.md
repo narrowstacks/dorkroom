@@ -162,13 +162,22 @@ All under `/utils`:
 - `routeMetadata.ts` - per-route titles and descriptions used by `meta.ts` and `og.tsx`
 - `calculatorShare.ts` - shared calculator link previews for `meta.ts` and
   `og.tsx`: accepted link params, title, description and drawing. It imports
-  `@dorkroom/logic`'s pure modules **from source**
-  (`../packages/logic/src/...`), never the package root or a hook, so the
-  param names, validation (each calculator's `*Link.read`) and math are the
-  calculator's own rather than copies. `api/tsconfig.json` includes the logic
-  source minus hooks, so `typecheck:api` checks it under TypeScript 6, and
-  turbo's `typecheck:api`/`test:serverless` inputs include it. The edge
-  bundle for `og.tsx` grows by zod (about 100 KB gzipped)
+  the published **`@dorkroom/logic/calculators`** entry (pure modules, no
+  React), never the package root, so the param names, validation (each
+  calculator's `*Link.read`) and math are the calculator's own rather than
+  copies. That entry resolves to logic's built `dist/`:
+  - Vercel: the functions are traced after the build command (which builds
+    logic through turbo's `^build`). `@vercel/node` follows the `exports`
+    map to `dist/calculators.js` for both the Node and the edge function,
+    and compiles the ESM output to CommonJS for Node
+  - `typecheck:api` (TypeScript 6, `node10` resolution, which ignores
+    `exports`): `typesVersions` maps it to `dist/calculators.d.ts`; turbo
+    runs `@dorkroom/logic#build` first
+  - `test:serverless`: vitest follows `exports`; turbo builds logic first
+
+  Both turbo tasks depend on `@dorkroom/logic#build`, so a logic change busts
+  their caches. The edge bundle for `og.tsx` grows by zod (about 100 KB
+  gzipped)
 - `htmlEscape.ts` - `escapeHtml` for the HTML that `meta.ts` emits
 
 ## Authentication + Rate Limiting

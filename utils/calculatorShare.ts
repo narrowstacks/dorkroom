@@ -2,10 +2,10 @@
  * Link previews for shared calculator links (`/lenses?focal=80&from=…`).
  *
  * `api/meta.ts` uses this for the crawler's title, description and `og:image`
- * URL, and `api/og.tsx` for the card it draws. Both import @dorkroom/logic's
- * pure modules straight from source rather than copying them, so a link's
- * accepted params, its validation, and every number on the card are the
- * calculator's own:
+ * URL, and `api/og.tsx` for the card it draws. Everything comes from the
+ * published `@dorkroom/logic/calculators` entry (pure modules, no React)
+ * rather than copies, so a link's accepted params, its validation, and every
+ * number on the card are the calculator's own:
  *
  * - param names: `constants/calculator-link-params.ts` (no runtime imports)
  * - parsing and validation: each calculator's `*Link.read`, which applies the
@@ -14,72 +14,52 @@
  * - math and display formatting: the calculator's own functions
  *
  * A param a link leaves out takes the calculator's default, which is what a
- * first-time visitor sees when opening the link. Hooks and the package root
- * are never imported (React, and `api/tsconfig.json` would reject it), and
+ * first-time visitor sees when opening the link. The package root is never
+ * imported here (it carries React hooks), and
  * `utils/__tests__/calculatorShare.test.ts` pins the output.
  */
 
 import {
   ASPECT_RATIO_MAP,
-  PAPER_SIZE_MAP,
-} from '../packages/logic/src/constants/border-calculator';
-import {
   BORDER_CALCULATOR_LINK_PARAMS,
-  CAMERA_EXPOSURE_LINK_PARAMS,
-  EXPOSURE_CALCULATOR_LINK_PARAMS,
-  LENS_CALCULATOR_LINK_PARAMS,
-  MAT_CALCULATOR_LINK_PARAMS,
-  RECIPROCITY_CALCULATOR_LINK_PARAMS,
-  RESIZE_CALCULATOR_LINK_PARAMS,
-} from '../packages/logic/src/constants/calculator-link-params';
-import { CAMERA_EXPOSURE_DEFAULTS } from '../packages/logic/src/constants/camera-exposure-defaults';
-import { LENS_DEFAULTS } from '../packages/logic/src/constants/lens-calculator-defaults';
-import {
-  calculateMatLayout,
-  MAT_CALCULATOR_DEFAULTS,
-  toFraction,
-} from '../packages/logic/src/constants/mat-calculator';
-import { RESIZE_FORM_DEFAULTS } from '../packages/logic/src/constants/resize-calculator';
-import {
   borderCalculatorLink,
   borderStateFromLink,
-} from '../packages/logic/src/schemas/border-calculator-persistence';
-import { cameraExposureLink } from '../packages/logic/src/schemas/camera-exposure-calculator.schema';
-import {
+  calculateExposureAdjustment,
+  calculateExposureValue,
+  calculateLensEquivalency,
+  calculateMatLayout,
+  calculateReciprocityForForm,
+  calculateResizeExposure,
+  type CalculatorLinkParamMap,
+  type CalculatorLinkSearch,
+  CAMERA_EXPOSURE_DEFAULTS,
+  CAMERA_EXPOSURE_LINK_PARAMS,
+  cameraExposureLink,
+  computeBorderLayout,
+  EXPOSURE_CALCULATOR_LINK_PARAMS,
   EXPOSURE_FORM_DEFAULTS,
   exposureCalculatorLink,
-} from '../packages/logic/src/schemas/exposure-calculator.schema';
-import { lensCalculatorLink } from '../packages/logic/src/schemas/lens-calculator.schema';
-import { matCalculatorLink } from '../packages/logic/src/schemas/mat-calculator.schema';
-import {
+  formatAperture,
+  formatDimensionPair,
+  formatExposureTime,
+  formatFocalLength,
+  formatReciprocityTime,
+  formatShutterSpeed,
+  LENS_CALCULATOR_LINK_PARAMS,
+  LENS_DEFAULTS,
+  lensCalculatorLink,
+  MAT_CALCULATOR_DEFAULTS,
+  MAT_CALCULATOR_LINK_PARAMS,
+  matCalculatorLink,
+  PAPER_SIZE_MAP,
+  RECIPROCITY_CALCULATOR_LINK_PARAMS,
   RECIPROCITY_FORM_DEFAULTS,
   reciprocityCalculatorLink,
-} from '../packages/logic/src/schemas/reciprocity-calculator.schema';
-import { resizeCalculatorLink } from '../packages/logic/src/schemas/resize-calculator.schema';
-import { computeBorderLayout } from '../packages/logic/src/utils/border-layout';
-import type {
-  CalculatorLinkParamMap,
-  CalculatorLinkSearch,
-} from '../packages/logic/src/utils/calculator-url-params';
-import {
-  calculateExposureValue,
-  formatAperture,
-  formatShutterSpeed,
-} from '../packages/logic/src/utils/camera-exposure-calculations';
-import {
-  calculateExposureAdjustment,
-  formatExposureTime,
-} from '../packages/logic/src/utils/exposure-calculations';
-import {
-  calculateLensEquivalency,
-  formatFocalLength,
-} from '../packages/logic/src/utils/lens-calculations';
-import {
-  calculateReciprocityForForm,
-  formatReciprocityTime,
-} from '../packages/logic/src/utils/reciprocity-calculations';
-import { calculateResizeExposure } from '../packages/logic/src/utils/resize-calculations';
-import { formatDimensionPair } from '../packages/logic/src/utils/unit-conversion';
+  RESIZE_CALCULATOR_LINK_PARAMS,
+  RESIZE_FORM_DEFAULTS,
+  resizeCalculatorLink,
+  toFraction,
+} from '@dorkroom/logic/calculators';
 import {
   BASE_URL,
   ROUTE_TITLES,
