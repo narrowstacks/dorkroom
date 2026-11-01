@@ -24,6 +24,13 @@ const EXPECTED_TOOLS = [
   ['exposure', 'Exposure', 'gauge', '/more/exposure', 'printing'],
   ['mat', 'Mat Cut', 'frame', '/more/mat', 'printing'],
   ['reciprocity', 'Reciprocity', 'timer', '/more/reciprocity', 'film'],
+  [
+    'negative-inverter',
+    'Inverter',
+    'contrast',
+    '/more/negative-inverter',
+    'film',
+  ],
   ['film-log', 'Film Log', 'film', '/film-log', 'film'],
   ['recipes', 'Recipes', 'flask-conical', '/development', 'film'],
   ['lens', 'Lenses', 'focus', '/more/lens', 'camera'],
@@ -46,6 +53,7 @@ const EXPECTED_TAB_ROUTES = {
   exposure: 'exposure',
   mat: 'mat',
   reciprocity: 'reciprocity',
+  'negative-inverter': 'negative-inverter',
   lens: 'lenses',
   'camera-exposure': 'camera-exposure',
   meter: 'meter',
@@ -59,6 +67,21 @@ describe('iOS tool registry (pinned)', () => {
     expect(
       TOOLS.map((t) => [t.id, t.label, t.icon, t.route, t.category])
     ).toEqual(EXPECTED_TOOLS.map((row) => [...row]));
+  });
+});
+
+describe('fixed-layout tools', () => {
+  it('pins which screens fill the space instead of scrolling', () => {
+    expect(TOOLS.filter((t) => t.fixedLayout).map((t) => t.id)).toEqual([
+      'negative-inverter',
+    ]);
+  });
+
+  it('gives them a standard header in the More stack', () => {
+    // A large title would sit expanded, since nothing scrolls to collapse it.
+    expect(read('app', '(tabs)', 'more', '[tool].tsx')).toMatch(
+      /headerLargeTitle:\s*!meta\.fixedLayout/
+    );
   });
 });
 
@@ -152,17 +175,25 @@ describe('App Intents', () => {
       /case \.(\w+): return URL\(string: "dorkroom:\/\/([^"]*)"\)/g
     ),
   ].map((m) => ({ page: m[1], path: `/${m[2]}` }));
+  // A case's String raw value is its name unless it declares one, which is
+  // how a hyphenated tool id (`negative-inverter`) maps to a Swift identifier.
+  const declared = [
+    ...swift.matchAll(/^\s*case (\w+)(?: = "([^"]+)")?$/gm),
+  ].map((m) => ({ page: m[1], toolId: m[2] ?? m[1] }));
+  const toolIdOf = new Map(declared.map((d) => [d.page, d.toolId]));
 
   it('declares a deep link for every DorkroomPage case', () => {
-    const declared = [...swift.matchAll(/^\s*case (\w+)$/gm)].map((m) => m[1]);
-    expect(cases.map((c) => c.page).sort()).toEqual([...declared].sort());
+    expect(cases.map((c) => c.page).sort()).toEqual(
+      declared.map((d) => d.page).sort()
+    );
     expect(declared.length).toBeGreaterThan(0);
   });
 
   it('every page is a tab tool whose deep link lands on that tool', () => {
     for (const { page, path } of cases) {
-      expect(EXPECTED_TAB_IDS).toContain(page);
-      expect(resolveToolPath(path, [])).toBe(`/more/${page}`);
+      const toolId = toolIdOf.get(page);
+      expect(EXPECTED_TAB_IDS).toContain(toolId);
+      expect(resolveToolPath(path, [])).toBe(`/more/${toolId}`);
     }
   });
 

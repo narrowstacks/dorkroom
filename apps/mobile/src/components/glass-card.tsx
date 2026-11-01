@@ -26,24 +26,33 @@ interface GlassCardProps {
    * fill a row) or an accent border.
    */
   style?: StyleProp<ViewStyle>;
+  /** Tighter padding, for a control panel that shares the screen with a
+   *  photo rather than a card in a scrolling stack. */
+  compact?: boolean;
 }
 
 /** A Liquid Glass card on iOS 26; a translucent NativeWind card elsewhere. */
-export function GlassCard({ children, className, style }: GlassCardProps) {
+export function GlassCard({
+  children,
+  className,
+  style,
+  compact = false,
+}: GlassCardProps) {
+  const padding = compact ? 'p-3' : 'p-5';
   if (USE_GLASS) {
     return (
       <GlassView
         glassEffectStyle="regular"
         style={[{ borderRadius: 20, overflow: 'hidden' }, style]}
       >
-        <View className={`p-5 ${className ?? ''}`}>{children}</View>
+        <View className={`${padding} ${className ?? ''}`}>{children}</View>
       </GlassView>
     );
   }
   return (
     <View
       style={style}
-      className={`rounded-2xl border border-white/10 bg-white/10 p-5 ${className ?? ''}`}
+      className={`rounded-2xl border border-white/10 bg-white/10 ${padding} ${className ?? ''}`}
     >
       {children}
     </View>

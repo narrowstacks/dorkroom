@@ -49,7 +49,7 @@
       "allowedVersions": "<4"
     },
     {
-      "description": "Expo SDK-managed native modules: `expo install` owns these versions. Each Expo SDK release pins an exact compatible set (node_modules/expo/bundledNativeModules.json), and `npx expo install --fix` is the only correct way to change them — bot PRs propose versions the SDK does not support, and nothing catches it because no CI job builds the native app (the failure only appears at `eas build` or on a device). Upgrade deliberately: `cd apps/mobile && npx expo install expo@^<next> --fix`, then `npx expo-doctor` and a device build. `expo-*`/`@expo/*` wildcards also catch third-party `expo-quick-actions`, whose compatibility tracks the SDK anyway. NOT listed on purpose: `react`/`react-dom` (shared with the web app; apps/mobile deviates from Expo's pin via `expo.install.exclude`), and react-native-vision-camera / react-native-mmkv / react-native-nitro-modules / react-native-reorderable-list / nativewind (native, but not in Expo's bundled list, so bumps are legitimate — they still deserve a device build before merging).",
+      "description": "Expo SDK-managed native modules: `expo install` owns these versions. Each Expo SDK release pins an exact compatible set (node_modules/expo/bundledNativeModules.json), and `npx expo install --fix` is the only correct way to change them — bot PRs propose versions the SDK does not support, and nothing catches it because no CI job builds the native app (the failure only appears at `eas build` or on a device). Upgrade deliberately: `cd apps/mobile && npx expo install expo@^<next> --fix`, then `npx expo-doctor` and a device build. `expo-*`/`@expo/*` wildcards also catch third-party `expo-quick-actions`, whose compatibility tracks the SDK anyway. NOT listed on purpose: `react`/`react-dom` (shared with the web app; apps/mobile deviates from Expo's pin via `expo.install.exclude`), and react-native-vision-camera / react-native-vision-camera-worklets / react-native-mmkv / react-native-nitro-modules / react-native-reorderable-list / nativewind (native, but not in Expo's bundled list, so bumps are legitimate, but they still deserve a device build before merging; the two vision-camera packages are grouped by the rule below).",
       "matchDepNames": [
         "expo",
         "expo-*",
@@ -66,6 +66,14 @@
         "@react-native-community/slider"
       ],
       "enabled": false
+    },
+    {
+      "description": "react-native-vision-camera and react-native-vision-camera-worklets are released together from one monorepo, and the worklets companion compiles C++ against vision-camera's generated headers (VisionCamera/HybridNativeThreadSpec.hpp), so they must always be the same version. Both are exact-pinned in apps/mobile (an exception to the two-tier policy, for that lockstep) and grouped here into one PR. Any bump needs a dev build and a device check of live mode.",
+      "matchDepNames": [
+        "react-native-vision-camera",
+        "react-native-vision-camera-worklets"
+      ],
+      "groupName": "vision-camera"
     }
   ]
 }

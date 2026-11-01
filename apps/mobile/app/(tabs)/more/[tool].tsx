@@ -16,7 +16,12 @@ export default function MoreToolDetail() {
   }
   return (
     <>
-      <Stack.Screen options={{ title: meta.label }} />
+      <Stack.Screen
+        options={{
+          title: meta.label,
+          headerLargeTitle: !meta.fixedLayout,
+        }}
+      />
       <ScreenComponent />
     </>
   );

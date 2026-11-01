@@ -11,9 +11,9 @@
       "bundleIdentifier": "art.dorkroom.mobile",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSCameraUsageDescription": "Dorkroom uses the camera to meter the light in your scene.",
-        "NSPhotoLibraryUsageDescription": "Attach a photo from your library to a shot in your film log.",
-        "NSPhotoLibraryAddUsageDescription": "Save photos captured with the light meter to your Photos library."
+        "NSCameraUsageDescription": "Dorkroom uses the camera to meter the light in your scene and to photograph negatives for the inverter.",
+        "NSPhotoLibraryUsageDescription": "Choose a photo from your library to attach to a film log shot or to convert a negative to a positive.",
+        "NSPhotoLibraryAddUsageDescription": "Save light meter captures and converted negatives to your Photos library."
       }
     },
     "plugins": [
@@ -72,7 +72,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Attach a photo from your library to a shot in your film log."
+          "photosPermission": "Choose a photo from your library to attach to a film log shot or to convert a negative to a positive.",
+          "cameraPermission": "Dorkroom uses the camera to meter the light in your scene and to photograph negatives for the inverter."
         }
       ]
     ],

@@ -31,6 +31,12 @@ export interface Tool {
    * Screen is a ComingSoon stub. Not pinnable, and badged in More.
    */
   comingSoon?: boolean;
+  /**
+   * The screen fills the space it is given and never scrolls (an editor),
+   * so in the More stack it gets a standard header: a large title would sit
+   * expanded for good, since nothing scrolls to collapse it.
+   */
+  fixedLayout?: boolean;
 }
 
 // The iOS tool manifest (#455). Every other tool table is derived from it:
@@ -78,6 +84,15 @@ const TOOL_LIST = [
     route: '/more/reciprocity',
     tabRoute: 'reciprocity',
     category: 'film',
+  },
+  {
+    id: 'negative-inverter',
+    label: 'Inverter',
+    icon: 'contrast',
+    route: '/more/negative-inverter',
+    tabRoute: 'negative-inverter',
+    category: 'film',
+    fixedLayout: true,
   },
   {
     id: 'film-log',

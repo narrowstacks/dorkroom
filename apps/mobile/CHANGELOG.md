@@ -5,6 +5,15 @@ Web app changes live in the [root CHANGELOG](../../CHANGELOG.md).
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [Unreleased]
+
+### Added
+
+- **Negative inverter.** Photograph a negative on a light table, or pick one from Photos, and see the positive right away. The film base is found automatically (marked "Auto"), and you can still tap it yourself. Crop the frame, set a neutral grey, and adjust exposure, contrast, warmth, tint and saturation with a live preview. The conversion works like a darkroom print: a paper curve with clean whites and deep blacks, and white set from the most neutral bright area so warm light stays warm. Touch and hold the photo to compare with the negative. Save to Photos in one tap, or share, at the photo's full resolution. B&W and C-41. The editor fits on one screen without scrolling: the photo stays large, with one slider at a time under it and the export options and light-table tips behind the info button. (#527)
+- **Rotate, flip and crop the positive.** Turn the photo a quarter turn either way, or mirror it left to right or top to bottom (for a negative shot emulsion side up). The crop now trims the saved and shared photo, not only the levels: the editor shows just the cropped frame, and the whole frame while you crop or pick the base. Saved and shared photos keep the turn and the crop at full resolution. (#527)
+- **The inverter remembers your negative.** Leave the Inverter, switch tools or relaunch the app, and the photo comes back as you left it: crop, base, neutral, adjustments, film type and orientation. The photo is kept in the app until you load another or choose Close Photo in the info sheet. (#527)
+- **Live negative inverter.** Point the camera at a negative on a light table and see the positive as it streams. The film base is found automatically, or tap Base to pick it; film type and the sliders work live, and the whole frame is metered. The camera meters for the film rather than the bright light table, raising exposure until the densest parts of a colour negative keep their blue, and a badge warns if blue is still clipping. Capture takes a full-resolution photo that opens in the editor with the same base and settings, ready to crop and save. It replaces the separate Take Photo button: to photograph a negative, open Live Camera and press the shutter. (#527)
+
 ## [2026.10.30]
 
 ### Changed

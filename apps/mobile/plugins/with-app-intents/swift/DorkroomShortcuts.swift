@@ -51,5 +51,14 @@ struct DorkroomShortcuts: AppShortcutsProvider {
             shortTitle: "Reciprocity",
             systemImageName: "timer"
         )
+        AppShortcut(
+            intent: OpenPageIntent(page: .negativeInverter),
+            phrases: [
+                "Open Negative Inverter in \(.applicationName)",
+                "Invert a negative with \(.applicationName)",
+            ],
+            shortTitle: "Negative Inverter",
+            systemImageName: "circle.lefthalf.filled"
+        )
     }
 }
