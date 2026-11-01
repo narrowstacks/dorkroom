@@ -60,10 +60,14 @@ export function useMeterCapture(
       if (getSaveMeterPhotosToLibrary()) {
         try {
           const perm = await MediaLibrary.requestPermissionsAsync(true);
+          // Asset.create, not the legacy createAssetAsync, which throws
+          // unconditionally since expo-media-library 57.
           if (perm.granted)
-            await MediaLibrary.createAssetAsync(photoUri(photo.fileName));
-        } catch {
-          // non-fatal: keep the in-app copy
+            await MediaLibrary.Asset.create(photoUri(photo.fileName));
+        } catch (cause) {
+          // Non-fatal: keep the in-app copy, but don't hide the failure.
+          if (__DEV__)
+            console.warn('Saving meter photo to Photos failed', cause);
         }
       }
       setPending({ photo, ...settings });
