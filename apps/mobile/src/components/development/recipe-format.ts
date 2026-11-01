@@ -1,5 +1,5 @@
 import type { Combination, Developer } from '@dorkroom/api';
-import { formatTemperature } from '@dorkroom/logic';
+import { formatTemperature, getCombinationDilution } from '@dorkroom/logic';
 
 /** Temperature unit shown in recipe UI (mobile-local preference). */
 export type TempUnit = 'C' | 'F';
@@ -29,15 +29,7 @@ export function resolveDilution(
   combination: Pick<Combination, 'customDilution' | 'dilutionId'>,
   developer?: Pick<Developer, 'dilutions'>
 ): string {
-  const custom = combination.customDilution?.trim();
-  if (custom) return custom;
-  if (combination.dilutionId && developer?.dilutions) {
-    const match = developer.dilutions.find(
-      (d) => d.id === combination.dilutionId
-    );
-    if (match?.dilution) return match.dilution;
-  }
-  return 'Stock';
+  return getCombinationDilution(combination, developer);
 }
 
 export interface PushPullDisplay {

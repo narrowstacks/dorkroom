@@ -1,8 +1,8 @@
-import type { Dilution } from '@dorkroom/api';
 import {
   calculatePushPull,
   type DevelopmentCombinationView,
   formatTemperatureWithUnit,
+  getCombinationDilution,
 } from '@dorkroom/logic';
 import type { Row, Table } from '@tanstack/react-table';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
@@ -61,26 +61,6 @@ interface DevelopmentResultsCardsVirtualizedProps {
   /** ID of the currently selected recipe to highlight in the grid */
   selectedRecipeId?: string | null;
 }
-
-const formatDilution = (view: DevelopmentCombinationView): string => {
-  const { combination, developer } = view;
-
-  if (combination.customDilution) {
-    return combination.customDilution;
-  }
-
-  if (developer && combination.dilutionId) {
-    const match = developer.dilutions.find(
-      (dilution: Dilution) =>
-        String(dilution.id) === String(combination.dilutionId)
-    );
-    if (match) {
-      return match.dilution || match.name;
-    }
-  }
-
-  return 'Stock';
-};
 
 /** A recipe's tags split into official badges and other display tags. */
 interface PartitionedTags {
@@ -346,7 +326,7 @@ function RecipeCard({
             className="text-sm"
             style={{ color: 'var(--color-text-primary)' }}
           >
-            {formatDilution(rowData)}
+            {getCombinationDilution(combination, developer)}
           </div>
         </div>
       </div>
