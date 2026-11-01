@@ -95,9 +95,16 @@ export type ThemeName =
  */
 export interface AnalyticsEvents {
   /** A share link was produced. Pairs with `share_opened` to give a real
-   *  viral coefficient rather than a raw share count. */
+   *  viral coefficient rather than a raw share count. Sent once per link
+   *  while the page is open (`useShareTracker`): sharing the same inputs
+   *  again sends nothing, changed inputs make a new link that counts. The
+   *  link itself is never sent. */
   share: { tool: ShareTool; method: ShareMethod };
-  /** Someone arrived on a link that another user shared. */
+  /** Someone arrived on a link that another user shared: a link carrying the
+   *  shared-link marker (`source=share`, which the calculator, film and
+   *  recipe Share buttons add; calculator and film pages strip it after
+   *  reading), or a border preset link. Following a home or nav search
+   *  answer never counts. */
   share_opened: { tool: ShareTool };
   recipe_saved: { action: 'created' | 'updated'; source: 'manual' | 'import' };
   /** There is no delete-all UI, so `scope` only ever fires as `'single'`. It

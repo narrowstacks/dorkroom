@@ -49,6 +49,10 @@ async function shareBorderPreset(preset: PresetToShare) {
   await act(() => result.current.handleShareClick());
   await act(() => result.current.handleNativeShare());
   expect(onShared.mock.calls.length).toBeLessThanOrEqual(1);
+  // The link that went out travels with the method, for per-link dedupe.
+  if (onShared.mock.calls[0]) {
+    expect(onShared.mock.calls[0][1]).toBe(result.current.shareUrls?.webUrl);
+  }
   return {
     reportedMethod: onShared.mock.calls[0]?.[0],
     modalOpen: result.current.isShareModalOpen,

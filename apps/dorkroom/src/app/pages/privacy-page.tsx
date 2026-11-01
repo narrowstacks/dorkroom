@@ -15,13 +15,14 @@ const TRACKED_EVENTS: TrackedEvent[] = [
   {
     name: 'share',
     fires:
-      'You create a share link for a calculation, a preset, a recipe or a film.',
+      'You create a share link for a calculation, a preset, a recipe or a film. Sharing the same link again on the same page is not counted again.',
     records:
       'Which tool, and whether the link was copied, shared natively, or shown for copying by hand.',
   },
   {
     name: 'share_opened',
-    fires: 'You open a link someone else shared with you.',
+    fires:
+      'You open a link someone else shared with you. Links from a Share button carry a source=share marker so the page can tell; links from the site search never do.',
     records: 'Which tool the link points at.',
   },
   {

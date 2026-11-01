@@ -17,7 +17,7 @@ import {
 } from '@tanstack/react-router';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import { type ComponentType, useEffect } from 'react';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import LensCalculatorPage from '../../app/pages/lens-calculator/lens-calculator-page';
 import MatCalculatorPage from '../../app/pages/mat-calculator/mat-calculator-page';
 import { parseSearch, stringifySearch } from '../../routes/search-params';
@@ -45,7 +45,7 @@ function renderLensesRoute(
   const lensesRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/lenses',
-    ...calculatorRoute(LENS_CALCULATOR_LINK_PARAMS, page),
+    ...calculatorRoute('lenses', LENS_CALCULATOR_LINK_PARAMS, page),
   });
   if (browser) window.history.replaceState(null, '', url);
   const router = createRouter({
@@ -203,9 +203,104 @@ describe('calculatorRoute', () => {
 
   it('only accepts a page that reads its own link params', () => {
     // @ts-expect-error the mat page reads the mat link, not the lens one
-    calculatorRoute(LENS_CALCULATOR_LINK_PARAMS, MatCalculatorPage);
+    calculatorRoute('lenses', LENS_CALCULATOR_LINK_PARAMS, MatCalculatorPage);
     expect(
-      calculatorRoute(MAT_CALCULATOR_LINK_PARAMS, MatCalculatorPage)
+      calculatorRoute('mat', MAT_CALCULATOR_LINK_PARAMS, MatCalculatorPage)
     ).toHaveProperty('component');
+  });
+});
+
+/**
+ * A link from a Share button carries `source=share`. The route counts the
+ * arrival as `share_opened` once, and strips the marker with the link params.
+ * `window.va` is the queue `@vercel/analytics` forwards to.
+ */
+describe('calculatorRoute opened shares', () => {
+  const shareOpened = [
+    'event',
+    { name: 'share_opened', data: { tool: 'lenses' }, options: undefined },
+  ];
+  const va = vi.fn();
+  const shareOpenedCalls = () =>
+    va.mock.calls.filter((call) =>
+      JSON.stringify(call).includes('"share_opened"')
+    );
+
+  beforeEach(() => {
+    window.localStorage.clear();
+    va.mockReset();
+    window.va = va;
+  });
+
+  afterEach(() => {
+    for (const cleanup of cleanups.splice(0)) cleanup();
+    delete window.va;
+  });
+
+  it('reports share_opened once for a shared link and strips the marker', async () => {
+    const router = renderLensesRoute(
+      '/lenses?focal=80&to=full-frame&source=share&utm=x'
+    );
+
+    await waitFor(async () => expect(await focalLengthInput()).toHaveValue(80));
+    await waitFor(() =>
+      expect(router.state.location.search).toEqual({ utm: 'x' })
+    );
+    expect(va).toHaveBeenCalledWith(...shareOpened);
+    expect(shareOpenedCalls()).toHaveLength(1);
+  });
+
+  it('applies the link params whatever the marker says', async () => {
+    const router = renderLensesRoute('/lenses?focal=80&source=share');
+
+    await waitFor(async () => expect(await focalLengthInput()).toHaveValue(80));
+    await waitFor(() => expect(router.state.location.search).toEqual({}));
+  });
+
+  it('does not report a link without the marker', async () => {
+    const router = renderLensesRoute('/lenses?focal=80');
+
+    await waitFor(async () => expect(await focalLengthInput()).toHaveValue(80));
+    await waitFor(() => expect(router.state.location.search).toEqual({}));
+    expect(shareOpenedCalls()).toHaveLength(0);
+  });
+
+  it('strips a marker with another value without reporting it', async () => {
+    const router = renderLensesRoute('/lenses?focal=80&source=newsletter');
+
+    await waitFor(() => expect(router.state.location.search).toEqual({}));
+    expect(shareOpenedCalls()).toHaveLength(0);
+  });
+
+  it('strips and reports a marker that arrives with no link params', async () => {
+    const router = renderLensesRoute('/lenses?source=share');
+
+    await focalLengthInput();
+    await waitFor(() => expect(router.state.location.search).toEqual({}));
+    expect(shareOpenedCalls()).toHaveLength(1);
+  });
+
+  it('reports a second shared link that lands while the route is open', async () => {
+    const router = renderLensesRoute('/lenses?focal=50&source=share');
+    await waitFor(async () => expect(await focalLengthInput()).toHaveValue(50));
+    await waitFor(() => expect(router.state.location.search).toEqual({}));
+
+    // Same-route navigations: an unmarked link, then a marked one.
+    await act(() =>
+      router.navigate({ to: '/lenses', search: { focal: '65' } })
+    );
+    await waitFor(async () => expect(await focalLengthInput()).toHaveValue(65));
+    await waitFor(() => expect(router.state.location.search).toEqual({}));
+    expect(shareOpenedCalls()).toHaveLength(1);
+
+    await act(() =>
+      router.navigate({
+        to: '/lenses',
+        search: { focal: '80', source: 'share' },
+      })
+    );
+    await waitFor(async () => expect(await focalLengthInput()).toHaveValue(80));
+    await waitFor(() => expect(router.state.location.search).toEqual({}));
+    expect(shareOpenedCalls()).toHaveLength(2);
   });
 });

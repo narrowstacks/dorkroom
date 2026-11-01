@@ -1,3 +1,4 @@
+import { SHARED_LINK_MARKER } from '@dorkroom/logic';
 import { z } from 'zod';
 
 /**
@@ -39,6 +40,9 @@ export const filmsSearchSchema = z.object({
   brand: z.string().optional().catch(undefined),
   status: z.enum(['all', 'active', 'discontinued']).optional().catch(undefined),
   film: z.string().optional().catch(undefined), // direct link to expanded film
+  /** The shared-link marker (`SHARED_LINK_MARKER`): a film's Share button
+   *  adds it. Any other value is treated as absent. */
+  source: z.literal(SHARED_LINK_MARKER.value).optional().catch(undefined),
 });
 
 export type FilmsSearchParams = z.infer<typeof filmsSearchSchema>;

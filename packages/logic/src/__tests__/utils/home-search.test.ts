@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { SHARED_LINK_MARKER } from '../../constants/calculator-link-params';
 import {
   type HomeAnswer,
   type HomeAnswerKind,
@@ -29,6 +30,34 @@ const factOf = (a: HomeAnswer, label: string) =>
 const readAs = (a: HomeAnswer) => a.readAs.map((r) => r.text);
 
 describe('searchHome', () => {
+  // A search answer is the app's own navigation, not somebody's share, so
+  // following one must never count as an opened share.
+  it.each([
+    'hp5 at 800 in dd-x',
+    'tri-x 30s',
+    '11x14 6x7 1.45',
+    '8x10 to 11x14 12s',
+    '80mm on 6x6',
+    '12s +1/3',
+    '16x20 mat 8x10 print',
+    'f/8',
+    'portra 400',
+    'rodinal',
+  ])('links "%s" without the shared-link marker', (query) => {
+    const result = searchHome(query, FIXTURE_DATA);
+    const targets = [
+      ...(result.answer ? [result.answer.link.target] : []),
+      // Tool results link to a bare route, so only item groups carry search.
+      ...result.groups.flatMap((group) =>
+        'items' in group ? group.items.map((item) => item.target) : []
+      ),
+    ];
+    expect(targets.length).toBeGreaterThan(0);
+    for (const target of targets) {
+      expect(target.search).not.toHaveProperty(SHARED_LINK_MARKER.param);
+    }
+  });
+
   it('returns nothing for an empty query', () => {
     expect(searchHome('   ')).toEqual({
       answer: null,

@@ -2,6 +2,7 @@ import type { Film } from '@dorkroom/api';
 import {
   buildFilmSlugIndex,
   getBaseFilm,
+  SHARED_LINK_MARKER,
   useFilmDatabase,
 } from '@dorkroom/logic';
 import {
@@ -16,6 +17,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { filmColorFilterSchema } from '../../../routes/search-schemas';
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useSearchDeadEndAnalytics } from '../../lib/analytics/use-search-analytics';
+import { useShareOpened } from '../../lib/analytics/use-share-analytics';
 import { FilmsPageBody } from './films-page-body';
 import { useUrlFilterSync } from './use-url-filter-sync';
 
@@ -71,6 +73,15 @@ export default function FilmsPage() {
   }, [films, urlFilmSlug]);
 
   useUrlFilterSync(searchParams, db);
+
+  // A film's Share link carries `source=share`. Counted once per arrival;
+  // the debounced URL sync below never writes `source`, so it strips it.
+  useShareOpened(
+    'film',
+    searchParams.source === SHARED_LINK_MARKER.value
+      ? (urlFilmSlug ?? '')
+      : null
+  );
 
   // Select film from URL param when data loads or URL changes
   useEffect(() => {

@@ -115,6 +115,9 @@ describe.each(CALCULATORS)(
       const url = new URL(vi.mocked(writeText).mock.calls[0][0]);
       expect(url.origin).toBe(window.location.origin);
       expect(url.pathname).toBe(route);
+      // The shared-link marker rides along, and the calculator's own link
+      // ignores it (`read` below sees it as an unknown param).
+      expect(url.searchParams.get('source')).toBe('share');
       expect(read(Object.fromEntries(url.searchParams))).toMatchObject(
         read(linkSearch)
       );
@@ -154,5 +157,57 @@ describe('share button with an invalid field', () => {
 
     fireEvent.change(time, { target: { value: '45s' } });
     await waitFor(() => expect(shareButton).toBeEnabled());
+  });
+});
+
+/**
+ * `share` counts links, not presses: the same inputs shared twice are one
+ * share, and a change of inputs makes the next share a new one.
+ */
+describe('share button analytics', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    window.va = vi.fn();
+    vi.stubGlobal('navigator', {
+      userAgent: 'Mozilla/5.0 (X11; Linux x86_64)',
+      maxTouchPoints: 0,
+      clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+    });
+  });
+
+  afterEach(() => {
+    delete window.va;
+    vi.unstubAllGlobals();
+  });
+
+  const shareEvents = () =>
+    vi
+      .mocked(window.va ?? vi.fn())
+      .mock.calls.filter((call) => JSON.stringify(call).includes('"share"'));
+
+  it('counts the same link once and a changed one again', async () => {
+    render(
+      <MeasurementProvider>
+        <LensCalculatorPage linkSearch={{ focal: '80' }} />
+      </MeasurementProvider>
+    );
+    const shareButton = screen.getByRole('button', {
+      name: 'Share this calculation',
+    });
+    const { writeText } = navigator.clipboard;
+
+    fireEvent.click(shareButton);
+    await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
+    fireEvent.click(shareButton);
+    await waitFor(() => expect(writeText).toHaveBeenCalledTimes(2));
+    expect(shareEvents()).toHaveLength(1);
+
+    fireEvent.change(screen.getByRole('spinbutton', { name: /Focal length/ }), {
+      target: { value: '50' },
+    });
+    fireEvent.click(shareButton);
+    await waitFor(() => expect(writeText).toHaveBeenCalledTimes(3));
+    expect(vi.mocked(writeText).mock.calls[2][0]).toContain('focal=50');
+    expect(shareEvents()).toHaveLength(2);
   });
 });

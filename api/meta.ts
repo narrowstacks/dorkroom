@@ -24,6 +24,10 @@ const STATUS_VALUES = new Set(['active', 'discontinued', 'all']);
  * Every query param this endpoint reads, `path` included. Anything else is
  * rejected before the origin `fetch` — see the guard at the top of `handler`.
  * Keep this in sync when adding a new param.
+ *
+ * `source` is the shared-link marker (`source=share`) every Share button adds.
+ * It never changes the card, but accepting it spares a shared film or recipe
+ * link the redirect an unknown param gets.
  */
 const ALLOWED_PARAMS = new Set([
   'path',
@@ -35,6 +39,7 @@ const ALLOWED_PARAMS = new Set([
   'brand',
   'status',
   'preset',
+  'source',
 ]);
 
 /** Vercel collapses a repeated param into an array, which has no single value. */

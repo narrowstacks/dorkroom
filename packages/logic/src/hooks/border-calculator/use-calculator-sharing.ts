@@ -27,9 +27,10 @@ interface UseCalculatorSharingProps {
   /**
    * Called once a link has reached the user: copied from the share modal, or
    * sent through the native share flow. Not called for a cancelled share
-   * sheet or a failed copy.
+   * sheet or a failed copy. `url` is the link that went out, so a caller can
+   * tell a repeat share of the same link from a new one.
    */
-  onShared?: (method: PresetShareMethod) => void;
+  onShared?: (method: PresetShareMethod, url: string) => void;
 }
 
 interface UseCalculatorSharingReturn {
@@ -142,7 +143,7 @@ export function useCalculatorSharing({
     }
     // No Clipboard API: a silent no-op, as the modal hides its copy button.
     if (copied) {
-      onShared?.('clipboard');
+      onShared?.('clipboard', url);
     }
   };
 
@@ -165,7 +166,7 @@ export function useCalculatorSharing({
       if (outcome.status === 'cancelled') return;
 
       const method = outcome.status === 'shared' ? outcome.method : 'manual';
-      onShared?.(method);
+      onShared?.(method, shareUrls.webUrl);
       if (method === 'native') {
         setIsShareModalOpen(false);
       }

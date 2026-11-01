@@ -9,7 +9,7 @@ const MatCalculatorPage = lazy(
 );
 
 export const Route = createFileRoute('/mat')({
-  ...calculatorRoute(MAT_CALCULATOR_LINK_PARAMS, MatCalculatorPage),
+  ...calculatorRoute('mat', MAT_CALCULATOR_LINK_PARAMS, MatCalculatorPage),
   head: () => ({
     meta: [
       { title: `${ROUTE_TITLES['/mat']} - Dorkroom` },
