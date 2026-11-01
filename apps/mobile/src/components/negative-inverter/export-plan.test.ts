@@ -62,13 +62,20 @@ describe('planExportRender', () => {
 });
 
 describe('exportFileName', () => {
-  it('stamps the local time and the format', () => {
+  it('stamps the local time, a sequence number and the format', () => {
     const date = new Date(2026, 9, 31, 22, 15, 2);
-    expect(exportFileName(date, 'jpeg')).toBe(
-      'dorkroom-positive-20261031-221502.jpg'
+    expect(exportFileName(date, 'jpeg', 1)).toBe(
+      'dorkroom-positive-20261031-221502-1.jpg'
     );
-    expect(exportFileName(date, 'png')).toBe(
-      'dorkroom-positive-20261031-221502.png'
+    expect(exportFileName(date, 'png', 2)).toBe(
+      'dorkroom-positive-20261031-221502-2.png'
+    );
+  });
+
+  it('keeps two exports in the same second apart', () => {
+    const date = new Date(2026, 9, 31, 22, 15, 2);
+    expect(exportFileName(date, 'jpeg', 1)).not.toBe(
+      exportFileName(date, 'jpeg', 2)
     );
   });
 });

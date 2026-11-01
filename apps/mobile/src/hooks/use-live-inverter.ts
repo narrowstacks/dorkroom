@@ -46,6 +46,7 @@ import {
   type LiveFraming,
   type LiveReading,
   type LiveSnapshot,
+  needsStatsPass,
   NO_AUTO_BASE,
   readLiveSnapshot,
 } from '@/components/negative-inverter/live-reading';
@@ -303,12 +304,13 @@ export function useLiveInverter(
         image: { data: pixels, width, height },
         live: { width: liveWidth, height: liveHeight },
       };
-      // A steady negative repeats itself: no need to measure it again.
-      if (
-        !snapshotChanged(pass.current.snapshot?.image ?? null, snapshot.image)
-      ) {
-        return;
-      }
+      // A steady negative repeats itself: no need to measure it again,
+      // unless a new automatic base is still collecting votes.
+      const changed = snapshotChanged(
+        pass.current.snapshot?.image ?? null,
+        snapshot.image
+      );
+      if (!needsStatsPass(changed, pass.current.track)) return;
       runPass(snapshot, false);
     },
     [runPass]

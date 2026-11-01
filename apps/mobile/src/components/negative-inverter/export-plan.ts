@@ -171,10 +171,18 @@ export function tilePlacement(
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
-/** `dorkroom-positive-20261031-221502.jpg`, from the local time. */
-export function exportFileName(date: Date, format: ExportFormat): string {
+/**
+ * `dorkroom-positive-20261031-221502-3.jpg`, from the local time plus a
+ * sequence number. The sequence keeps two exports in the same second apart:
+ * the export cache deletes the previous file, which must never be the new one.
+ */
+export function exportFileName(
+  date: Date,
+  format: ExportFormat,
+  sequence: number
+): string {
   const stamp =
     `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}` +
     `-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
-  return `dorkroom-positive-${stamp}.${format === 'png' ? 'png' : 'jpg'}`;
+  return `dorkroom-positive-${stamp}-${sequence}.${format === 'png' ? 'png' : 'jpg'}`;
 }

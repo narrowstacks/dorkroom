@@ -55,6 +55,9 @@ import {
   type Orientation,
 } from '@/components/negative-inverter/orientation';
 
+/** Per-process export counter, see exportFileName. */
+let exportSequence = 0;
+
 /** A failure with a message fit to show the user. */
 export class InverterFailure extends Error {}
 
@@ -413,7 +416,11 @@ export async function exportPositive(
       'The positive could not be encoded. Try again, or try PNG.'
     );
   }
-  const file = new File(Paths.cache, exportFileName(new Date(), format));
+  exportSequence += 1;
+  const file = new File(
+    Paths.cache,
+    exportFileName(new Date(), format, exportSequence)
+  );
   file.write(bytes);
   return { uri: file.uri, ...plan.output };
 }

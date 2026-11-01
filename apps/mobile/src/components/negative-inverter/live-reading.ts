@@ -156,6 +156,19 @@ export function settleAutoBase(
   return { accepted, disagreeing };
 }
 
+/**
+ * Whether a snapshot needs a statistics pass. An unchanged snapshot is
+ * skipped, except while disagreeing proposals are still voting: a camera
+ * held steady on a new negative repeats the same snapshot, and skipping it
+ * would leave the run one vote short forever.
+ */
+export function needsStatsPass(
+  snapshotChanged: boolean,
+  track: AutoBaseTrack
+): boolean {
+  return snapshotChanged || track.disagreeing.length > 0;
+}
+
 const sizeOf = (image: RgbaImage): PixelSize => ({
   width: image.width,
   height: image.height,

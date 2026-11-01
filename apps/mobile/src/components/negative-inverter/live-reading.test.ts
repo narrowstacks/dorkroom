@@ -8,6 +8,7 @@ import {
   carryToPhoto,
   type LiveCarry,
   type LiveFraming,
+  needsStatsPass,
   NO_AUTO_BASE,
   readLiveSnapshot,
   settleAutoBase,
@@ -112,6 +113,39 @@ describe('carryToPhoto', () => {
     const { base } = carryToPhoto({ live, basePoint: null }, proxy, 'c41');
     expect(base?.auto).toBe(true);
     base?.rgb.forEach((c, i) => expect(c).toBeCloseTo(baseLinear[i], 2));
+  });
+});
+
+describe('needsStatsPass', () => {
+  const base = (density: number): BaseSample => ({
+    point: { x: 1, y: 1 },
+    rgb: [0.7 * 10 ** -density, 0.3, 0.1],
+    auto: true,
+    confidence: 1,
+  });
+
+  it('skips an unchanged snapshot when no base is pending', () => {
+    expect(needsStatsPass(false, { accepted: base(0), disagreeing: [] })).toBe(
+      false
+    );
+    expect(needsStatsPass(true, { accepted: base(0), disagreeing: [] })).toBe(
+      true
+    );
+  });
+
+  it('settles a new base when the camera holds still on a new negative', () => {
+    const next = base(0.2);
+    // The first snapshot of the new negative changed; every later one repeats.
+    let track: AutoBaseTrack = { accepted: base(0), disagreeing: [] };
+    let changed = true;
+    for (let i = 0; i < AUTO_BASE_VOTES * 2; i++) {
+      if (needsStatsPass(changed, track)) {
+        track = settleAutoBase(track, next, false);
+      }
+      changed = false;
+    }
+    expect(track.accepted?.rgb[0]).toBeCloseTo(next.rgb[0], 9);
+    expect(track.disagreeing).toEqual([]);
   });
 });
 
