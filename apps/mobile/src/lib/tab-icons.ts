@@ -11,6 +11,7 @@ export const TAB_ICONS = {
   exposure: require('../../assets/tab-icons/exposure.png'),
   mat: require('../../assets/tab-icons/mat.png'),
   reciprocity: require('../../assets/tab-icons/reciprocity.png'),
+  'negative-inverter': require('../../assets/tab-icons/negative-inverter.png'),
   lens: require('../../assets/tab-icons/lens.png'),
   'camera-exposure': require('../../assets/tab-icons/camera-exposure.png'),
   meter: require('../../assets/tab-icons/meter.png'),

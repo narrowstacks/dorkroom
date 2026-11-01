@@ -1,5 +1,6 @@
 import {
   Aperture,
+  Contrast,
   Crop,
   Film,
   FlaskConical,
@@ -24,6 +25,7 @@ const ICONS = {
   timer: Timer,
   focus: Focus,
   aperture: Aperture,
+  contrast: Contrast,
   'sun-medium': SunMedium,
   settings: Settings,
   menu: Menu,

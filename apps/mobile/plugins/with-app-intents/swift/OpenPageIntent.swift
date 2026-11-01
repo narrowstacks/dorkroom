@@ -7,6 +7,9 @@ enum DorkroomPage: String, AppEnum {
     case border
     case exposure
     case reciprocity
+    // Swift identifiers can't contain hyphens, so the raw value carries the
+    // tool id from src/lib/tools.ts.
+    case negativeInverter = "negative-inverter"
 
     static var typeDisplayRepresentation: TypeDisplayRepresentation = "Dorkroom Page"
 
@@ -15,6 +18,7 @@ enum DorkroomPage: String, AppEnum {
         .border: "Border",
         .exposure: "Exposure",
         .reciprocity: "Reciprocity",
+        .negativeInverter: "Negative Inverter",
     ]
 
     /// The `dorkroom://` deep link that opens this page. expo-router routes it.
@@ -24,6 +28,7 @@ enum DorkroomPage: String, AppEnum {
         case .border: return URL(string: "dorkroom://")!
         case .exposure: return URL(string: "dorkroom://exposure")!
         case .reciprocity: return URL(string: "dorkroom://reciprocity")!
+        case .negativeInverter: return URL(string: "dorkroom://negative-inverter")!
         }
     }
 }

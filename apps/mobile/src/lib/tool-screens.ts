@@ -6,6 +6,7 @@ import { ExposureScreen } from '@/screens/exposure-screen';
 import { LensScreen } from '@/screens/lens-screen';
 import { MatScreen } from '@/screens/mat-screen';
 import { MeterScreen } from '@/screens/meter-screen';
+import { NegativeInverterScreen } from '@/screens/negative-inverter-screen';
 import { ReciprocityScreen } from '@/screens/reciprocity-screen';
 import { ResizeScreen } from '@/screens/resize-screen';
 import { SettingsScreen } from '@/screens/settings-screen';
@@ -23,6 +24,7 @@ export const TOOL_SCREENS = {
   exposure: ExposureScreen,
   mat: MatScreen,
   reciprocity: ReciprocityScreen,
+  'negative-inverter': NegativeInverterScreen,
   lens: LensScreen,
   'camera-exposure': CameraExposureScreen,
   meter: MeterScreen,

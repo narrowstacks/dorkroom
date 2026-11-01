@@ -25,6 +25,7 @@ const ICON_NAMES = {
   exposure: 'gauge',
   mat: 'frame',
   reciprocity: 'timer',
+  'negative-inverter': 'contrast',
   'film-log': 'film',
   recipes: 'flask-conical',
   lens: 'focus',
