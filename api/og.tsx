@@ -25,6 +25,7 @@ import {
   isKnownRoutePath,
   prettifySlug,
   ROUTE_TITLES,
+  routeAccentHex,
   SITE_NAME,
 } from '../utils/routeMetadata';
 import { serverlessError } from '../utils/serverlessLogger';
@@ -255,14 +256,18 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+/**
+ * The card accent for a route: the page's own accent tone from the tool
+ * manifest (dark-theme value, `routeAccentHex`), so a card matches the page
+ * header and home card it links to. Pages without a manifest tone keep a
+ * fixed colour.
+ */
 export function getRouteAccent(route: string): string {
+  const toneHex = routeAccentHex(route);
+  if (toneHex) return toneHex;
   switch (route) {
     case '/':
       return '#6ef3a4'; // green — app primary
-    case '/films':
-      return '#7dd6ff'; // cyan — app secondary
-    case '/development':
-      return '#f99f96'; // coral — app accent
     case '/docs':
       return '#c4b5fd'; // purple
     case '/privacy':
@@ -270,7 +275,7 @@ export function getRouteAccent(route: string): string {
     case '/settings':
       return '#c4b5fd'; // purple — reference, same family as /docs and /privacy
     default:
-      return '#e5ff7d'; // lime — calculators
+      return '#e5ff7d'; // lime: unknown routes
   }
 }
 

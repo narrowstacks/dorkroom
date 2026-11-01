@@ -7,7 +7,7 @@ import {
   type Mock,
   vi,
 } from 'vitest';
-import { ROUTE_TITLES } from '../../utils/routeMetadata';
+import { ACCENT_TONE_HEX, ROUTE_TITLES } from '../../utils/routeMetadata';
 import handler, {
   clearFontCache,
   getDilutionLabel,
@@ -150,6 +150,16 @@ describe('og handler - static routes', () => {
     // An unknown route takes the home treatment; /settings must not.
     expect(settingsIcon).not.toEqual(getRouteIcon('/some-unknown-page'));
     expect(getRouteAccent('/settings')).not.toBe(getRouteAccent('/'));
+  });
+
+  it('colours a page with its manifest accent tone (dark theme value)', () => {
+    expect(getRouteAccent('/border')).toBe(ACCENT_TONE_HEX.indigo);
+    expect(getRouteAccent('/lenses')).toBe(ACCENT_TONE_HEX.emerald);
+    expect(getRouteAccent('/negative-inverter')).toBe(ACCENT_TONE_HEX.violet);
+    expect(getRouteAccent('/films')).toBe(ACCENT_TONE_HEX.cyan);
+    // Pages without a manifest tone keep their fixed colour.
+    expect(getRouteAccent('/')).toBe('#6ef3a4');
+    expect(getRouteAccent('/docs')).toBe('#c4b5fd');
   });
 });
 
