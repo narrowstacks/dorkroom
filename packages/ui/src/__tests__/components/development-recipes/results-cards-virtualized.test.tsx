@@ -647,5 +647,71 @@ describe('DevelopmentResultsCardsVirtualized', () => {
 
       expect(screen.getByText('Stock')).toBeInTheDocument();
     });
+
+    /** Text of the value under the card's "Dilution" label. */
+    const renderCardDilution = (view: DevelopmentCombinationView): string => {
+      render(
+        <TableWrapper rows={[view]}>
+          {(table) => (
+            <DevelopmentResultsCardsVirtualized
+              table={table}
+              isMobile={false}
+            />
+          )}
+        </TableWrapper>
+      );
+      return screen.getByText('Dilution').nextElementSibling?.textContent ?? '';
+    };
+
+    const ddx: Developer = {
+      ...mockDeveloper,
+      dilutions: [
+        { id: '1', name: '1+4', dilution: '1+4' },
+        { id: '2', name: 'Fine grain', dilution: '1+9' },
+      ],
+    };
+
+    it.each<[string, Partial<Combination>, Developer | undefined, string]>([
+      ['the developer dilution by id', { dilutionId: '2' }, ddx, '1+9'],
+      [
+        'the custom dilution over the dilution id',
+        { customDilution: '1+31', dilutionId: '2' },
+        ddx,
+        '1+31',
+      ],
+      [
+        'the trimmed custom dilution',
+        { customDilution: '  1+50 ', dilutionId: null },
+        ddx,
+        '1+50',
+      ],
+      [
+        'the developer dilution when the custom dilution is blank',
+        { customDilution: '   ', dilutionId: '1' },
+        ddx,
+        '1+4',
+      ],
+      ['Stock when no dilution is set', { dilutionId: null }, ddx, 'Stock'],
+      [
+        'Stock when the dilution id matches nothing',
+        { dilutionId: 'missing' },
+        ddx,
+        'Stock',
+      ],
+      [
+        'Stock when the developer is unknown',
+        { dilutionId: '1' },
+        undefined,
+        'Stock',
+      ],
+    ])('shows %s', (_label, overrides, developer, expected) => {
+      expect(
+        renderCardDilution({
+          ...createMockRows(1)[0],
+          developer,
+          combination: createMockCombination(overrides),
+        })
+      ).toBe(expected);
+    });
   });
 });

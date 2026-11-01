@@ -2,6 +2,7 @@ import {
   calculatePushPull,
   type DevelopmentCombinationView,
   formatTemperatureWithUnit,
+  getCombinationDilution,
   isFilmDevOrgUrl,
 } from '@dorkroom/logic';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
@@ -163,26 +164,6 @@ const ActionIconButton = memo(function ActionIconButton({
 /**
  * Formatting utilities (extracted from results-table.tsx)
  */
-
-const formatDilution = (row: DevelopmentCombinationView): string => {
-  const { combination, developer } = row;
-  if (combination.customDilution) {
-    return combination.customDilution;
-  }
-
-  if (developer && combination.dilutionId) {
-    const dilution = developer.dilutions.find(
-      (dilutionOption) =>
-        String(dilutionOption.id) === String(combination.dilutionId)
-    );
-
-    if (dilution) {
-      return dilution.dilution || dilution.name;
-    }
-  }
-
-  return 'Stock';
-};
 
 /**
  * Temperature cell renderer component - uses hook to get current temperature unit
@@ -518,9 +499,10 @@ export const createTableColumns = (
     header: 'Dilution',
     size: 80,
     cell: (cellContext: CellContext<DevelopmentCombinationView, unknown>) => {
+      const { combination, developer } = cellContext.row.original;
       return (
         <div style={{ color: 'var(--color-text-primary)' }}>
-          {formatDilution(cellContext.row.original)}
+          {getCombinationDilution(combination, developer)}
         </div>
       );
     },

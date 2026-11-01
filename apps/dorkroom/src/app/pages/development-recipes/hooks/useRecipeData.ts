@@ -3,6 +3,7 @@ import type { CustomRecipe } from '@dorkroom/logic';
 import {
   createCombinationFromCustomRecipe,
   debugWarn,
+  getCombinationDilution,
   getCustomRecipeDeveloper,
   getCustomRecipeFilm,
   matchesSearchQuery,
@@ -50,26 +51,6 @@ export interface UseRecipeDataReturn {
  * sit in localStorage; skipping them keeps one bad entry from crashing the
  * whole page during render.
  */
-/**
- * Dilution label for a custom recipe view, resolved like API recipes in
- * useDevelopmentRecipes: customDilution > the developer's dilution by id >
- * 'Stock'.
- */
-function getDilutionLabel({
-  combination,
-  developer,
-}: DevelopmentCombinationView): string {
-  return (
-    combination.customDilution?.trim() ||
-    (combination.dilutionId
-      ? developer?.dilutions
-          ?.find((d) => String(d.id) === String(combination.dilutionId))
-          ?.dilution?.trim()
-      : undefined) ||
-    'Stock'
-  );
-}
-
 function toCombinationOrNull(
   recipe:
     CustomRecipe | Omit<CustomRecipe, 'id' | 'dateCreated' | 'dateModified'>,
@@ -312,7 +293,8 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
 
       if (
         dilutionFilter &&
-        getDilutionLabel(view).toLowerCase() !== dilutionFilter.toLowerCase()
+        getCombinationDilution(combination, developer).toLowerCase() !==
+          dilutionFilter.toLowerCase()
       ) {
         return false;
       }
@@ -335,7 +317,7 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
         const haystack = [
           film ? `${film.brand} ${film.name}` : '',
           developer ? `${developer.manufacturer} ${developer.name}` : '',
-          getDilutionLabel(view),
+          getCombinationDilution(combination, developer),
         ].join(' ');
         if (!matchesSearchQuery(haystack, query)) {
           return false;
