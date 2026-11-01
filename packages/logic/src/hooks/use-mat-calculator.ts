@@ -76,6 +76,11 @@ export interface UseMatCalculatorOptions {
    * either way.
    */
   unit?: MeasurementUnit;
+  /**
+   * Values to apply over the stored ones on mount, such as a calculator
+   * link's (`matCalculatorLink.read`). See `usePersistedCalculator`.
+   */
+  overrides?: Partial<MatCalculatorState>;
 }
 
 /**
@@ -105,7 +110,7 @@ export function useMatCalculator(
 
   const { resetToDefaults: reset } = usePersistedCalculator(
     matCalculatorPersistence,
-    { values, setValues }
+    { values, setValues, overrides: options?.overrides }
   );
 
   const ow = parseMatInput(values.outerW);

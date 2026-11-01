@@ -17,6 +17,7 @@ import { Route as ExposureRouteImport } from './routes/exposure'
 import { Route as FilmsRouteImport } from './routes/films'
 import { Route as LensesRouteImport } from './routes/lenses'
 import { Route as MatRouteImport } from './routes/mat'
+import { Route as NegativeInverterRouteImport } from './routes/negative-inverter'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ReciprocityRouteImport } from './routes/reciprocity'
 import { Route as ResizeRouteImport } from './routes/resize'
@@ -63,6 +64,11 @@ const MatRoute = MatRouteImport.update({
   path: '/mat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NegativeInverterRoute = NegativeInverterRouteImport.update({
+  id: '/negative-inverter',
+  path: '/negative-inverter',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/films': typeof FilmsRoute
   '/lenses': typeof LensesRoute
   '/mat': typeof MatRoute
+  '/negative-inverter': typeof NegativeInverterRoute
   '/privacy': typeof PrivacyRoute
   '/reciprocity': typeof ReciprocityRoute
   '/resize': typeof ResizeRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/films': typeof FilmsRoute
   '/lenses': typeof LensesRoute
   '/mat': typeof MatRoute
+  '/negative-inverter': typeof NegativeInverterRoute
   '/privacy': typeof PrivacyRoute
   '/reciprocity': typeof ReciprocityRoute
   '/resize': typeof ResizeRoute
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/films': typeof FilmsRoute
   '/lenses': typeof LensesRoute
   '/mat': typeof MatRoute
+  '/negative-inverter': typeof NegativeInverterRoute
   '/privacy': typeof PrivacyRoute
   '/reciprocity': typeof ReciprocityRoute
   '/resize': typeof ResizeRoute
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
     | '/films'
     | '/lenses'
     | '/mat'
+    | '/negative-inverter'
     | '/privacy'
     | '/reciprocity'
     | '/resize'
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/films'
     | '/lenses'
     | '/mat'
+    | '/negative-inverter'
     | '/privacy'
     | '/reciprocity'
     | '/resize'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/films'
     | '/lenses'
     | '/mat'
+    | '/negative-inverter'
     | '/privacy'
     | '/reciprocity'
     | '/resize'
@@ -192,6 +204,7 @@ export interface RootRouteChildren {
   FilmsRoute: typeof FilmsRoute
   LensesRoute: typeof LensesRoute
   MatRoute: typeof MatRoute
+  NegativeInverterRoute: typeof NegativeInverterRoute
   PrivacyRoute: typeof PrivacyRoute
   ReciprocityRoute: typeof ReciprocityRoute
   ResizeRoute: typeof ResizeRoute
@@ -257,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/negative-inverter': {
+      id: '/negative-inverter'
+      path: '/negative-inverter'
+      fullPath: '/negative-inverter'
+      preLoaderRoute: typeof NegativeInverterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy': {
       id: '/privacy'
       path: '/privacy'
@@ -304,6 +324,7 @@ const rootRouteChildren: RootRouteChildren = {
   FilmsRoute: FilmsRoute,
   LensesRoute: LensesRoute,
   MatRoute: MatRoute,
+  NegativeInverterRoute: NegativeInverterRoute,
   PrivacyRoute: PrivacyRoute,
   ReciprocityRoute: ReciprocityRoute,
   ResizeRoute: ResizeRoute,

@@ -1,10 +1,10 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { useReciprocityCalculator } from '../../hooks/use-reciprocity-calculator';
 import {
   formatReciprocityTime,
   parseReciprocityTime,
-  useReciprocityCalculator,
-} from '../../hooks/use-reciprocity-calculator';
+} from '../../utils/reciprocity-calculations';
 
 describe('parseReciprocityTime', () => {
   it('parses compound time strings', () => {

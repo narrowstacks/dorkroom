@@ -53,7 +53,6 @@ export interface UrlValidationConfig {
     min: number;
     max: number;
   };
-  dilutionPatterns: RegExp[];
 }
 
 export interface UrlValidationResult {

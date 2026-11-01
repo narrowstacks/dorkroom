@@ -3,14 +3,12 @@ import { Greeting, homeToolCards, ToolCard } from '@dorkroom/ui';
 import { Link } from '@tanstack/react-router';
 import {
   CalculatorIcon,
-  Crop,
-  FlaskConical,
   GitBranch,
   HandCoins,
   ShieldCheck,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { HomeHeroPreview } from './home-hero-preview';
+import { SearchPanel } from '../../components/search/search-panel';
 
 export function HomePage() {
   const { data: stats, isPending: isStatsLoading } = useStats();
@@ -30,18 +28,18 @@ export function HomePage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 sm:pb-24 space-y-10">
-      {/* Hero: one grain-textured panel - copy + CTAs on the left, live
-          border preview on the right */}
-      <div className="hero-grain rounded-3xl border border-[color:var(--color-border-secondary)] p-6 sm:p-8 shadow-subtle grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-10 md:items-center">
-        <div className="md:col-span-7 flex flex-col gap-5">
+      {/* Hero: one grain-textured panel - wordmark, tagline and counts, then
+          the search box with its answer and matches */}
+      <div className="hero-grain flex flex-col gap-6 rounded-3xl border border-[color:var(--color-border-secondary)] p-4 shadow-subtle sm:p-8">
+        <div className="flex flex-col gap-4">
           <div>
             <Greeting />
             <p className="text-lg sm:text-xl mt-2 text-[color:var(--color-text-secondary)]">
               Skip the math. Make prints!
             </p>
-            <p className="max-w-md mt-2 text-[color:var(--color-text-tertiary)]">
+            <p className="max-w-xl mt-2 text-[color:var(--color-text-tertiary)]">
               Darkroom printing calculators, film development recipes, and
-              exposure tools. Free and open source.
+              exposure tools. Free and open source. Ask it a question.
             </p>
           </div>
           {/* Stack one stat per line on mobile (bullets hidden) so a stat never
@@ -65,26 +63,8 @@ export function HomePage() {
               </span>
             ))}
           </p>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              to="/border"
-              className="darkroom-invert-icon inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm button-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
-            >
-              <Crop className="size-4" />
-              Calculate darkroom easel borders
-            </Link>
-            <Link
-              to="/development"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm button-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
-            >
-              <FlaskConical className="size-4" />
-              Search film development recipes
-            </Link>
-          </div>
         </div>
-        <div className="hidden md:block md:col-span-5">
-          <HomeHeroPreview />
-        </div>
+        <SearchPanel variant="hero" />
       </div>
 
       {/* Tools Grid */}

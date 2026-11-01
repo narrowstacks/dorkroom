@@ -19,6 +19,7 @@ const previews = [
   { name: 'reciprocity-calculator', params: { route: '/reciprocity' } },
   { name: 'stops-calculator', params: { route: '/stops' } },
   { name: 'mat-calculator', params: { route: '/mat' } },
+  { name: 'negative-inverter', params: { route: '/negative-inverter' } },
   { name: 'exposure-calculator', params: { route: '/exposure' } },
   { name: 'lens-equivalency', params: { route: '/lenses' } },
   { name: 'development-recipes', params: { route: '/development' } },

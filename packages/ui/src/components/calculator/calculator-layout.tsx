@@ -17,6 +17,13 @@ export interface CalculatorLayoutProps {
    * shared "Reset to defaults" control.
    */
   onReset?: () => void;
+  /**
+   * Shares the current inputs as a link. When provided, the header shows the
+   * shared "Share" control next to Reset.
+   */
+  onShare?: () => void;
+  /** Disables the Share control while the inputs can't make a valid link. */
+  shareDisabled?: boolean;
   /** Optional children to render in the header (e.g., toggle buttons) */
   headerChildren?: ReactNode;
   /** Main content (inputs) */
@@ -41,6 +48,8 @@ export function CalculatorLayout({
   icon,
   accentTone,
   onReset,
+  onShare,
+  shareDisabled,
   headerChildren,
   children,
   results,
@@ -61,6 +70,8 @@ export function CalculatorLayout({
         icon={icon}
         accentTone={accentTone}
         onReset={onReset}
+        onShare={onShare}
+        shareDisabled={shareDisabled}
       >
         {headerChildren}
       </CalculatorPageHeader>

@@ -488,30 +488,6 @@
     border: 2px solid var(--color-brand);
   }
 
-  /* Home page CTA buttons */
-  .button-primary {
-    background-color: var(--color-text-primary);
-    color: var(--color-background);
-    transition:
-      background-color 0.2s,
-      opacity 0.2s;
-  }
-
-  .button-primary:hover {
-    opacity: 0.85;
-  }
-
-  .button-secondary {
-    border: 1px solid var(--color-border-primary);
-    color: var(--color-text-primary);
-    background-color: transparent;
-    transition: background-color 0.2s;
-  }
-
-  .button-secondary:hover {
-    background-color: var(--color-surface-muted);
-  }
-
   /* Home hero panel: subtle red movie-grain texture over the surface color
      (SVG fractal noise tinted red, tiled). The grain jumps position in hard
      steps like projected film; the global animation kill-switch covers
@@ -577,16 +553,23 @@
     background-image: none;
   }
 
-  /* Home hero border-calculator preview: 1px paper edge. In the two-tone
-     themes the preview sits on black with red blades, where an extra red
-     sheet border just reads as a tight, purposeless stroke — drop it. */
-  .hero-preview-paper {
-    border: 1px solid var(--color-paper-border);
+  /* Search border answer: paper and print to scale. In the two-tone
+     themes paper, print and card share one fill, so the strokes are all
+     that draw them: the paper keeps its solid edge and the print is dashed
+     (as --print-border-style has it there), so the two read apart. */
+  .search-easel-paper {
+    fill: var(--color-paper-background);
+    stroke: var(--color-paper-border);
   }
 
-  [data-theme="darkroom"] .hero-preview-paper,
-  [data-theme="high-contrast"] .hero-preview-paper {
-    border-color: transparent;
+  .search-easel-print {
+    fill: var(--color-print-background);
+    stroke: var(--color-print-border);
+  }
+
+  [data-theme="darkroom"] .search-easel-print,
+  [data-theme="high-contrast"] .search-easel-print {
+    stroke-dasharray: 0.16 0.1;
   }
 
   /* Hero Button Styles */

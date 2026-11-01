@@ -1,7 +1,11 @@
+import type { HomeAnswerKind } from '@dorkroom/logic';
 import { track } from '@vercel/analytics';
 
-/** A tool that can hand the user a shareable link. */
-export type ShareTool = 'border' | 'recipe' | 'custom_recipe';
+/**
+ * A tool that can hand the user a shareable link: every calculator (its
+ * current inputs), a recipe, or a film's detail view.
+ */
+export type ShareTool = CalculatorTool | 'recipe' | 'custom_recipe' | 'film';
 
 /** How a share link actually reached the user. */
 export type ShareMethod = 'native' | 'clipboard' | 'manual';
@@ -52,6 +56,7 @@ export const TRACKED_ROUTES = [
   '/films',
   '/lenses',
   '/mat',
+  '/negative-inverter',
   '/privacy',
   '/reciprocity',
   '/resize',
@@ -63,6 +68,12 @@ export type TrackedRoute = (typeof TRACKED_ROUTES)[number];
 
 /** A known route, or `unknown` for anything the wildcard route caught. */
 export type RouteLabel = TrackedRoute | 'unknown';
+
+/**
+ * What a settled search (home page or nav bar) showed: an answer of one kind (the closed
+ * set `searchHome` returns), a list of matches with no answer, or nothing.
+ */
+export type SiteSearchOutcome = HomeAnswerKind | 'list' | 'none';
 
 export type ThemeName =
   'light' | 'dark' | 'darkroom' | 'high-contrast' | 'system';
@@ -114,6 +125,13 @@ export interface AnalyticsEvents {
    *  The query itself is deliberately not sent. */
   search_no_results: { tool: BrowseTool; filters: number };
   detail_opened: { type: 'film' | 'recipe' };
+  /** A home-page search settled. `count` is how many matches the result
+   *  lists (recipes, films, developers and tools). The query itself is
+   *  deliberately not sent. */
+  home_search: { result: SiteSearchOutcome; count: number };
+  /** The same search from the nav bar's search dialog (every page but the
+   *  home page), with the same two properties. Never the query. */
+  nav_search: { result: SiteSearchOutcome; count: number };
   filter_applied: { tool: BrowseTool; filter: FilmsFilter | DevelopmentFilter };
   /** `route` is one of the app's known routes, or `unknown`. Never the raw
    *  pathname: the wildcard route would let a visitor choose the value. */

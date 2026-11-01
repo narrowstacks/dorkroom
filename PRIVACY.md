@@ -34,7 +34,7 @@ The catalog below is generated from, and must stay in sync with,
 
 | Event | When it fires | What it records |
 | --- | --- | --- |
-| `share` | You create a share link for a preset or a recipe. | Which tool, and whether the link was copied or shared natively. |
+| `share` | You create a share link for a calculation, a preset, a recipe or a film. | Which tool, and whether the link was copied, shared natively, or shown for copying by hand. |
 | `share_opened` | You open a link someone else shared with you. | Which tool the link points at. |
 | `recipe_saved` | You save a custom development recipe. | Whether it was new or an edit, and whether you typed it or imported it. |
 | `recipe_deleted` | You delete a custom recipe. | Nothing else; there is no bulk-delete action. |
@@ -45,6 +45,8 @@ The catalog below is generated from, and must stay in sync with,
 | `theme_changed` | You switch themes. | Which theme you switched to. |
 | `units_changed` | You switch between imperial and metric, or change volume units. | Which setting, and which unit. |
 | `search_no_results` | A search returns nothing. | Which page, and how many filters were active. Never the search text. |
+| `home_search` | A search on the home page settles (once per search, not per keystroke). | What kind of answer it showed (a recipe, a calculator, a list of matches, or nothing) and how many matches it listed. Never the search text. |
+| `nav_search` | A search from the search button in the navigation bar settles (once per search, not per keystroke). | What kind of answer it showed (a recipe, a calculator, a list of matches, or nothing) and how many matches it listed. Never the search text. |
 | `detail_opened` | You open a film or recipe detail view. | Whether it was a film or a recipe. |
 | `filter_applied` | You apply a filter. | Which page, and which filter control. Never the value you chose. |
 | `app_error` | Something crashes. | Which of Dorkroom's pages you were on, chosen from a fixed list. Never the error message, and never a path you typed. |

@@ -1,6 +1,7 @@
 import { RotateCcw } from 'lucide-react';
 import { cn } from '../../lib/cn';
 import { commitFocusedField } from '../../lib/commit-focused-field';
+import { HEADER_ACTION_CLASS } from './header-action';
 
 export interface CalculatorResetButtonProps {
   /** Restore the calculator's defaults (and drop its saved inputs). */
@@ -30,13 +31,7 @@ export function CalculatorResetButton({
         onReset();
       }}
       title={label}
-      className={cn(
-        'relative z-10 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition-colors',
-        'border-[color:var(--color-border-secondary)] text-[color:var(--color-text-secondary)]',
-        'hover:bg-[rgba(var(--color-background-rgb),0.08)] hover:text-[color:var(--color-text-primary)]',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]',
-        className
-      )}
+      className={cn(HEADER_ACTION_CLASS, className)}
     >
       <RotateCcw className="size-4" aria-hidden="true" />
       <span className="sr-only sm:not-sr-only">{label}</span>

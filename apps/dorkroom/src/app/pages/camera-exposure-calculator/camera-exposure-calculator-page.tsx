@@ -1,6 +1,7 @@
 import {
   apertureToKey,
   type CameraExposureFormState,
+  cameraExposureLink,
   type EquivalentExposure,
   EV_PRESETS,
   type ExposureComparison,
@@ -33,8 +34,10 @@ import {
 } from '@dorkroom/ui/calculator';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { type FC, useCallback, useMemo, useState } from 'react';
+import type { CalculatorLinkProps } from '../../../components/calculator-route';
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
+import { useShareLink } from '../../lib/use-share-link';
 
 const apertureOptions = STANDARD_APERTURES.map((a) => ({
   value: a.label,
@@ -633,7 +636,10 @@ type UseCameraExposureCalculator = ReturnType<
   typeof useCameraExposureCalculator
 >;
 
-export default function CameraExposureCalculatorPage() {
+export default function CameraExposureCalculatorPage({
+  linkSearch,
+}: CalculatorLinkProps<typeof cameraExposureLink>) {
+  const linkOverrides = cameraExposureLink.read(linkSearch ?? {});
   const [presetsOpen, setPresetsOpen] = useState(false);
 
   const {
@@ -645,7 +651,8 @@ export default function CameraExposureCalculatorPage() {
     exposureValue,
     equivalentExposures,
     comparison,
-  } = useCameraExposureCalculator();
+  } = useCameraExposureCalculator({ overrides: linkOverrides });
+  const { share, manualCopyDialog } = useShareLink('exposure');
 
   useCalculatorAnalytics({
     tool: 'exposure',
@@ -717,6 +724,7 @@ export default function CameraExposureCalculatorPage() {
         icon={getRouteIcon('/exposure')}
         accentTone={getRouteAccent('/exposure')}
         onReset={reset}
+        onShare={() => share(cameraExposureLink.build(values))}
         description={
           <>
             Balance aperture, shutter speed, and ISO for correct exposure.
@@ -768,6 +776,7 @@ export default function CameraExposureCalculatorPage() {
           />
         </div>
       </CalculatorLayout>
+      {manualCopyDialog}
     </>
   );
 }

@@ -74,8 +74,20 @@ export type UsePersistedCalculatorOptions<T extends object> = (
 ) & {
   /** The calculator's current values. The persisted keys are written. */
   values: T;
-  /** Called once after hydration with the fields that were applied. */
+  /**
+   * Called once after hydration with the fields that were applied, stored
+   * and overridden alike. Not called when nothing was stored (or the stored
+   * snapshot was unreadable) and no override applied.
+   */
   onHydrated?: (loadedValues: Partial<T>) => void;
+  /**
+   * Values from outside the store (a calculator link's search params),
+   * applied once on mount after the stored snapshot, so they win. Each is
+   * checked by its field's validator like a stored value, and a key the
+   * definition does not persist is ignored. Applied values then persist
+   * through the normal debounced write. Read once: later changes are ignored.
+   */
+  overrides?: Partial<T>;
 };
 
 export interface UsePersistedCalculatorReturn {
@@ -94,7 +106,8 @@ export interface UsePersistedCalculatorReturn {
  *
  * - **Hydrate** once on mount: read the snapshot, validate each persisted key
  *   with its definition validator, and apply only the fields that pass (an
- *   invalid or missing field keeps its default).
+ *   invalid or missing field keeps its default). Then apply `overrides`
+ *   (a calculator link's values) the same way, so they win.
  * - **Persist** the persisted keys as one JSON object,
  *   `PERSIST_DEBOUNCE_MS` after the values stop changing.
  * - **Clear / reset**: drop the snapshot, optionally restoring defaults.
@@ -119,7 +132,7 @@ export function usePersistedCalculator<
   options: UsePersistedCalculatorOptions<T>
 ): UsePersistedCalculatorReturn {
   const { storageKey, persistKeys, validators, defaults } = definition;
-  const { values, onHydrated, form, setValues, onReset } = options;
+  const { values, onHydrated, overrides, form, setValues, onReset } = options;
   const storage = usePersistenceStorage();
 
   // One target for both bindings, memoized so its methods keep their identity.
@@ -152,36 +165,56 @@ export function usePersistedCalculator<
     persistKeys.map((key) => values[key])
   );
 
-  // Hydrate on mount (runs exactly once)
+  // Hydrate on mount (runs exactly once): the stored snapshot first, then the
+  // overrides on top of it.
   useEffect(() => {
     if (hydrationRef.current) {
       return;
     }
     hydrationRef.current = true;
 
+    const loadedValues: Partial<T> = {};
+    let hydrated = false;
+    const apply = (key: K, value: PersistedValue) => {
+      if (!validators[key].validate(value)) return;
+      target.setFieldValue(key, value);
+      loadedValues[key] = value;
+      hydrated = true;
+    };
+
     try {
       const raw = storage.getItem(storageKey);
-      if (!raw) {
-        return;
-      }
+      if (raw) {
+        removeSupersededStorageKeys(storageKey, storage);
 
-      removeSupersededStorageKeys(storageKey, storage);
-
-      const snapshot = persistedSnapshotSchema.safeParse(JSON.parse(raw));
-      if (!snapshot.success) {
-        return;
-      }
-
-      const loadedValues: Partial<T> = {};
-      for (const key of persistKeys) {
-        const value: PersistedValue = snapshot.data[key];
-        if (!validators[key].validate(value)) {
-          continue;
+        const snapshot = persistedSnapshotSchema.safeParse(JSON.parse(raw));
+        if (snapshot.success) {
+          for (const key of persistKeys) apply(key, snapshot.data[key]);
+          hydrated = true;
         }
-        target.setFieldValue(key, value);
-        loadedValues[key] = value;
       }
+    } catch (error) {
+      debugWarn(
+        `[usePersistedCalculator] Failed to load state from '${storageKey}':`,
+        error
+      );
+    }
 
+    if (overrides) {
+      for (const key of persistKeys) {
+        if (!Object.hasOwn(overrides, key)) continue;
+        // SAFETY: `validate` runs a zod safeParse, which accepts any runtime
+        // value; it is typed PersistedValue only because stored values are
+        // JSON. An override that is not a valid JSON value for the field
+        // fails the schema and is skipped like a bad stored value.
+        apply(key, overrides[key] as PersistedValue);
+      }
+    }
+
+    if (!hydrated) {
+      return;
+    }
+    try {
       onHydrated?.(loadedValues);
     } catch (error) {
       debugWarn(

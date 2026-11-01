@@ -1,5 +1,6 @@
 import {
   formatFocalLength,
+  lensCalculatorLink,
   SENSOR_FORMATS,
   useLensCalculator,
 } from '@dorkroom/logic';
@@ -20,8 +21,10 @@ import {
 } from '@dorkroom/ui/calculator';
 import { ArrowRightLeft } from 'lucide-react';
 import { type FC, useCallback } from 'react';
+import type { CalculatorLinkProps } from '../../../components/calculator-route';
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
+import { useShareLink } from '../../lib/use-share-link';
 
 const HOW_TO_USE = [
   'Select the source format — the sensor or film size you know the focal length for.',
@@ -91,8 +94,12 @@ const FOCAL_LENGTH_PRESETS = [
 ];
 
 // eslint-disable-next-line react-doctor/no-giant-component -- size is dominated by the inline How-it-works info section and the results card; a results-card extraction stays deferred to avoid regression risk on this flagship page
-export default function LensCalculatorPage() {
+export default function LensCalculatorPage({
+  linkSearch,
+}: CalculatorLinkProps<typeof lensCalculatorLink>) {
+  const linkOverrides = lensCalculatorLink.read(linkSearch ?? {});
   useCalculatorAnalytics({ tool: 'lenses' });
+  const { share, manualCopyDialog } = useShareLink('lenses');
 
   const {
     values,
@@ -102,7 +109,7 @@ export default function LensCalculatorPage() {
     swapFormats,
     reset,
     calculation,
-  } = useLensCalculator();
+  } = useLensCalculator({ overrides: linkOverrides });
 
   // The focal length itself is the preset identity, and it is one of our own
   // constants rather than anything the user typed.
@@ -122,6 +129,8 @@ export default function LensCalculatorPage() {
         accentTone={getRouteAccent('/lenses')}
         title="Lens Equivalency Calculator"
         onReset={reset}
+        onShare={() => share(lensCalculatorLink.build(values))}
+        shareDisabled={!calculation}
         description="Calculate equivalent focal lengths between different sensor and film formats. Find out what lens gives you the same field of view when switching between cameras or formats."
       />
 
@@ -324,6 +333,7 @@ export default function LensCalculatorPage() {
           </div>
         </CalculatorCard>
       </div>
+      {manualCopyDialog}
     </div>
   );
 }

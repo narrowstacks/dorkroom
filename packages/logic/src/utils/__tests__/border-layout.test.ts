@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ASPECT_RATIOS, PAPER_SIZES } from '../../constants/border-calculator';
-import { initialState } from '../../hooks/border-calculator/use-border-calculator-state';
+import { initialState } from '../../schemas/border-calculator-persistence';
 import type {
   BorderCalculation,
   BorderCalculatorState,

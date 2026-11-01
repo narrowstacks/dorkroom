@@ -19,6 +19,7 @@ export * from './constants/border-calculator';
 export * from './constants/breakpoints';
 export * from './constants/border-calculator-defaults';
 export * from './constants/calculations';
+export * from './constants/calculator-link-params';
 export * from './constants/camera-exposure-defaults';
 export * from './constants/development-recipes';
 export * from './constants/exposure-calculator-defaults';
@@ -52,10 +53,11 @@ export {
 } from './hooks/border-calculator';
 export {
   type PersistedBorderCalculatorState,
+  borderCalculatorLink,
   borderCalculatorPersistence,
   persistedBorderCalculatorFieldSchemas,
   persistedBorderCalculatorSchema,
-} from './hooks/border-calculator/use-border-calculator-state';
+} from './schemas/border-calculator-persistence';
 export {
   type UseCustomRecipesResult,
   useCustomRecipes,
@@ -125,11 +127,7 @@ export {
   type UsePersistedCalculatorReturn,
   usePersistenceStorage,
 } from './hooks/use-persisted-calculator';
-export {
-  formatReciprocityTime,
-  parseReciprocityTime,
-  useReciprocityCalculator,
-} from './hooks/use-reciprocity-calculator';
+export { useReciprocityCalculator } from './hooks/use-reciprocity-calculator';
 export { useResizeCalculator } from './hooks/use-resize-calculator';
 export { useUrlPresetLoader } from './hooks/use-url-preset-loader';
 // Hook exports
@@ -180,7 +178,9 @@ export * from './types/reciprocity';
 export * from './utils/aspect-preview-geometry';
 export * from './utils/border-calculations';
 export * from './utils/border-layout';
+export * from './utils/calculator-url-params';
 export * from './utils/camera-exposure-calculations';
+export * from './utils/combination-dilution';
 export * from './utils/combination-factory';
 export * from './utils/custom-recipe-helpers';
 export { debugError, debugLog, debugWarn } from './utils/debug-logger';
@@ -190,6 +190,7 @@ export * from './utils/exposure-calculations';
 export * from './utils/film-alias-resolver';
 export * from './utils/filmdev-mapper';
 export * from './utils/fuzzy-search';
+export * from './utils/home-search';
 export * from './utils/input-validation';
 export {
   calculateEquivalentFocalLength,
@@ -197,6 +198,8 @@ export {
   formatFocalLength,
 } from './utils/lens-calculations';
 export * from './utils/light-meter';
+export * from './utils/negative-inversion';
+export * from './utils/negative-inverter-geometry';
 export * from './utils/object-comparison';
 export * from './utils/persisted-calculator';
 export * from './utils/precision';

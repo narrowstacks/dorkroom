@@ -14,8 +14,10 @@ interface TrackedEvent {
 const TRACKED_EVENTS: TrackedEvent[] = [
   {
     name: 'share',
-    fires: 'You create a share link for a preset or a recipe.',
-    records: 'Which tool, and whether the link was copied or shared natively.',
+    fires:
+      'You create a share link for a calculation, a preset, a recipe or a film.',
+    records:
+      'Which tool, and whether the link was copied, shared natively, or shown for copying by hand.',
   },
   {
     name: 'share_opened',
@@ -70,6 +72,20 @@ const TRACKED_EVENTS: TrackedEvent[] = [
     fires: 'A search returns nothing.',
     records:
       'Which page, and how many filters were active. Never the search text.',
+  },
+  {
+    name: 'home_search',
+    fires:
+      'A search on the home page settles (once per search, not per keystroke).',
+    records:
+      'What kind of answer it showed (a recipe, a calculator, a list of matches, or nothing) and how many matches it listed. Never the search text.',
+  },
+  {
+    name: 'nav_search',
+    fires:
+      'A search from the search button in the navigation bar settles (once per search, not per keystroke).',
+    records:
+      'What kind of answer it showed (a recipe, a calculator, a list of matches, or nothing) and how many matches it listed. Never the search text.',
   },
   {
     name: 'detail_opened',

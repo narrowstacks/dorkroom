@@ -1,6 +1,7 @@
 import { type Developer, fetchDevelopers } from '@dorkroom/api';
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '../../queries/query-keys';
+import type { QueryHookOptions } from './query-hook-options';
 
 /**
  * Hook to fetch and cache all developers
@@ -9,9 +10,10 @@ import { queryKeys } from '../../queries/query-keys';
  * - window regains focus
  * - component mounts after being unmounted
  */
-export function useDevelopers() {
+export function useDevelopers({ enabled = true }: QueryHookOptions = {}) {
   return useQuery<Developer[]>({
     queryKey: queryKeys.developers.list(),
     queryFn: fetchDevelopers,
+    enabled,
   });
 }
