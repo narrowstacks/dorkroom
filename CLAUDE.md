@@ -172,6 +172,15 @@ own schedule. `functions[].runtime` is for **community** runtimes
 (`vercel-php@0.5.2`) only. Zero-config `api/` detection already builds every
 entrypoint, `api/og.tsx` included.
 
+**Bun on Vercel comes from `packageManager`, not the build image.** With an
+`installCommand` override, Vercel installs with the *oldest* version of that
+package manager in its image (bun 1.3.14 in Nov 2026), whose lockfile handling
+differs from the pinned 1.4: a lockfile change that 1.4 accepts fails
+`--frozen-lockfile` there. `vercel.json` therefore runs
+`bunx "$(node -p ...packageManager)" install --frozen-lockfile`, so the bun
+that installs is the one CI and local dev use. Bump bun in `packageManager`
+only.
+
 The Node major is set by root `package.json` `engines.node` (currently `24.x`),
 which **overrides** the Vercel dashboard setting. Change it here, not there.
 Diagnose build failures from the full log (the `Installing Builder` line above
