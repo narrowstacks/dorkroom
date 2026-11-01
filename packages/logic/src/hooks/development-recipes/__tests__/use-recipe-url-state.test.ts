@@ -1,14 +1,27 @@
 import type { Combination, Developer, Film } from '@dorkroom/api';
 import { act, renderHook, waitFor } from '@testing-library/react';
+import { useMemo } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type {
+  RecipeUrlBinding,
+  RecipeUrlSearch,
+} from '../../../types/development-recipes-url';
 import {
+  applyRecipeUrlParams,
   readRecipeUrlSearchQuery,
   type RecipeFilterState,
   useRecipeUrlState,
   validateUrlParams,
 } from '../use-recipe-url-state';
 
-// Mock window.location and history
+/**
+ * The hook touches no browser API: it reads the search its host hands it and
+ * writes through the host's `replaceSearch`. This stand-in host holds the
+ * current URL in `mockLocation` and records each write in `mockReplaceState`
+ * as the URL it would produce, `(state, '', url)`, like `history.replaceState`.
+ * A write does not move `mockLocation`, so each test controls what the hook
+ * reads.
+ */
 const mockReplaceState = vi.fn();
 const mockLocation = {
   pathname: '/development',
@@ -16,17 +29,32 @@ const mockLocation = {
   hash: '',
 };
 
-Object.defineProperty(window, 'location', {
-  value: mockLocation,
-  writable: true,
-});
+const parseSearch = (search: string): RecipeUrlSearch =>
+  Object.fromEntries(new URLSearchParams(search));
 
-Object.defineProperty(window, 'history', {
-  value: {
-    replaceState: mockReplaceState,
-  },
-  writable: true,
-});
+const replaceSearch: RecipeUrlBinding['replaceSearch'] = (update) => {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(
+    update(parseSearch(mockLocation.search))
+  )) {
+    if (value) params.set(key, value);
+  }
+  const query = params.toString();
+  mockReplaceState(
+    null,
+    '',
+    `${mockLocation.pathname}${query ? `?${query}` : ''}${mockLocation.hash}`
+  );
+};
+
+/** The host binding, re-read from `mockLocation` on every render. */
+function useTestUrl(): RecipeUrlBinding {
+  const searchString = mockLocation.search;
+  return useMemo(
+    () => ({ search: parseSearch(searchString), replaceSearch }),
+    [searchString]
+  );
+}
 
 describe('useRecipeUrlState', () => {
   const mockFilms: Film[] = [
@@ -97,7 +125,12 @@ describe('useRecipeUrlState', () => {
     mockLocation.search = '?view=favorites';
 
     const { result } = renderHook(() =>
-      useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+      useRecipeUrlState(
+        useTestUrl(),
+        mockFilms,
+        mockDevelopers,
+        mockCurrentState
+      )
     );
 
     expect(result.current.initialUrlState.view).toBe('favorites');
@@ -107,7 +140,12 @@ describe('useRecipeUrlState', () => {
     mockLocation.search = '?view=custom';
 
     const { result } = renderHook(() =>
-      useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+      useRecipeUrlState(
+        useTestUrl(),
+        mockFilms,
+        mockDevelopers,
+        mockCurrentState
+      )
     );
 
     expect(result.current.initialUrlState.view).toBe('custom');
@@ -117,7 +155,12 @@ describe('useRecipeUrlState', () => {
     vi.useFakeTimers();
     const { rerender } = renderHook(
       ({ currentState }) =>
-        useRecipeUrlState(mockFilms, mockDevelopers, currentState),
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          currentState
+        ),
       {
         initialProps: { currentState: mockCurrentState },
       }
@@ -150,7 +193,12 @@ describe('useRecipeUrlState', () => {
 
     const { rerender } = renderHook(
       ({ currentState }) =>
-        useRecipeUrlState(mockFilms, mockDevelopers, currentState),
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          currentState
+        ),
       {
         initialProps: { currentState: mockCurrentState },
       }
@@ -214,7 +262,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?film=invalid-film-slug-123';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.selectedFilm).toBeUndefined();
@@ -224,7 +277,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?developer=invalid-developer-slug-456';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.selectedDeveloper).toBeUndefined();
@@ -234,7 +292,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?iso=1';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.isoFilter).toBeUndefined();
@@ -244,7 +307,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?iso=999999';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.isoFilter).toBeUndefined();
@@ -254,7 +322,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?iso=not-a-number';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.isoFilter).toBeUndefined();
@@ -264,7 +337,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?dilution=invalid-format';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.dilutionFilter).toBeUndefined();
@@ -277,7 +355,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?developer=dd-x&dilution=stock';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.dilutionFilter).toBe('stock');
@@ -287,7 +370,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?developer=dd-x&dilution=1:1';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.dilutionFilter).toBe('1:1');
@@ -298,7 +386,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?developer=dd-x&dilution=1%2B1';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.dilutionFilter).toBe('1+1');
@@ -308,7 +401,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?developer=dd-x&dilution=100';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.dilutionFilter).toBe('100');
@@ -318,7 +416,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?recipe=abc';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.recipeId).toBeUndefined();
@@ -329,7 +432,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = `?recipe=${validUuid}&source=share`;
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.recipeId).toBe(validUuid);
@@ -345,7 +453,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = `?recipe=${validUuid}&source=share`;
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.fromShare).toBe(true);
@@ -357,7 +470,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = `?recipe=${validUuid}`;
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.fromShare).toBeUndefined();
@@ -374,7 +492,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = `?recipe=${encodedRecipe}&source=share`;
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.recipeId).toBe(encodedRecipe);
@@ -409,7 +532,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = `?recipe=${encodedRecipe}&source=share`;
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       await waitFor(() => {
@@ -472,7 +600,12 @@ describe('useRecipeUrlState', () => {
 
       const renderAndSettle = async () => {
         const hook = renderHook(() =>
-          useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+          useRecipeUrlState(
+            useTestUrl(),
+            mockFilms,
+            mockDevelopers,
+            mockCurrentState
+          )
         );
         // Let the lookup run, then the debounced URL write, then the re-run.
         await act(async () => {
@@ -510,7 +643,12 @@ describe('useRecipeUrlState', () => {
         mockLocation.search = `?recipe=${encodeShare(validShare)}&source=share`;
 
         const hook = renderHook(() =>
-          useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+          useRecipeUrlState(
+            useTestUrl(),
+            mockFilms,
+            mockDevelopers,
+            mockCurrentState
+          )
         );
         await act(async () => {
           await vi.advanceTimersByTimeAsync(0);
@@ -532,7 +670,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?view=invalid-view';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.view).toBeUndefined();
@@ -542,7 +685,7 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?film=hp5';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState([], mockDevelopers, mockCurrentState)
+        useRecipeUrlState(useTestUrl(), [], mockDevelopers, mockCurrentState)
       );
 
       // When lists are empty, initial URL state will have shared recipe fields but no selections
@@ -553,7 +696,7 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?developer=dd-x';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, [], mockCurrentState)
+        useRecipeUrlState(useTestUrl(), mockFilms, [], mockCurrentState)
       );
 
       // When lists are empty, initial URL state will have shared recipe fields but no selections
@@ -565,7 +708,12 @@ describe('useRecipeUrlState', () => {
         '?film=invalid&developer=invalid&iso=abc&dilution=bad&view=wrong';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.selectedFilm).toBeUndefined();
@@ -579,7 +727,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?film=hp5&developer=invalid&iso=400';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.selectedFilm?.slug).toBe('hp5');
@@ -592,7 +745,12 @@ describe('useRecipeUrlState', () => {
 
       const { rerender } = renderHook(
         ({ currentState }) =>
-          useRecipeUrlState(mockFilms, mockDevelopers, currentState),
+          useRecipeUrlState(
+            useTestUrl(),
+            mockFilms,
+            mockDevelopers,
+            currentState
+          ),
         {
           initialProps: { currentState: mockCurrentState },
         }
@@ -628,7 +786,12 @@ describe('useRecipeUrlState', () => {
 
       const { unmount, rerender } = renderHook(
         ({ currentState }) =>
-          useRecipeUrlState(mockFilms, mockDevelopers, currentState),
+          useRecipeUrlState(
+            useTestUrl(),
+            mockFilms,
+            mockDevelopers,
+            currentState
+          ),
         {
           initialProps: { currentState: mockCurrentState },
         }
@@ -682,6 +845,7 @@ describe('useRecipeUrlState', () => {
 
       const { result } = renderHook(() =>
         useRecipeUrlState(
+          useTestUrl(),
           mockFilms,
           mockDevelopers,
           mockCurrentState,
@@ -703,7 +867,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?source=share&film=hp5';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.hasSharedRecipe).toBe(false);
@@ -728,7 +897,12 @@ describe('useRecipeUrlState', () => {
 
       const { rerender } = renderHook(
         ({ currentState }) =>
-          useRecipeUrlState(mockFilms, mockDevelopers, currentState),
+          useRecipeUrlState(
+            useTestUrl(),
+            mockFilms,
+            mockDevelopers,
+            currentState
+          ),
         { initialProps: { currentState: initialState } }
       );
 
@@ -761,7 +935,12 @@ describe('useRecipeUrlState', () => {
 
       const { rerender } = renderHook(
         ({ currentState }) =>
-          useRecipeUrlState(mockFilms, mockDevelopers, currentState),
+          useRecipeUrlState(
+            useTestUrl(),
+            mockFilms,
+            mockDevelopers,
+            currentState
+          ),
         {
           initialProps: {
             currentState: {
@@ -800,7 +979,12 @@ describe('useRecipeUrlState', () => {
 
       const { rerender } = renderHook(
         ({ currentState }) =>
-          useRecipeUrlState(mockFilms, mockDevelopers, currentState),
+          useRecipeUrlState(
+            useTestUrl(),
+            mockFilms,
+            mockDevelopers,
+            currentState
+          ),
         {
           initialProps: {
             currentState: {
@@ -836,7 +1020,12 @@ describe('useRecipeUrlState', () => {
 
       const { rerender } = renderHook(
         ({ currentState }) =>
-          useRecipeUrlState(mockFilms, mockDevelopers, currentState),
+          useRecipeUrlState(
+            useTestUrl(),
+            mockFilms,
+            mockDevelopers,
+            currentState
+          ),
         {
           initialProps: { currentState: mockCurrentState },
         }
@@ -867,7 +1056,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?iso=boxspeed';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       // Box speed is relative to a film; on its own it cannot mean anything, so
@@ -879,7 +1073,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?iso=400';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.isoFilter).toBe('400');
@@ -889,7 +1088,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?iso=400abc';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       // parseInt('400abc', 10) === 400, which is in range, so the value must
@@ -902,7 +1106,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?dilution=1%2B9';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.dilutionFilter).toBeUndefined();
@@ -912,7 +1121,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?developerType=powder';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.developerTypeFilter).toBe('powder');
@@ -927,7 +1141,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?developer=dd-x&developerType=powder';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.selectedDeveloper?.slug).toBe(
@@ -950,7 +1169,7 @@ describe('useRecipeUrlState', () => {
 
       const { rerender } = renderHook(
         ({ films, developers }) =>
-          useRecipeUrlState(films, developers, mockCurrentState),
+          useRecipeUrlState(useTestUrl(), films, developers, mockCurrentState),
         { initialProps: noRecipeData }
       );
 
@@ -977,7 +1196,7 @@ describe('useRecipeUrlState', () => {
 
       const { rerender } = renderHook(
         ({ films, developers }) =>
-          useRecipeUrlState(films, developers, mockCurrentState),
+          useRecipeUrlState(useTestUrl(), films, developers, mockCurrentState),
         { initialProps: noRecipeData }
       );
 
@@ -1000,7 +1219,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?film=hp5&iso=1';
 
       const { result } = renderHook(() =>
-        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
       );
 
       expect(result.current.initialUrlState.fromUrl).toBe(true);
@@ -1017,7 +1241,12 @@ describe('useRecipeUrlState', () => {
 
       const { rerender } = renderHook(
         ({ currentState }) =>
-          useRecipeUrlState(mockFilms, mockDevelopers, currentState),
+          useRecipeUrlState(
+            useTestUrl(),
+            mockFilms,
+            mockDevelopers,
+            currentState
+          ),
         { initialProps: { currentState: mockCurrentState } }
       );
 
@@ -1048,17 +1277,26 @@ describe('useRecipeUrlState', () => {
   describe('free-text search (q)', () => {
     it('reads q for the mount-time seed', () => {
       mockLocation.search = '?q=hp5%20dd-x&film=hp5';
-      expect(readRecipeUrlSearchQuery()).toBe('hp5 dd-x');
+      expect(readRecipeUrlSearchQuery(parseSearch(mockLocation.search))).toBe(
+        'hp5 dd-x'
+      );
 
       mockLocation.search = '?film=hp5';
-      expect(readRecipeUrlSearchQuery()).toBe('');
+      expect(readRecipeUrlSearchQuery(parseSearch(mockLocation.search))).toBe(
+        ''
+      );
     });
 
     it('writes q together with the filters in a single replaceState', () => {
       vi.useFakeTimers();
       const { rerender } = renderHook(
         ({ currentState }) =>
-          useRecipeUrlState(mockFilms, mockDevelopers, currentState),
+          useRecipeUrlState(
+            useTestUrl(),
+            mockFilms,
+            mockDevelopers,
+            currentState
+          ),
         { initialProps: { currentState: mockCurrentState } }
       );
       act(() => {
@@ -1090,7 +1328,12 @@ describe('useRecipeUrlState', () => {
       mockLocation.search = '?q=rodinal&utm_source=forum';
       const { rerender } = renderHook(
         ({ currentState }) =>
-          useRecipeUrlState(mockFilms, mockDevelopers, currentState),
+          useRecipeUrlState(
+            useTestUrl(),
+            mockFilms,
+            mockDevelopers,
+            currentState
+          ),
         {
           initialProps: {
             currentState: { ...mockCurrentState, searchQuery: 'rodinal' },
@@ -1113,6 +1356,92 @@ describe('useRecipeUrlState', () => {
       expect(url.searchParams.get('utm_source')).toBe('forum');
 
       vi.useRealTimers();
+    });
+  });
+
+  // The router seam: the hook hands the host an updater, never a URL.
+  describe('host binding', () => {
+    it('writes through replaceSearch, applied to the search at write time', () => {
+      vi.useFakeTimers();
+      const replace = vi.fn<RecipeUrlBinding['replaceSearch']>();
+      const binding: RecipeUrlBinding = {
+        search: { film: 'hp5' },
+        replaceSearch: replace,
+      };
+      const { rerender } = renderHook(
+        ({ currentState }) =>
+          useRecipeUrlState(binding, mockFilms, mockDevelopers, currentState),
+        { initialProps: { currentState: mockCurrentState } }
+      );
+      act(() => {
+        vi.runAllTimers();
+      });
+      replace.mockClear();
+
+      rerender({
+        currentState: { ...mockCurrentState, searchQuery: 'rodinal' },
+      });
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      expect(replace).toHaveBeenCalledTimes(1);
+      const update = replace.mock.calls[0]?.[0];
+      // A param another writer added since the hook last read the URL survives.
+      expect(update?.({ film: 'hp5', utm_source: 'forum' })).toEqual({
+        utm_source: 'forum',
+        q: 'rodinal',
+      });
+
+      vi.useRealTimers();
+    });
+
+    it('re-derives its state when the host hands it a new search', () => {
+      const HP5_SEARCH: RecipeUrlSearch = { film: 'hp5' };
+      const { result, rerender } = renderHook(
+        ({ search }) =>
+          useRecipeUrlState(
+            { search, replaceSearch: vi.fn() },
+            mockFilms,
+            mockDevelopers,
+            mockCurrentState
+          ),
+        { initialProps: { search: HP5_SEARCH } }
+      );
+      expect(result.current.initialUrlState.selectedFilm?.slug).toBe('hp5');
+      const before = result.current.initialUrlState;
+
+      // A new object with the same managed params is not a change.
+      rerender({ search: { film: 'hp5', utm_source: 'forum' } });
+      expect(result.current.initialUrlState).toBe(before);
+
+      rerender({ search: { developer: 'dd-x' } });
+      expect(result.current.initialUrlState.selectedFilm).toBeUndefined();
+      expect(result.current.initialUrlState.selectedDeveloper?.slug).toBe(
+        'dd-x'
+      );
+    });
+  });
+
+  describe('applyRecipeUrlParams', () => {
+    it('keeps unmanaged params in place and appends managed ones in canonical order', () => {
+      expect(
+        Object.keys(
+          applyRecipeUrlParams(
+            { q: 'tri-x', utm_source: 'forum', film: 'hp5' },
+            { film: 'hp5', q: 'tri-x', developer: '' }
+          )
+        )
+      ).toEqual(['utm_source', 'q', 'film']);
+    });
+
+    it('drops managed params the write leaves empty', () => {
+      expect(
+        applyRecipeUrlParams(
+          { film: 'hp5', recipe: 'abc', source: 'share' },
+          { film: 'hp5', recipe: '', source: undefined }
+        )
+      ).toEqual({ film: 'hp5' });
     });
   });
 });

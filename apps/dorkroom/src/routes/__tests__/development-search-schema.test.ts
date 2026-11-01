@@ -79,6 +79,14 @@ describe('developmentSearchSchema', () => {
   it('omits params that are absent', () => {
     expect(developmentSearchSchema.parse({})).toEqual({});
   });
+
+  // The page's URL writes start from this parsed search, so a param it does
+  // not manage must survive parsing to survive the write.
+  it('keeps params it does not declare, as strings', () => {
+    expect(
+      developmentSearchSchema.parse(parseSearch('?film=hp5&utm_source=forum'))
+    ).toEqual({ film: 'hp5', utm_source: 'forum' });
+  });
 });
 
 describe('filmsSearchSchema', () => {

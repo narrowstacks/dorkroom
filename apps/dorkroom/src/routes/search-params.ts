@@ -1,8 +1,8 @@
 /**
  * Search params for this app are flat strings — `?iso=400`, `?favorites=true`,
  * `?film=rollei-retro-400s`. The route schemas type them as `z.string()`, and the
- * development page reads `window.location.search` directly through
- * `URLSearchParams`, which also yields strings.
+ * development page's URL hook parses them as strings, as `URLSearchParams`
+ * yields them.
  *
  * TanStack Router's default disagrees: it coerces each value, so `?iso=400`
  * arrived as the number `400` and `?favorites=true` as the boolean `true`. Both
@@ -21,8 +21,8 @@
  *   only sees values that are still strings.
  * - Coercing to a string inside the zod schema instead doesn't work either: the
  *   default serializer then re-encodes it as `?iso="400"` (quoted, to preserve
- *   string-ness), which breaks the raw `URLSearchParams` reader on the recipes
- *   page.
+ *   string-ness), which breaks shared links and any reader that expects plain
+ *   `URLSearchParams` strings.
  *
  * This assumes no route stores nested or array data in its search params. If one
  * ever needs to, give that param its own encoding rather than reinstating the

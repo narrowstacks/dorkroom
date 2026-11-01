@@ -17,10 +17,33 @@ export interface RecipeUrlParams {
   view?: 'favorites' | 'custom';
 }
 
+/**
+ * A flat search as the host's router holds it: one string per param, absent
+ * params undefined. Unmanaged params (`utm_*`) may be present too.
+ */
+export type RecipeUrlSearch = Readonly<Record<string, string | undefined>>;
+
+/**
+ * Turns the current search into the next one. The host applies it to the
+ * search it holds at write time, so a param another writer added since is
+ * carried through.
+ */
+export type RecipeUrlSearchUpdater = (prev: RecipeUrlSearch) => RecipeUrlSearch;
+
+/**
+ * How `useRecipeUrlState` reaches the URL without touching a browser API: the
+ * current search, and a writer the host must apply as a history *replace*
+ * that keeps the hash (the web app wires both to TanStack Router).
+ */
+export interface RecipeUrlBinding {
+  search: RecipeUrlSearch;
+  replaceSearch: (update: RecipeUrlSearchUpdater) => void;
+}
+
 export interface InitialUrlState {
   /**
    * Free-text search seed. Read once at mount through
-   * `readRecipeUrlSearchQuery` (it needs no catalogue data, so it does not wait
+   * `readRecipeUrlSearchQuery(search)` (it needs no catalogue data, so it does not wait
    * for the films/developers load the rest of this state does). The URL hook's
    * derived `initialUrlState` deliberately leaves it out, so the one-shot
    * applier cannot overwrite what was typed while data was loading.

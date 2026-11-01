@@ -10,19 +10,23 @@ import { z } from 'zod';
  * params are silently recovered to undefined for better UX.
  */
 
-export const developmentSearchSchema = z.object({
-  q: z.string().optional().catch(undefined),
-  film: z.string().optional().catch(undefined),
-  developer: z.string().optional().catch(undefined),
-  dilution: z.string().optional().catch(undefined),
-  iso: z.string().optional().catch(undefined),
-  recipe: z.string().optional().catch(undefined),
-  source: z.string().optional().catch(undefined),
-  view: z.enum(['favorites', 'custom']).optional().catch(undefined),
-  developerType: z.string().optional().catch(undefined),
-  recipeType: z.string().optional().catch(undefined),
-  favorites: z.string().optional().catch(undefined),
-});
+export const developmentSearchSchema = z
+  .object({
+    q: z.string().optional().catch(undefined),
+    film: z.string().optional().catch(undefined),
+    developer: z.string().optional().catch(undefined),
+    dilution: z.string().optional().catch(undefined),
+    iso: z.string().optional().catch(undefined),
+    recipe: z.string().optional().catch(undefined),
+    source: z.string().optional().catch(undefined),
+    view: z.enum(['favorites', 'custom']).optional().catch(undefined),
+    developerType: z.string().optional().catch(undefined),
+    recipeType: z.string().optional().catch(undefined),
+    favorites: z.string().optional().catch(undefined),
+  })
+  // Other params (`utm_*`) survive as strings: the recipes page carries them
+  // through its own URL writes, which start from this parsed search.
+  .catchall(z.string().optional().catch(undefined));
 
 export type DevelopmentSearchParams = z.infer<typeof developmentSearchSchema>;
 
