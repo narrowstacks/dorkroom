@@ -1,21 +1,16 @@
 import type { Combination, Developer, Film } from '@dorkroom/api';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { z } from 'zod';
 import { isRecipeUrlDilution } from '../../constants/development-recipes';
 import { customRecipeFilterSchema } from '../../schemas/development-recipes.schema';
 import type {
   InitialUrlState,
+  RecipeUrlBinding,
   RecipeUrlParams,
+  RecipeUrlSearch,
   UrlValidationConfig,
   UrlValidationResult,
 } from '../../types/development-recipes-url';
-import { isBrowser } from '../../utils/environment';
 import type { ImportedCustomRecipe } from './use-custom-recipe-sharing';
 import { useCustomRecipeSharing } from './use-custom-recipe-sharing';
 
@@ -45,14 +40,17 @@ const MANAGED_QUERY_KEYS: Array<keyof RecipeUrlParams> = [
 
 const VALID_DEVELOPER_TYPES = ['powder', 'concentrate'];
 
+const isManagedKey = (key: string): key is keyof RecipeUrlParams =>
+  MANAGED_QUERY_KEYS.some((managed) => managed === key);
+
 /**
  * Convert managed URL search parameters into a recipe parameter object.
  */
-const parseSearchParams = (searchParams: URLSearchParams): RecipeUrlParams => {
+const parseSearchParams = (search: RecipeUrlSearch): RecipeUrlParams => {
   const result: RecipeUrlParams = {};
 
   MANAGED_QUERY_KEYS.forEach((key) => {
-    const value = searchParams.get(key);
+    const value = search[key];
     if (!value) return;
 
     switch (key) {
@@ -92,50 +90,44 @@ const parseSearchParams = (searchParams: URLSearchParams): RecipeUrlParams => {
 };
 
 /**
- * The browser URL is an external store: it changes from browser navigation
- * (popstate) and from our own history writes. Modelling it as a real store and
- * reading it with `useSyncExternalStore` avoids the stale/torn values you get
- * from mirroring it into `useState` via an effect.
+ * The managed params of a search, as one string. Parsing is keyed on it, so
+ * the parsed params keep their identity until a managed param actually
+ * changes, whatever the host does with the search object's identity.
  */
-const EMPTY_PARAMS: RecipeUrlParams = {};
+const managedSearchKey = (search: RecipeUrlSearch): string =>
+  JSON.stringify(MANAGED_QUERY_KEYS.map((key) => search[key] ?? null));
 
-const urlListeners = new Set<() => void>();
+const managedSearchKeySchema = z.array(z.string().nullable());
+
+const parseManagedSearchKey = (key: string): RecipeUrlParams => {
+  const values = managedSearchKeySchema.parse(JSON.parse(key));
+  const search: Record<string, string | undefined> = {};
+  MANAGED_QUERY_KEYS.forEach((name, index) => {
+    search[name] = values[index] ?? undefined;
+  });
+  return parseSearchParams(search);
+};
 
 /**
- * `pushState`/`replaceState` do not fire `popstate`, so our own history writes
- * must notify subscribers explicitly.
+ * The next search after writing `params`: every unmanaged param (`utm_*` and
+ * the like) is carried through in its place, the managed ones are replaced
+ * wholesale and follow in their canonical order, and empty values are left
+ * out.
  */
-const notifyUrlChanged = (): void => {
-  for (const listener of urlListeners) {
-    listener();
+export const applyRecipeUrlParams = (
+  prev: RecipeUrlSearch,
+  params: RecipeUrlParams
+): RecipeUrlSearch => {
+  const next: Record<string, string | undefined> = {};
+  for (const [key, value] of Object.entries(prev)) {
+    if (!isManagedKey(key) && value !== undefined) next[key] = value;
   }
+  MANAGED_QUERY_KEYS.forEach((key) => {
+    const value = params[key];
+    if (value) next[key] = value;
+  });
+  return next;
 };
-
-const subscribeToUrl = (onStoreChange: () => void): (() => void) => {
-  urlListeners.add(onStoreChange);
-  window.addEventListener('popstate', onStoreChange);
-  return () => {
-    urlListeners.delete(onStoreChange);
-    window.removeEventListener('popstate', onStoreChange);
-  };
-};
-
-// Cached so the snapshot stays referentially stable between actual URL changes.
-// Returning a fresh object each call would make useSyncExternalStore re-render
-// forever.
-let cachedSearch: string | null = null;
-let cachedParams: RecipeUrlParams = EMPTY_PARAMS;
-
-const getUrlSnapshot = (): RecipeUrlParams => {
-  const search = window.location.search;
-  if (search !== cachedSearch) {
-    cachedSearch = search;
-    cachedParams = parseSearchParams(new URLSearchParams(search));
-  }
-  return cachedParams;
-};
-
-const getServerUrlSnapshot = (): RecipeUrlParams => EMPTY_PARAMS;
 
 /**
  * The free-text search carried in the URL (`?q=`), for seeding the search
@@ -143,8 +135,8 @@ const getServerUrlSnapshot = (): RecipeUrlParams => EMPTY_PARAMS;
  * resolve, so it is read up front instead of waiting for films and developers
  * to load; the search box is filled on first paint.
  */
-export const readRecipeUrlSearchQuery = (): string =>
-  isBrowser() ? (getUrlSnapshot().q ?? '') : '';
+export const readRecipeUrlSearchQuery = (search: RecipeUrlSearch): string =>
+  parseSearchParams(search).q ?? '';
 
 /**
  * Find a film entity by slug helper.
@@ -338,23 +330,23 @@ export interface RecipeFilterState {
 }
 
 /**
- * The single owner of the development recipes query string. It reads the URL
- * as an external store, validates it into the state the page seeds from
- * (`initialUrlState`), resolves shared recipes, and is the only code that
- * writes the managed params back: one debounced `replaceState`, so the page
- * never adds history entries and no two writers can race.
+ * The single owner of the development recipes query string. It reads the
+ * search the host hands it (`url.search`; on the web, the router's), validates
+ * it into the state the page seeds from (`initialUrlState`), resolves shared
+ * recipes, and is the only code that writes the managed params back: one
+ * debounced `url.replaceSearch`, which the host must apply as a replace, so
+ * the page never adds history entries and no two writers can race. It touches
+ * no browser API itself.
  */
 export const useRecipeUrlState = (
+  url: RecipeUrlBinding,
   films: Film[],
   developers: Developer[],
   currentState: RecipeFilterState,
   recipesByUuid?: Map<string, Combination>
 ): UseRecipeUrlStateReturn => {
-  const params = useSyncExternalStore(
-    subscribeToUrl,
-    getUrlSnapshot,
-    getServerUrlSnapshot
-  );
+  const searchKey = managedSearchKey(url.search);
+  const params = useMemo(() => parseManagedSearchKey(searchKey), [searchKey]);
   const isInitializedRef = useRef(false);
   // React state mirror of isInitializedRef. The ref alone can't retrigger the
   // URL-sync effect below — flipping a ref doesn't change dependencies — so a
@@ -366,10 +358,15 @@ export const useRecipeUrlState = (
   const [isInitialized, setIsInitialized] = useState(false);
   const updateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const paramsRef = useRef(params);
+  const replaceSearchRef = useRef(url.replaceSearch);
 
   useEffect(() => {
     paramsRef.current = params;
   }, [params]);
+
+  useEffect(() => {
+    replaceSearchRef.current = url.replaceSearch;
+  }, [url.replaceSearch]);
 
   const { decodeSharedCustomRecipe, isCustomRecipeUrl } =
     useCustomRecipeSharing();
@@ -512,38 +509,18 @@ export const useRecipeUrlState = (
     updateTimeoutRef.current = setTimeout(() => {
       updateTimeoutRef.current = null;
 
-      if (!isInitializedRef.current || !isBrowser()) {
+      if (!isInitializedRef.current) {
         return;
       }
-
-      const searchParams = new URLSearchParams(window.location.search);
-
-      MANAGED_QUERY_KEYS.forEach((key) => {
-        searchParams.delete(key);
-      });
 
       const mergedParams: RecipeUrlParams = {
         ...paramsRef.current,
         ...newParams,
       };
 
-      MANAGED_QUERY_KEYS.forEach((key) => {
-        const value = mergedParams[key];
-        if (value) {
-          searchParams.set(key, value);
-        }
-      });
-
-      const searchString = searchParams.toString();
-      const newUrl = `${window.location.pathname}${
-        searchString ? `?${searchString}` : ''
-      }${window.location.hash ?? ''}`;
-      // Keep the entry's state: the router's history key and index live
-      // there, and a fresh one would read as a new navigation (the
-      // /development route remounts the page on those).
-      window.history.replaceState(window.history.state, '', newUrl);
-      // replaceState doesn't fire popstate — tell the store to re-read the URL.
-      notifyUrlChanged();
+      replaceSearchRef.current((prev) =>
+        applyRecipeUrlParams(prev, mergedParams)
+      );
     }, 300);
   }, []);
 

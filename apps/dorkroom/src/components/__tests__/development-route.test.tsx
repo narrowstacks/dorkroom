@@ -31,8 +31,9 @@ import { DevelopmentRoute } from '../development-route';
 
 /**
  * The /development route's component with the real page, behind a real router on the
- * browser history (the page reads `window.location`). A link to the page
- * already open, such as a recipe answer in the nav search, must apply.
+ * browser history (the page reads and writes the URL through the router). A
+ * link to the page already open, such as a recipe answer in the nav search,
+ * must apply.
  */
 
 const TIMESTAMP = '2026-01-01T00:00:00.000Z';
@@ -101,8 +102,8 @@ const HP5_DDX: Combination = {
   updatedAt: TIMESTAMP,
 };
 
-async function renderDevelopment() {
-  window.history.replaceState(null, '', '/development');
+async function renderDevelopment(initialUrl = '/development') {
+  window.history.replaceState(null, '', initialUrl);
   // A link outside the page, as the nav search's answer link is. Clicking it
   // is a discrete event: React renders the remounted page before the
   // router's queued history write reaches window.location.
@@ -247,6 +248,48 @@ describe('/development route', () => {
     expect(params.get('developer')).toBe('dd-x');
     expect(params.get('recipe')).toBe(RECIPE_ID);
     expect(params.get('q')).toBeNull();
+  });
+
+  it('replaces the filters of an open link with those of a new one', async () => {
+    const router = await renderDevelopment('/development?film=hp5-plus');
+    const historyLength = window.history.length;
+
+    await act(() =>
+      router.navigate({
+        to: '/development',
+        search: { developer: 'dd-x', iso: '400' },
+      })
+    );
+
+    // Past the page's 300ms URL writer: the remounted page writes back the
+    // filters it applied, which are the new link's, not the old film.
+    await act(() => new Promise((resolve) => setTimeout(resolve, 500)));
+    const params = new URLSearchParams(window.location.search);
+    expect(params.get('film')).toBeNull();
+    expect(params.get('developer')).toBe('dd-x');
+    expect(params.get('iso')).toBe('400');
+    // The link pushed one entry; the page's own write replaced it.
+    expect(window.history.length).toBe(historyLength + 1);
+  });
+
+  it('syncs its filters with a replace that keeps the hash and other params', async () => {
+    await renderDevelopment('/development?utm_source=forum#notes');
+    const historyLength = window.history.length;
+    const box = screen.getByRole('textbox', { name: 'Search recipes' });
+    fireEvent.change(box, { target: { value: 'hp5' } });
+
+    await waitFor(
+      () =>
+        expect(new URLSearchParams(window.location.search).get('q')).toBe(
+          'hp5'
+        ),
+      { timeout: 2000 }
+    );
+    expect(new URLSearchParams(window.location.search).get('utm_source')).toBe(
+      'forum'
+    );
+    expect(window.location.hash).toBe('#notes');
+    expect(window.history.length).toBe(historyLength);
   });
 
   it('keeps the page mounted while it syncs its own filters to the URL', async () => {

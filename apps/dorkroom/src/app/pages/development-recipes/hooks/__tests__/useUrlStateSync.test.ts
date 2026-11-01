@@ -2,7 +2,8 @@
  * The URL → state half of the development recipes page, end to end: the real
  * `useDevelopmentRecipes` (its setters carry rules such as "picking a
  * developer clears the dilution"), the real `useRecipeUrlState` parsing and
- * validating `window.location`, and the real `useUrlStateSync` applying it.
+ * validating the URL (read through `useBrowserUrlBinding`, the route's
+ * stand-in over `window.location`), and the real `useUrlStateSync` applying it.
  * Only the page's own `useState`s are reproduced here.
  *
  * Most recipes URL bugs landed in this half while the tests covered the
@@ -22,6 +23,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { createElement, type ReactNode, useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useBrowserUrlBinding } from '../../__tests__/browser-url-binding';
 import { useRecipesByUuid } from '../useRecipeData';
 import { useUrlStateSync } from '../useUrlStateSync';
 
@@ -152,8 +154,9 @@ const SHARED_CUSTOM_VIEW: DevelopmentCombinationView = {
  * development-recipes-page.tsx: the same hooks in the same order.
  */
 function usePageUrlState() {
+  const urlBinding = useBrowserUrlBinding();
   const recipes = useDevelopmentRecipes({
-    searchQuery: readRecipeUrlSearchQuery(),
+    searchQuery: readRecipeUrlSearchQuery(urlBinding.search),
   });
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [detailView, setDetailView] =
@@ -178,6 +181,7 @@ function usePageUrlState() {
       : null;
 
   const url = useRecipeUrlState(
+    urlBinding,
     recipes.allFilms,
     recipes.allDevelopers,
     {

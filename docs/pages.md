@@ -425,8 +425,11 @@ with no canvas cap) is a follow-up.
 **URL search params:**
 
 All of these are read, validated and written by `useRecipeUrlState`
-(`packages/logic`), the only writer of the page's query string: one debounced
-(300ms) `history.replaceState`, so filter changes never add history entries.
+(`packages/logic`), the only writer of the page's query string. It touches no
+browser API: the route (`components/development-route.tsx`) hands it the
+router's search and a writer, and its one debounced (300ms) write becomes a
+TanStack Router navigation with `replace: true` that keeps the hash and any
+other param (`utm_*`), so filter changes never add history entries.
 `q` seeds the search box at mount; the rest are applied once the catalogue
 loads (`useUrlStateSync`). No param is written back until the catalogue has
 loaded, `q` included, so if loading fails the URL keeps what the link carried.
@@ -684,16 +687,17 @@ wiring in each of the link, the route and the page:
    page) are captured again, and the page remounts with them; the strip only
    removes params, so it never triggers a capture of its own.
    `/development` is not a calculator route but gets the same result its own
-   way: the page reads its `film`, `developer`, `recipe` and other params on
-   mount and keeps the URL in step through `history.replaceState`, passing
-   the entry's existing state so the router's history key stays the same.
+   way: the page reads its `film`, `developer`, `recipe` and other params
+   from the router on mount and keeps the URL in step with replace
+   navigations. Each of those carries the history key of the navigation that
+   mounted the page in its history state (`developmentPageKey`), and
    `components/development-route.tsx` (the route's component) keys the page
-   on that key. A router navigation that lands there while
-   it is open (a recipe answer from the nav search, the nav link) remounts the
-   page with the link's filters and recipe. The router writes a navigation
-   to the browser URL in a microtask, after a link click has rendered, so the
-   route flushes that pending write before rendering the page; otherwise the
-   new page would read the old URL and write the old filters back.
+   on it, so the page's own writes keep it mounted. Any other router
+   navigation that lands there while it is open (a recipe answer from the nav
+   search, the nav link) has a fresh key and remounts the page with the
+   link's filters and recipe. The route reads the search and the key from the
+   same router location: the route match takes a new search a render later,
+   and a page remounted in between would seed from the old one.
 4. **Page**: typed `CalculatorLinkProps<typeof lensCalculatorLink>`, so a
    route that hands it another calculator's params fails to compile. It
    passes `lensCalculatorLink.read(linkSearch ?? {})` as `overrides` to
