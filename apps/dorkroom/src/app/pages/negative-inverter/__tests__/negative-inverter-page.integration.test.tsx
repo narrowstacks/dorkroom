@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+import { linearToSrgb, type Rgb } from '@dorkroom/logic';
 import {
   fireEvent,
   render,
@@ -12,6 +13,7 @@ import {
   canvasPixels,
   type FakeCanvasEnvironment,
   installFakeCanvas,
+  ORANGE_BASE,
   syntheticNegative,
 } from './fake-canvas';
 
@@ -27,6 +29,55 @@ beforeEach(() => {
   env = installFakeCanvas((file, resize) => {
     if (/\.heic$/i.test(file.name)) {
       throw new DOMException('The source image could not be decoded.');
+    }
+    if (file.name.startsWith('beach')) {
+      // A rebate beside a frame with nothing near base density, its thinnest
+      // film a sea: the rebate passes for light, and detection is unsure.
+      const width = resize?.width ?? WIDTH;
+      const height = resize?.height ?? HEIGHT;
+      const rebate = Math.max(1, Math.round(width / 10));
+      const toByte = (v: number) => Math.round(linearToSrgb(v) * 255);
+      const sea = [0.1, 0.25, 0.35];
+      const gamma = [0.55, 0.62, 0.7];
+      const channel = (x: number, c: 0 | 1 | 2) =>
+        toByte(
+          x < rebate
+            ? ORANGE_BASE[c]
+            : ORANGE_BASE[c] *
+                10 ** -(gamma[c] * Math.log10((sea[c] * 1.2) / 0.02))
+        );
+      return {
+        width,
+        height,
+        close: vi.fn(),
+        paint: (x: number): Rgb => [
+          channel(x, 0),
+          channel(x, 1),
+          channel(x, 2),
+        ],
+      };
+    }
+    if (file.name.startsWith('grey')) {
+      // A neutral B&W negative: grey rebate, denser frame. B&W detection
+      // finds its base; C-41 detection treats neutral pixels as light.
+      const width = resize?.width ?? WIDTH;
+      const height = resize?.height ?? HEIGHT;
+      const rebate = Math.max(1, Math.round(width / 10));
+      return {
+        width,
+        height,
+        close: vi.fn(),
+        paint: (x: number): Rgb => {
+          const v = x < rebate ? 200 : 60 + Math.round((x / width) * 90);
+          return [v, v, v];
+        },
+      };
+    }
+    if (file.name.startsWith('blank')) {
+      // Bare light table: nothing to find a film base in.
+      const width = resize?.width ?? WIDTH;
+      const height = resize?.height ?? HEIGHT;
+      return { width, height, close: vi.fn(), paint: () => [255, 255, 255] };
     }
     return syntheticNegative(resize?.width ?? WIDTH, resize?.height ?? HEIGHT);
   });
@@ -110,28 +161,36 @@ describe('NegativeInverterPage', () => {
     expect(screen.getByRole('button', { name: /Download/ })).toBeDisabled();
   });
 
-  it('loads, crops, picks the base, converts, and downloads', async () => {
+  it('converts on load with an automatic base, then crops, picks the base by hand, and downloads', async () => {
     await loadPhoto();
 
+    // The film base is found on its own, so the positive shows at once.
     expect(
-      await screen.findByRole('figure', { name: 'Negative' })
+      await screen.findByRole('figure', { name: 'Positive preview' })
     ).toBeInTheDocument();
     expect(env.bitmaps[0].close).toHaveBeenCalled();
-    // The crop tool is active first; nudge the right edge in with the keyboard.
-    expect(screen.getByRole('button', { name: 'Crop' })).toHaveAttribute(
-      'aria-pressed',
-      'true'
-    );
+    expect(
+      screen.getByText(/film base found automatically/)
+    ).toBeInTheDocument();
+    expect(screen.getByTitle('Auto base')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Download/ })).toBeEnabled();
+
+    // Crop: nudge the right edge in with the keyboard. The base is still
+    // the automatic one, proposed again for the new crop.
+    fireEvent.click(screen.getByRole('button', { name: 'Crop' }));
     expect(screen.getByText(/Crop: 400 × 300 px/)).toBeInTheDocument();
     fireEvent.keyDown(screen.getByRole('button', { name: 'Crop right edge' }), {
       key: 'ArrowLeft',
       shiftKey: true,
     });
     expect(screen.getByText(/Crop: 380 × 300 px/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Download/ })).toBeDisabled();
+    expect(screen.getByTitle('Auto base')).toBeInTheDocument();
 
-    // Tap the clear rebate on the left edge.
+    // Pick the base by hand: tap the clear rebate on the left edge. It
+    // replaces the automatic one.
     await pickBaseAt(10, 150);
+    expect(screen.getByTitle('Base')).toBeInTheDocument();
+    expect(screen.queryByTitle('Auto base')).toBeNull();
 
     expect(screen.getByRole('button', { name: 'Positive' })).toHaveAttribute(
       'aria-pressed',
@@ -191,9 +250,51 @@ describe('NegativeInverterPage', () => {
     ).toBeInTheDocument();
   });
 
+  it('asks for a pick when the automatic base is unsure', async () => {
+    await loadPhoto('beach-frame.jpg');
+    await screen.findByRole('figure', { name: 'Positive preview' });
+    // As colour film the rebate passes for light-table light, so the base
+    // found is only a suggestion. It still converts, so there is something
+    // to look at.
+    fireEvent.click(screen.getByRole('button', { name: 'Color (C-41)' }));
+    expect(
+      screen.getByRole('figure', { name: 'Positive preview' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/could not be found for certain/)
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/found automatically/)).toBeNull();
+    // The tool to fix it is pointed out.
+    expect(screen.getByRole('button', { name: 'Film base' })).toHaveAttribute(
+      'data-attention',
+      'true'
+    );
+    // Picking the base settles it.
+    await pickBaseAt(10, 150);
+    expect(screen.queryByText(/could not be found for certain/)).toBeNull();
+    expect(
+      screen.getByRole('button', { name: 'Film base' })
+    ).not.toHaveAttribute('data-attention');
+  });
+
+  it('falls back to picking the base by hand when none is found', async () => {
+    await loadPhoto('blank-light-table.jpg');
+    expect(
+      await screen.findByRole('figure', { name: 'Negative' })
+    ).toBeInTheDocument();
+    // The crop tool is active first, and nothing is converted yet.
+    expect(screen.getByRole('button', { name: 'Crop' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    expect(screen.getByRole('button', { name: /Download/ })).toBeDisabled();
+    expect(screen.queryByTitle('Auto base')).toBeNull();
+  });
+
   it('commits a crop drag from where the pointer is released', async () => {
     await loadPhoto();
-    await screen.findByRole('figure', { name: 'Negative' });
+    await screen.findByRole('figure', { name: 'Positive preview' });
+    fireEvent.click(screen.getByRole('button', { name: 'Crop' }));
     const edge = screen.getByRole('button', { name: 'Crop right edge' });
     // A quick flick: React never rendered a move before the release.
     fireEvent.pointerDown(edge, { pointerId: 3, clientX: 400, clientY: 150 });
@@ -203,8 +304,7 @@ describe('NegativeInverterPage', () => {
 
   it('cancels a running export when a new photo is chosen', async () => {
     await loadPhoto();
-    await screen.findByRole('figure', { name: 'Negative' });
-    await pickBaseAt(10, 150);
+    await screen.findByRole('figure', { name: 'Positive preview' });
     fireEvent.click(screen.getByRole('button', { name: 'Download JPEG' }));
     const photoCard = screen.getByRole('region', { name: 'frame-07.jpg' });
     fireEvent.click(
@@ -219,11 +319,11 @@ describe('NegativeInverterPage', () => {
 
   it('offers colour controls and the neutral picker for C-41', async () => {
     await loadPhoto();
-    await screen.findByRole('figure', { name: 'Negative' });
+    await screen.findByRole('figure', { name: 'Positive preview' });
     fireEvent.click(screen.getByRole('button', { name: 'Color (C-41)' }));
 
-    // Neutral grey needs a base first.
-    expect(screen.getByRole('button', { name: 'Neutral grey' })).toBeDisabled();
+    // The automatic base already converts, so the neutral picker is ready.
+    expect(screen.getByRole('button', { name: 'Neutral grey' })).toBeEnabled();
     await pickBaseAt(10, 150);
     // The base picker is put away; focus goes back to the tool that opened it.
     expect(screen.getByRole('button', { name: 'Film base' })).toHaveFocus();
@@ -266,7 +366,8 @@ describe('NegativeInverterPage', () => {
       screen.getByText(/Tap something that should be neutral grey/)
     ).toBeInTheDocument();
 
-    // Reset to defaults goes back to B&W too, keeping the photo and base.
+    // Reset to defaults goes back to B&W too, keeping the photo and the
+    // base picked by hand.
     fireEvent.click(screen.getByRole('button', { name: 'Reset to defaults' }));
     expect(
       screen.getByRole('button', { name: 'Black & White' })
@@ -275,12 +376,57 @@ describe('NegativeInverterPage', () => {
     expect(
       screen.getByRole('figure', { name: 'Positive preview' })
     ).toBeInTheDocument();
+    expect(screen.getByTitle('Base')).toBeInTheDocument();
+  });
+
+  it('finds the base again on reset while it is automatic', async () => {
+    await loadPhoto();
+    await screen.findByRole('figure', { name: 'Positive preview' });
+    fireEvent.click(screen.getByRole('button', { name: 'Color (C-41)' }));
+    expect(screen.getByTitle('Auto base')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Reset to defaults' }));
+    expect(
+      screen.getByRole('button', { name: 'Black & White' })
+    ).toHaveAttribute('aria-pressed', 'true');
+    // Still automatic, proposed again for B&W, and still converting.
+    expect(screen.getByTitle('Auto base')).toBeInTheDocument();
+    expect(
+      screen.getByRole('figure', { name: 'Positive preview' })
+    ).toBeInTheDocument();
+  });
+
+  it('detects the base for the film type chosen while the photo decodes', async () => {
+    let finish: () => void = () => {};
+    const decoding = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    const decode = globalThis.createImageBitmap;
+    vi.stubGlobal(
+      'createImageBitmap',
+      async (...args: Parameters<typeof decode>) => {
+        await decoding;
+        return decode(...args);
+      }
+    );
+    render(<NegativeInverterPage />);
+    fireEvent.click(screen.getByRole('button', { name: 'Color (C-41)' }));
+    fireEvent.change(screen.getByLabelText('Choose a photo of a negative'), {
+      target: {
+        files: [
+          new File(['jpeg bytes'], 'grey-frame.jpg', { type: 'image/jpeg' }),
+        ],
+      },
+    });
+    // Switched to B&W before the decode lands.
+    fireEvent.click(screen.getByRole('button', { name: 'Black & White' }));
+    finish();
+    await screen.findByRole('figure', { name: 'Positive preview' });
+    expect(screen.getByTitle('Auto base')).toBeInTheDocument();
   });
 
   it('hides the B&W-irrelevant colour controls', async () => {
     await loadPhoto();
-    await screen.findByRole('figure', { name: 'Negative' });
-    await pickBaseAt(10, 150);
+    await screen.findByRole('figure', { name: 'Positive preview' });
     expect(screen.queryByRole('spinbutton', { name: 'Warmth' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Neutral grey' })).toBeNull();
     expect(
@@ -298,7 +444,7 @@ describe('NegativeInverterPage', () => {
 
   it('starts over with a new photo', async () => {
     await loadPhoto();
-    await screen.findByRole('figure', { name: 'Negative' });
+    await screen.findByRole('figure', { name: 'Positive preview' });
     const photoCard = screen.getByRole('region', { name: 'frame-07.jpg' });
     fireEvent.click(
       within(photoCard).getByRole('button', { name: 'New photo' })

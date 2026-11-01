@@ -5,6 +5,16 @@ The iOS app has its own changelog: [`apps/mobile/CHANGELOG.md`](apps/mobile/CHAN
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [Unreleased]
+
+### Changed
+
+- **The negative inverter prints like a darkroom print.** Converted negatives now go through a virtual paper curve, with a soft roll-off into paper white and a deep black, instead of a straight line. Contrast works like a paper grade, a dark frame is brightened a little (a bright one is never darkened), and warmth and tint act like enlarger filtration, so whites and blacks stay clean when you colour-correct. Default contrast and brightness stay close to before. (#527)
+- **Colour negatives keep the colour of their light.** White is set from the most neutral of the brightest areas, so a lamp-lit wall or a sunset stays warm instead of being bleached towards white. Black is taken from the film base, so a dark coloured floor or foliage no longer tints the whole frame, and unexposed film prints as a deep black. A large bright area such as a sky is no longer forced to white. Thanks to NegPy, whose published approach this follows. (#527)
+- **Phone photos that crush the blue channel convert cleanly.** When a negative is photographed against a bright light table, the phone often records the blue layer of the brightest parts of the scene as pure black, which made walls and skies come out blue or blown out. Those areas are now measured through the film's green layer, so they keep their colour. Exposing the photo for the film, not the light table, still gives the best result. (#527)
+- **The negative inverter finds the film base on its own.** After you load a photo the positive appears straight away, using a film base found in the rebate (marked "Auto base"), and it is found again when you change the crop or film type. Picking the base yourself replaces it. When the photo leaves room for doubt (no clear rebate to compare against), the preview still appears but the page asks you to tap the film base and points at the tool. If no base can be found at all, pick it as before. (#527)
+- **The automatic film base is steadier.** It now takes the middle of the clear rebate rather than its brightest corner, so uneven light-table illumination and sprocket-hole edges move it less. (#527)
+
 ## [2026.10.30]
 
 ### Added

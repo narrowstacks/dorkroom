@@ -20,6 +20,7 @@ import {
 import { PickSurface } from './pick-surface';
 import {
   BASE_PATCH_SIZE,
+  type BaseSample,
   type InverterTool,
   type InverterView,
   NEUTRAL_PATCH_SIZE,
@@ -31,7 +32,7 @@ interface NegativeStageProps {
   crop: PixelRect;
   tool: InverterTool | null;
   view: InverterView;
-  base: PickedSample | null;
+  base: BaseSample | null;
   neutral: PickedSample | null;
   coefficients: InversionCoefficients | null;
   onCropChange: (crop: PixelRect) => void;
@@ -227,7 +228,7 @@ export function NegativeStage({
             sample={base}
             width={width}
             height={height}
-            label="Base"
+            label={base.auto ? 'Auto base' : 'Base'}
           />
         )}
         {neutral && coefficients?.filmType === 'c41' && (

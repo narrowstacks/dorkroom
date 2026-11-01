@@ -6,6 +6,8 @@ export interface SegmentOption<T extends string> {
   label: string;
   icon?: ComponentType<{ className?: string }>;
   disabled?: boolean;
+  /** Draws the eye to this option, e.g. a step the user still needs to do. */
+  attention?: boolean;
 }
 
 interface SegmentedControlProps<T extends string> {
@@ -40,30 +42,36 @@ export function SegmentedControl<T extends string>({
       }}
     >
       <legend className="sr-only">{legend}</legend>
-      {options.map(({ value: option, label, icon: Icon, disabled }) => {
-        const active = option === value;
-        return (
-          <button
-            key={option}
-            type="button"
-            aria-pressed={active}
-            data-option={option}
-            disabled={disabled}
-            onClick={() => onChange(option)}
-            className={cn(
-              'flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-medium transition-colors',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]',
-              'disabled:cursor-not-allowed disabled:opacity-40',
-              active
-                ? 'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)]'
-                : 'text-[color:var(--color-text-secondary)] hover:text-[color:var(--color-text-primary)]'
-            )}
-          >
-            {Icon && <Icon className="size-4 shrink-0" aria-hidden="true" />}
-            {label}
-          </button>
-        );
-      })}
+      {options.map(
+        ({ value: option, label, icon: Icon, disabled, attention }) => {
+          const active = option === value;
+          return (
+            <button
+              key={option}
+              type="button"
+              aria-pressed={active}
+              data-option={option}
+              data-attention={attention || undefined}
+              disabled={disabled}
+              onClick={() => onChange(option)}
+              className={cn(
+                'flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-medium transition-colors',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]',
+                'disabled:cursor-not-allowed disabled:opacity-40',
+                active
+                  ? 'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)]'
+                  : 'text-[color:var(--color-text-secondary)] hover:text-[color:var(--color-text-primary)]',
+                attention &&
+                  !active &&
+                  'motion-safe:animate-pulse ring-2 ring-[color:var(--color-focus-ring)] text-[color:var(--color-text-primary)]'
+              )}
+            >
+              {Icon && <Icon className="size-4 shrink-0" aria-hidden="true" />}
+              {label}
+            </button>
+          );
+        }
+      )}
     </fieldset>
   );
 }

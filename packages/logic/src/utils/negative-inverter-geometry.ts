@@ -40,9 +40,6 @@ export const MAX_CANVAS_PIXELS = 16_777_216;
 /** Longest canvas side every current browser accepts. */
 export const MAX_CANVAS_SIDE = 16_384;
 
-/** Pixels sampled for the density histograms, whatever the crop size. */
-export const HISTOGRAM_SAMPLE_TARGET = 250_000;
-
 /** Smallest crop side, in proxy pixels. */
 export const MIN_CROP_SIDE = 16;
 
@@ -191,18 +188,6 @@ export function screenToImagePoint(
     x: Math.max(0, Math.min(image.width - 1, fx * image.width)),
     y: Math.max(0, Math.min(image.height - 1, fy * image.height)),
   };
-}
-
-/**
- * The every-nth-pixel stride that samples roughly `target` pixels of a region,
- * for {@link buildDensityHistograms}.
- */
-export function histogramStep(
-  region: PixelSize,
-  target = HISTOGRAM_SAMPLE_TARGET
-): number {
-  const area = region.width * region.height;
-  return Math.max(1, Math.floor(Math.sqrt(area / target)));
 }
 
 /**

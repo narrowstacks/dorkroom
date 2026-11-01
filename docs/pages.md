@@ -301,6 +301,11 @@ film. Issue #527, Phase 1 (web MVP).
 - Crop rectangle with eight large touch handles plus a move area (pointer
   events; arrow keys nudge a focused handle). Statistics come only from inside
   the crop, so the light-table surround cannot wreck the levels.
+- Automatic film base: on load, and again when the crop or film type
+  changes, `detectFilmBase` (`@dorkroom/logic`) proposes a base from the
+  proxy and crop and the positive shows at once, marked "Auto base". Picking
+  the base by hand replaces it until the next photo. If nothing is found, the
+  page falls back to the manual flow (crop first, then pick the base).
 - Film base picker and, for C-41, a neutral grey picker. Both show a loupe
   while the finger is down and pick where it lifts; keyboard users move a
   crosshair with the arrow keys and press Enter.
@@ -314,9 +319,9 @@ film. Issue #527, Phase 1 (web MVP).
 - On load the photo is decoded once, drawn into a proxy with a 2048 px long
   edge, and the full-size bitmap is closed. The proxy drives the preview,
   picking, and the density histograms.
-- Histograms are rebuilt only when the base, crop, or film type changes;
-  sliders only re-derive the coefficients (`deriveCoefficients` in
-  `@dorkroom/logic`) and update shader uniforms.
+- The negative is measured (`analyzeNegative` in `@dorkroom/logic`) only
+  when the base, crop, or film type changes; sliders only re-derive the
+  coefficients (`deriveCoefficients`) and update shader uniforms.
 - `inversion-shader.ts` holds the WebGL fragment shader (GLSL ES 1.00, so one
   source serves WebGL 2 and WebGL 1). It mirrors `invertPixel` and adds a
   4x4 ordered dither before the 8-bit write. Without WebGL,
