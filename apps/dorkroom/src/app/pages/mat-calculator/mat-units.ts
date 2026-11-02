@@ -86,7 +86,8 @@ export function matValueToDisplay(
   }
   const inches = parseMatInput(value);
   if (Number.isNaN(inches)) {
-    return '';
+    // A typo kept by matDisplayToValue shows as typed, not blanked.
+    return value.trim();
   }
   // Shortest cm text that maps back to the same stored inches, shared with
   // every calculator's metric inputs, so neither unit drifts on re-commit.
@@ -94,9 +95,11 @@ export function matValueToDisplay(
 }
 
 /**
- * Field text back to the inch string kept in form state. Unparseable or empty
- * text commits an empty string, which reads as "invalid" downstream exactly
- * like clearing an imperial field does. A trailing "cm" is allowed in metric.
+ * Field text back to the inch string kept in form state. Empty text commits
+ * an empty string. Unparseable text is kept as typed, as imperial does: it
+ * parses as NaN downstream, so a typo reads as invalid rather than as an
+ * empty field (an empty reveal means "no reveal"). A trailing "cm" is allowed
+ * in metric.
  */
 export function matDisplayToValue(
   display: string,
@@ -107,7 +110,7 @@ export function matDisplayToValue(
   }
   const parsed = parseDisplay(display, unit);
   if (Number.isNaN(parsed)) {
-    return '';
+    return display.trim();
   }
   return String(convertDisplayToInches(parsed, unit));
 }

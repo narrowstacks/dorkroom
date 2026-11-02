@@ -1,5 +1,7 @@
 import {
+  calculateMatLayout,
   convertDisplayToInches,
+  MAT_CALCULATOR_DEFAULTS,
   MAT_PRESETS,
   parseMatInput,
   useMatCalculator,
@@ -60,9 +62,9 @@ describe('matValueToDisplay', () => {
     expect(matValueToDisplay('3 1/2', 'metric')).toBe('8.89');
   });
 
-  it('blanks unparseable text in metric', () => {
+  it('shows unparseable metric text as typed', () => {
     expect(matValueToDisplay('', 'metric')).toBe('');
-    expect(matValueToDisplay('abc', 'metric')).toBe('');
+    expect(matValueToDisplay('abc', 'metric')).toBe('abc');
   });
 });
 
@@ -96,7 +98,14 @@ describe('matDisplayToValue', () => {
 
   it('commits an empty string when metric input is unparseable', () => {
     expect(matDisplayToValue('', 'metric')).toBe('');
-    expect(matDisplayToValue('abc', 'metric')).toBe('');
+    expect(matDisplayToValue('abc', 'metric')).toBe('abc');
+    // Kept, not blanked, so a reveal typo is invalid rather than "no reveal".
+    expect(
+      calculateMatLayout({
+        ...MAT_CALCULATOR_DEFAULTS,
+        reveal: matDisplayToValue('1/8abc', 'metric'),
+      }).revealValid
+    ).toBe(false);
   });
 
   it('round-trips a centimetre entry back to the same display text', () => {
