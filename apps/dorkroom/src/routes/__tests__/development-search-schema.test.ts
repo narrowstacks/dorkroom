@@ -1,6 +1,11 @@
+import { SHARED_LINK_MARKER } from '@dorkroom/logic';
 import { describe, expect, it } from 'vitest';
 import { parseSearch, stringifySearch } from '../search-params';
-import { developmentSearchSchema, filmsSearchSchema } from '../search-schemas';
+import {
+  developmentSearchSchema,
+  filmColorFilterSchema,
+  filmsSearchSchema,
+} from '../search-schemas';
 
 /**
  * Regression cover for silently-dropped deep-link filters.
@@ -87,6 +92,15 @@ describe('developmentSearchSchema', () => {
       developmentSearchSchema.parse(parseSearch('?film=hp5&utm_source=forum'))
     ).toEqual({ film: 'hp5', utm_source: 'forum' });
   });
+
+  // The schemas are plain validators, not zod (issue #352), so these pin the
+  // recover-to-undefined behaviour the zod `.catch(undefined)` schemas had.
+  it('recovers an unknown view to undefined', () => {
+    const parsed = developmentSearchSchema.parse({ view: 'all', film: 'hp5' });
+    expect(parsed).toEqual({ film: 'hp5' });
+    expect(Object.hasOwn(parsed, 'view')).toBe(true);
+    expect(parsed.view).toBeUndefined();
+  });
 });
 
 describe('filmsSearchSchema', () => {
@@ -100,5 +114,34 @@ describe('filmsSearchSchema', () => {
     expect(filmsSearchSchema.parse(parseSearch('?search=400'))).toEqual({
       search: '400',
     });
+  });
+
+  it('drops params it does not declare', () => {
+    expect(
+      filmsSearchSchema.parse(parseSearch('?brand=kodak&utm_source=forum'))
+    ).toEqual({ brand: 'kodak' });
+  });
+
+  it('recovers an unknown colour or status filter to undefined', () => {
+    expect(
+      filmsSearchSchema.parse(parseSearch('?color=infrared&status=old&iso=50'))
+    ).toEqual({ color: undefined, status: undefined, iso: '50' });
+  });
+
+  it('keeps only the shared-link marker as source', () => {
+    expect(
+      filmsSearchSchema.parse({ source: SHARED_LINK_MARKER.value })
+    ).toEqual({ source: SHARED_LINK_MARKER.value });
+    expect(filmsSearchSchema.parse({ source: 'newsletter' }).source).toBe(
+      undefined
+    );
+  });
+});
+
+describe('filmColorFilterSchema', () => {
+  it('accepts a known filter and recovers anything else to undefined', () => {
+    expect(filmColorFilterSchema.parse('slide')).toBe('slide');
+    expect(filmColorFilterSchema.parse('all')).toBeUndefined();
+    expect(filmColorFilterSchema.parse(undefined)).toBeUndefined();
   });
 });
