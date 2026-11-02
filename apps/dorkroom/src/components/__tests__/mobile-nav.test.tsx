@@ -108,9 +108,9 @@ describe('MobileNav (#346)', () => {
     const backdrop = document.querySelector<HTMLElement>(
       'div[aria-hidden="true"].fixed.inset-0'
     );
-    expect(backdrop).not.toBeNull();
+    if (!backdrop) throw new Error('backdrop missing during the exit');
     expect(backdrop).not.toHaveClass('pointer-events-none');
-    fireEvent.click(backdrop as HTMLElement);
+    fireEvent.click(backdrop);
     expect(drawer).toHaveAttribute('inert');
   });
 
