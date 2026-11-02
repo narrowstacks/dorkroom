@@ -262,7 +262,13 @@ describe('Drawer', () => {
           {children}
         </Drawer>
       );
-      expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Save', hidden: true })
+      ).toBeInTheDocument();
+      // Sliding out, it no longer claims to be modal and is out of reach.
+      const closing = document.querySelector('[role="dialog"]');
+      expect(closing).not.toHaveAttribute('aria-modal');
+      expect(closing).toHaveAttribute('inert');
       expect(opener).toHaveFocus();
       expect(opener).not.toHaveAttribute('inert');
       opener.remove();
