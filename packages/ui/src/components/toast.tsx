@@ -108,6 +108,7 @@ export function Toast({
         isAnimating ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       )}
       data-testid="toast"
+      aria-hidden="true"
       style={getStyles()}
     >
       {getIcon()}
@@ -166,11 +167,11 @@ export function ToastProvider({ children }: ToastProviderProps) {
     []
   );
 
-  const hideToast = () => {
+  const hideToast = useCallback(() => {
     setToast(null);
     // Drop the stale text so it is not left behind for the virtual cursor.
     setAnnouncement((current) => ({ ...current, message: '' }));
-  };
+  }, []);
 
   const contextValue = useMemo(() => ({ showToast }), [showToast]);
 
