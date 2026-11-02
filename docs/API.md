@@ -55,7 +55,7 @@ All error responses include a `requestId` for debugging.
 
 | Status | Error | Cause |
 | --- | --- | --- |
-| `400` | e.g. `Invalid query parameter` | A parameter was rejected, for example a `query`, `slug`, `brand`, or `film` value that is empty once sanitized. The `error` text comes from the data service. |
+| `400` | e.g. `Invalid query parameter` | A parameter was rejected: `query` with no letter or digit in it (including spaces only), or a `slug`, `film`, or `developer` value with no letter, digit, or hyphen left once sanitized. An empty `query=` and a blank `brand` or `manufacturer` are ignored, not rejected. The `error` text comes from the data service. |
 | `401` | `Unauthorized` | Missing or invalid API key |
 | `404` | `Not found` | Path is not an endpoint (returned without an API key) |
 | `405` | `Method Not Allowed` | Non-GET request |
@@ -89,8 +89,8 @@ All parameters are optional.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `query` | string | Exact search term (max 200 chars) |
-| `fuzzy` | string | Fuzzy search term (max 200 chars) |
+| `query` | string | Search term (max 200 chars). Case-insensitive partial match (substring), not an exact match. Accents are significant; any run of punctuation or symbols matches any characters (`HP5+` finds `HP5 Plus`). A term with no letter or digit returns 400 |
+| `fuzzy` | string | Deprecated, ignored. Accepts `true` or `false` for backward compatibility; matching is never fuzzy |
 | `limit` | integer | Max results to return (1-1000) |
 | `colorType` | string | Filter by type: `bw`, `color`, or `slide` |
 | `brand` | string | Filter by brand name (max 200 chars) |
@@ -172,8 +172,8 @@ All parameters are optional.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `query` | string | Exact search term (max 200 chars) |
-| `fuzzy` | string | Fuzzy search term (max 200 chars) |
+| `query` | string | Search term (max 200 chars). Case-insensitive partial match (substring), not an exact match. Accents are significant; any run of punctuation or symbols matches any characters (`HP5+` finds `HP5 Plus`). A term with no letter or digit returns 400 |
+| `fuzzy` | string | Deprecated, ignored. Accepts `true` or `false` for backward compatibility; matching is never fuzzy |
 | `limit` | integer | Max results to return (1-1000) |
 | `type` | string | Filter by developer type (max 200 chars) |
 | `manufacturer` | string | Filter by manufacturer (max 200 chars) |
@@ -261,8 +261,8 @@ All parameters are optional. Use `film` and `developer` (slug values) to find re
 | --- | --- | --- |
 | `film` | string | Film slug (max 200 chars) |
 | `developer` | string | Developer slug (max 200 chars) |
-| `query` | string | Exact search term (max 200 chars) |
-| `fuzzy` | string | Fuzzy search term (max 200 chars) |
+| `query` | string | Search term (max 200 chars). Case-insensitive partial match (substring), not an exact match. Accents are significant; any run of punctuation or symbols matches any characters (`HP5+` finds `HP5 Plus`). A term with no letter or digit returns 400 |
+| `fuzzy` | string | Deprecated, ignored. Accepts `true` or `false` for backward compatibility; matching is never fuzzy |
 | `limit` | integer | Max results to return (1-1000) |
 | `count` | integer | Page size (1-1000). Use with `page`; unlike `limit`, this enables offset pagination |
 | `page` | integer | Page number (>= 1). Only applied together with `count`; ignored with `limit` |

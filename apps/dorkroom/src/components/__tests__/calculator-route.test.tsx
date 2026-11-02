@@ -18,6 +18,7 @@ import {
 import { act, render, screen, waitFor } from '@testing-library/react';
 import { type ComponentType, useEffect } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { lazyPage } from '../../app/lib/lazy-page';
 import LensCalculatorPage from '../../app/pages/lens-calculator/lens-calculator-page';
 import MatCalculatorPage from '../../app/pages/mat-calculator/mat-calculator-page';
 import { parseSearch, stringifySearch } from '../../routes/search-params';
@@ -199,6 +200,26 @@ describe('calculatorRoute', () => {
     );
 
     expect(mounts).toEqual([{ focal: '50' }, { focal: '80' }]);
+  });
+
+  it('starts a lazy page chunk from its loader (#354)', () => {
+    const load = vi.fn(() => Promise.resolve({ default: LensCalculatorPage }));
+    const route = calculatorRoute(
+      'lenses',
+      LENS_CALCULATOR_LINK_PARAMS,
+      lazyPage(load)
+    );
+
+    expect(route.loader({ preload: true })).toBeUndefined();
+    expect(load).toHaveBeenCalledOnce();
+    // A plain page has no chunk: the loader does nothing.
+    expect(
+      calculatorRoute(
+        'lenses',
+        LENS_CALCULATOR_LINK_PARAMS,
+        LensCalculatorPage
+      ).loader({ preload: false })
+    ).toBeUndefined();
   });
 
   it('only accepts a page that reads its own link params', () => {

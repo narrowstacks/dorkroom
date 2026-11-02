@@ -1,6 +1,6 @@
 import { CalculatorCard } from '../calculator/calculator-card';
 import { CalculatorStat } from '../calculator/calculator-stat';
-import { StatusAlert } from '../status-alert';
+import { LiveStatusAlert } from '../status-alert';
 import { useBorderCalculator } from './border-calculator-context';
 import { getEaselBladeReadings } from './easel-blade-readings';
 
@@ -55,21 +55,17 @@ export function BladeReadingsSection() {
         />
       </div>
 
-      {bladeWarning && (
-        <div className="mt-2">
-          <StatusAlert message={bladeWarning} action="error" />
-        </div>
-      )}
-      {minBorderWarning && (
-        <div className="mt-2">
-          <StatusAlert message={minBorderWarning} action="error" />
-        </div>
-      )}
-      {paperSizeWarning && (
-        <div className="mt-2">
-          <StatusAlert message={paperSizeWarning} action="warning" />
-        </div>
-      )}
+      <LiveStatusAlert message={bladeWarning} action="error" className="mt-2" />
+      <LiveStatusAlert
+        message={minBorderWarning}
+        action="error"
+        className="mt-2"
+      />
+      <LiveStatusAlert
+        message={paperSizeWarning}
+        action="warning"
+        className="mt-2"
+      />
     </CalculatorCard>
   );
 }

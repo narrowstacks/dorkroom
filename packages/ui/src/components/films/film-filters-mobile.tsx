@@ -79,8 +79,16 @@ export const FilmFiltersMobile: FC<FilmFiltersMobileProps> = ({
   ].filter(Boolean).length;
 
   return (
+    // z-10, not z-0: the virtualized results grid that follows is made of
+    // absolutely positioned, transformed rows, and each one is its own
+    // stacking context. At z-0 this card shares their layer and loses to them
+    // on DOM order, so an open SearchableSelect list (z-[100], but trapped in
+    // this card's context) rendered behind the film cards (#596).
     <div
-      className={cn('relative z-0 rounded-2xl border shadow-subtle', className)}
+      className={cn(
+        'relative z-10 rounded-2xl border shadow-subtle',
+        className
+      )}
       style={{
         borderColor: 'var(--color-border-secondary)',
         backgroundColor: 'rgba(var(--color-background-rgb), 0.25)',
