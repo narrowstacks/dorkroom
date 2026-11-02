@@ -37,8 +37,18 @@ export interface DevelopmentRecipesState {
   isLoading: boolean;
   isLoaded: boolean;
   error: string | null;
+  /** B&W films that appear in at least one recipe: the filter dropdowns. */
   allFilms: Film[];
+  /** Film developers that appear in at least one recipe: the filter dropdowns. */
   allDevelopers: Developer[];
+  /**
+   * Every B&W film in the catalogue, recipes or not. Use this wherever a
+   * user picks or matches a film for a new recipe (custom recipe form,
+   * filmdev.org import), since a new recipe may be the film's first.
+   */
+  catalogFilms: Film[];
+  /** Every film developer in the catalogue, recipes or not. */
+  catalogDevelopers: Developer[];
   allCombinations: Combination[];
   filteredCombinations: Combination[];
 }
@@ -656,6 +666,8 @@ export const useDevelopmentRecipes = (
     error,
     allFilms,
     allDevelopers,
+    catalogFilms: allFilmsUnfiltered,
+    catalogDevelopers: allDevelopersUnfiltered,
     allCombinations,
     filteredCombinations,
     setDeveloperTypeFilter,

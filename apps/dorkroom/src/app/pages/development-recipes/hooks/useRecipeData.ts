@@ -16,6 +16,9 @@ export interface UseRecipeDataProps {
   customRecipes: CustomRecipe[];
   allFilms: Film[];
   allDevelopers: Developer[];
+  /** Whole catalogue, for the custom recipe form's pickers. */
+  catalogFilms: Film[];
+  catalogDevelopers: Developer[];
   selectedFilm: Film | null;
   selectedDeveloper: Developer | null;
   developerTypeFilter: string;
@@ -34,14 +37,38 @@ export interface UseRecipeDataProps {
   getDeveloperById: (id: string) => Developer | undefined;
 }
 
+type SelectOption = { label: string; value: string };
+
+const toFilmOptions = (films: Film[]): SelectOption[] => [
+  { label: 'Select film', value: '' },
+  ...films.map((film) => ({
+    label: `${film.brand} ${film.name}`,
+    value: film.uuid,
+  })),
+];
+
+const toDeveloperOptions = (developers: Developer[]): SelectOption[] => [
+  { label: 'Select developer', value: '' },
+  ...developers.map((developer) => ({
+    label: `${developer.manufacturer} ${developer.name}`,
+    value: developer.uuid,
+  })),
+];
+
 export interface UseRecipeDataReturn {
   combinedRows: DevelopmentCombinationView[];
   apiCombinationViews: DevelopmentCombinationView[];
   customCombinationViews: DevelopmentCombinationView[];
   filteredCustomViews: DevelopmentCombinationView[];
   sharedCustomRecipeView: DevelopmentCombinationView | null;
-  filmOptions: Array<{ label: string; value: string }>;
-  developerOptions: Array<{ label: string; value: string }>;
+  /** Films with recipes, for the filter sidebar. */
+  filmOptions: SelectOption[];
+  /** Developers with recipes, for the filter sidebar. */
+  developerOptions: SelectOption[];
+  /** Every catalogue film, for the custom recipe form. */
+  catalogFilmOptions: SelectOption[];
+  /** Every catalogue developer, for the custom recipe form. */
+  catalogDeveloperOptions: SelectOption[];
   memoizedIsFavorite: (id: string) => boolean;
 }
 
@@ -128,6 +155,8 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
     customRecipes,
     allFilms,
     allDevelopers,
+    catalogFilms,
+    catalogDevelopers,
     selectedFilm,
     selectedDeveloper,
     developerTypeFilter,
@@ -377,25 +406,19 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
     [isFavorite]
   );
 
-  const filmOptions = useMemo(() => {
-    return [
-      { label: 'Select film', value: '' },
-      ...allFilms.map((film) => ({
-        label: `${film.brand} ${film.name}`,
-        value: film.uuid,
-      })),
-    ];
-  }, [allFilms]);
-
-  const developerOptions = useMemo(() => {
-    return [
-      { label: 'Select developer', value: '' },
-      ...allDevelopers.map((developer) => ({
-        label: `${developer.manufacturer} ${developer.name}`,
-        value: developer.uuid,
-      })),
-    ];
-  }, [allDevelopers]);
+  const filmOptions = useMemo(() => toFilmOptions(allFilms), [allFilms]);
+  const developerOptions = useMemo(
+    () => toDeveloperOptions(allDevelopers),
+    [allDevelopers]
+  );
+  const catalogFilmOptions = useMemo(
+    () => toFilmOptions(catalogFilms),
+    [catalogFilms]
+  );
+  const catalogDeveloperOptions = useMemo(
+    () => toDeveloperOptions(catalogDevelopers),
+    [catalogDevelopers]
+  );
 
   return {
     combinedRows,
@@ -405,6 +428,8 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
     sharedCustomRecipeView,
     filmOptions,
     developerOptions,
+    catalogFilmOptions,
+    catalogDeveloperOptions,
     memoizedIsFavorite,
   };
 }

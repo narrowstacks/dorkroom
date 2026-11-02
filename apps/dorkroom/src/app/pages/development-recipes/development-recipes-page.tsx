@@ -82,6 +82,8 @@ export default function DevelopmentRecipesPage({
     error,
     allFilms,
     allDevelopers,
+    catalogFilms,
+    catalogDevelopers,
     allCombinations,
     filteredCombinations,
     setDeveloperTypeFilter,
@@ -220,12 +222,16 @@ export default function DevelopmentRecipesPage({
     sharedCustomRecipeView,
     filmOptions,
     developerOptions,
+    catalogFilmOptions,
+    catalogDeveloperOptions,
     memoizedIsFavorite,
   } = useRecipeData({
     filteredCombinations,
     customRecipes,
     allFilms,
     allDevelopers,
+    catalogFilms,
+    catalogDevelopers,
     selectedFilm,
     selectedDeveloper,
     developerTypeFilter,
@@ -308,8 +314,10 @@ export default function DevelopmentRecipesPage({
     setIsFiltersSidebarCollapsed,
     getFilmById,
     getDeveloperById,
-    allFilms,
-    allDevelopers,
+    // The importer matches against the whole catalogue: a film with no
+    // recipes yet must still be matchable.
+    allFilms: catalogFilms,
+    allDevelopers: catalogDevelopers,
   });
 
   // URL state synchronization
@@ -702,10 +710,10 @@ export default function DevelopmentRecipesPage({
             setEditingRecipe(null);
           }}
           onCustomRecipeSubmit={handleCustomRecipeSubmit}
-          filmOptions={filmOptions}
-          developerOptions={developerOptions}
-          allFilms={allFilms}
-          allDevelopers={allDevelopers}
+          filmOptions={catalogFilmOptions}
+          developerOptions={catalogDeveloperOptions}
+          allFilms={catalogFilms}
+          allDevelopers={catalogDevelopers}
           isImportModalOpen={isImportModalOpen}
           onCloseImportModal={() => setIsImportModalOpen(false)}
           isImporting={isImporting}

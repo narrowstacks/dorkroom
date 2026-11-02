@@ -93,6 +93,8 @@ const filterCustom = (dilutionFilter: string) => {
     customRecipes,
     allFilms: [film],
     allDevelopers: [developer],
+    catalogFilms: [film],
+    catalogDevelopers: [developer],
     selectedFilm: null,
     selectedDeveloper: developer,
     developerTypeFilter: '',
@@ -164,6 +166,8 @@ const createProps = (
   customRecipes: [],
   allFilms: [],
   allDevelopers: [],
+  catalogFilms: [],
+  catalogDevelopers: [],
   selectedFilm: null,
   selectedDeveloper: null,
   developerTypeFilter: '',
@@ -288,5 +292,31 @@ describe('custom recipe search (#326)', () => {
 
   it('keeps every recipe when the query is blank', () => {
     expect(searchCustom('  ')).toHaveLength(3);
+  });
+});
+
+describe('film and developer options', () => {
+  it('offers the whole catalogue to the custom recipe form, not just films with recipes', () => {
+    const triX = makeFilm({ uuid: 'tri-x', brand: 'Kodak', name: 'Tri-X 400' });
+    const fomapan = makeFilm({
+      uuid: 'fomapan-100',
+      brand: 'Foma',
+      name: 'Fomapan 100 Classic',
+    });
+    const { result } = renderHook(() =>
+      useRecipeData(
+        createProps({ allFilms: [triX], catalogFilms: [triX, fomapan] })
+      )
+    );
+
+    expect(result.current.filmOptions.map((o) => o.value)).toEqual([
+      '',
+      'tri-x',
+    ]);
+    expect(result.current.catalogFilmOptions.map((o) => o.value)).toEqual([
+      '',
+      'tri-x',
+      'fomapan-100',
+    ]);
   });
 });
