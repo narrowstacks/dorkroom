@@ -13,6 +13,10 @@ import {
   OG_UPSTREAM_DAILY_LIMIT,
   OG_UPSTREAM_RATE_LIMIT,
 } from '../rateLimitPolicy';
+import {
+  RATE_LIMIT_REQUEST_OPTIONS,
+  UNKEY_CLIENT_TIMEOUT_MS,
+} from '../withHandler';
 
 describe('getRateLimitNamespace', () => {
   it.each([
@@ -78,6 +82,8 @@ describe('documented limits match the policy', () => {
         `cap of ${ANONYMOUS_UPSTREAM_DAILY_LIMIT} req/day`,
         `a ${OG_UPSTREAM_RATE_LIMIT}/min burst cap (\`OG_UPSTREAM_RATE_LIMIT\`)`,
         `${OG_UPSTREAM_DAILY_LIMIT} a day (\`OG_UPSTREAM_DAILY_LIMIT\`)`,
+        `${UNKEY_CLIENT_TIMEOUT_MS} ms timeout`,
+        `${RATE_LIMIT_REQUEST_OPTIONS.timeoutMs} ms timeout and no retries`,
       ],
     ],
     ['packages/api/CLAUDE.md', [`own ${CLIENT_RATE_LIMIT} req/min budget`]],

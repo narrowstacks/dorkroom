@@ -1,3 +1,9 @@
+import { Unkey } from '@unkey/api';
+import {
+  APIError,
+  ConnectionError,
+  RequestTimeoutError,
+} from '@unkey/api/models/errors';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   ANONYMOUS_RATE_LIMIT,
@@ -21,6 +27,21 @@ const fakeUnkey: UnkeyClient = {
   keys: { verifyKey: verifyKeyMock },
   ratelimit: { limit: ratelimitLimitMock },
 };
+
+/** The per-call options every `ratelimit.limit` check must pass. */
+const RATE_LIMIT_REQUEST_OPTIONS = {
+  timeoutMs: 1500,
+  retries: { strategy: 'none' },
+};
+
+/** An SDK error for an Unkey HTTP answer, with a body that must stay out of logs. */
+function unkeyHttpError(status: number, message = 'API error occurred') {
+  return new APIError(message, {
+    response: new Response('secret-ish response body', { status }),
+    request: new Request('https://api.unkey.com/v2/ratelimit.limit'),
+    body: 'secret-ish response body',
+  });
+}
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -576,6 +597,96 @@ describe('withHandler', () => {
       }
     );
 
+    it('Unkey unreachable on the client-id checks: fails open after the key verified', async () => {
+      setupKeyedEnv();
+      vi.stubEnv('NODE_ENV', 'production');
+      verifyKeyMock.mockResolvedValueOnce(validVerification());
+      ratelimitLimitMock.mockRejectedValue(
+        new ConnectionError('Unable to make request')
+      );
+
+      let handlerRan = false;
+      const handler = await buildHandler({
+        name: 'test',
+        handler: async (_req, res) => {
+          handlerRan = true;
+          res.status(200).json({ ok: true });
+        },
+      });
+
+      const res = createMockResponse();
+      await handler(keyedRequest({ 'x-client-id': 'client-abc-123' }), res);
+
+      expect(handlerRan).toBe(true);
+      expect(res._status).toBe(200);
+      expect(ratelimitLimitMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('verifyKey failure logs only the name and status, never the response body', async () => {
+      setupKeyedEnv();
+      verifyKeyMock.mockRejectedValueOnce(unkeyHttpError(502));
+
+      const handler = await buildHandler({
+        name: 'test',
+        handler: async () => {},
+      });
+
+      const res = createMockResponse();
+      await handler(keyedRequest(), res);
+
+      expect(res._status).toBe(500);
+      const line = vi
+        .mocked(console.error)
+        .mock.calls.map(([logged]) => String(logged))
+        .find((logged) => logged.includes('Unkey key verification failed'));
+      expect(line).toContain('"errorName":"APIError"');
+      expect(line).toContain('"statusCode":502');
+      expect(line).not.toContain('secret-ish response body');
+    });
+
+    it('Unkey unreachable on verifyKey: still fails closed (500), handler not called', async () => {
+      setupKeyedEnv();
+      verifyKeyMock.mockRejectedValueOnce(
+        new ConnectionError('Unable to make request')
+      );
+
+      let handlerRan = false;
+      const handler = await buildHandler({
+        name: 'test',
+        handler: async () => {
+          handlerRan = true;
+        },
+      });
+
+      const res = createMockResponse();
+      await handler(keyedRequest({ 'x-client-id': 'client-abc-123' }), res);
+
+      expect(handlerRan).toBe(false);
+      expect(res._status).toBe(500);
+      expect(res._json).toMatchObject({ message: 'Unable to verify API key' });
+      expect(ratelimitLimitMock).not.toHaveBeenCalled();
+    });
+
+    it('verifies the key in one attempt, with SDK retries off', async () => {
+      setupKeyedEnv();
+      verifyKeyMock.mockResolvedValueOnce(validVerification());
+      const handler = await buildHandler({
+        name: 'test',
+        handler: async (_req, res) => {
+          res.status(200).json({ ok: true });
+        },
+      });
+
+      const res = createMockResponse();
+      await handler(keyedRequest(), res);
+
+      expect(res._status).toBe(200);
+      expect(verifyKeyMock).toHaveBeenCalledOnce();
+      expect(verifyKeyMock.mock.calls[0][1]).toEqual({
+        retries: { strategy: 'none' },
+      });
+    });
+
     it('invalid key + X-Client-Id: still 401 (key auth runs first)', async () => {
       setupKeyedEnv();
       verifyKeyMock.mockResolvedValueOnce({
@@ -735,12 +846,16 @@ describe('withHandler', () => {
         res
       );
 
-      expect(ratelimitLimitMock).toHaveBeenCalledExactlyOnceWith({
-        namespace: 'test-api-anonymous',
-        identifier: '203.0.113.5',
-        limit: ANONYMOUS_RATE_LIMIT,
-        duration: ANONYMOUS_RATE_WINDOW_MS,
-      });
+      expect(ratelimitLimitMock).toHaveBeenCalledExactlyOnceWith(
+        {
+          namespace: 'test-api-anonymous',
+          identifier: '203.0.113.5',
+          limit: ANONYMOUS_RATE_LIMIT,
+          duration: ANONYMOUS_RATE_WINDOW_MS,
+        },
+        // Short timeout, no retries: an unreachable Unkey fails open fast
+        RATE_LIMIT_REQUEST_OPTIONS
+      );
       expect(ran).toHaveBeenCalledOnce();
       expect(res._status).toBe(200);
     });
@@ -816,6 +931,132 @@ describe('withHandler', () => {
         error: 'API configuration error',
         message: 'Rate limiting is not configured',
       });
+      expect(ran).not.toHaveBeenCalled();
+    });
+
+    /** The JSON lines the logger wrote at WARN level. */
+    function warnLines(): string[] {
+      return vi.mocked(console.warn).mock.calls.map(([line]) => String(line));
+    }
+
+    function unavailableWarning(): string | undefined {
+      return warnLines().find((line) =>
+        line.includes('"message":"Rate limiting skipped (Unkey unavailable)"')
+      );
+    }
+
+    it.each([
+      [
+        'ConnectionError',
+        () =>
+          new ConnectionError('Unable to make request', {
+            cause: new TypeError('fetch failed'),
+          }),
+      ],
+      [
+        'RequestTimeoutError',
+        () =>
+          new RequestTimeoutError('Request timed out', {
+            cause: new DOMException('signal timed out', 'TimeoutError'),
+          }),
+      ],
+      ['TypeError', () => new TypeError('fetch failed')],
+      ['AbortError', () => new DOMException('aborted', 'AbortError')],
+    ])(
+      'fails open with a warning in production when Unkey is unreachable (%s)',
+      async (errorName, makeError) => {
+        vi.stubEnv('NODE_ENV', 'production');
+        ratelimitLimitMock.mockRejectedValueOnce(makeError());
+        const { handler, ran } = await anonymousHandler();
+
+        const res = createMockResponse();
+        await handler(anonymousRequest({ 'x-real-ip': '203.0.113.5' }), res);
+
+        expect(res._status).toBe(200);
+        expect(ran).toHaveBeenCalledOnce();
+        expect(res._headers['x-ratelimit-limit']).toBeUndefined();
+        const warning = unavailableWarning();
+        expect(warning).toContain('"namespace":"test-api-anonymous"');
+        expect(warning).toContain(`"errorName":"${errorName}"`);
+        // Neither the root key nor the caller's IP reaches the log
+        expect(warning).not.toContain('root-key');
+        expect(warning).not.toContain('203.0.113.5');
+      }
+    );
+
+    it('fails open when Unkey answers with a 5xx', async () => {
+      vi.stubEnv('NODE_ENV', 'production');
+      ratelimitLimitMock.mockRejectedValueOnce(
+        new APIError('API error occurred', {
+          response: new Response('upstream unavailable', { status: 503 }),
+          request: new Request('https://api.unkey.com/v2/ratelimit.limit'),
+          body: 'upstream unavailable',
+        })
+      );
+      const { handler, ran } = await anonymousHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest({ 'x-real-ip': '203.0.113.5' }), res);
+
+      expect(res._status).toBe(200);
+      expect(ran).toHaveBeenCalledOnce();
+      const warning = unavailableWarning();
+      expect(warning).toContain('"errorName":"APIError"');
+      expect(warning).toContain('"statusCode":503');
+      expect(warning).not.toContain('upstream unavailable');
+    });
+
+    it('still fails closed on an insufficient-permissions error', async () => {
+      vi.stubEnv('NODE_ENV', 'production');
+      ratelimitLimitMock.mockRejectedValueOnce(
+        new APIError('Insufficient Permissions', {
+          response: new Response('', { status: 403 }),
+          request: new Request('https://api.unkey.com/v2/ratelimit.limit'),
+          body: '',
+        })
+      );
+      const { handler, ran } = await anonymousHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest({ 'x-real-ip': '203.0.113.5' }), res);
+
+      expect(res._status).toBe(500);
+      expect(res._json).toMatchObject({
+        error: 'API configuration error',
+        message: 'Rate limiting is not configured',
+      });
+      expect(ran).not.toHaveBeenCalled();
+    });
+
+    it("fails closed (500) when Unkey's own workspace quota is exhausted (429)", async () => {
+      ratelimitLimitMock.mockRejectedValueOnce(unkeyHttpError(429));
+      const { handler, ran } = await anonymousHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest({ 'x-real-ip': '203.0.113.5' }), res);
+
+      expect(res._status).toBe(500);
+      expect(ran).not.toHaveBeenCalled();
+      expect(unavailableWarning()).toBeUndefined();
+      const errorLines = vi
+        .mocked(console.error)
+        .mock.calls.map(([logged]) => String(logged));
+      const quotaLine = errorLines.find((logged) =>
+        logged.includes('"message":"Unkey quota exhausted"')
+      );
+      expect(quotaLine).toContain('"statusCode":429');
+      expect(errorLines.join('\n')).not.toContain('secret-ish response body');
+    });
+
+    it('still answers 500 for an unclassified Unkey error', async () => {
+      ratelimitLimitMock.mockRejectedValueOnce(new Error('Something broke'));
+      const { handler, ran } = await anonymousHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest({ 'x-real-ip': '203.0.113.5' }), res);
+
+      expect(res._status).toBe(500);
+      expect(res._json).toMatchObject({ error: 'Internal server error' });
       expect(ran).not.toHaveBeenCalled();
     });
   });
@@ -911,6 +1152,13 @@ describe('withHandler', () => {
           duration: ANONYMOUS_UPSTREAM_DAILY_WINDOW_MS,
           cost: 1,
         },
+      ]);
+      expect(
+        ratelimitLimitMock.mock.calls.map(([, options]) => options)
+      ).toEqual([
+        RATE_LIMIT_REQUEST_OPTIONS,
+        RATE_LIMIT_REQUEST_OPTIONS,
+        RATE_LIMIT_REQUEST_OPTIONS,
       ]);
       // A passing global check leaves the caller's own per-IP headers alone
       expectNoGlobalState(res);
@@ -1029,6 +1277,47 @@ describe('withHandler', () => {
 
       expect(res._status).toBe(200);
       expect(ran).toHaveBeenCalledOnce();
+    });
+
+    it('skips the budget when the per-IP check timed out, so the request waits out one timeout, not two', async () => {
+      vi.stubEnv('NODE_ENV', 'production');
+      ratelimitLimitMock.mockRejectedValue(
+        new RequestTimeoutError('Request timed out', {
+          cause: new DOMException('signal timed out', 'TimeoutError'),
+        })
+      );
+      const { handler, ran } = await budgetedHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest(), res);
+
+      expect(res._status).toBe(200);
+      expect(ran).toHaveBeenCalledOnce();
+      expect(ratelimitLimitMock).toHaveBeenCalledOnce();
+      expect(identifiers()).toEqual(['203.0.113.5']);
+    });
+
+    it('logs only the name and status of a failed budget check, never the response body', async () => {
+      ratelimitLimitMock.mockImplementation(async (opts) => {
+        if (opts.identifier === BURST) {
+          throw unkeyHttpError(503);
+        }
+        return passingLimit(opts.limit);
+      });
+      const { handler, ran } = await budgetedHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest(), res);
+
+      expect(res._status).toBe(200);
+      expect(ran).toHaveBeenCalledOnce();
+      const line = vi
+        .mocked(console.warn)
+        .mock.calls.map(([logged]) => String(logged))
+        .find((logged) => logged.includes('Upstream budget skipped'));
+      expect(line).toContain('"errorName":"APIError"');
+      expect(line).toContain('"statusCode":503');
+      expect(line).not.toContain('secret-ish response body');
     });
 
     it('fails open when Unkey is not configured', async () => {
@@ -1317,6 +1606,17 @@ describe('withHandler', () => {
 
       // Should still be 200 from the handler, not overwritten to 500
       expect(res._status).toBe(200);
+    });
+  });
+
+  describe('real Unkey client', () => {
+    it('builds the SDK client with a timeout, so a hung Unkey cannot hold a request', async () => {
+      const { createRealUnkeyClient } = await import('../withHandler');
+      const client = createRealUnkeyClient('root-key');
+
+      expect(client).toBeInstanceOf(Unkey);
+      // `_options` is the SDK's public read-only copy of its constructor options
+      expect(client instanceof Unkey && client._options.timeoutMs).toBe(3000);
     });
   });
 
