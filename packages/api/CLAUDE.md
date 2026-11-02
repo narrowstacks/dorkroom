@@ -32,8 +32,29 @@ useQuery({ queryKey: ['films'], queryFn: fetchFilms });
 ```
 
 `fetchFilms`, `fetchDevelopers`, and `fetchCombinations` take an optional
-`{ signal }`, so the TanStack Query context can be passed straight through as
-`queryFn`. Stats is exported as `fetchStatsForQuery` with the same shape.
+options object: `{ signal }` plus typed query params matching the OpenAPI
+spec, so the TanStack Query context can still be passed straight through as
+`queryFn`. Only the documented param keys are read, so the context's other
+fields never reach the URL. Values are URL-encoded, `undefined` is omitted, and
+a call with no params requests the bare collection. Stats is exported as
+`fetchStatsForQuery` with the `{ signal }` shape.
+
+```typescript
+fetchFilms({ slug: 'kodak-tri-x-400' });
+fetchFilms({ brand: 'Ilford', colorType: 'bw', limit: 20 });
+fetchDevelopers({ type: 'powder', manufacturer: 'Ilford' });
+fetchCombinations({ film: 'ilford-hp5-plus', count: 50, page: 2 });
+```
+
+| Fetcher | Params |
+| --- | --- |
+| `fetchFilms` | `query`, `limit`, `slug`, `colorType`, `brand` |
+| `fetchDevelopers` | `query`, `limit`, `slug`, `type`, `manufacturer` |
+| `fetchCombinations` | `film`, `developer`, `id`, `count`, `page`, `query`, `limit` |
+
+`fuzzy` is accepted but `@deprecated`: the API ignores it, and the client never
+sends it unless you set it. Keep the param lists in `client.ts` in step with
+`openapi.ts`.
 
 ### External (npm consumers)
 
