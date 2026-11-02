@@ -42,7 +42,7 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
 
   // Focus returns to the toggle on close even when the tap that opened the
   // menu never focused it (iOS Safari does not focus tapped buttons). Layout
-  // effect so focus leaves the close button before its nav turns aria-hidden.
+  // effect so focus leaves the close button before its nav turns inert.
   useLayoutEffect(() => {
     if (wasOpenRef.current && !isMobileMenuOpen) {
       toggleButtonRef.current?.focus();
@@ -126,9 +126,10 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
             ref={backdropRef}
             className={cn(
               'fixed inset-0 z-40 backdrop-blur-sm transition-opacity duration-300 lg:hidden',
-              visible
-                ? 'pointer-events-auto opacity-100'
-                : 'pointer-events-none opacity-0'
+              // Stays a tap catcher through the exit (its click is a no-op once
+              // closed): the drawer ignores taps while sliding out, and
+              // without this they would land on the page links underneath.
+              visible ? 'opacity-100' : 'opacity-0'
             )}
             style={{
               backgroundColor: 'rgba(var(--color-background-rgb), 0.6)',
@@ -146,7 +147,7 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
             id="mobile-navigation"
             className={cn(
               'fixed right-0 top-0 z-50 h-dvh w-72 border-l pb-[calc(env(safe-area-inset-bottom)+5rem)] shadow-xl backdrop-blur transition-transform duration-300 ease-out lg:hidden',
-              visible ? 'translate-x-0' : 'translate-x-full'
+              visible ? 'translate-x-0' : 'pointer-events-none translate-x-full'
             )}
             style={{
               backgroundColor: 'rgba(var(--color-background-rgb), 0.95)',
@@ -155,7 +156,9 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
             // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a native <dialog> is display:none when closed and breaks the slide transition; role="dialog" is required so aria-modal is valid here
             // eslint-disable-next-line react-doctor/prefer-html-dialog, react-doctor/prefer-tag-over-role -- native <dialog> is display:none when closed, which breaks the slide-in transition; this is an intentional custom modal
             role="dialog"
-            aria-hidden={!isMobileMenuOpen}
+            // inert (not just aria-hidden) while it slides out: the links leave
+            // the tab order and the a11y tree at once, and it implies hidden (#603).
+            inert={!isMobileMenuOpen}
             aria-modal={isMobileMenuOpen || undefined}
             aria-label="Navigation menu"
           >
