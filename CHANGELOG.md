@@ -22,6 +22,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Fixed
 
+- **The dev server port can be pinned again.** `MFE_APP_PORT=4200 bun run dev` was ignored (turbo filtered the variable out), so the dev server always started on port 4503, which broke the Docker setup that publishes port 4200. The variable now reaches the dev server. (fixes #592)
 - **Development time is visible on tablets.** On the development recipes table, the filters sidebar now starts collapsed below 1280px wide, such as on tablets (an iPad in portrait) and narrow windows, so the Time column fits without scrolling sideways. Expand the sidebar any time with its toggle. (#586)
 - **Searches with commas work, and names match themselves.** A `query` containing a comma used to fail on `/developers` with a 502. In film, developer and recipe searches, accents now count and any run of punctuation or symbols (apostrophes, `+`, `/`, commas) matches any characters, so `Photographers' Formulary`, `Spürsinn`, `ADX A+B` and `Rodinal/Adonal` find themselves instead of having those characters stripped, and `HP5+` still finds `HP5 Plus`. A search with no letter or digit returns a 400 on all three. (fixes #333)
 - **The API docs no longer promise fuzzy search.** `query` is a case-insensitive partial match, not an exact one, and `fuzzy` never did anything. It is now marked deprecated and ignored (still accepted, so existing clients keep working). (fixes #333)
