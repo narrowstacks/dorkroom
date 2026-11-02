@@ -302,6 +302,7 @@ describe('findBestFilmMatch against the real catalogue (filmdev.org names)', () 
     film('catlabs-x-film-80', 'CatLABS', 'X Film 80', 80),
     film('rollei-infrared-400', 'Rollei', 'Infrared 400', 400),
     film('bergger-brf-400', 'Bergger', 'BRF 400', 400),
+    film('washi-s', 'Washi', 'S', 50),
     film('bergger-brf-400-plus', 'Bergger', 'BRF 400 Plus', 400),
   ];
 
@@ -329,6 +330,7 @@ describe('findBestFilmMatch against the real catalogue (filmdev.org names)', () 
     ['Ilford HP5+ 400', 'ilford-hp5-plus'],
     ['Ilford FP4+ 125', 'ilford-fp4-plus'],
     ['Ilford Pan F+ 50', 'ilford-pan-f-plus'],
+    ['Ilford Pan F', 'ilford-pan-f-plus'],
     ['Rollei Infrared IR 400', 'rollei-infrared-400'],
     ['Lomography Earl Grey 100', 'lomography-earl-grey-100'],
     ['Bergger BRF-400', 'bergger-brf-400'],
@@ -349,6 +351,8 @@ describe('findBestFilmMatch against the real catalogue (filmdev.org names)', () 
     // A different product in a known line
     'Foma Fomapan Ortho 400',
     'Ilford Pan 100',
+    // A lone letter needs the brand behind it
+    'Shanghai 100B/S',
   ])('creates a custom film for "%s"', (query) => {
     expect(findBestFilmMatch(query, catalogue)).toBeNull();
   });

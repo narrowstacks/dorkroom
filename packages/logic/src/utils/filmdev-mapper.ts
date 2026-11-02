@@ -82,9 +82,15 @@ function tokenize(str: string): string[] {
  * matched by either name and "T-MAX/Ektapan 400" by "T-Max 400".
  */
 function expandAlternatives(name: string): string[] {
-  const match = name.match(/(\S+)\/(\S+)/);
-  if (!match) return [name];
-  return [name.replace(match[0], match[1]), name.replace(match[0], match[2])];
+  // Word-level split rather than a regex: catalogue names are library input,
+  // and a backtracking pattern over them is a ReDoS risk (CodeQL).
+  const words = name.split(' ');
+  const index = words.findIndex((word) => word.includes('/'));
+  if (index === -1) return [name];
+  const [first, ...rest] = words[index].split('/');
+  return [first, rest.join('/')].map((alt) =>
+    [...words.slice(0, index), alt, ...words.slice(index + 1)].join(' ')
+  );
 }
 
 interface ParsedQuery {
@@ -178,7 +184,6 @@ function scoreCandidate(
       (token) =>
         !GENERIC_WORDS.has(token) &&
         !SUFFIX_WORDS.has(token) &&
-        token.length > 1 &&
         !isIsoToken(token)
     );
     // Adjacent name tokens joined, so "BRF 400" can meet "BRF-400".
@@ -227,6 +232,8 @@ function scoreCandidate(
       if (matched.length === 0) continue;
       // A partial name match must be backed by the brand.
       if (unmatchedCount > 0 && !brandMatched) continue;
+      // So must one that rests only on single letters ("Pan F", "Washi S").
+      if (!brandMatched && matched.every((t) => t.length === 1)) continue;
       if (unexplained.length > 0) {
         // An unexplained word plus a missing one means a different product.
         const suffixMissing = nameTokens.some(
@@ -321,7 +328,8 @@ export function findBestDeveloperMatch(
   if (!filmdevDeveloperString.trim() || !availableDevelopers.length)
     return null;
   // "A + B" between words is a blend; "1+2" is a dilution and stays.
-  if (/[a-z0-9]\s*\+\s*[a-z]/i.test(filmdevDeveloperString)) return null;
+  const collapsed = filmdevDeveloperString.replace(/\s+/g, ' ');
+  if (/[a-z0-9] ?\+ ?[a-z]/i.test(collapsed)) return null;
   const query = parseQuery(filmdevDeveloperString);
 
   return pickBest(availableDevelopers, (developer) =>
