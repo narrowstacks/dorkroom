@@ -1,5 +1,4 @@
 import {
-  buildQueryString,
   DorkroomApiClient,
   fetchCombinations,
   fetchDevelopers,
@@ -7,6 +6,7 @@ import {
   fetchStatsForQuery,
   PUBLIC_API_BASE_URL,
 } from '../../dorkroom/client';
+import { buildQueryString } from '../../dorkroom/query-string';
 import type {
   RawCombination,
   RawDeveloper,

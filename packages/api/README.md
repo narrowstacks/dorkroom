@@ -51,7 +51,15 @@ const films = await fetchFilms({ signal: controller.signal });
 // Without options
 const developers = await fetchDevelopers();
 const combinations = await fetchCombinations();
+
+// Filters (typed, all optional, URL-encoded for you)
+const triX = await fetchFilms({ slug: 'kodak-tri-x-400' });
+const ilfordBw = await fetchFilms({ brand: 'Ilford', colorType: 'bw', limit: 20 });
+const page2 = await fetchCombinations({ film: 'ilford-hp5-plus', count: 50, page: 2 });
 ```
+
+`fuzzy` is still accepted but deprecated: the API ignores it and the client
+never sends it unless you set it.
 
 ### With TanStack Query
 
@@ -239,18 +247,16 @@ const client = new DorkroomApiClient({
 
 ## TanStack Query Integration
 
-The convenience functions (`fetchFilms`, `fetchDevelopers`, `fetchCombinations`) are designed to work seamlessly with TanStack Query's `QueryFunctionContext`:
+The convenience functions (`fetchFilms`, `fetchDevelopers`, `fetchCombinations`) accept TanStack Query's `QueryFunctionContext` directly, so cancellation works with no wiring:
 
 ```typescript
-import type { QueryFunctionContext } from '@tanstack/react-query';
+useQuery({ queryKey: ['films'], queryFn: fetchFilms });
 
-// Automatic signal handling for request cancellation
-export const fetchFilms = async (context?: QueryFunctionContext) => {
-  const response = await fetch(`${BASE_URL}/films`, {
-    signal: context?.signal,
-  });
-  // ... rest of implementation
-};
+// With filters, put the params in the queryKey
+useQuery({
+  queryKey: ['films', { slug }],
+  queryFn: ({ signal }) => fetchFilms({ signal, slug }),
+});
 ```
 
 ## Development

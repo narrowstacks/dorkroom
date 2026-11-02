@@ -52,6 +52,9 @@ fetchCombinations({ film: 'ilford-hp5-plus', count: 50, page: 2 });
 | `fetchDevelopers` | `query`, `limit`, `slug`, `type`, `manufacturer` |
 | `fetchCombinations` | `film`, `developer`, `id`, `count`, `page`, `query`, `limit` |
 
+A parameterised `useQuery` must include the params in its `queryKey`, e.g.
+`queryKey: ['films', { slug }], queryFn: ({ signal }) => fetchFilms({ signal, slug })`.
+
 `fuzzy` is accepted but `@deprecated`: the API ignores it, and the client never
 sends it unless you set it. Keep the param lists in `client.ts` in step with
 `openapi.ts`.
