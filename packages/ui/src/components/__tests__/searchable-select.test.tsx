@@ -32,6 +32,7 @@ describe('SearchableSelect ARIA wiring', () => {
     const { input } = setup();
     expect(input).toHaveAttribute('aria-expanded', 'false');
     expect(input).not.toHaveAttribute('aria-controls');
+    expect(input).toHaveAttribute('aria-expanded', 'false');
     expect(input).not.toHaveAttribute('aria-activedescendant');
   });
 
@@ -106,10 +107,13 @@ describe('SearchableSelect ARIA wiring', () => {
   it('drops aria-activedescendant when filtering leaves no focused option', async () => {
     const user = userEvent.setup();
     const { input } = setup('b');
+    // The live region is mounted before it has anything to say.
+    expect(screen.getByRole('status')).toHaveTextContent('');
     await user.click(input);
     await user.keyboard('zzz');
     expect(input).not.toHaveAttribute('aria-activedescendant');
     expect(input).not.toHaveAttribute('aria-controls');
+    expect(input).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryAllByRole('option')).toHaveLength(0);
     // The empty message is announced, and lives outside the listbox.
     expect(screen.queryByRole('listbox')).toBeNull();
@@ -174,5 +178,20 @@ describe('SearchableSelect ARIA wiring', () => {
     fireEvent.pointerDown(touchOption, { pointerType: 'touch' });
     fireEvent.click(touchOption);
     expect(input).not.toHaveFocus();
+  });
+
+  it('blurs after a pen pick, but not after a click with no pointerdown', async () => {
+    const user = userEvent.setup();
+    const { input } = setup('b');
+    await user.click(input);
+    const pen = screen.getByRole('option', { name: 'Gamma' });
+    fireEvent.pointerDown(pen, { pointerType: 'pen' });
+    fireEvent.click(pen);
+    expect(input).not.toHaveFocus();
+
+    await user.click(input);
+    // Screen reader or Voice Control activation: click only.
+    fireEvent.click(screen.getByRole('option', { name: 'Alpha' }));
+    expect(input).toHaveFocus();
   });
 });
