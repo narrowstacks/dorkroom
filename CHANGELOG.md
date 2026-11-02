@@ -30,6 +30,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - **The custom recipe form lists every film and developer**, including ones that don't have a recipe yet.
 - **filmdev.org recipes shot at box speed import at box speed.** Recipes that don't say what speed the film was shot at came in as ISO 400, so a recipe for a 100-speed film showed as "pushed 2 stops". They now use the film's own speed.
 - **Pages no longer scroll sideways on tablets and narrow windows.** Between 640 and about 1090 px wide the top bar was wider than the window, cutting off its right end. Windows narrower than 1024 px now get the menu and search buttons at the bottom right, as on phones, and the full top bar fits from 1024 px up. (fixes #548)
+- **Pages open faster.** Hovering, focusing or touching a link to a page now starts loading it, and /development and /films start fetching their films, developers and recipes at the same time as the page itself instead of waiting for it to arrive. (fixes #354)
 
 ## [2026.10.30]
 

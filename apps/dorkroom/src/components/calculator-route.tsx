@@ -8,6 +8,7 @@ import { type ComponentType, Suspense, useEffect, useState } from 'react';
 import { z } from 'zod';
 import type { CalculatorTool } from '../app/lib/analytics/tracked-events';
 import { useShareOpened } from '../app/lib/analytics/use-share-analytics';
+import { preloadPage } from '../app/lib/lazy-page';
 import { LoadingSpinner } from './loading-spinner';
 
 /**
@@ -159,6 +160,10 @@ export function calculatorRoute<const M extends CalculatorLinkParamMap>(
   ) as Record<keyof M & string, typeof optionalString>;
   return {
     validateSearch: z.object(linkParamFields).catchall(optionalString),
+    // Starts the page chunk on intent and at navigation without holding the
+    // navigation for it, when the page is a `lazyPage` (a route's always is):
+    // see lazyPage.
+    loader: () => preloadPage(page),
     component: () => (
       <CalculatorRoute tool={tool} params={params} page={page} />
     ),

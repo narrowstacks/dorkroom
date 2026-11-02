@@ -1,9 +1,10 @@
 import { ROUTE_DESCRIPTIONS, ROUTE_TITLES } from '@dorkroom/ui';
 import { createFileRoute } from '@tanstack/react-router';
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
+import { lazyPage } from '../app/lib/lazy-page';
 import { LoadingSpinner } from '../components/loading-spinner';
 
-const HomePage = lazy(() => import('../app/pages/home-page'));
+const HomePage = lazyPage(() => import('../app/pages/home-page'));
 
 export const Route = createFileRoute('/')({
   head: () => ({
@@ -14,6 +15,7 @@ export const Route = createFileRoute('/')({
       { property: 'og:description', content: ROUTE_DESCRIPTIONS['/'] },
     ],
   }),
+  loader: () => HomePage.preload(),
   component: () => (
     <Suspense fallback={<LoadingSpinner />}>
       <HomePage />

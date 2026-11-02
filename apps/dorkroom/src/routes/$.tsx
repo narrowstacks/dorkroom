@@ -1,8 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
+import { lazyPage } from '../app/lib/lazy-page';
 import { LoadingSpinner } from '../components/loading-spinner';
 
-const NotFoundPage = lazy(() => import('../app/pages/not-found-page'));
+const NotFoundPage = lazyPage(() => import('../app/pages/not-found-page'));
 
 export const Route = createFileRoute('/$')({
   head: () => ({
@@ -15,6 +16,7 @@ export const Route = createFileRoute('/$')({
       },
     ],
   }),
+  loader: () => NotFoundPage.preload(),
   component: () => (
     <Suspense fallback={<LoadingSpinner />}>
       <NotFoundPage />

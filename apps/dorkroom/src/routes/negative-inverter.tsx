@@ -1,9 +1,10 @@
 import { ROUTE_DESCRIPTIONS, ROUTE_TITLES } from '@dorkroom/ui';
 import { createFileRoute } from '@tanstack/react-router';
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
+import { lazyPage } from '../app/lib/lazy-page';
 import { LoadingSpinner } from '../components/loading-spinner';
 
-const NegativeInverterPage = lazy(
+const NegativeInverterPage = lazyPage(
   () => import('../app/pages/negative-inverter/negative-inverter-page')
 );
 
@@ -22,6 +23,7 @@ export const Route = createFileRoute('/negative-inverter')({
       },
     ],
   }),
+  loader: () => NegativeInverterPage.preload(),
   component: () => (
     <Suspense fallback={<LoadingSpinner />}>
       <NegativeInverterPage />
