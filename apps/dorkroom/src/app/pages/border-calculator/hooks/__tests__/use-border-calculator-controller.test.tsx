@@ -14,7 +14,7 @@ import {
   ToastProvider,
   useMeasurement,
 } from '@dorkroom/ui';
-import { act, renderHook, screen } from '@testing-library/react';
+import { act, renderHook, screen, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useBorderCalculatorController } from '../use-border-calculator-controller';
@@ -286,7 +286,9 @@ describe('useBorderCalculatorController unit-aware messages (#343)', () => {
     setCustomPaper(result, '5', '5');
 
     expect(
-      await screen.findByText('Border reduced to 2.2cm to fit paper size')
+      within(await screen.findByTestId('toast')).getByText(
+        'Border reduced to 2.2cm to fit paper size'
+      )
     ).toBeTruthy();
   });
 
@@ -298,7 +300,9 @@ describe('useBorderCalculatorController unit-aware messages (#343)', () => {
     setCustomPaper(result, '2', '2');
 
     expect(
-      await screen.findByText('Border reduced to 0.88" to fit paper size')
+      within(await screen.findByTestId('toast')).getByText(
+        'Border reduced to 0.88" to fit paper size'
+      )
     ).toBeTruthy();
   });
 });

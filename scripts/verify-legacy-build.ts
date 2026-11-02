@@ -2,7 +2,7 @@
  * Verify the @vitejs/plugin-legacy dual-bundle output in a real browser
  * (headless Chrome through `Bun.WebView`, see webview-capture.ts).
  *
- * Two things must hold for the Kindle-browser support (PR #92) to be both
+ * Three things must hold for the Kindle-browser support (PR #92) to be both
  * effective and safe:
  *
  *   1. MODERN PATH (regression guard): a modern, ES-module-capable browser must
@@ -16,6 +16,10 @@
  *      legacy path by rewriting index.html (drop the module scripts, un-gate the
  *      `nomodule` scripts) and confirm the SystemJS/ES5 bundle renders the app.
  *
+ *   3. ES5 SYNTAX: Chrome parses ES2015+, so (2) passes even when the legacy
+ *      chunks are not ES5. Every `*-legacy-*.js` file and every classic inline
+ *      script in index.html is therefore parsed with acorn at ecmaVersion 5.
+ *
  * Usage:
  *   1. bun run build            # inside apps/dorkroom (produces dist/)
  *   2. bun run scripts/verify-legacy-build.ts
@@ -27,6 +31,10 @@ import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  classicInlineScripts,
+  es5SyntaxProblem,
+} from '../apps/dorkroom/es5-syntax';
 import { CaptureView } from './webview-capture';
 
 const root = join(dirname(import.meta.url), '..');
@@ -218,7 +226,46 @@ async function checkLegacyChunksHaveNoPropertyEscapes(): Promise<void> {
   );
 }
 
+/**
+ * Every legacy chunk, and every classic inline script in index.html, must
+ * parse as ES5. The headless-Chrome checks below cannot catch an arrow function
+ * or a template literal, because Chrome parses both; the Kindle browser does
+ * not, and one such token stops the whole bundle (issue #49). The build's
+ * `legacy-es5` plugin enforces the same rule; this checks the files on disk.
+ */
+async function checkLegacyOutputIsEs5(): Promise<void> {
+  const assetsDir = join(distDir, 'assets');
+  const files = (await readdir(assetsDir)).filter((f) =>
+    /-legacy-.*\.js$/.test(f)
+  );
+  const offenders: string[] = [];
+  for (const file of files) {
+    const problem = es5SyntaxProblem(
+      await readFile(join(assetsDir, file), 'utf8')
+    );
+    if (problem) offenders.push(`${file}: ${problem}`);
+  }
+  check(
+    'legacy: every legacy chunk parses as ES5',
+    files.length > 0 && offenders.length === 0,
+    offenders.join(', ')
+  );
+
+  const html = await readFile(join(distDir, 'index.html'), 'utf8');
+  const scripts = classicInlineScripts(html);
+  const htmlOffenders = scripts.flatMap((body, index) => {
+    const problem = es5SyntaxProblem(body);
+    return problem ? [`inline script ${index + 1}: ${problem}`] : [];
+  });
+  check(
+    'legacy: index.html classic inline scripts parse as ES5',
+    htmlOffenders.length === 0,
+    htmlOffenders.join(', ')
+  );
+}
+
 async function run(): Promise<void> {
+  await checkLegacyOutputIsEs5();
   await checkLegacyChunksHaveNoPropertyEscapes();
 
   // ---- 1. MODERN PATH ------------------------------------------------------

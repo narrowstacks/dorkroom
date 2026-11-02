@@ -9,6 +9,20 @@
   "env": {
     "NODE_OPTIONS": "--experimental-require-module"
   },
+  "images": {
+    "sizes": [64, 128, 256, 512],
+    "qualities": [75],
+    "formats": ["image/webp"],
+    "minimumCacheTTL": 2592000,
+    "localPatterns": [],
+    "remotePatterns": [
+      {
+        "protocol": "https",
+        "hostname": "^ukpdbjhbudgsjqsxlays\\.supabase\\.co$",
+        "pathname": "^/storage/v1/object/public/images/films/.*$"
+      }
+    ]
+  },
   "routes": [
     {
       "src": "/",

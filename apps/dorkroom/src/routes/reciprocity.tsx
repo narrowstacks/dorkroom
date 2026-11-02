@@ -1,10 +1,10 @@
 import { RECIPROCITY_CALCULATOR_LINK_PARAMS } from '@dorkroom/logic';
 import { ROUTE_DESCRIPTIONS, ROUTE_TITLES } from '@dorkroom/ui';
 import { createFileRoute } from '@tanstack/react-router';
-import { lazy } from 'react';
+import { lazyPage } from '../app/lib/lazy-page';
 import { calculatorRoute } from '../components/calculator-route';
 
-const ReciprocityCalculatorPage = lazy(
+const ReciprocityCalculatorPage = lazyPage(
   () =>
     import('../app/pages/reciprocity-calculator/reciprocity-calculator-page')
 );

@@ -1,6 +1,6 @@
-import { type Developer, fetchDevelopers } from '@dorkroom/api';
+import type { Developer } from '@dorkroom/api';
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '../../queries/query-keys';
+import { developersQueryOptions } from '../../queries/api-query-options';
 import type { QueryHookOptions } from './query-hook-options';
 
 /**
@@ -12,8 +12,7 @@ import type { QueryHookOptions } from './query-hook-options';
  */
 export function useDevelopers({ enabled = true }: QueryHookOptions = {}) {
   return useQuery<Developer[]>({
-    queryKey: queryKeys.developers.list(),
-    queryFn: fetchDevelopers,
+    ...developersQueryOptions(),
     enabled,
   });
 }
