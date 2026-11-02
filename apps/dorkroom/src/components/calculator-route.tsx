@@ -5,9 +5,13 @@ import {
 } from '@dorkroom/logic';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { type ComponentType, Suspense, useEffect, useState } from 'react';
-import { z } from 'zod';
 import type { CalculatorTool } from '../app/lib/analytics/tracked-events';
 import { useShareOpened } from '../app/lib/analytics/use-share-analytics';
+import {
+  type ParamParser,
+  searchSchemaWithRest,
+  stringParam,
+} from '../routes/search-schemas';
 import { LoadingSpinner } from './loading-spinner';
 
 /**
@@ -31,8 +35,6 @@ export interface CalculatorLinkProps<
 type CalculatorPage<P extends string> = ComponentType<{
   linkSearch?: CalculatorLinkSearch<P>;
 }>;
-
-const optionalString = z.string().optional().catch(undefined);
 
 /** The calculator's own params among the URL's search values. */
 function pickLinkParams<P extends string>(
@@ -136,8 +138,8 @@ function CalculatorRoute<P extends string>({
  * reports opened shares as and the calculator's link param map
  * (`*_LINK_PARAMS` in @dorkroom/logic, which has no runtime imports, so the
  * route stays light). `validateSearch` keeps every param an optional string:
- * a catch-all rather than `z.looseObject`, so other
- * params (border's `?preset=`) survive with a string type, not `unknown`.
+ * a catch-all (`searchSchemaWithRest`), so other params (border's
+ * `?preset=`) survive with a string type, not `unknown`.
  *
  * @example
  * ```tsx
@@ -152,13 +154,15 @@ export function calculatorRoute<const M extends CalculatorLinkParamMap>(
   params: M,
   page: CalculatorPage<NoInfer<keyof M & string>>
 ) {
-  // SAFETY: built from the keys of `params`, one optional string per param
+  // SAFETY: built from the keys of `params`, one string parser per param
   // name; Object.fromEntries widens the keys to string.
   const linkParamFields = Object.fromEntries(
-    Object.keys(params).map((name) => [name, optionalString])
-  ) as Record<keyof M & string, typeof optionalString>;
+    Object.keys(params).map((name) => [name, stringParam])
+  ) as Record<keyof M & string, ParamParser<string>>;
   return {
-    validateSearch: z.object(linkParamFields).catchall(optionalString),
+    // Plain validators, not zod: every calculator route's `validateSearch` is
+    // in the entry chunk, so its imports load on every page (issue #352).
+    validateSearch: searchSchemaWithRest(linkParamFields, stringParam),
     component: () => (
       <CalculatorRoute tool={tool} params={params} page={page} />
     ),
