@@ -13,10 +13,12 @@ const STANDARD_ISOS = new Set([
 ]);
 
 /**
- * Extracts a standard ISO speed from a film name string.
+ * Extracts a standard ISO speed from a film name string. Splits on every
+ * separator, hyphens included, so "Pan-100" still yields 100 even though
+ * name matching joins it into "pan100".
  */
 function extractIsoFromString(str: string): number | null {
-  for (const token of tokenize(str)) {
+  for (const token of str.toLowerCase().split(/[^a-z0-9]+/)) {
     if (/^\d+$/.test(token) && STANDARD_ISOS.has(Number(token))) {
       return Number(token);
     }

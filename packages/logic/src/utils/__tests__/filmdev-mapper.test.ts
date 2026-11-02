@@ -316,6 +316,7 @@ describe('findBestFilmMatch against the real catalogue (filmdev.org names)', () 
     ['Kentmere Photographic Kentmere 400', 'kentmere-pan-400'],
     ['Kentmere PAN 400', 'kentmere-pan-400'],
     ['Kentmere 200', 'kentmere-pan-200'],
+    ['Kentmere Pan-100', 'kentmere-pan-100'],
     ['Agfa Agfapan APX 100', 'agfaphoto-apx-100'],
     ['Rollei Superpan 200', 'rollei-superpan-200'],
     ['Rollei Retro 80S', 'rollei-retro-80s'],
@@ -423,6 +424,18 @@ describe('mapFilmdevRecipeToFormData', () => {
 
       expect(result.shootingIso).toBe(100);
       expect(result.pushPull).toBe(0);
+    });
+
+    it('reads the box speed from a hyphenated film name', () => {
+      const recipe = createMockFilmdevRecipe({
+        film: 'Unknown Pan-100',
+        developed_at: null,
+      });
+
+      const result = mapFilmdevRecipeToFormData(recipe, null, null);
+
+      expect(result.shootingIso).toBe(100);
+      expect(result.customFilm?.isoSpeed).toBe(100);
     });
 
     it('treats a missing developed_at as the box speed in the film name for a custom film', () => {
