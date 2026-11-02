@@ -21,7 +21,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Fixed
 
-- **Development time is visible on tablets.** On the development recipes table at tablet widths (such as an iPad in portrait), the filters sidebar now starts collapsed, so the Time column fits without scrolling sideways. Expand the sidebar any time with its toggle. (#586)
+- **Development time is visible on tablets.** On the development recipes table, the filters sidebar now starts collapsed below 1280px wide, such as on tablets (an iPad in portrait) and narrow windows, so the Time column fits without scrolling sideways. Expand the sidebar any time with its toggle. (#586)
 - **Mat measurements read the way you write them.** On /mat, `3-1/2`, `3 1/2"`, `3 1/2 in`, `3½` and `3 ½` are now 3.5 instead of being cut down to 3, a comma decimal with an inch mark (`20,5 in`) keeps its decimals, and metric fields accept a trailing `cm`. A border or reveal with anything else left over, such as `3abc`, now shows the "Check inputs" message instead of quietly using the leading number or no reveal. (fixes #340)
 - **A third of a stop is exact on the Stops page.** The page worked a third of a stop out as 0.33, so 12s +1/3 gave 15.08s while the home search said 15.12s. Thirds and two-thirds are now exact, from the +1/3 buttons, a typed 0.33, or a link, including older shared links, and three +1/3 presses add exactly one stop. The multiplier reads ×1.260. (fixes #551)
 

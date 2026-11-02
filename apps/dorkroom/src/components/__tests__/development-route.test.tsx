@@ -180,7 +180,7 @@ beforeEach(() => {
   // Desktop width: the detail panel is a region beside the table.
   vi.stubGlobal('matchMedia', (query: string) => ({
     // Desktop: min-width breakpoints hold, the mobile max-width query does not.
-    matches: query.includes('min-width'),
+    matches: /\(min-width:\s*\d+px\)/.test(query),
     media: query,
     onchange: null,
     addEventListener: () => undefined,

@@ -137,22 +137,30 @@ const CUSTOM: CustomRecipe = {
 
 // --- viewport ---------------------------------------------------------------
 
-let viewportIsMobile = false;
-let viewportIsTablet = false;
+const DESKTOP_WIDTH = 1440;
+const TABLET_WIDTH = 820;
+const MOBILE_WIDTH = 600;
+let viewportWidth = DESKTOP_WIDTH;
+
+/** Evaluates `min-width` / `max-width` px queries; anything else is false. */
+function matchesViewport(query: string): boolean {
+  const min = /\(min-width:\s*(\d+)px\)/.exec(query);
+  if (min) return viewportWidth >= Number(min[1]);
+  const max = /\(max-width:\s*(\d+)px\)/.exec(query);
+  if (max) return viewportWidth <= Number(max[1]);
+  return false;
+}
 const mediaListeners = new Set<(event: { matches: boolean }) => void>();
 
 function setViewport(mobile: boolean) {
-  viewportIsMobile = mobile;
+  viewportWidth = mobile ? MOBILE_WIDTH : DESKTOP_WIDTH;
   for (const listener of mediaListeners) listener({ matches: mobile });
 }
 
 function stubMatchMedia() {
   vi.stubGlobal('matchMedia', (query: string) => ({
     get matches() {
-      // min-width queries (breakpoints) hold at desktop, fail on mobile.
-      return query.includes('max-width')
-        ? viewportIsMobile
-        : !viewportIsMobile && !(viewportIsTablet && query.includes('1280'));
+      return matchesViewport(query);
     },
     media: query,
     onchange: null,
@@ -197,8 +205,7 @@ function renderPage({
   search?: string;
   customRecipes?: CustomRecipe[];
 }) {
-  viewportIsMobile = mobile;
-  viewportIsTablet = tablet;
+  viewportWidth = mobile ? MOBILE_WIDTH : tablet ? TABLET_WIDTH : DESKTOP_WIDTH;
   window.history.replaceState(null, '', `/development${search}`);
   if (customRecipes.length > 0) {
     localStorage.setItem(
@@ -606,5 +613,12 @@ describe('DevelopmentRecipesPage at tablet width', () => {
     expect(
       screen.queryByRole('button', { name: 'Collapse filters' })
     ).not.toBeInTheDocument();
+  });
+
+  it('starts with the filters sidebar expanded at desktop width', async () => {
+    renderPage({ mobile: false });
+    expect(
+      await screen.findByRole('button', { name: 'Collapse filters' })
+    ).toBeVisible();
   });
 });
