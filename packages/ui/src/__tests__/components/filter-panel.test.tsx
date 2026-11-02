@@ -51,7 +51,7 @@ describe('FilterPanelContainer toggle accessibility', () => {
     ).toHaveFocus();
   });
 
-  it('does not steal focus when a controlled parent changes the state itself', () => {
+  it('does not steal focus when a controlled parent ignores a toggle and later applies it', async () => {
     const renderPanel = (collapsed: boolean) => (
       <FilterPanelContainer
         activeFilterCount={0}
@@ -62,18 +62,24 @@ describe('FilterPanelContainer toggle accessibility', () => {
         <FilterPanelHeader />
       </FilterPanelContainer>
     );
-    const { rerender } = render(renderPanel(false));
-    // The parent ignores the click, so the state never changes.
+    const { rerender } = render(
+      <>
+        <button type="button">outside</button>
+        {renderPanel(false)}
+      </>
+    );
+    const outside = screen.getByRole('button', { name: 'outside' });
     fireEvent.click(screen.getByRole('button', { name: 'Collapse filters' }));
-    expect(
-      screen.getByRole('button', { name: 'Collapse filters' })
-    ).not.toHaveFocus();
+    outside.focus();
+    // Let the ignored request expire.
+    await new Promise((resolve) => setTimeout(resolve, 5));
 
-    // A later programmatic change to the other value must not move focus.
-    rerender(renderPanel(true));
-    rerender(renderPanel(false));
-    expect(
-      screen.getByRole('button', { name: 'Collapse filters' })
-    ).not.toHaveFocus();
+    rerender(
+      <>
+        <button type="button">outside</button>
+        {renderPanel(true)}
+      </>
+    );
+    expect(outside).toHaveFocus();
   });
 });

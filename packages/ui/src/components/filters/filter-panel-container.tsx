@@ -66,6 +66,11 @@ export const FilterPanelContainer: FC<FilterPanelContainerProps> = ({
   const toggle = useCallback(() => {
     const newCollapsed = !isCollapsed;
     pendingFocus.current = newCollapsed;
+    // A parent that ignores the request never commits, so expire it after the
+    // event's updates have flushed rather than leaving it armed.
+    setTimeout(() => {
+      pendingFocus.current = null;
+    }, 0);
     if (!isControlled) {
       setInternalCollapsed(newCollapsed);
     }
