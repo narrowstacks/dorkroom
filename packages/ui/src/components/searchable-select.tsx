@@ -120,7 +120,15 @@ export function SearchableSelect({
     };
   }, [isListShown]);
 
-  useSwallowOutsideClick(rootRef, isOpen);
+  // Close on a touch or pen press outside without waiting for the platform to
+  // blur the input (iOS Safari sometimes doesn't); blurring also dismisses the
+  // keyboard. Pressing another field still focuses it afterwards.
+  useSwallowOutsideClick(rootRef, isOpen, () => {
+    inputRef.current?.blur();
+    setIsOpen(false);
+    setSearchTerm('');
+    setFocusedIndex(-1);
+  });
 
   // Open the dropdown with a cleared search term and focus the selected item.
   // Opening always clears the search term, so the relevant list is the full

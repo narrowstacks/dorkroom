@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { StrictMode } from 'react';
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { SearchableSelect } from '../searchable-select';
 
 const items = [
@@ -302,6 +302,12 @@ describe('SearchableSelect outside press (#633)', () => {
           onValueChange={onValueChange}
           items={items}
         />
+        <SearchableSelect
+          label="Developer"
+          selectedValue=""
+          onValueChange={vi.fn()}
+          items={items}
+        />
         <button type="button" onClick={onTargetClick}>
           Card
         </button>
@@ -310,19 +316,25 @@ describe('SearchableSelect outside press (#633)', () => {
     return {
       onTargetClick,
       onValueChange,
-      input: screen.getByRole('combobox'),
+      input: screen.getByRole('combobox', { name: 'Film' }),
+      other: screen.getByRole('combobox', { name: 'Developer' }),
       card: screen.getByRole('button', { name: 'Card' }),
     };
   }
 
+  const down = (el: Element, pointerType: string) =>
+    fireEvent.pointerDown(el, { pointerType, isPrimary: true, button: 0 });
+  const up = (el: Element, pointerType: string) =>
+    fireEvent.pointerUp(el, { pointerType, isPrimary: true });
+
   function tap(el: Element, pointerType: string) {
-    fireEvent.pointerDown(el, { pointerType });
-    fireEvent.pointerUp(el, { pointerType });
-    return fireEvent.click(el);
+    down(el, pointerType);
+    up(el, pointerType);
+    return fireEvent.click(el, { detail: 1 });
   }
 
-  it.each(['mouse', 'touch'])(
-    'swallows the %s click that closes the list, then lets the next one through',
+  it.each(['touch', 'pen'])(
+    'closes the list on a %s press outside and swallows its click, then lets the next one through',
     async (pointerType) => {
       const user = userEvent.setup();
       const { input, card, onTargetClick } = setupWithTarget();
@@ -331,41 +343,133 @@ describe('SearchableSelect outside press (#633)', () => {
 
       expect(tap(card, pointerType)).toBe(false);
       expect(onTargetClick).not.toHaveBeenCalled();
-      // The blur is what closes the list; jsdom taps do not move focus.
-      input.blur();
-      await vi.waitFor(() =>
-        expect(input).toHaveAttribute('aria-expanded', 'false')
-      );
-      await act(async () => {}); // flush the effect cleanup
+      // Closed by the hook itself, without waiting for a platform blur.
+      expect(input).toHaveAttribute('aria-expanded', 'false');
 
       tap(card, pointerType);
       expect(onTargetClick).toHaveBeenCalledTimes(1);
     }
   );
 
-  it('still swallows the click when the list closes between press and release', async () => {
+  it('lets a mouse click outside through', async () => {
     const user = userEvent.setup();
     const { input, card, onTargetClick } = setupWithTarget();
     await user.click(input);
-    fireEvent.pointerDown(card, { pointerType: 'mouse' });
-    input.blur();
-    await vi.waitFor(() =>
-      expect(input).toHaveAttribute('aria-expanded', 'false')
-    );
-    await act(async () => {}); // flush the effect cleanup
-    fireEvent.pointerUp(card, { pointerType: 'mouse' });
-    fireEvent.click(card);
-    expect(onTargetClick).not.toHaveBeenCalled();
+    expect(tap(card, 'mouse')).toBe(true);
+    expect(onTargetClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not swallow a click with detail 0 after an outside touch press', async () => {
+    const user = userEvent.setup();
+    const { input, card, onTargetClick } = setupWithTarget();
+    await user.click(input);
+    down(card, 'touch'); // pointerup lost
+    fireEvent.click(card, { detail: 0 });
+    expect(onTargetClick).toHaveBeenCalledTimes(1);
   });
 
   it('does not swallow the click after a scroll gesture (pointercancel)', async () => {
     const user = userEvent.setup();
     const { input, card, onTargetClick } = setupWithTarget();
     await user.click(input);
-    fireEvent.pointerDown(card, { pointerType: 'touch' });
+    down(card, 'touch');
     fireEvent.pointerCancel(card, { pointerType: 'touch' });
-    fireEvent.click(card);
+    fireEvent.click(card, { detail: 1 });
     expect(onTargetClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores non-primary pointers', async () => {
+    const user = userEvent.setup();
+    const { input, card, onTargetClick } = setupWithTarget();
+    await user.click(input);
+    fireEvent.pointerDown(card, {
+      pointerType: 'touch',
+      isPrimary: false,
+      button: 0,
+    });
+    fireEvent.click(card, { detail: 1 });
+    expect(onTargetClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens another list when it is pressed while the first is open', async () => {
+    const user = userEvent.setup();
+    const { input, other } = setupWithTarget();
+    await user.click(input);
+    down(other, 'touch');
+    up(other, 'touch');
+    act(() => other.focus()); // the browser's compat mousedown focuses the pressed field
+    fireEvent.click(other, { detail: 1 });
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    expect(other).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  describe('timing', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('stops swallowing 400 ms after pointerup', async () => {
+      const user = userEvent.setup();
+      const { input, card, onTargetClick } = setupWithTarget();
+      await user.click(input);
+      vi.useFakeTimers();
+      down(card, 'touch');
+      up(card, 'touch');
+      act(() => {
+        vi.advanceTimersByTime(399);
+      });
+      // Still armed: swallowed.
+      expect(fireEvent.click(card, { detail: 1 })).toBe(false);
+      expect(onTargetClick).not.toHaveBeenCalled();
+    });
+
+    it('is disarmed once 400 ms have passed since pointerup', async () => {
+      const user = userEvent.setup();
+      const { input, card, onTargetClick } = setupWithTarget();
+      await user.click(input);
+      vi.useFakeTimers();
+      down(card, 'touch');
+      up(card, 'touch');
+      act(() => {
+        vi.advanceTimersByTime(401);
+      });
+      fireEvent.click(card, { detail: 1 });
+      expect(onTargetClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('disarms 1.5 s after pointerdown even if pointerup is lost', async () => {
+      const user = userEvent.setup();
+      const { input, card, onTargetClick } = setupWithTarget();
+      await user.click(input);
+      vi.useFakeTimers();
+      down(card, 'touch');
+      act(() => {
+        vi.advanceTimersByTime(1501);
+      });
+      fireEvent.click(card, { detail: 1 });
+      expect(onTargetClick).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('removes its window listeners on unmount', async () => {
+    const add = vi.spyOn(window, 'addEventListener');
+    const remove = vi.spyOn(window, 'removeEventListener');
+    const { unmount } = render(
+      <SearchableSelect
+        label="Film"
+        selectedValue=""
+        onValueChange={vi.fn()}
+        items={items}
+      />
+    );
+    const added = add.mock.calls.filter(([, , c]) => c === true);
+    expect(added.length).toBeGreaterThan(0);
+    unmount();
+    for (const [type, fn] of added) {
+      expect(remove).toHaveBeenCalledWith(type, fn, true);
+    }
+    add.mockRestore();
+    remove.mockRestore();
   });
 
   it('does not interfere with picking an option or pressing the input', async () => {
