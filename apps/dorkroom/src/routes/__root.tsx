@@ -76,21 +76,24 @@ function RootComponent() {
               first viewport identically regardless of document height (see
               utilities.css). */}
           <div className="backdrop-gradient" aria-hidden="true" />
-          {/* Sticky (and backdrop-blurred) only at sm+, where the header is
-              actually shown. Below sm it is display:none, but iOS 26+ Safari
+          {/* Shown from lg (1024px): narrower, the nav pill and icon group
+              overflow the window and the page scrolls sideways (#548), so
+              phones and tablets get the floating menu toggle instead.
+              Sticky (and backdrop-blurred) only at lg+, where the header is
+              actually shown. Below lg it is display:none, but iOS 26+ Safari
               still samples hidden sticky elements' background-color for the
               status-bar/toolbar bands, which hijacked the tint that should
               come from .backdrop-gradient (see utilities.css). */}
           <header
-            className="z-50 hidden border-b sm:sticky sm:top-[env(safe-area-inset-top)] sm:block sm:backdrop-blur"
+            className="z-50 hidden border-b lg:sticky lg:top-[env(safe-area-inset-top)] lg:block lg:backdrop-blur"
             style={{
               backgroundColor: 'rgba(var(--color-background-rgb), 0.8)',
               borderColor: 'var(--color-border-muted)',
             }}
           >
-            {/* Tighter below xl: with the Search button, the nav and the icon
-                cluster only just fit at 1100px and up. */}
-            <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-6 py-4 sm:px-8 xl:gap-4 xl:px-10">
+            {/* Tighter below xl, and the wordmark is hidden there: with it the
+                header needs about 1092px, so at 1024px it would overflow. */}
+            <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-8 py-4 xl:gap-4 xl:px-10">
               <Link
                 to="/"
                 className="flex items-center gap-3"
@@ -105,13 +108,13 @@ function RootComponent() {
                   <Beaker className="size-10" />
                 </span>
                 <span
-                  className="hidden text-2xl font-semibold tracking-tight sm:block"
+                  className="hidden text-2xl font-semibold tracking-tight xl:block"
                   style={{ fontFamily: 'var(--font-family-display)' }}
                 >
                   Dorkroom
                 </span>
               </Link>
-              <nav className="hidden flex-1 justify-center sm:flex">
+              <nav className="hidden flex-1 justify-center lg:flex">
                 <div
                   className="relative flex max-w-full gap-1 rounded-full border p-1 text-sm backdrop-blur"
                   style={{
@@ -145,7 +148,7 @@ function RootComponent() {
                   ))}
                 </div>
               </nav>
-              <div className="hidden items-center gap-2 sm:flex xl:gap-3">
+              <div className="hidden items-center gap-2 lg:flex xl:gap-3">
                 <NavSearchButton variant="header" search={navSearch} />
                 <Tooltip label="Contribute on GitHub">
                   <a
@@ -207,14 +210,14 @@ function RootComponent() {
           <MobileNav pathname={pathname} onNavigate={handleNavigate} />
           {navSearch.dialog}
 
-          {/* Reserves space below the page content on phones (<640px) so
+          {/* Reserves space below the page content below lg (<1024px) so
               nothing at the bottom of a route's content can end up under the
               floating mobile-nav toggle (`MobileNav`, fixed bottom-right,
-              size-12). At sm+ the toggle is hidden, so the padding is removed
-              there. See issue #345. */}
+              size-12). At lg+ the toggle is hidden, so the padding is removed
+              there. See issues #345 and #548. */}
           <main
             id="main-content"
-            className="pb-[calc(env(safe-area-inset-bottom)+5rem)] sm:pb-0"
+            className="pb-[calc(env(safe-area-inset-bottom)+5rem)] lg:pb-0"
           >
             <Outlet />
           </main>

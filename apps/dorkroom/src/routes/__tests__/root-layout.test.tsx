@@ -72,14 +72,14 @@ async function renderRootLayout() {
 }
 
 describe('root layout', () => {
-  it('reserves space below the main content on small screens so nothing sits under the floating mobile-nav toggle, and removes it at sm+', async () => {
+  it('reserves space below the main content on small screens so nothing sits under the floating mobile-nav toggle, and removes it at lg+', async () => {
     await renderRootLayout();
 
     const main = document.getElementById('main-content');
     expect(main).not.toBeNull();
     expect(main).toHaveClass(
       'pb-[calc(env(safe-area-inset-bottom)+5rem)]',
-      'sm:pb-0'
+      'lg:pb-0'
     );
   });
 });
