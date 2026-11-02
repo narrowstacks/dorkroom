@@ -228,6 +228,16 @@ describe('MatCalculatorPage', () => {
       );
     });
 
+    it('gives the reveal guidance when only the reveal does not parse', () => {
+      const container = renderSettled();
+
+      edit('Enter Reveal (overlap onto art, per side)', '1/8abc');
+
+      expect(announcement(container)).toBe(
+        'No window opening. Check the reveal. Enter a measurement such as 1/8 or 0.125, or leave it empty for no reveal'
+      );
+    });
+
     it('announces when the borders leave no window', () => {
       const container = renderSettled();
 
