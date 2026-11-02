@@ -26,7 +26,7 @@ export function SharedRecipeNotice({
         onDismiss={onDismiss}
         dismissLabel="Dismiss shared recipe message"
       />
-      <output className="contents">
+      <output className="block empty:absolute">
         {isLoading && !message && (
           <span className="block rounded-lg border border-[color:var(--color-border-secondary)] p-3 text-sm text-[color:var(--color-text-secondary)]">
             Loading shared recipe…

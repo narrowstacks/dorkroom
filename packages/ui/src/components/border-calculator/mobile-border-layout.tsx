@@ -141,10 +141,6 @@ export function MobileBorderLayout() {
       : `${currentPreset.name}`;
   }, [currentPreset]);
 
-  const hasWarnings = Boolean(
-    bladeWarning || minBorderWarning || paperSizeWarning || offsetWarning
-  );
-
   // Drawer handlers
   const openDrawerSection = (section: ActiveSection) => {
     setActiveSection(section);
@@ -221,15 +217,14 @@ export function MobileBorderLayout() {
           formatDimensions={formatDimensions}
         />
 
-        {hasWarnings && (
-          <MobileWarningsCard
-            isHighContrast={isHighContrast}
-            bladeWarning={bladeWarning}
-            minBorderWarning={minBorderWarning}
-            paperSizeWarning={paperSizeWarning}
-            offsetWarning={offsetWarning}
-          />
-        )}
+        <MobileWarningsCard
+          isHighContrast={isHighContrast}
+          bladeWarning={bladeWarning}
+          minBorderWarning={minBorderWarning}
+          paperSizeWarning={paperSizeWarning}
+          offsetWarning={offsetWarning}
+          openSection={isDrawerOpen ? activeSection : null}
+        />
 
         <MobileSettingsCard
           isHighContrast={isHighContrast}

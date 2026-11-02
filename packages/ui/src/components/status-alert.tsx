@@ -103,6 +103,12 @@ interface LiveStatusAlertProps {
   className?: string;
   onDismiss?: () => void;
   dismissLabel?: string;
+  /**
+   * Set to false while another live region already announces this same
+   * message (e.g. an open drawer section), so it is not spoken twice. The
+   * region stays mounted, it just has no live role meanwhile.
+   */
+  announce?: boolean;
 }
 
 /**
@@ -115,9 +121,10 @@ interface LiveStatusAlertProps {
  * of it. Render it unconditionally and pass `message` instead of writing
  * `{cond && <StatusAlert />}`.
  *
- * The wrapper is `display: contents`, so it has no box: nothing is visible
- * and no spacing is added while the message is empty. Because a `contents`
- * element is skipped by `space-y-*`, put the alert in a `flex flex-col gap-*`
+ * While the message is empty the wrapper is taken out of flow
+ * (`empty:absolute`, still rendered and in the accessibility tree, unlike
+ * `display: none`), so nothing is visible and a flex `gap-*` ignores it.
+ * `space-y-*` does not ignore it, so put the alert in a `flex flex-col gap-*`
  * parent when it needs spacing from its siblings.
  *
  * Do not place it inside another live region (use `StatusAlert` with
@@ -130,6 +137,7 @@ export function LiveStatusAlert({
   className,
   onDismiss,
   dismissLabel,
+  announce = true,
 }: LiveStatusAlertProps) {
   const alert = message ? (
     <StatusAlert
@@ -142,12 +150,15 @@ export function LiveStatusAlert({
     />
   ) : null;
 
+  if (!announce) {
+    return <div className="block empty:absolute">{alert}</div>;
+  }
   if (action === 'error') {
     return (
-      <div role="alert" className="contents">
+      <div role="alert" className="block empty:absolute">
         {alert}
       </div>
     );
   }
-  return <output className="contents">{alert}</output>;
+  return <output className="block empty:absolute">{alert}</output>;
 }

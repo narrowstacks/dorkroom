@@ -178,6 +178,7 @@ function describeMatResult(
     MatCalculation,
     | 'fmt'
     | 'valid'
+    | 'revealValid'
     | 'revealMode'
     | 'revVal'
     | 'windowW'
@@ -188,7 +189,9 @@ function describeMatResult(
   >
 ): string {
   if (!calc.valid) {
-    return 'No window opening. Check the inputs';
+    return calc.revealValid
+      ? 'No window opening. Check the inputs'
+      : 'No window opening. Check the reveal. Enter a measurement such as 1/8 or 0.125, or leave it empty for no reveal';
   }
   const opening = `Window opening ${spokenLength(calc.fmt(calc.windowW))} by ${spokenLength(calc.fmt(calc.windowH))}`;
   if (!calc.revealMode) return opening;

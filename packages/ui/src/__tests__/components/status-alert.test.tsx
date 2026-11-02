@@ -42,10 +42,11 @@ describe('LiveStatusAlert', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
-  it('has no box of its own so it adds no spacing', () => {
-    render(<LiveStatusAlert message={null} />);
+  it('stops announcing, but stays mounted, when announce is false', () => {
+    render(<LiveStatusAlert message="Also shown elsewhere" announce={false} />);
 
-    expect(screen.getByRole('status')).toHaveClass('contents');
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.getByText('Also shown elsewhere')).toBeInTheDocument();
   });
 });
 

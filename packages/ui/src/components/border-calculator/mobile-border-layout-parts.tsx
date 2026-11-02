@@ -85,6 +85,8 @@ interface WarningsCardProps {
   minBorderWarning: string | null;
   paperSizeWarning: string | null;
   offsetWarning: string | null;
+  /** Which drawer section is open, if any: its own alert announces instead. */
+  openSection: ActiveSection | null;
 }
 
 export function MobileWarningsCard({
@@ -93,23 +95,45 @@ export function MobileWarningsCard({
   minBorderWarning,
   paperSizeWarning,
   offsetWarning,
+  openSection,
 }: WarningsCardProps) {
+  const hasWarnings = Boolean(
+    bladeWarning || minBorderWarning || paperSizeWarning || offsetWarning
+  );
+  // The alert regions below stay mounted even with no warnings, so the first
+  // warning is announced; only the card's box is taken out of flow then.
   return (
     <div
-      className="flex flex-col gap-2 rounded-3xl border p-5"
-      style={{
-        borderColor: 'var(--color-border-secondary)',
-        backgroundColor: 'var(--color-surface-muted)',
-        background: 'var(--gradient-card-warning)',
-        boxShadow: isHighContrast
-          ? 'none'
-          : '0 25px 80px -45px var(--color-visualization-overlay)',
-      }}
+      className={
+        hasWarnings
+          ? 'flex flex-col gap-2 rounded-3xl border p-5'
+          : 'absolute flex flex-col'
+      }
+      style={
+        hasWarnings
+          ? {
+              borderColor: 'var(--color-border-secondary)',
+              backgroundColor: 'var(--color-surface-muted)',
+              background: 'var(--gradient-card-warning)',
+              boxShadow: isHighContrast
+                ? 'none'
+                : '0 25px 80px -45px var(--color-visualization-overlay)',
+            }
+          : undefined
+      }
     >
       <LiveStatusAlert message={bladeWarning} action="error" />
-      <LiveStatusAlert message={minBorderWarning} action="error" />
+      <LiveStatusAlert
+        message={minBorderWarning}
+        action="error"
+        announce={openSection !== 'borderSize'}
+      />
       <LiveStatusAlert message={paperSizeWarning} action="warning" />
-      <LiveStatusAlert message={offsetWarning} action="warning" />
+      <LiveStatusAlert
+        message={offsetWarning}
+        action="warning"
+        announce={openSection !== 'positionOffsets'}
+      />
     </div>
   );
 }
