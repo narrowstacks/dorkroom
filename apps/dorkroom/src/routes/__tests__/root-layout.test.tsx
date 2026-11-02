@@ -72,14 +72,27 @@ async function renderRootLayout() {
 }
 
 describe('root layout', () => {
-  it('reserves space below the main content on small screens so nothing sits under the floating mobile-nav toggle, and removes it at sm+', async () => {
+  it('reserves space below the main content on small screens so nothing sits under the floating mobile-nav toggle, and removes it at lg+', async () => {
     await renderRootLayout();
 
     const main = document.getElementById('main-content');
     expect(main).not.toBeNull();
     expect(main).toHaveClass(
       'pb-[calc(env(safe-area-inset-bottom)+5rem)]',
-      'sm:pb-0'
+      'lg:pb-0'
     );
+  });
+
+  it('keeps the logo link named while the wordmark is visually hidden below xl', async () => {
+    await renderRootLayout();
+
+    const wordmark = screen.getByText('Dorkroom', {
+      selector: 'header a span',
+    });
+    // jsdom has no layout, so assert the class: sr-only keeps the text in the
+    // accessibility tree, where display:none would leave the link unnamed.
+    expect(wordmark).toHaveClass('sr-only', 'xl:not-sr-only');
+    expect(wordmark).not.toHaveClass('hidden');
+    expect(wordmark.closest('a')).toHaveAccessibleName('Dorkroom');
   });
 });

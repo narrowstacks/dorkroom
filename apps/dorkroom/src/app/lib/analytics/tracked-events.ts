@@ -1,4 +1,8 @@
-import type { HomeAnswerKind } from '@dorkroom/logic';
+import type {
+  HomeAnswerKind,
+  MeasurementUnit,
+  VolumeUnit,
+} from '@dorkroom/logic';
 import { track } from '@vercel/analytics';
 
 /**
@@ -127,7 +131,9 @@ export interface AnalyticsEvents {
    *    width×height pair and this event carries one number, not two. */
   preset_applied: { tool: CalculatorTool; preset: number };
   theme_changed: { theme: ThemeName };
-  units_changed: { context: 'measurement' | 'volume'; unit: string };
+  units_changed:
+    | { context: 'measurement'; unit: MeasurementUnit }
+    | { context: 'volume'; unit: VolumeUnit };
   /** `filters` is how many filters were active when the search dead-ended.
    *  The query itself is deliberately not sent. */
   search_no_results: { tool: BrowseTool; filters: number };

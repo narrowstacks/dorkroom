@@ -192,7 +192,7 @@ export function MobileBorderLayout() {
       // over the app's decorative backdrop-gradient, rather than showing it
       // through — deliberate, not a leftover, so it's kept. `<main>` in
       // __root.tsx now reserves `calc(env(safe-area-inset-bottom)+5rem)`
-      // below sm so nothing ends up under the floating mobile-nav toggle
+      // below lg so nothing ends up under the floating mobile-nav toggle
       // (#345); a plain `pb-24` here would leave that reserved strip
       // uncovered by this div's background, showing the gradient through as
       // a seam. The negative margin pulls the box back up by the same

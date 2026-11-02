@@ -163,11 +163,11 @@ export const calculatePercentageIncrease = (
  *
  * @param shootingIso - The ISO the film was shot at
  * @param boxSpeed - The film's native ISO (box speed)
- * @returns Number of stops pushed (positive) or pulled (negative), rounded to nearest half-stop
+ * @returns Number of stops pushed (positive) or pulled (negative), rounded to 2 decimal places
  * @example
  * ```typescript
- * // FP4 (ISO 125) shot at 400 = push +1.68 stops (rounds to +1.5)
- * const pushed = calculatePushPull(400, 125); // 1.5
+ * // FP4 (ISO 125) shot at 400 = push +1.68 stops
+ * const pushed = calculatePushPull(400, 125); // 1.68
  *
  * // HP5 (ISO 400) shot at box speed = 0 stops
  * const boxSpeed = calculatePushPull(400, 400); // 0
@@ -175,8 +175,8 @@ export const calculatePercentageIncrease = (
  * // HP5 (ISO 400) pulled to 200 = pull -1 stop
  * const pulled = calculatePushPull(200, 400); // -1
  *
- * // Film shot at 75 when box speed is 100 = pull -0.5 stops
- * const slightPull = calculatePushPull(75, 100); // -0.5
+ * // Film shot at 75 when box speed is 100 = pull -0.42 stops
+ * const slightPull = calculatePushPull(75, 100); // -0.42
  * ```
  */
 export const calculatePushPull = (

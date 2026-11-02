@@ -191,6 +191,11 @@ describe('url helpers', () => {
       'https://evil.com/?next=https://filmdev.org',
       'https://filmdev.org@evil.com/recipe/123',
       'evil.com/filmdev.org',
+      // non-http(s) schemes
+      'javascript://filmdev.org/%0Aalert(1)',
+      'ftp://filmdev.org/recipe/123',
+      'file://filmdev.org/recipe/123',
+      'data://filmdev.org/recipe/123',
       // not a URL at all
       'not a url',
       '',

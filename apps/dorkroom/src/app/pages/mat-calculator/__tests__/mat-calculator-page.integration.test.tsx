@@ -143,6 +143,90 @@ describe('MatCalculatorPage', () => {
     });
   });
 
+  describe('screen-reader announcement (#431)', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    /** Edit a field, then let the announcer's debounce settle. */
+    function edit(title: string, value: string) {
+      fireEvent.change(screen.getByTitle(title), { target: { value } });
+      act(() => vi.advanceTimersByTime(1_000));
+    }
+
+    function announcement(container: HTMLElement): string {
+      return container.querySelector('output[aria-live]')?.textContent ?? '';
+    }
+
+    function renderSettled() {
+      const { container } = renderPage();
+      // Let the load-time message settle as the silent baseline.
+      act(() => vi.advanceTimersByTime(1_000));
+      return container;
+    }
+
+    it('announces when an art edit stops the window matching the reveal', () => {
+      const container = renderSettled();
+
+      // Art 12 wide over the default 10½" window: (12 − 10½) / 2 = ¾" a side.
+      edit('Enter Art width', '12');
+
+      expect(announcement(container)).toBe(
+        "Window opening 10 1/2 inches by 13 1/2 inches; doesn't match the reveal of 1/4 inches, overlap 3/4 inches left and right, overlap 1/4 inches top and bottom"
+      );
+    });
+
+    it('announces when the window matches the reveal again', () => {
+      const container = renderSettled();
+
+      edit('Enter Art width', '12');
+      edit('Enter Art width', '11');
+
+      expect(announcement(container)).toBe(
+        'Window opening 10 1/2 inches by 13 1/2 inches; matches the reveal of 1/4 inches'
+      );
+    });
+
+    it('announces a reveal edit, and a gap when the window is larger than the art', () => {
+      const container = renderSettled();
+
+      edit('Enter Reveal (overlap onto art, per side)', '1/2');
+      expect(announcement(container)).toContain(
+        "doesn't match the reveal of 1/2 inches"
+      );
+
+      edit('Enter Art width', '8');
+      expect(announcement(container)).toContain(
+        'gap 1 1/4 inches left and right'
+      );
+    });
+
+    it('names an empty reveal as no reveal, not a reveal of 0', () => {
+      const container = renderSettled();
+
+      edit('Enter Reveal (overlap onto art, per side)', '');
+      edit('Enter Art width', '12');
+
+      expect(announcement(container)).toContain(
+        "doesn't match the art with no reveal"
+      );
+    });
+
+    it('announces when the borders leave no window', () => {
+      const container = renderSettled();
+
+      edit('Enter Left', '20');
+
+      expect(announcement(container)).toBe(
+        'No window opening. Check the inputs'
+      );
+    });
+  });
+
   describe('imperial preference', () => {
     it('labels the fields in inches and steps by 1/16"', () => {
       renderPage('imperial');

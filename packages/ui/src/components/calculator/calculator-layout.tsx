@@ -80,7 +80,7 @@ export function CalculatorLayout({
         <>
           <div className="mt-6 grid gap-4 md:mt-8 md:gap-5 md:grid-cols-2 md:items-start">
             <div className="space-y-4">{children}</div>
-            <div className="space-y-4 md:sticky md:top-20 md:self-start">
+            <div className="space-y-4 md:sticky md:top-4 md:self-start lg:top-20">
               {results}
             </div>
           </div>
