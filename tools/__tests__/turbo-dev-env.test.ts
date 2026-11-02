@@ -25,5 +25,6 @@ describe('turbo.json dev task', () => {
     const dev = turbo.tasks['dev'];
     const declared = [...(dev?.env ?? []), ...(dev?.passThroughEnv ?? [])];
     expect(declared).toContain('MFE_APP_PORT');
+    expect(declared).toContain('MFE_DEBUG');
   });
 });

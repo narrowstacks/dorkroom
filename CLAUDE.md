@@ -53,7 +53,7 @@ to the separate docs repo. Read both off the startup output rather than
 assuming. Set `MFE_APP_PORT` to pin the app's port (`docker-compose.yml` does
 this so its `4200:4200` mapping stays true); the local proxy on 3024 follows the
 pinned port. Turbo runs `dev` in strict env mode, so the variable only reaches
-Vite because the `dev` task lists it under `passThroughEnv` in `turbo.json`.
+Vite because the `dev` task lists it (and `MFE_DEBUG`) under `passThroughEnv` in `turbo.json`.
 
 To reach the dev server from another machine, use the IP Vite prints under
 `Network:`, or a Tailscale MagicDNS FQDN — `server.allowedHosts` permits

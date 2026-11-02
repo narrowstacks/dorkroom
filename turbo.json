@@ -47,7 +47,7 @@
       "cache": false,
       "persistent": true,
       "env": ["PORT"],
-      "passThroughEnv": ["MFE_APP_PORT"]
+      "passThroughEnv": ["MFE_APP_PORT", "MFE_DEBUG"]
     },
     "test": {
       "dependsOn": ["^build"]
