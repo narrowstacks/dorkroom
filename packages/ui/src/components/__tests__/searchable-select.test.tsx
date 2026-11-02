@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { StrictMode } from 'react';
+import { StrictMode, useState } from 'react';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { SearchableSelect } from '../searchable-select';
 
@@ -615,5 +615,81 @@ describe('SearchableSelect closes when focus leaves by keyboard (#635)', () => {
     await user.tab(); // Brand
     expect(screen.getAllByRole('listbox')).toHaveLength(1);
     expect(screen.getByRole('combobox', { name: 'Brand' })).toHaveFocus();
+  });
+});
+
+describe('SearchableSelect keeps focus after Clear selection (#639)', () => {
+  beforeAll(() => {
+    Element.prototype.scrollIntoView = vi.fn();
+  });
+
+  // Controlled, so the Clear button really unmounts once the value is empty.
+  function Controlled() {
+    const [value, setValue] = useState('b');
+    return (
+      <>
+        <SearchableSelect
+          label="Brand"
+          selectedValue={value}
+          onValueChange={setValue}
+          items={items}
+        />
+        <button type="button">Next</button>
+      </>
+    );
+  }
+
+  it('Enter on Clear leaves focus on the input with the list closed', async () => {
+    const user = userEvent.setup();
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    await user.tab(); // input (opens its list)
+    await user.keyboard('{Escape}');
+    await user.tab(); // Clear selection
+    expect(
+      screen.getByRole('button', { name: 'Clear selection' })
+    ).toHaveFocus();
+    await user.keyboard('{Enter}');
+    expect(
+      screen.queryByRole('button', { name: 'Clear selection' })
+    ).toBeNull();
+    expect(input).toHaveFocus();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('listbox')).toBeNull();
+  });
+
+  it('a mouse click on Clear does the same', async () => {
+    const user = userEvent.setup();
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    await user.click(screen.getByRole('button', { name: 'Clear selection' }));
+    expect(input).toHaveFocus();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('listbox')).toBeNull();
+  });
+
+  it('Tab then moves to the next field, and ArrowDown opens as usual', async () => {
+    const user = userEvent.setup();
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    await user.click(screen.getByRole('button', { name: 'Clear selection' }));
+    await user.keyboard('{ArrowDown}');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    await user.keyboard('{Escape}');
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Next' })).toHaveFocus();
+  });
+
+  it('does not move focus to the input after a touch tap on Clear', () => {
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    const clear = screen.getByRole('button', { name: 'Clear selection' });
+    fireEvent.pointerDown(clear, { pointerType: 'touch' });
+    fireEvent.click(clear);
+    expect(
+      screen.queryByRole('button', { name: 'Clear selection' })
+    ).toBeNull();
+    expect(input).not.toHaveFocus();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
   });
 });

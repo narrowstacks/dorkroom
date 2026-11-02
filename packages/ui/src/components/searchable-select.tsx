@@ -106,6 +106,52 @@ function useBlurClose(
   return { cancelPendingClose, handleInputBlur };
 }
 
+/**
+ * Clearing unmounts the Clear button, which would drop focus to <body> (#639).
+ * `refocusInput` hands it back to the input without opening the list (focus
+ * normally opens it; `suppressOpenOnFocus` is the one-shot opt-out). Touch and
+ * pen skip it: focusing a text input from a tap raises the on-screen keyboard,
+ * which a tap on an X should not do.
+ */
+function useClearRefocus(inputRef: RefObject<HTMLInputElement | null>) {
+  const suppressOpenOnFocus = useRef(false);
+  const refocusInput = (pointerType: string) => {
+    if (pointerType === 'touch' || pointerType === 'pen') return;
+    suppressOpenOnFocus.current = true;
+    inputRef.current?.focus();
+    // focus() dispatches synchronously; if the input was already focused it
+    // dispatches nothing, so never leave the flag armed.
+    suppressOpenOnFocus.current = false;
+  };
+  return { refocusInput, suppressOpenOnFocus };
+}
+
+/**
+ * The X that empties the field. Reports the type of the press that led to the
+ * click ('' for keyboard activation, which has no press).
+ */
+function ClearButton({ onClear }: { onClear: (pointerType: string) => void }) {
+  const pointerType = useRef('');
+  return (
+    <button
+      type="button"
+      onPointerDown={(e) => {
+        pointerType.current = e.pointerType;
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        const type = pointerType.current;
+        pointerType.current = '';
+        onClear(type);
+      }}
+      aria-label="Clear selection"
+      className="flex size-4 items-center justify-center text-muted transition hover:text-secondary"
+    >
+      <X className="size-3" />
+    </button>
+  );
+}
+
 export function SearchableSelect({
   label,
   selectedValue,
@@ -154,6 +200,8 @@ export function SearchableSelect({
     setFocusedIndex(-1);
   };
 
+  const { refocusInput, suppressOpenOnFocus } = useClearRefocus(inputRef);
+
   const { cancelPendingClose, handleInputBlur } = useBlurClose(
     listRef,
     closeList
@@ -193,16 +241,17 @@ export function SearchableSelect({
   };
 
   // Handle clear selection
-  const handleClear = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleClear = (pointerType: string) => {
     onValueChange('');
     closeList();
+    refocusInput(pointerType);
   };
 
   // Handle input focus
   const handleInputFocus = () => {
     // A close scheduled by an earlier blur must not shut the list just reopened.
     cancelPendingClose();
+    if (suppressOpenOnFocus.current) return;
     openAndFocusSelected();
   };
 
@@ -315,16 +364,7 @@ export function SearchableSelect({
         />
 
         <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
-          {selectedValue && allowClear && (
-            <button
-              type="button"
-              onClick={handleClear}
-              aria-label="Clear selection"
-              className="flex size-4 items-center justify-center text-muted transition hover:text-secondary"
-            >
-              <X className="size-3" />
-            </button>
-          )}
+          {selectedValue && allowClear && <ClearButton onClear={handleClear} />}
           <ChevronDown
             className={cn(
               'size-4 transition-transform',
