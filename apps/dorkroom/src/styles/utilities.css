@@ -1,20 +1,4 @@
 @layer utilities {
-  /* A translucent surface that leans on backdrop-filter to stay legible. Where
-     the filter is missing (Kindle's Chromium 80), the page text behind it
-     shows through, so the surface turns solid instead. The background colours
-     are inline styles, so only !important can override them. Browsers with the
-     filter never enter this block. Both spellings are tested so Safari is
-     covered if the prefixed one ships; the build's CSS minifier may fold the
-     test down to the unprefixed spelling, which is the only one the Tailwind
-     blur utilities emit, so it still matches where they actually blur. */
-  @supports not (
-    (-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))
-  ) {
-    .solid-without-blur {
-      background-color: var(--color-background) !important;
-    }
-  }
-
   /* Document-anchored background layer spanning the full page height. It
      scrolls with the content (rasterized once, no per-frame repaint), so on
      iOS the real gradient pixels extend under the status bar and toolbars

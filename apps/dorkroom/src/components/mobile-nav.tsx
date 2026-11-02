@@ -139,7 +139,7 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
             ref={navRef}
             id="mobile-navigation"
             className={cn(
-              'fixed right-0 top-0 z-50 h-dvh w-72 border-l pb-[calc(env(safe-area-inset-bottom)+5rem)] shadow-xl backdrop-blur solid-without-blur transition-transform duration-300 ease-out lg:hidden',
+              'fixed right-0 top-0 z-50 h-dvh w-72 border-l pb-[calc(env(safe-area-inset-bottom)+5rem)] shadow-xl backdrop-blur transition-transform duration-300 ease-out lg:hidden',
               visible ? 'translate-x-0' : 'pointer-events-none translate-x-full'
             )}
             style={{
