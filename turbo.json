@@ -99,6 +99,7 @@
         "tools/__tests__/**",
         "vitest.config.ts",
         "PRIVACY.md",
+        "vercel.json",
         "utils/routeMetadata.ts",
         "apps/dorkroom/src/app/lib/analytics/tracked-events.ts",
         "apps/dorkroom/src/app/pages/privacy-page.tsx",

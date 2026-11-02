@@ -6,8 +6,10 @@ import {
   FilmDetailPanelSkeleton,
   FilmFiltersMobile,
   FilmFiltersPanel,
+  FilmImageLoaderContext,
   FilmResultsVirtualized,
 } from '@dorkroom/ui/films';
+import { filmImageLoader } from '../../lib/film-image-loader';
 import { useShareLink } from '../../lib/use-share-link';
 
 interface FilmsPageBodyProps {
@@ -76,52 +78,55 @@ export function FilmsPageBody({
   );
 
   return (
-    <div className={isMobile ? 'space-y-4' : 'mt-6 flex gap-6'}>
-      {isMobile ? (
-        <FilmFiltersMobile
-          {...filterProps}
-          resultCount={db.filteredFilms.length}
-        />
-      ) : (
-        <aside className="flex-shrink-0 transition-[width] duration-300">
-          <FilmFiltersPanel
+    // Resized thumbnails for every FilmImage below (cards and detail panel).
+    <FilmImageLoaderContext value={filmImageLoader}>
+      <div className={isMobile ? 'space-y-4' : 'mt-6 flex gap-6'}>
+        {isMobile ? (
+          <FilmFiltersMobile
             {...filterProps}
-            onCollapsedChange={onCollapsedChange}
+            resultCount={db.filteredFilms.length}
           />
-        </aside>
-      )}
+        ) : (
+          <aside className="flex-shrink-0 transition-[width] duration-300">
+            <FilmFiltersPanel
+              {...filterProps}
+              onCollapsedChange={onCollapsedChange}
+            />
+          </aside>
+        )}
 
-      {isMobile ? (
-        results
-      ) : (
-        <main id="film-results" className="flex-1 min-w-0">
-          {results}
-        </main>
-      )}
+        {isMobile ? (
+          results
+        ) : (
+          <main id="film-results" className="flex-1 min-w-0">
+            {results}
+          </main>
+        )}
 
-      {/* Rendered unconditionally: the panel owns its own visibility. It
+        {/* Rendered unconditionally: the panel owns its own visibility. It
           renders nothing without a film, and its stateful inner DetailPanel
           only exists while one is selected, so closing still discards drag
           and expanded state, and there is no exit animation a conditional
           mount could cut short. Keyed by breakpoint so crossing it starts the
           panel fresh (an expanded desktop modal drops back to the mobile
           drawer). */}
-      {shouldShowDetailSkeleton ? (
-        <FilmDetailPanelSkeleton isMobile={isMobile} />
-      ) : (
-        <FilmDetailPanel
-          key={isMobile ? 'mobile' : 'desktop'}
-          film={selectedFilm}
-          baseFilm={baseFilm}
-          isOpen={!!selectedFilm}
-          onClose={onClosePanel}
-          isMobile={isMobile}
-          onShare={(film) =>
-            share({ film: film.slug }, `${film.brand} ${film.name}`)
-          }
-        />
-      )}
-      {manualCopyDialog}
-    </div>
+        {shouldShowDetailSkeleton ? (
+          <FilmDetailPanelSkeleton isMobile={isMobile} />
+        ) : (
+          <FilmDetailPanel
+            key={isMobile ? 'mobile' : 'desktop'}
+            film={selectedFilm}
+            baseFilm={baseFilm}
+            isOpen={!!selectedFilm}
+            onClose={onClosePanel}
+            isMobile={isMobile}
+            onShare={(film) =>
+              share({ film: film.slug }, `${film.brand} ${film.name}`)
+            }
+          />
+        )}
+        {manualCopyDialog}
+      </div>
+    </FilmImageLoaderContext>
   );
 }
