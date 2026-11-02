@@ -6,10 +6,10 @@ import { cssVars } from '../lib/dom';
 
 /**
  * Set on <html> while any list is open. The app's floating phone buttons key
- * off it to step aside, because the list is not portalled and its lowest rows
+ * off it (mobile-fab.ts hardcodes the same string) to step aside, because the list is not portalled and its lowest rows
  * can otherwise only be scrolled to the spot under those buttons (#629).
  */
-export const LISTBOX_OPEN_ATTRIBUTE = 'data-listbox-open';
+const LISTBOX_OPEN_ATTRIBUTE = 'data-listbox-open';
 
 let openListCount = 0;
 

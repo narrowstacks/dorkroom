@@ -5,7 +5,7 @@
  * padding for this size and bottom offset: change both together.
  *
  * They turn invisible (and untappable) while a SearchableSelect list is open
- * (`data-listbox-open` on <html>): the list is not portalled, so its lowest
+ * (`data-listbox-open` on <html>, set in searchable-select.tsx; keep the strings in sync): the list is not portalled, so its lowest
  * rows would otherwise sit under them (#629).
  */
 export const MOBILE_FAB =
