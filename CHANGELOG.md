@@ -17,6 +17,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Fixed
 
+- **A third of a stop is exact on the Stops page.** The page worked a third of a stop out as 0.33, so 12s +1/3 gave 15.08s while the home search said 15.12s. Thirds and two-thirds are now exact, from the +1/3 buttons, a typed 0.33, or a link, including older shared links, and three +1/3 presses add exactly one stop. The multiplier reads ×1.260. (fixes #551)
 - **filmdev.org imports pick the right film and developer.** Importing a recipe used to match only films and developers that already had a recipe on Dorkroom, so Fomapan 100 came in as Kentmere Pan 100 and several Adox developers came in as ADOTECH IV. Imports now search the whole catalogue and need a real name match, and anything Dorkroom doesn't list comes in as a custom film or developer instead of the nearest lookalike.
 - **The custom recipe form lists every film and developer**, including ones that don't have a recipe yet.
 - **filmdev.org recipes shot at box speed import at box speed.** Recipes that don't say what speed the film was shot at came in as ISO 400, so a recipe for a 100-speed film showed as "pushed 2 stops". They now use the film's own speed.

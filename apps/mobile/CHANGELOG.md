@@ -14,6 +14,10 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - **The inverter remembers your negative.** Leave the Inverter, switch tools or relaunch the app, and the photo comes back as you left it: crop, base, neutral, adjustments, film type and orientation. The photo is kept in the app until you load another or choose Close Photo in the info sheet. (#527)
 - **Live negative inverter.** Point the camera at a negative on a light table and see the positive as it streams. The film base is found automatically, or tap Base to pick it; film type and the sliders work live, and the whole frame is metered. The camera meters for the film rather than the bright light table, raising exposure until the densest parts of a colour negative keep their blue, and a badge warns if blue is still clipping. Capture takes a full-resolution photo that opens in the editor with the same base and settings, ready to crop and save. It replaces the separate Take Photo button: to photograph a negative, open Live Camera and press the shutter. (#527)
 
+### Fixed
+
+- **A third of a stop is exact in the Stops tool.** A third of a stop was worked out as 0.33, so 12s +1/3 gave 15.08s instead of 15.12s. Thirds and two-thirds are now exact, whether stepped or typed, three +1/3 steps add exactly one stop, and the multiplier reads ×1.260. (fixes #551)
+
 ## [2026.10.30]
 
 ### Changed

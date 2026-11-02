@@ -28,6 +28,15 @@ describe('exposure calculations', () => {
       expect(calculateNewExposureTime(20, -0.5)).toBeCloseTo(14.14, 2); // -0.5 stop
     });
 
+    it('reads a rounded third as the exact third (#551)', () => {
+      expect(calculateNewExposureTime(12, 0.33)).toBe(12 * 2 ** (1 / 3));
+      expect(calculateNewExposureTime(12, 0.3333)).toBe(12 * 2 ** (1 / 3));
+      expect(calculateNewExposureTime(12, 0.67)).toBe(12 * 2 ** (2 / 3));
+      expect(calculateNewExposureTime(12, -1.33)).toBe(12 * 2 ** (-4 / 3));
+      // Not a third: used as typed.
+      expect(calculateNewExposureTime(12, 0.34)).toBe(12 * 2 ** 0.34);
+    });
+
     it('should handle zero stop change', () => {
       expect(calculateNewExposureTime(10, 0)).toBe(10);
       expect(calculateNewExposureTime(25.5, 0)).toBe(25.5);
