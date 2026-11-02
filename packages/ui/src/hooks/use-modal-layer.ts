@@ -274,13 +274,20 @@ export function useModalLayer<T extends HTMLElement>(
     // than at the next frame, as Chromium does) would close a phone's
     // keyboard held open by a field outside the layer before focus reached
     // the layer's own field.
-    if (!element.contains(document.activeElement)) {
-      (initialFocus?.current ?? tabbablesIn(element)[0] ?? element).focus();
-    }
+    const focusIn = () => {
+      if (!element.contains(document.activeElement)) {
+        (initialFocus?.current ?? tabbablesIn(element)[0] ?? element).focus();
+      }
+    };
+    focusIn();
 
     layers.push(layer);
     syncInert();
     element.addEventListener('keydown', trapTab);
+    // A layer that opens inside a subtree the layer below made inert could
+    // not take focus above (focus on an inert element does nothing); now
+    // that it is on top and interactive, it can.
+    focusIn();
 
     return () => {
       element.removeEventListener('keydown', trapTab);

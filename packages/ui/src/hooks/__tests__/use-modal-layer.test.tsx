@@ -86,6 +86,34 @@ describe('useModalLayer', () => {
       holder.remove();
     });
 
+    it('takes focus when it opens inside a subtree the layer below made inert', () => {
+      function Inline({ isOpen }: { isOpen: boolean }) {
+        const ref = useModalLayer<HTMLDialogElement>(isOpen);
+        if (!isOpen) return null;
+        return (
+          <dialog ref={ref} open aria-modal="true" aria-label="Inline">
+            <button type="button">Inline first</button>
+          </dialog>
+        );
+      }
+      const { rerender } = render(
+        <Page>
+          <Layer isOpen label="Below" />
+          <Inline isOpen={false} />
+        </Page>
+      );
+      expect(isInert(screen.getByRole('main'))).toBe(true);
+      rerender(
+        <Page>
+          <Layer isOpen label="Below" />
+          <Inline isOpen />
+        </Page>
+      );
+      expect(
+        screen.getByRole('button', { name: 'Inline first' })
+      ).toHaveFocus();
+    });
+
     it('falls back to the layer itself when nothing inside is tabbable', () => {
       function Empty() {
         const ref = useModalLayer<HTMLDialogElement>(true);

@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  clearHeldText,
   heldText,
   holdKeyboard,
   KEYBOARD_HOLD_ATTRIBUTE,
@@ -50,6 +51,19 @@ describe('holdKeyboard', () => {
     vi.advanceTimersByTime(1);
     expect(standIns()).toHaveLength(0);
     expect(document.activeElement).toBe(document.body);
+  });
+
+  it('keeps a timed-out stand-in’s text for a dialog that arrives late', () => {
+    vi.useFakeTimers();
+    holdKeyboard();
+    const field = document.activeElement;
+    if (!(field instanceof HTMLInputElement)) throw new Error('no stand-in');
+    field.value = 'dd-x';
+    vi.advanceTimersByTime(KEYBOARD_HOLD_MS);
+    expect(heldText()).toBe('dd-x');
+
+    clearHeldText();
+    expect(heldText()).toBe('');
   });
 
   it('keeps one stand-in at a time', () => {

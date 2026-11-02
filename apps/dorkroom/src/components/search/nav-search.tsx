@@ -10,7 +10,7 @@ import {
   useState,
 } from 'react';
 import { MOBILE_FAB, MOBILE_FAB_SECOND } from '../mobile-fab';
-import { holdKeyboard } from './keyboard-hold';
+import { clearHeldText, holdKeyboard } from './keyboard-hold';
 import {
   isSearchShortcut,
   PAGE_SEARCH_ID,
@@ -78,6 +78,7 @@ export function useNavSearch(pathname: string, pageSearch: boolean): NavSearch {
       if (!isSearchShortcut(event)) return;
       event.preventDefault();
       triggerRef.current = null;
+      clearHeldText();
       setOpenedAt(pathname);
     };
     document.addEventListener('keydown', onKeyDown);

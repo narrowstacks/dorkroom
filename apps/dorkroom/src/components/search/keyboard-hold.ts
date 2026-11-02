@@ -15,6 +15,8 @@ export const KEYBOARD_HOLD_MS = 8000;
 
 /** The stand-in while it exists. One at a time: a new hold replaces it. */
 let held: HTMLInputElement | null = null;
+/** What a timed-out stand-in held, for a dialog that arrives late. */
+let orphaned = '';
 
 function release(field: HTMLInputElement) {
   if (held === field) held = null;
@@ -37,6 +39,7 @@ function release(field: HTMLInputElement) {
  */
 export function holdKeyboard(): void {
   if (held) release(held);
+  orphaned = '';
   const field = document.createElement('input');
   field.type = 'text';
   field.tabIndex = -1;
@@ -63,6 +66,8 @@ export function holdKeyboard(): void {
   });
   const timer = window.setTimeout(() => {
     // Blurring dismisses the keyboard; the blur listener then removes it.
+    // Its text is kept, so a dialog that arrives later still starts with it.
+    orphaned = field.value;
     field.blur();
     release(field);
   }, KEYBOARD_HOLD_MS);
@@ -81,8 +86,17 @@ export function holdKeyboard(): void {
 
 /**
  * What was typed into the stand-in while the dialog loaded, so the dialog's
- * box can start with it. Empty when there is no stand-in.
+ * box can start with it, also after the stand-in timed out. Empty when there
+ * is nothing to carry over.
  */
 export function heldText(): string {
-  return held?.value ?? '';
+  return held?.value ?? orphaned;
+}
+
+/**
+ * Forget a timed-out stand-in's text: the dialog has taken it, or a shortcut
+ * opens a fresh dialog that it does not belong to.
+ */
+export function clearHeldText(): void {
+  orphaned = '';
 }

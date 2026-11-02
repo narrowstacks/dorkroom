@@ -1,6 +1,12 @@
 import { Modal } from '@dorkroom/ui';
-import { type MouseEvent, type RefObject, useRef, useState } from 'react';
-import { heldText } from './keyboard-hold';
+import {
+  type MouseEvent,
+  type RefObject,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import { clearHeldText, heldText } from './keyboard-hold';
 import { SearchPanel } from './search-panel';
 
 interface SearchDialogProps {
@@ -33,6 +39,8 @@ export default function SearchDialog({
   const inputRef = useRef<HTMLInputElement>(null);
   // Anything typed into the trigger's stand-in field while this code loaded.
   const [initialQuery] = useState(heldText);
+  // Taken: a later open must not start with it again.
+  useEffect(clearHeldText, []);
   // Following a result or an answer's link closes the dialog, also when the
   // link is the page already open (no location change to close it). A
   // modified click opens a new tab and leaves the dialog be.
