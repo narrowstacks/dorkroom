@@ -1,3 +1,4 @@
+import type { MeasurementUnit, VolumeUnit } from '@dorkroom/logic';
 import { useMeasurement, useTheme, useVolume } from '@dorkroom/ui';
 import { useEffect, useRef } from 'react';
 import { type ThemeName, trackEvent } from './tracked-events';
@@ -8,11 +9,11 @@ const reportTheme = (theme: ThemeName) => {
   trackEvent('theme_changed', { theme });
 };
 
-const reportMeasurementUnit = (unit: string) => {
+const reportMeasurementUnit = (unit: MeasurementUnit) => {
   trackEvent('units_changed', { context: 'measurement', unit });
 };
 
-const reportVolumeUnit = (unit: string) => {
+const reportVolumeUnit = (unit: VolumeUnit) => {
   trackEvent('units_changed', { context: 'volume', unit });
 };
 
