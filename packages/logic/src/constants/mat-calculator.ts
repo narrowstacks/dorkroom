@@ -72,7 +72,8 @@ const GLYPH_RE = new RegExp(
   `^(\\d+)?\\s*([${[...VULGAR_FRACTIONS.keys()].join('')}])$`
 );
 
-const INCH_MARKS = ['"', '″', '“', '”', '′′', "''", 'in'];
+/** Trailing marks that mean inches: `"`, `″`, iOS smart quotes, `′′`, `''`, `in`. */
+export const INCH_MARKS = ['"', '″', '“', '”', '′′', "''", 'in'];
 
 /**
  * Trim `str` and drop one trailing unit mark from `marks` (case-insensitive),

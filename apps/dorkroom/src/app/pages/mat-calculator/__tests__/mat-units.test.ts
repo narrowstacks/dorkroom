@@ -99,6 +99,10 @@ describe('matDisplayToValue', () => {
   it('commits an empty string when metric input is unparseable', () => {
     expect(matDisplayToValue('', 'metric')).toBe('');
     expect(matDisplayToValue('abc', 'metric')).toBe('abc');
+    // An inch mark in a metric field is not read as centimetres.
+    for (const typed of ['20 in', '20"', '20”']) {
+      expect(matDisplayToValue(typed, 'metric')).toBe(typed);
+    }
     // Kept, not blanked, so a reveal typo is invalid rather than "no reveal".
     expect(
       calculateMatLayout({

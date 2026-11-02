@@ -3,6 +3,7 @@ import {
   convertInchesToDisplay,
   convertInchesToInputValue,
   formatMeasurement,
+  INCH_MARKS,
   matBorderToInput,
   type MatPreset,
   type MeasurementUnit,
@@ -28,11 +29,15 @@ const STEP_CM = 0.1;
 /** Metric fields accept a trailing "cm", like `50cm` or `50 cm`. */
 const CM_MARK = ['cm'];
 
-/** Inches from field text, allowing a trailing "cm" in metric. */
-const parseDisplay = (display: string, unit: MeasurementUnit): number =>
-  parseMatInput(
-    unit === 'imperial' ? display : stripMatSuffix(display, CM_MARK)
-  );
+/**
+ * The number in a field's text. Metric allows a trailing "cm" and rejects an
+ * inch mark, which would otherwise be stripped and the number read as cm.
+ */
+const parseDisplay = (display: string, unit: MeasurementUnit): number => {
+  if (unit === 'imperial') return parseMatInput(display);
+  if (stripMatSuffix(display, INCH_MARKS) !== display.trim()) return NaN;
+  return parseMatInput(stripMatSuffix(display, CM_MARK));
+};
 
 /** Drop the padding `toFixed` adds, so 20.40 reads as "20.4" and 40.64 as "40.64". */
 function trimDecimals(value: number, decimals: number): string {
