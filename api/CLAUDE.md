@@ -321,9 +321,13 @@ dev, a preview without them), requests filtered `/api/films`,
 - Keyed `api.dorkroom.art` traffic is never charged, so anonymous abuse cannot
   starve API-key holders
 - Over budget: `503` with `Retry-After` and `Cache-Control: no-store`, and no
-  `X-RateLimit-*` for the global buckets (those headers keep describing the
-  caller's own per-IP budget). Filtered requests stay refused until the
+  `X-RateLimit-*`: the per-IP check passed (and sends none on success) and
+  the global buckets are never exposed. Filtered requests stay refused until the
   bucket frees up, which for the daily one can take hours
+- Fails open on any Unkey failure, like the OG limiter
+- A passing anonymous response carries no `X-RateLimit-*` (it is CDN-cached
+  and shared, so the headers would show later visitors the first caller's
+  budget); anonymous 429s and keyed responses (no-store) keep them
 - Fails open on any Unkey failure, like the OG limiter, and is not checked at
   all when the per-IP check before it was skipped
 - Proxy responses carry `stale-if-error=86400`, so the CDN keeps serving the

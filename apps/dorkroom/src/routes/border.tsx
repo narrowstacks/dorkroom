@@ -1,10 +1,10 @@
 import { BORDER_CALCULATOR_LINK_PARAMS } from '@dorkroom/logic';
 import { ROUTE_DESCRIPTIONS, ROUTE_TITLES } from '@dorkroom/ui';
 import { createFileRoute } from '@tanstack/react-router';
-import { lazy } from 'react';
+import { lazyPage } from '../app/lib/lazy-page';
 import { calculatorRoute } from '../components/calculator-route';
 
-const BorderCalculatorPage = lazy(
+const BorderCalculatorPage = lazyPage(
   () => import('../app/pages/border-calculator/border-calculator-page')
 );
 

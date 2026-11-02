@@ -36,6 +36,7 @@ interface ParameterObject {
   in: 'header' | 'query';
   description: string;
   required: boolean;
+  deprecated?: boolean;
   schema: ComponentSchema;
 }
 
@@ -175,14 +176,17 @@ const sharedParameters = {
   Query: {
     name: 'query',
     in: 'query',
-    description: 'Free-text search term matched against names and metadata.',
+    description:
+      'Free-text search term. Matched case-insensitively as a partial match (substring) against names and metadata, not an exact match. Accents are significant, and any run of punctuation or symbols acts as a wildcard matching any characters. A term with no letter or digit is rejected with 400.',
     required: false,
     schema: { type: 'string', maxLength: 200 },
   },
   Fuzzy: {
     name: 'fuzzy',
     in: 'query',
-    description: 'Enable fuzzy matching for `query` ("true" or "false").',
+    description:
+      'Deprecated and ignored. There is no fuzzy matching: `query` is always a case-insensitive partial match. Still accepted ("true" or "false") so existing clients keep working.',
+    deprecated: true,
     required: false,
     schema: { type: 'string', enum: ['true', 'false'] },
   },

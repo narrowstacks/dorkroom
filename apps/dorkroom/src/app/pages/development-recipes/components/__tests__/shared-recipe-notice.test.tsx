@@ -36,11 +36,11 @@ describe('SharedRecipeNotice', () => {
     expect(screen.getByRole('status')).toHaveTextContent(
       'Loading shared recipe…'
     );
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByRole('alert')).toBeEmptyDOMElement();
   });
 
-  it('renders nothing when there is nothing to report', () => {
-    const { container } = render(
+  it('renders no visible content when there is nothing to report', () => {
+    render(
       <SharedRecipeNotice
         isLoading={false}
         message={null}
@@ -48,6 +48,29 @@ describe('SharedRecipeNotice', () => {
       />
     );
 
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.getByRole('alert')).toBeEmptyDOMElement();
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
+
+  it('keeps the alert region mounted so a later failure is announced', () => {
+    const { rerender } = render(
+      <SharedRecipeNotice
+        isLoading
+        message={null}
+        onDismiss={() => undefined}
+      />
+    );
+    const region = screen.getByRole('alert');
+
+    rerender(
+      <SharedRecipeNotice
+        isLoading={false}
+        message="Unknown recipe"
+        onDismiss={() => undefined}
+      />
+    );
+
+    expect(screen.getByRole('alert')).toBe(region);
+    expect(region).toHaveTextContent('Unknown recipe');
   });
 });

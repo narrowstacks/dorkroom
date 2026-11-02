@@ -657,6 +657,11 @@ async function applyNamespaceRateLimit(
   });
 
   if (exceeded) {
+    // A 429 must never be CDN-cached. The api host already pins
+    // `private, no-store`; on the website host nothing else sets one.
+    if (res.getHeader('Cache-Control') === undefined) {
+      res.setHeader('Cache-Control', 'no-store');
+    }
     res.status(429).json({
       error: 'Rate limit exceeded',
       message: 'Too many requests. Please try again later.',
@@ -680,6 +685,10 @@ async function applyAnonymousRateLimit(
     identifier: getClientIp(req),
     limit: ANONYMOUS_RATE_LIMIT,
     durationMs: ANONYMOUS_RATE_WINDOW_MS,
+    // A passing response is CDN-cached (public s-maxage) and shared, so
+    // per-IP X-RateLimit-* would show every later visitor the first caller's
+    // budget. The 429 branch sets no-store itself, so it keeps them.
+    setHeadersOnSuccess: false,
     onSkipped,
   });
 }
@@ -712,9 +721,9 @@ function bypassesCdn(req: VercelRequest): boolean {
  * budget. Buckets are checked in order (burst, then day), each at cost 1.
  *
  * Over budget: 503 with `Retry-After` and `no-store`. It is not the caller's
- * fault, so not a 429, and the bucket's limit and remaining count stay out of
- * the response: `X-RateLimit-*` keeps describing the caller's own per-IP
- * budget, set by the check before this one.
+ * fault, so not a 429. The 503 carries no `X-RateLimit-*`: the per-IP check
+ * passed (and sends none on success) and the global buckets are never
+ * exposed.
  *
  * Fails OPEN on any Unkey failure (logged), like the OG limiter: a misconfig
  * would already have failed the per-IP check against the same namespace, and
@@ -815,8 +824,10 @@ export function withApiKey(
       setVaryHeader(res, 'X-Client-Id');
     }
 
-    // Before any limiter: a redirect costs no Unkey or Supabase call, and a
-    // cached 308 must not carry one caller's X-RateLimit-* headers.
+    // Before any limiter: the redirect is a cheap invocation with no Unkey or
+    // Supabase call, and the CDN caches it per variant. It is deliberately not
+    // metered per IP (like the JSON 404 handler), so `/api/films/?x=<random>`
+    // costs one function invocation each and nothing else.
     if (!ctx.isPublicApi && options.canonicalPath) {
       const rawUrl = req.url ?? '';
       const queryStart = rawUrl.indexOf('?');

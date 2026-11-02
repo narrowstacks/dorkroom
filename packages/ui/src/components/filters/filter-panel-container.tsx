@@ -1,5 +1,14 @@
 import { ChevronRight, Filter } from 'lucide-react';
-import { type FC, type ReactNode, useCallback, useMemo, useState } from 'react';
+import {
+  type FC,
+  type ReactNode,
+  useCallback,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { cn } from '../../lib/cn';
 import { FilterPanelContext } from './filter-panel-context';
 
@@ -39,8 +48,29 @@ export const FilterPanelContainer: FC<FilterPanelContainerProps> = ({
   const isControlled = collapsed !== undefined;
   const isCollapsed = isControlled ? collapsed : internalCollapsed;
 
+  const panelId = useId();
+  const expandButtonRef = useRef<HTMLButtonElement>(null);
+  const collapseButtonRef = useRef<HTMLButtonElement>(null);
+  // The collapsed state the user asked for, so focus follows to the
+  // counterpart button (the clicked one unmounts). Focus only moves when the
+  // state actually becomes that target, so an unrelated change never steals it.
+  const pendingFocus = useRef<boolean | null>(null);
+
+  useLayoutEffect(() => {
+    const target = pendingFocus.current;
+    pendingFocus.current = null;
+    if (target !== isCollapsed) return;
+    (isCollapsed ? expandButtonRef : collapseButtonRef).current?.focus();
+  }, [isCollapsed]);
+
   const toggle = useCallback(() => {
     const newCollapsed = !isCollapsed;
+    pendingFocus.current = newCollapsed;
+    // A parent that ignores the request never commits, so expire it after the
+    // event's updates have flushed rather than leaving it armed.
+    setTimeout(() => {
+      pendingFocus.current = null;
+    }, 0);
     if (!isControlled) {
       setInternalCollapsed(newCollapsed);
     }
@@ -52,10 +82,12 @@ export const FilterPanelContainer: FC<FilterPanelContainerProps> = ({
     () => ({
       isCollapsed,
       toggle,
+      panelId,
+      collapseButtonRef,
       activeFilterCount,
       hasActiveFilters,
     }),
-    [isCollapsed, toggle, activeFilterCount, hasActiveFilters]
+    [isCollapsed, toggle, panelId, activeFilterCount, hasActiveFilters]
   );
 
   // Collapsed state - show only toggle button and filter badge
@@ -63,6 +95,7 @@ export const FilterPanelContainer: FC<FilterPanelContainerProps> = ({
     return (
       <FilterPanelContext.Provider value={contextValue}>
         <div
+          id={panelId}
           className={cn(
             'sticky top-3 flex flex-col items-center gap-3 rounded-2xl border p-3 shadow-lg animate-collapse-width',
             className
@@ -76,7 +109,10 @@ export const FilterPanelContainer: FC<FilterPanelContainerProps> = ({
         >
           <button
             type="button"
+            ref={expandButtonRef}
             onClick={toggle}
+            aria-expanded={false}
+            aria-controls={panelId}
             // Border width and style stay inline: a `border` class on a
             // `rounded-xl` element is repainted by the high-contrast theme's
             // `.rounded-xl.border` rule, which would swallow the hover colours.
@@ -137,6 +173,7 @@ export const FilterPanelContainer: FC<FilterPanelContainerProps> = ({
   return (
     <FilterPanelContext.Provider value={contextValue}>
       <div
+        id={panelId}
         className={cn(
           'sticky top-3 h-fit space-y-3 animate-expand-width',
           className

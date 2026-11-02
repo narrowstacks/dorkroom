@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
-import { hasGlobal } from '../lib/dom';
+import { hasGlobal, matchMediaQuery } from '../lib/dom';
 import type { Theme } from '../lib/themes';
 import { resolveTheme } from '../lib/themes';
 import { ThemeContext, type ThemeContextValue } from './theme-context';
@@ -109,9 +109,14 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
     // Listen for system theme changes when using 'system'
     if (theme === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const mediaQuery = matchMediaQuery('(prefers-color-scheme: dark)');
       const handleChange = () => updateResolvedTheme();
 
+      // Safari <14 and the legacy bundle's WebKit only have `addListener`.
+      if (mediaQuery.addEventListener === undefined) {
+        mediaQuery.addListener(handleChange);
+        return () => mediaQuery.removeListener(handleChange);
+      }
       mediaQuery.addEventListener('change', handleChange);
       return () => mediaQuery.removeEventListener('change', handleChange);
     }
