@@ -1,6 +1,7 @@
 import type { RecipeUrlBinding, RecipeUrlSearch } from '@dorkroom/logic';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
-import { lazy, Suspense, useCallback, useMemo } from 'react';
+import { Suspense, useCallback, useMemo } from 'react';
+import { DevelopmentRecipesPage } from './lazy-development-recipes-page';
 import { LoadingSpinner } from './loading-spinner';
 
 declare module '@tanstack/react-router' {
@@ -12,10 +13,6 @@ declare module '@tanstack/react-router' {
     developmentPageKey?: string;
   }
 }
-
-const DevelopmentRecipesPage = lazy(
-  () => import('../app/pages/development-recipes/development-recipes-page')
-);
 
 /**
  * The /development route's component. It hands the page the router's search

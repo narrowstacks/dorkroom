@@ -32,6 +32,7 @@ import {
   VolumeProvider,
 } from '@dorkroom/ui';
 import { routeFallbackOptions } from './app/lib/route-fallback-options';
+import { routerPreloadOptions } from './app/lib/router-preload-options';
 import { routeTree } from './routeTree.gen';
 
 // Lazy load devtools only in development
@@ -60,7 +61,7 @@ const router = createRouter({
   context: {
     queryClient,
   },
-  defaultPreloadDelay: 50,
+  ...routerPreloadOptions,
   // Keep search params as plain strings instead of JSON-parsing them; see
   // ./routes/search-params for why.
   parseSearch,
