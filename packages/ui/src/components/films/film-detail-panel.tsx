@@ -111,7 +111,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
   const expandedContent = (
     <div className="grid gap-8 md:grid-cols-[auto_1fr]">
       {/* Left column: Image */}
-      <div className="flex flex-col items-center gap-2 md:items-start">
+      <div className="flex flex-col items-center gap-3 md:items-start">
         {/* Eager: this is the expanded panel's hero image, already in the
             viewport the moment the panel opens, so lazy-loading it would
             only delay a paint the user is about to see anyway. */}
@@ -307,7 +307,7 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
   return (
     <div className="space-y-6">
       {/* Film image */}
-      <div className="flex flex-col items-center gap-2">
+      <div className="flex flex-col items-center gap-3">
         {/* Eager: the sidebar/drawer's own hero image, visible as soon as
             the panel opens (not virtualized, not off-screen), so lazy would
             just delay a paint the user is about to see anyway. */}
