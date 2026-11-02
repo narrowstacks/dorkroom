@@ -685,11 +685,23 @@ describe('SearchableSelect keeps focus after Clear selection (#639)', () => {
     const input = screen.getByRole('combobox');
     const clear = screen.getByRole('button', { name: 'Clear selection' });
     fireEvent.pointerDown(clear, { pointerType: 'touch' });
-    fireEvent.click(clear);
+    fireEvent.click(clear, { detail: 1 });
     expect(
       screen.queryByRole('button', { name: 'Clear selection' })
     ).toBeNull();
     expect(input).not.toHaveFocus();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('a cancelled touch press does not stop a later Enter from refocusing', async () => {
+    const user = userEvent.setup();
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    const clear = screen.getByRole('button', { name: 'Clear selection' });
+    fireEvent.pointerDown(clear, { pointerType: 'touch' });
+    act(() => clear.focus());
+    await user.keyboard('{Enter}');
+    expect(input).toHaveFocus();
     expect(input).toHaveAttribute('aria-expanded', 'false');
   });
 });

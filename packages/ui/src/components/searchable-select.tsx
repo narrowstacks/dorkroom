@@ -138,9 +138,15 @@ function ClearButton({ onClear }: { onClear: (pointerType: string) => void }) {
       onPointerDown={(e) => {
         pointerType.current = e.pointerType;
       }}
+      // A scroll that starts on the X cancels the press with no click.
+      onPointerCancel={() => {
+        pointerType.current = '';
+      }}
       onClick={(e) => {
         e.stopPropagation();
-        const type = pointerType.current;
+        // Keyboard and assistive-tech clicks have detail 0, whatever press
+        // was recorded earlier.
+        const type = e.detail === 0 ? '' : pointerType.current;
         pointerType.current = '';
         onClear(type);
       }}
