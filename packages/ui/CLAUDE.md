@@ -165,6 +165,6 @@ Don't reach for it in new code expecting a visible shadow.
 - Dialog dismissal on Escape goes through the shared `useEscapeKey` hook
   (`hooks/use-escape-key.ts`). Don't add a component-local `document` keydown
   listener for it: the hook owns a single listener plus a LIFO stack so only
-  one layer is dismissed per keypress. Two pre-existing ad-hoc listeners
-  (`theme-toggle.tsx`, `navigation-dropdown.tsx`) predate this and aren't
-  covered yet
+  one layer is dismissed per keypress. Every Escape-dismissed layer
+  (modals, drawers, the theme and navigation dropdowns, the phone menu) is on
+  the hook
