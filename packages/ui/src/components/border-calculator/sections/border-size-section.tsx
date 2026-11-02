@@ -44,7 +44,7 @@ export function BorderSizeSection({ onClose }: BorderSizeSectionProps) {
         </button>
       </div>
 
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         <LabeledSliderInput
           label="Minimum Border (inches):"
           value={minBorder}
@@ -85,8 +85,9 @@ export function BorderSizeSection({ onClose }: BorderSizeSectionProps) {
           </p>
         </div>
 
+        {/* Announced by the page's warnings card, not here (#585). */}
         {minBorderWarning && (
-          <StatusAlert message={minBorderWarning} action="error" />
+          <StatusAlert message={minBorderWarning} action="error" omitRole />
         )}
 
         <div className="rounded-lg border border-secondary bg-border-muted p-4">
