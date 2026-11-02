@@ -21,6 +21,17 @@ describe('mat summaries', () => {
     );
   });
 
+  it('drops a typed inch mark so the unit is not repeated', () => {
+    expect(
+      formatBorderSummary({
+        ...MAT_CALCULATOR_DEFAULTS,
+        borderLeft: '2.5”',
+        borderTop: '3 1/2"',
+        borderBottom: '3 in',
+      })
+    ).toBe('3 1/2 T · 3 B · 2.5 L · 2 3/4 R in');
+  });
+
   it('summarizes artwork and reveal', () => {
     expect(formatArtworkSummary(MAT_CALCULATOR_DEFAULTS)).toBe(
       '11 × 14 · 1/4 reveal'

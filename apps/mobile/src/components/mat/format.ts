@@ -1,10 +1,13 @@
-import type {
-  MatCalculatorState,
-  MatDimensionRow,
-  UseMatCalculatorReturn,
+import {
+  INCH_MARKS,
+  type MatCalculatorState,
+  type MatDimensionRow,
+  stripMatSuffix,
+  type UseMatCalculatorReturn,
 } from '@dorkroom/logic';
 
-const shown = (value: string) => value.trim() || '—';
+/** The typed value without its inch mark (summaries already end in "in"). */
+const shown = (value: string) => stripMatSuffix(value, INCH_MARKS) || '—';
 
 export function formatMatPair(width: string, height: string): string {
   return `${shown(width)} × ${shown(height)} in`;
