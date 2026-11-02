@@ -633,6 +633,12 @@ export const BREAKPOINTS: ReadonlyArray<readonly [string, string]> = [
   ['2xl', '96rem'],
 ];
 
+/** Every direction context, and where a gap container is not a grid. */
+interface FlexLayout {
+  contexts: FlexContext[];
+  grids: GridScope[];
+}
+
 /** Where a flex container's direction is known from its classes. */
 interface FlexContext {
   /** Appended to the gap utility's selector. */
@@ -649,13 +655,14 @@ interface FlexContext {
  *  `flex-col` anywhere in the class list), columns (`flex-col` with no
  *  responsive row), and each responsive switch the CSS actually contains
  *  (`sm:flex-row`, `max-sm:flex-col`, ...), split at its breakpoint. */
-function flexContexts(root: Root): FlexContext[] {
+function flexContexts(root: Root): FlexLayout {
   const classes = new Set<string>();
   root.walkRules((rule) => {
     for (const s of rule.selectors) {
-      const m = /^\.((?:max-)?[\w]+)\\:(flex-(?:row|row-reverse|col))$/.exec(
-        s.trim()
-      );
+      const m =
+        /^\.((?:max-)?[\w]+)\\:(flex-(?:row|row-reverse|col)|(?:inline-)?grid)$/.exec(
+          s.trim()
+        );
       if (m) classes.add(`${m[1]}:${m[2]}`);
     }
   });
@@ -678,15 +685,61 @@ function flexContexts(root: Root): FlexContext[] {
         ? `.flex-col[class*="${cls}"]`
         : `.flex-col[class*="${cls}"]:not([class*="${cls}-reverse"])`;
       contexts.push({ match, media: below, axis: 'column' });
-      contexts.push({ match, media: above, axis: 'row', reverse });
+      contexts.push({
+        match,
+        media: above,
+        axis: 'row',
+        reverse,
+        wraps: !reverse,
+      });
     }
     if (classes.has(`max-${bp}:flex-col`)) {
       const match = `[class*=flex]:not(.flex-col)[class*="max-${bp}:flex-col"]`;
       contexts.push({ match, media: below, axis: 'column' });
-      contexts.push({ match, media: above, axis: 'row' });
+      contexts.push({ match, media: above, axis: 'row', wraps: true });
     }
   }
-  return contexts;
+  return { contexts, grids: gridScopes(classes) };
+}
+
+/** Where a gap container is not a grid. A grid (`grid`, `inline-grid`) has
+ *  native gap, so it is excluded at every width. A responsive grid
+ *  (`sm:grid`) is still flex below its breakpoint, so it gets the emulation
+ *  there, inside a `max-width` query, and nowhere above. */
+interface GridScope {
+  match: string;
+  media?: string;
+  /** The breakpoint in rem below which `media` holds. */
+  belowRem?: number;
+}
+
+function gridScopes(classes: ReadonlySet<string>): GridScope[] {
+  const responsive = BREAKPOINTS.flatMap(([bp, width]) =>
+    ['grid', 'inline-grid']
+      .filter((g) => classes.has(`${bp}:${g}`))
+      .map((g) => ({ token: `${bp}:${g}`, width }))
+  );
+  const notGrid = ':not(.grid):not(.inline-grid)';
+  const scopes: GridScope[] = [
+    {
+      match:
+        notGrid +
+        responsive.map(({ token }) => `:not([class~="${token}"])`).join(''),
+    },
+  ];
+  responsive.forEach(({ token, width }, i) => {
+    // Smaller responsive grids are excluded, so the narrowest one decides.
+    const smaller = responsive
+      .slice(0, i)
+      .map((r) => `:not([class~="${r.token}"])`)
+      .join('');
+    scopes.push({
+      match: `${notGrid}${smaller}[class~="${token}"]`,
+      media: `not all and (min-width:${width})`,
+      belowRem: Number.parseFloat(width),
+    });
+  });
+  return scopes;
 }
 
 /** Flex `gap` arrived in Chrome 84, so on Chromium 80 every flex row built
@@ -710,7 +763,7 @@ function emulateFlexGap(): Plugin {
   return {
     postcssPlugin: 'legacy-css-flex-gap',
     Once(root) {
-      const contexts = flexContexts(root);
+      const { contexts, grids } = flexContexts(root);
       const out = postcss.atRule({ name: 'layer', params: 'components' });
       root.walkRules((rule) => {
         let row: string | undefined;
@@ -732,56 +785,80 @@ function emulateFlexGap(): Plugin {
           parent.append(clone);
           parent = clone;
         }
-        const base = rule.selectors.map(
-          (s) => `[${NO_FLEX_GAP_ATTR}] ${s}:not([class*=grid])`
+        // A gap utility inside `(min-width: X)` never meets a responsive
+        // grid scope that ends at or below X.
+        const minRem = Math.max(
+          0,
+          ...conditions(rule).map((c) =>
+            Number.parseFloat(
+              /^\(min-width:([\d.]+)rem\)$/.exec(c.params)?.[1] ?? '0'
+            )
+          )
         );
-        for (const context of contexts) {
-          const rules: Rule[] = [];
-          const add = (
-            match: string,
-            child: string,
-            prop: string,
-            value: string
-          ) =>
-            rules.push(
-              postcss.rule({
-                selectors: base.map((s) => `${s}${match}${child}`),
-                nodes: [postcss.decl({ prop, value })],
-              })
-            );
-          const { match } = context;
-          if (context.axis === 'column' && row !== undefined) {
-            add(match, '>:not(:last-child)', 'margin-bottom', row);
+        for (const grid of grids) {
+          if (grid.belowRem !== undefined && grid.belowRem <= minRem) continue;
+          let scope: Container = parent;
+          if (grid.media) {
+            const media = postcss.atRule({ name: 'media', params: grid.media });
+            parent.append(media);
+            scope = media;
           }
-          if (context.axis === 'row' && column !== undefined) {
-            const nowrap = context.wraps
-              ? `${match}:not([class*=flex-wrap])`
-              : match;
-            const side = context.reverse ? 'margin-left' : 'margin-right';
-            add(nowrap, '>:not(:last-child)', side, column);
-            if (!context.reverse) add(nowrap, '>svg:only-child', side, column);
-            if (context.wraps) {
-              const wrap = `${match}[class*=flex-wrap]`;
-              add(wrap, '', 'margin-left', `calc(-1 * ${column})`);
-              add(wrap, '>*', 'margin-left', column);
+          const base = rule.selectors.map(
+            (s) => `[${NO_FLEX_GAP_ATTR}] ${s}${grid.match}`
+          );
+          for (const context of contexts) {
+            // Below a responsive grid's breakpoint only the plain row and
+            // column contexts apply; one element switching both display and
+            // direction is not worth doubling the stylesheet for.
+            if (grid.media && context.media) continue;
+            const rules: Rule[] = [];
+            const add = (
+              match: string,
+              child: string,
+              prop: string,
+              value: string
+            ) =>
+              rules.push(
+                postcss.rule({
+                  selectors: base.map((s) => `${s}${match}${child}`),
+                  nodes: [postcss.decl({ prop, value })],
+                })
+              );
+            const { match } = context;
+            if (context.axis === 'column' && row !== undefined) {
+              add(match, '>:not(:last-child)', 'margin-bottom', row);
             }
-          }
-          if (context.axis === 'row' && context.wraps && row !== undefined) {
-            const wrap = `${match}[class*=flex-wrap]`;
-            add(wrap, '', 'margin-top', `calc(-1 * ${row})`);
-            add(wrap, '>*', 'margin-top', row);
-          }
-          if (rules.length === 0) continue;
-          if (context.media) {
-            parent.append(
-              postcss.atRule({
-                name: 'media',
-                params: context.media,
-                nodes: rules,
-              })
-            );
-          } else {
-            parent.append(...rules);
+            if (context.axis === 'row' && column !== undefined) {
+              const nowrap = context.wraps
+                ? `${match}:not([class*=flex-wrap])`
+                : match;
+              const side = context.reverse ? 'margin-left' : 'margin-right';
+              add(nowrap, '>:not(:last-child)', side, column);
+              if (!context.reverse)
+                add(nowrap, '>svg:only-child', side, column);
+              if (context.wraps) {
+                const wrap = `${match}[class*=flex-wrap]`;
+                add(wrap, '', 'margin-left', `calc(-1 * ${column})`);
+                add(wrap, '>*', 'margin-left', column);
+              }
+            }
+            if (context.axis === 'row' && context.wraps && row !== undefined) {
+              const wrap = `${match}[class*=flex-wrap]`;
+              add(wrap, '', 'margin-top', `calc(-1 * ${row})`);
+              add(wrap, '>*', 'margin-top', row);
+            }
+            if (rules.length === 0) continue;
+            if (context.media) {
+              scope.append(
+                postcss.atRule({
+                  name: 'media',
+                  params: context.media,
+                  nodes: rules,
+                })
+              );
+            } else {
+              scope.append(...rules);
+            }
           }
         }
       });

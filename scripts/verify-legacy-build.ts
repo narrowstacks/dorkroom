@@ -183,11 +183,11 @@ function check(name: string, pass: boolean, detail?: string): void {
   console.log(`${pass ? '✓' : '✗'} ${name}${detail ? ` — ${detail}` : ''}`);
 }
 
-async function openAndWait(url: string): Promise<CaptureView> {
+async function openAndWait(url: string, extraInit = ''): Promise<CaptureView> {
   const view = await CaptureView.open({
     width: 1280,
     height: 918,
-    initScript: ERROR_COLLECTOR,
+    initScript: ERROR_COLLECTOR + extraInit,
   });
   await view.goto(url);
   await view.waitForVisible('.hero-grain', 30_000);
@@ -304,6 +304,7 @@ async function checkLegacyCss(): Promise<void> {
 async function run(): Promise<void> {
   await checkLegacyOutputIsEs5();
   await checkLegacyCss();
+  await checkStylesheetSwap();
   await checkLegacyChunksHaveNoPropertyEscapes();
 
   // ---- 1. MODERN PATH ------------------------------------------------------
@@ -398,6 +399,61 @@ async function run(): Promise<void> {
       view?.close();
       await server.close();
     }
+  }
+}
+
+/** Hides cascade-layer support before any page script runs, so the inline
+ *  loader takes the branch Kindle Silk (Chromium 80) takes. */
+const HIDE_CSS_LAYERS = `
+delete window.CSSLayerBlockRule;
+window.__layersHidden = typeof window.CSSLayerBlockRule === 'undefined';
+`;
+
+/** Runs the inline stylesheet loader's no-`@layer` branch in this modern
+ *  engine: the legacy sheet must replace the modern one, not join it. */
+async function checkStylesheetSwap(): Promise<void> {
+  const requests: string[] = [];
+  const notFound: string[] = [];
+  const server = await startStaticServer(undefined, requests, notFound);
+  let view: CaptureView | undefined;
+  try {
+    view = await openAndWait(server.url, HIDE_CSS_LAYERS);
+    const state = await view.evaluate<{
+      hidden: boolean;
+      links: string[];
+      sheets: string[];
+      legacyRules: number;
+      font: string;
+    }>(`function () {
+      var links = [].slice.call(document.querySelectorAll('link[rel=stylesheet]'));
+      var sheets = [].slice.call(document.styleSheets).filter(function (s) { return s.href; });
+      var legacy = sheets.filter(function (s) { return /-legacy-[^/]*\\.css$/.test(s.href); })[0];
+      return {
+        hidden: window.__layersHidden === true,
+        links: links.map(function (l) { return l.getAttribute('href'); }),
+        sheets: sheets.map(function (s) { return s.href.split('/').pop(); }),
+        legacyRules: legacy ? legacy.cssRules.length : 0,
+        font: getComputedStyle(document.body).fontFamily
+      };
+    }`);
+    const legacyRequested = requests.some((u) => /-legacy-[^/]*\.css$/.test(u));
+    check('swap: CSSLayerBlockRule hidden before the loader ran', state.hidden);
+    check('swap: legacy stylesheet requested', legacyRequested);
+    check(
+      'swap: exactly one stylesheet link, the legacy one',
+      state.links.length === 1 &&
+        /-legacy-[^/]*\.css$/.test(state.links[0] ?? ''),
+      state.links.join(', ')
+    );
+    check(
+      'swap: legacy sheet applied, modern sheet gone',
+      state.sheets.length === 1 && state.legacyRules > 0,
+      `${state.sheets.join(', ')} (${state.legacyRules} rules)`
+    );
+    check('swap: app font applied', /Montserrat/.test(state.font), state.font);
+  } finally {
+    view?.close();
+    await server.close();
   }
 }
 

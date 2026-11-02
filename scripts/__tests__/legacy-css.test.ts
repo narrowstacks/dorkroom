@@ -112,10 +112,33 @@ describe('buildLegacyCss', () => {
   it('emulates flex gap with margins', async () => {
     const out = await legacy('.gap-2{gap:8px}');
     expect(out).toMatch(
-      /\[data-lc-nogap\] \.gap-2:not\(\[class\*=grid\]\)\[class\*=flex\][^{]*>:not\(:last-child\)[^{]*\{margin-right:8px\}/
+      /\[data-lc-nogap\] \.gap-2:not\(\.grid\):not\(\.inline-grid\)\[class\*=flex\][^{]*>:not\(:last-child\)[^{]*\{margin-right:8px\}/
     );
     expect(out).toMatch(
-      /\[data-lc-nogap\] \.gap-2:not\(\[class\*=grid\]\)\.flex-col[^{]*>:not\(:last-child\)\{margin-bottom:8px\}/
+      /\[data-lc-nogap\] \.gap-2:not\(\.grid\):not\(\.inline-grid\)\.flex-col[^{]*>:not\(:last-child\)\{margin-bottom:8px\}/
+    );
+  });
+
+  it('emulates gap on a responsive grid only below its breakpoint', async () => {
+    const out = await legacy(
+      '.gap-1{gap:2px}@media (min-width:40rem){.sm\\:grid{display:grid}}'
+    );
+    // Outside any query, a container with sm:grid is excluded...
+    expect(out).toMatch(
+      /\.gap-1:not\(\.grid\):not\(\.inline-grid\):not\(\[class~=sm\\:grid\]\)/
+    );
+    // ...and below sm it gets the column margins.
+    expect(out).toMatch(
+      /@media not all and \(min-width:40rem\)\{[^@]*\[class~=sm\\:grid\]\.flex-col[^{]*>:not\(:last-child\)\{margin-bottom:2px\}/
+    );
+  });
+
+  it('wraps a row that becomes a row at a breakpoint', async () => {
+    const out = await legacy(
+      '.gap-y-1{row-gap:4px}@media (min-width:40rem){.sm\\:flex-row{flex-direction:row}}'
+    );
+    expect(out).toMatch(
+      /@media \(min-width:40rem\)\{[^@]*\.flex-col\[class\*=sm\\:flex-row\][^{]*\[class\*=flex-wrap\]>\*\{margin-top:4px\}/
     );
   });
 
