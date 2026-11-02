@@ -1,6 +1,8 @@
 import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FilmImage } from '../../../components/films/film-image';
+import { FilmImageLoaderContext } from '../../../components/films/film-image-loader-context';
+import type { FilmImageLoader } from '../../../components/films/film-image-sources';
 
 describe('FilmImage', () => {
   beforeEach(() => {
@@ -202,5 +204,78 @@ describe('FilmImage', () => {
     // clears the timed-out icon and reveals the real image.
     expect(container.querySelector('svg')).toBeNull();
     expect(container.querySelector('img')).not.toHaveClass('opacity-0');
+  });
+
+  describe('with an image loader (resized thumbnails)', () => {
+    const loader: FilmImageLoader = (src, width) =>
+      src.startsWith('https://storage.example/')
+        ? `/opt?url=${encodeURIComponent(src)}&w=${width}`
+        : null;
+    const original = 'https://storage.example/film.jpeg';
+
+    function renderWithLoader(ui: React.ReactElement) {
+      return render(
+        <FilmImageLoaderContext value={loader}>{ui}</FilmImageLoaderContext>
+      );
+    }
+
+    it('requests a resized 1x/2x pair instead of the original', () => {
+      const { container } = renderWithLoader(
+        <FilmImage src={original} alt="a film" size="md" />
+      );
+
+      const img = container.querySelector('img');
+      const encoded = encodeURIComponent(original);
+      expect(img).toHaveAttribute('src', `/opt?url=${encoded}&w=64`);
+      expect(img).toHaveAttribute(
+        'srcset',
+        `/opt?url=${encoded}&w=64 1x, /opt?url=${encoded}&w=128 2x`
+      );
+      // Still lazy: the resized URL doesn't change when it's fetched.
+      expect(img).toHaveAttribute('loading', 'lazy');
+    });
+
+    it('sizes the request from renderedSize when a className enlarges it', () => {
+      const { container } = renderWithLoader(
+        <FilmImage src={original} alt="a film" size="lg" renderedSize={224} />
+      );
+
+      expect(container.querySelector('img')?.getAttribute('src')).toMatch(
+        /&w=256$/
+      );
+    });
+
+    it('loads hosts the loader declines as the original URL', () => {
+      const { container } = renderWithLoader(
+        <FilmImage src="https://elsewhere.example/film.jpg" alt="a film" />
+      );
+
+      const img = container.querySelector('img');
+      expect(img).toHaveAttribute('src', 'https://elsewhere.example/film.jpg');
+      expect(img).not.toHaveAttribute('srcset');
+    });
+
+    it('falls back to the original when the resized URL fails, then to the icon', () => {
+      const { container } = renderWithLoader(
+        <FilmImage src={original} alt="a film" />
+      );
+
+      let img = container.querySelector('img');
+      if (!img) throw new Error('expected an <img> to be rendered');
+      fireEvent.error(img);
+
+      // Optimizer unavailable (dev, non-Vercel host, over quota): retry the
+      // original, with no srcset left to override it.
+      img = container.querySelector('img');
+      if (!img) throw new Error('<img> must stay mounted for the retry');
+      expect(img).toHaveAttribute('src', original);
+      expect(img).not.toHaveAttribute('srcset');
+      expect(container.querySelector('svg')).toBeNull();
+
+      // The original failing too is a real error.
+      fireEvent.error(img);
+      expect(container.querySelector('img')).toBeNull();
+      expect(container.querySelector('svg')).not.toBeNull();
+    });
   });
 });
