@@ -12,9 +12,9 @@ import { defineConfig, type Plugin } from 'vite';
 import { classicInlineScripts, es5SyntaxProblem } from './es5-syntax';
 import {
   buildLegacyCss,
+  gateModernAssets,
   legacyCssFileName,
   legacyCssLeftovers,
-  legacyCssLoader,
   legacyCssProblem,
 } from './legacy-css';
 
@@ -139,18 +139,12 @@ function legacyEs5Plugin(): Plugin {
   };
 }
 
-/** Emits a Chromium 80 copy of the app stylesheet and the inline script that
- *  swaps it in for browsers without cascade layers (issue #49). Kindle Silk
- *  (Chromium 80) runs the legacy JS bundle, but Tailwind 4's CSS needs
- *  Chrome 111+: `@layer` blocks are dropped before Chrome 99, and
- *  `color-mix()` needs 111, so the page renders mostly unstyled. See
- *  legacy-css.ts for the rewrite. Fails the build if the copy still has
- *  `@layer` or `color-mix()`.
- *
- *  Modern browsers download nothing new: the script (about 450 bytes) stops
- *  at `window.CSSLayerBlockRule`. It sits right after the
- *  stylesheet `<link>`, so it waits for that sheet, but nothing that runs
- *  later is held up: module scripts already wait for pending stylesheets. */
+/** Emits a Chromium 80 copy of the app stylesheet for browsers without
+ *  cascade layers (issue #49). Kindle Silk (Chromium 80) runs the legacy JS
+ *  bundle, but Tailwind 4's CSS needs Chrome 111+: `@layer` blocks are dropped
+ *  before Chrome 99, and `color-mix()` needs 111, so the page renders mostly
+ *  unstyled. See legacy-css.ts for the rewrite. Fails the build if the copy
+ *  still has `@layer` or `color-mix()`. `legacyGatePlugin` wires it in. */
 function legacyCssPlugin(): Plugin {
   return {
     name: 'legacy-css',
@@ -196,27 +190,65 @@ function legacyCssPlugin(): Plugin {
         );
         const fileName = legacyCssFileName(modern.fileName, legacyCss);
         this.emitFile({ type: 'asset', fileName, source: legacyCss });
+      },
+    },
+  };
+}
 
-        let page = String(html.source);
-        const link = page
-          .match(/<link\b[^>]*>/g)
-          ?.find(
-            (tag) =>
-              /\brel="?stylesheet\b/.test(tag) &&
-              tag.includes(`${modern.fileName}"`)
-          );
-        const href = link && /\bhref="([^"]*)"/.exec(link)?.[1];
-        if (!link || !href) {
+/** Takes the modern entry `<script type=module src>`, its modulepreloads and
+ *  the app stylesheet out of index.html and puts one classic inline script in
+ *  their place, which writes them back in browsers with cascade layers and
+ *  writes only the legacy stylesheet in the rest (issue #644,
+ *  `legacyGateScript` in legacy-css.ts). Legacy browsers (Kindle Silk) used to
+ *  download and instantiate the whole modern graph and the modern CSS, only
+ *  for plugin-legacy's guard to throw them away.
+ *
+ *  Modern browsers get the same tags in the same order; the only difference
+ *  is that the preload scanner cannot see them, so they are discovered when
+ *  the parser runs the script (about 3 KB in, after the inline app-shell
+ *  `<style>`; nothing before it blocks the parser).
+ *  plugin-legacy's inline module scripts and its `nomodule` scripts stay in
+ *  the markup: in a legacy browser its fallback loads SystemJS and the
+ *  legacy entry, as before. Runs after `legacyCssPlugin` (which emits the
+ *  legacy stylesheet) and before `legacyEs5Plugin` (which parses the script
+ *  as ES5). Fails the build if the markup is not the shape it expects. */
+function legacyGatePlugin(): Plugin {
+  let base = '/';
+  return {
+    name: 'legacy-gate',
+    apply: 'build',
+    configResolved(config) {
+      base = config.base;
+    },
+    generateBundle: {
+      order: 'post',
+      handler(_options, bundle) {
+        const html = bundle['index.html'];
+        if (html?.type !== 'asset') return;
+        const css = Object.values(bundle).filter(
+          (output) =>
+            output.type === 'asset' && output.fileName.endsWith('.css')
+        );
+        const modern = css.find((c) => !c.fileName.includes('-legacy-'));
+        const legacyCss = css.find((c) => c.fileName.includes('-legacy-'));
+        if (css.length !== 2 || !modern || !legacyCss) {
           this.error(
-            `legacy-css: no <link> to ${modern.fileName} in index.html`
+            `legacy-gate expects the app stylesheet and its legacy copy, ` +
+              `found: ${css.map((c) => c.fileName).join(', ')}`
           );
         }
-        const legacyHref = href.replace(modern.fileName, fileName);
-        page = page.replace(
-          link,
-          `${link}\n    <script>${legacyCssLoader(href, legacyHref)}</script>`
-        );
-        html.source = page;
+        try {
+          html.source = gateModernAssets(
+            String(html.source),
+            `${base}${modern.fileName}`,
+            `${base}${legacyCss.fileName}`
+          );
+        } catch (err) {
+          this.error(
+            `legacy-gate: cannot gate the modern assets in index.html: ` +
+              (err instanceof Error ? err.message : String(err))
+          );
+        }
       },
     },
   };
@@ -224,7 +256,10 @@ function legacyCssPlugin(): Plugin {
 
 /** Injects a <link rel="preload"> for the Latin Montserrat woff2 so the browser
  *  starts downloading it before CSS is parsed. Vite resolves the bare-module
- *  path and rewrites it to the hashed output path during build. */
+ *  path and rewrites it to the hashed output path during build. The tag stays
+ *  in the markup, outside the `legacyGatePlugin` script, so the preload
+ *  scanner still finds it, and the legacy stylesheet uses the same font file,
+ *  so legacy browsers use the preload too. */
 function fontPreloadPlugin(): Plugin {
   return {
     name: 'font-preload',
@@ -269,7 +304,8 @@ const LAZY_ONLY_PACKAGES = [
 ];
 
 /** Fails the build when the modern entry's static import graph (what
- *  `index.html` modulepreloads) contains a lazy-only package. The legacy
+ *  `index.html` modulepreloads, through the `legacyGatePlugin` script)
+ *  contains a lazy-only package. The legacy
  *  output (`*-legacy-*` chunks, SystemJS behind `nomodule`) is skipped: it
  *  has no modulepreload list. */
 function initialChunkGuardPlugin(): Plugin {
@@ -398,6 +434,7 @@ export default defineConfig(() => ({
       additionalLegacyPolyfills: ['regenerator-runtime/runtime'],
     }),
     legacyCssPlugin(),
+    legacyGatePlugin(),
     legacyEs5Plugin(),
     fontPreloadPlugin(),
     initialChunkGuardPlugin(),

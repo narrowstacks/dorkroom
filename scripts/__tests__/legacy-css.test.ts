@@ -5,12 +5,13 @@ import { es5SyntaxProblem } from '../../apps/dorkroom/es5-syntax';
 import {
   BREAKPOINTS,
   buildLegacyCss,
+  gateModernAssets,
   KINDLE_UA_SOURCE,
   LEGACY_BROWSER_ATTR,
   legacyCssFileName,
   legacyCssLeftovers,
-  legacyCssLoader,
   legacyCssProblem,
+  legacyGateScript,
   NO_BLUR_CSS,
   NO_MOTION_CSS,
 } from '../../apps/dorkroom/legacy-css';
@@ -267,50 +268,168 @@ describe('legacyCssProblem', () => {
   });
 });
 
-describe('legacyCssLoader', () => {
-  it('is an ES5 script that probes for cascade layers', () => {
-    const script = legacyCssLoader(
-      '/assets/index-abc.css',
-      '/assets/index-legacy-def.css'
-    );
+const MODERN_TAGS =
+  '<script type="module" crossorigin src="/assets/index-a.js"></script>' +
+  '<link rel="modulepreload" crossorigin href="/assets/vendor-b.js">' +
+  '<link rel="stylesheet" crossorigin href="/assets/index-c.css">';
+
+/** Runs `script` against a stub document, as a browser with or without
+ *  cascade layers would, and returns what it wrote and set. */
+function runGate(script: string, layers: boolean, userAgent = 'Chrome') {
+  const written: string[] = [];
+  const attrs: Record<string, string> = {};
+  const child = () => ({ style: {}, appendChild() {}, offsetHeight: 0 });
+  const root = {
+    setAttribute(name: string, value: string) {
+      attrs[name] = value;
+    },
+    appendChild() {},
+    removeChild() {},
+  };
+  const document = {
+    documentElement: root,
+    createElement: child,
+    write(html: string) {
+      written.push(html);
+    },
+  };
+  const window: {
+    CSSLayerBlockRule?: () => void;
+    __vite_is_modern_browser?: boolean;
+  } = layers ? { CSSLayerBlockRule: function () {} } : {};
+  new Function('Object', 'window', 'document', 'navigator', script)(
+    Object,
+    window,
+    document,
+    { userAgent }
+  );
+  return { written, attrs, window };
+}
+
+describe('legacyGateScript', () => {
+  const script = legacyGateScript(MODERN_TAGS, '/assets/index-legacy-d.css');
+
+  it('is ES5 and safe inside an inline <script>', () => {
     expect(es5SyntaxProblem(script)).toBeUndefined();
+    expect(script).not.toContain('<');
     expect(script).toContain('CSSLayerBlockRule');
-    expect(script).toContain(
-      'link[rel=stylesheet][href=\\"/assets/index-abc.css\\"]'
-    );
-    expect(script).toContain('removeChild(l)');
   });
 
-  it('writes a parser-inserted, render-blocking link instead of changing href', () => {
-    const script = legacyCssLoader('/a.css', '/a-legacy.css');
-    expect(script).toContain(
-      'd.write("<link rel=\\"stylesheet\\" href=\\"/a-legacy.css\\">")'
-    );
+  it('writes the modern tags back, unchanged, when cascade layers exist', () => {
+    const { written, attrs } = runGate(script, true);
+    expect(written).toEqual([MODERN_TAGS]);
+    expect(attrs).toEqual({});
+  });
+
+  it('writes only the legacy stylesheet without cascade layers', () => {
+    const { written, attrs } = runGate(script, false);
+    expect(written).toEqual([
+      '<link rel="stylesheet" href="/assets/index-legacy-d.css">',
+    ]);
+    expect(written.join('')).not.toContain('/assets/index-a.js');
+    expect(written.join('')).not.toContain('modulepreload');
+    expect(attrs[LEGACY_BROWSER_ATTR]).toBe('');
+  });
+
+  it('writes parser-inserted tags instead of creating elements', () => {
+    expect(script).toContain('document.write(');
+    expect(script).toContain('d.write(');
     expect(script).not.toContain('.href=');
   });
 
   it('flags engines without flex gap', () => {
-    expect(legacyCssLoader('/a.css', '/b.css')).toContain(
-      'setAttribute("data-lc-nogap","")'
+    expect(runGate(script, false).attrs['data-lc-nogap']).toBe('');
+  });
+
+  it("pins plugin-legacy's modern flag to false in the legacy branch only", () => {
+    // Otherwise an engine without layers that passes plugin-legacy's module
+    // detection would skip the legacy bundle too, and nothing would boot.
+    const withoutLayers = runGate(script, false).window;
+    withoutLayers.__vite_is_modern_browser = true;
+    expect(withoutLayers.__vite_is_modern_browser).toBe(false);
+    const modern = runGate(script, true).window;
+    expect('__vite_is_modern_browser' in modern).toBe(false);
+  });
+});
+
+describe('gateModernAssets', () => {
+  const head = (tags: string) =>
+    '<head><link rel="preload" href="/f.woff2" as="font"><style>a{}</style>' +
+    tags +
+    '<script type="module">window.x=1</script></head>' +
+    '<body><script nomodule src="/p-legacy.js"></script></body>';
+  const html = head(
+    '<script type="module" crossorigin src="/assets/index-a.js"></script>\n' +
+      '    <link rel="modulepreload" crossorigin href="/assets/vendor-b.js">\n' +
+      '    <link rel="stylesheet" crossorigin href="/assets/index-c.css">'
+  );
+
+  it('replaces the modern tags with one gate script in their place', () => {
+    const gated = gateModernAssets(
+      html,
+      '/assets/index-c.css',
+      '/assets/index-legacy-d.css'
     );
+    expect(gated).toBe(
+      head(
+        `<script>${legacyGateScript(MODERN_TAGS, '/assets/index-legacy-d.css')}</script>`
+      )
+    );
+  });
+
+  it('leaves the font preload, inline module scripts and nomodule scripts', () => {
+    const gated = gateModernAssets(html, '/assets/index-c.css', '/l.css');
+    expect(gated).toContain('<link rel="preload" href="/f.woff2" as="font">');
+    expect(gated).toContain('<script type="module">window.x=1</script>');
+    expect(gated).toContain('<script nomodule src="/p-legacy.js"></script>');
+    expect(gated).not.toMatch(/<link rel="(?:modulepreload|stylesheet)"/);
+  });
+
+  it('refuses markup it would only half gate', () => {
+    expect(() => gateModernAssets(html, '/assets/other.css', '/l.css')).toThrow(
+      /stylesheet/
+    );
+    expect(() =>
+      gateModernAssets(
+        html.replace(
+          '<link rel="modulepreload"',
+          '<meta x><link rel="modulepreload"'
+        ),
+        '/assets/index-c.css',
+        '/l.css'
+      )
+    ).toThrow(/contiguous/);
+    expect(() =>
+      gateModernAssets(
+        html.replace('</head>', '<link rel="stylesheet" href="/x.css"></head>'),
+        '/assets/index-c.css',
+        '/l.css'
+      )
+    ).toThrow(/one stylesheet/);
   });
 });
 
 describe('legacy browser marker', () => {
   it('is set by the loader, in the legacy branch only', () => {
-    const script = legacyCssLoader('/a.css', '/b.css');
+    const script = legacyGateScript(MODERN_TAGS, '/b.css');
     expect(script).toContain('setAttribute("data-lc-legacy","")');
-    expect(script.indexOf('data-lc-legacy')).toBeGreaterThan(
-      script.indexOf('CSSLayerBlockRule||')
-    );
+    expect(runGate(script, true).attrs).toEqual({});
+    expect(runGate(script, false).attrs[LEGACY_BROWSER_ATTR]).toBe('');
   });
 
   it('themes a Kindle high contrast before first paint, in ES5', () => {
-    const script = legacyCssLoader('/a.css', '/b.css');
+    const script = legacyGateScript(MODERN_TAGS, '/b.css');
     expect(es5SyntaxProblem(script)).toBeUndefined();
     expect(script).toContain(
       `${KINDLE_UA_SOURCE}.test(navigator.userAgent)&&e.setAttribute("data-theme","high-contrast")`
     );
+    const kindle =
+      'Mozilla/5.0 (Linux; Android 9; Kindle Build/1.0) AppleWebKit/537.36 ' +
+      '(KHTML, like Gecko) Silk/80.4.14 like Chrome/80.0.3987.119 Safari/537.36';
+    expect(runGate(script, false, kindle).attrs['data-theme']).toBe(
+      'high-contrast'
+    );
+    expect(runGate(script, false).attrs['data-theme']).toBeUndefined();
   });
 
   it('uses the Kindle pattern isEInkDevice uses', () => {
