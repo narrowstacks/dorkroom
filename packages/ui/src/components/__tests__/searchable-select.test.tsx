@@ -704,4 +704,51 @@ describe('SearchableSelect keeps focus after Clear selection (#639)', () => {
     expect(input).toHaveFocus();
     expect(input).toHaveAttribute('aria-expanded', 'false');
   });
+
+  it('a mouse press on Clear does not blur the input, so an open list stays until the click', async () => {
+    const user = userEvent.setup();
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    const clear = screen.getByRole('button', { name: 'Clear selection' });
+    expect(fireEvent.mouseDown(clear)).toBe(false); // default prevented
+    expect(input).toHaveFocus();
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    await user.click(clear);
+    expect(
+      screen.queryByRole('button', { name: 'Clear selection' })
+    ).toBeNull();
+    expect(input).toHaveFocus();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('typing right after a clear searches for just the typed text', async () => {
+    const user = userEvent.setup();
+    render(
+      <SearchableSelect
+        label="Brand"
+        selectedValue="b"
+        onValueChange={vi.fn()}
+        items={[{ value: '', label: 'All Brands' }, ...items]}
+      />
+    );
+    const input = screen.getByRole('combobox');
+    await user.click(screen.getByRole('button', { name: 'Clear selection' }));
+    await user.keyboard('Ga');
+    expect(input).toHaveValue('Ga');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+  });
+
+  it('typing after Escape searches for just the typed text', async () => {
+    const user = userEvent.setup();
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    await user.keyboard('{Escape}');
+    await user.keyboard('Ga');
+    expect(input).toHaveValue('Ga');
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+  });
 });

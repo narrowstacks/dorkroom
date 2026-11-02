@@ -135,6 +135,10 @@ function ClearButton({ onClear }: { onClear: (pointerType: string) => void }) {
   return (
     <button
       type="button"
+      // A mouse press must not blur the input: with the list open, #635 would
+      // close it on that blur, the layout would shift and the click would miss
+      // the X. Keyboard Tab still blurs normally.
+      onMouseDown={(e) => e.preventDefault()}
       onPointerDown={(e) => {
         pointerType.current = e.pointerType;
       }}
@@ -264,6 +268,13 @@ export function SearchableSelect({
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen) {
+      // The closed input shows the selected label (or "All ..."), so typing
+      // would append to it. Select it so the first keystroke replaces it.
+      const edits =
+        (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) ||
+        e.key === 'Backspace' ||
+        e.key === 'Delete';
+      if (edits) inputRef.current?.select();
       if (e.key === 'Enter' || e.key === 'ArrowDown') {
         e.preventDefault();
         openAndFocusSelected();
