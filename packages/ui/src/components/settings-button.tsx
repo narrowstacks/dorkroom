@@ -11,6 +11,12 @@ interface SettingsButtonProps {
   centerLabel?: boolean;
   className?: string;
   isSelected?: boolean;
+  /**
+   * Set when the button is one option of a `SettingsRadioGroup`.
+   * It then reports `aria-checked` from `isSelected` and joins the roving
+   * tab order (only the checked option is tabbable).
+   */
+  asRadio?: boolean;
 }
 
 export function SettingsButton({
@@ -23,10 +29,14 @@ export function SettingsButton({
   centerLabel = false,
   className,
   isSelected = false,
+  asRadio = false,
 }: SettingsButtonProps) {
   return (
     <button
       type="button"
+      role={asRadio ? 'radio' : undefined}
+      aria-checked={asRadio ? isSelected : undefined}
+      tabIndex={asRadio ? (isSelected ? 0 : -1) : undefined}
       onClick={onPress}
       className={cn(
         'w-full rounded-lg border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] hoverable-settings-btn',
