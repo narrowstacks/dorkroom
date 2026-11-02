@@ -517,6 +517,7 @@ describe('withHandler', () => {
       expect(res._headers['x-ratelimit-limit']).toBe('60');
       expect(res._headers['x-ratelimit-remaining']).toBe('0');
       expect(res._headers['x-ratelimit-reset']).toBe('1767225660');
+      expect(res._headers['cache-control']).toBe('private, no-store');
     });
 
     it('IP guard exceeded (client-id fine): 429; headers reflect the IP result', async () => {
@@ -615,6 +616,46 @@ describe('withHandler', () => {
       return { handler, ran };
     }
 
+    it('keeps per-caller X-RateLimit-* on a passing keyed response (private, no-store)', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
+      setupKeyedEnv();
+      verifyKeyMock.mockResolvedValueOnce({
+        meta: { requestId: 'unkey-request' },
+        data: {
+          valid: true,
+          code: 'VALID',
+          ratelimits: [
+            {
+              id: 'default',
+              name: 'default',
+              limit: 100,
+              remaining: 99,
+              reset: Date.now() + 60_000,
+              exceeded: false,
+              duration: 60_000,
+              autoApply: true,
+            },
+          ],
+        },
+      });
+      const { handler, ran } = await keyedHandler();
+
+      const res = createMockResponse();
+      await handler(
+        createMockRequest({
+          headers: { host: 'api.dorkroom.art', 'x-api-key': 'a-key' },
+        }),
+        res
+      );
+
+      expect(res._status).toBe(200);
+      expect(ran).toHaveBeenCalledOnce();
+      expect(res._headers['x-ratelimit-limit']).toBe('100');
+      expect(res._headers['x-ratelimit-remaining']).toBe('99');
+      expect(res._headers['x-ratelimit-reset']).toBe('1767225660');
+    });
+
     it('answers 401 without calling Unkey when X-API-Key is missing', async () => {
       setupKeyedEnv();
       const { handler, ran } = await keyedHandler();
@@ -704,6 +745,19 @@ describe('withHandler', () => {
       expect(res._status).toBe(200);
     });
 
+    it('sends no per-IP X-RateLimit-* on a passing response, which the CDN caches for everyone', async () => {
+      ratelimitLimitMock.mockResolvedValueOnce(passingLimit(30));
+      const { handler } = await anonymousHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest({ 'x-real-ip': '203.0.113.5' }), res);
+
+      expect(res._status).toBe(200);
+      expect(res._headers['x-ratelimit-limit']).toBeUndefined();
+      expect(res._headers['x-ratelimit-remaining']).toBeUndefined();
+      expect(res._headers['x-ratelimit-reset']).toBeUndefined();
+    });
+
     it('answers 429 over the limit and never runs the handler', async () => {
       vi.useFakeTimers({ toFake: ['Date'] });
       vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
@@ -716,7 +770,21 @@ describe('withHandler', () => {
       expect(res._status).toBe(429);
       expect(res._json).toMatchObject({ error: 'Rate limit exceeded' });
       expect(res._headers['retry-after']).toBe('60');
+      expect(res._headers['x-ratelimit-limit']).toBe('30');
+      expect(res._headers['x-ratelimit-remaining']).toBe('0');
+      expect(res._headers['x-ratelimit-reset']).toBe('1767225660');
       expect(ran).not.toHaveBeenCalled();
+    });
+
+    it('marks the anonymous 429 no-store so the CDN never caches it', async () => {
+      ratelimitLimitMock.mockResolvedValueOnce(exceededLimit(30));
+      const { handler } = await anonymousHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest({ 'x-real-ip': '203.0.113.5' }), res);
+
+      expect(res._status).toBe(429);
+      expect(res._headers['cache-control']).toBe('no-store');
     });
 
     it('fails open outside production when the create_namespace permission is missing', async () => {
@@ -796,12 +864,9 @@ describe('withHandler', () => {
 
     /** Nothing in the response may describe a global bucket. */
     function expectNoGlobalState(res: ReturnType<typeof createMockResponse>) {
-      expect(res._headers['x-ratelimit-limit']).toBe(
-        String(ANONYMOUS_RATE_LIMIT)
-      );
-      expect(res._headers['x-ratelimit-remaining']).toBe(
-        String(ANONYMOUS_RATE_LIMIT - 1)
-      );
+      // Passing per-IP checks send no X-RateLimit-* at all (cached, shared)
+      expect(res._headers['x-ratelimit-limit']).toBeUndefined();
+      expect(res._headers['x-ratelimit-remaining']).toBeUndefined();
       // The random requestId could contain the digits by chance; drop it
       const body = JSON.stringify(res._json ?? null).replace(
         /[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/g,
