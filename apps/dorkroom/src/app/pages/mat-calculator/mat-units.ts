@@ -7,6 +7,7 @@ import {
   type MatPreset,
   type MeasurementUnit,
   parseMatInput,
+  stripMatSuffix,
   toFraction,
   toFractionInput,
 } from '@dorkroom/logic';
@@ -23,6 +24,15 @@ import {
 /** Stepper / arrow-key increment: 1/16" imperial, 1mm metric. */
 const STEP_INCHES = 1 / 16;
 const STEP_CM = 0.1;
+
+/** Metric fields accept a trailing "cm", like `50cm` or `50 cm`. */
+const CM_MARK = ['cm'];
+
+/** Inches from field text, allowing a trailing "cm" in metric. */
+const parseDisplay = (display: string, unit: MeasurementUnit): number =>
+  parseMatInput(
+    unit === 'imperial' ? display : stripMatSuffix(display, CM_MARK)
+  );
 
 /** Drop the padding `toFixed` adds, so 20.40 reads as "20.4" and 40.64 as "40.64". */
 function trimDecimals(value: number, decimals: number): string {
@@ -95,7 +105,7 @@ export function matDisplayToValue(
   if (unit === 'imperial') {
     return display;
   }
-  const parsed = parseMatInput(display.trim().replace(/\s*cm$/i, ''));
+  const parsed = parseDisplay(display, unit);
   if (Number.isNaN(parsed)) {
     return '';
   }
@@ -112,7 +122,7 @@ export function stepMatDisplay(
   direction: 1 | -1
 ): string {
   const step = unit === 'imperial' ? STEP_INCHES : STEP_CM;
-  const current = parseMatInput(display);
+  const current = parseDisplay(display, unit);
   const base = Number.isNaN(current) ? 0 : current;
   const snapped = Math.round(base / step) * step;
   const next = Math.max(0, snapped + direction * step);

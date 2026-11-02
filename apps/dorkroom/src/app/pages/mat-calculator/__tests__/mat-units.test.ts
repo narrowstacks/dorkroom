@@ -136,6 +136,11 @@ describe('stepMatDisplay', () => {
     expect(stepMatDisplay('20.3', 'metric', 1)).toBe('20.4');
   });
 
+  it('keeps a metric value typed with a cm suffix', () => {
+    expect(stepMatDisplay('50cm', 'metric', 1)).toBe('50.1');
+    expect(stepMatDisplay('50 cm', 'metric', -1)).toBe('49.9');
+  });
+
   it('treats unparseable text as zero and clamps at zero', () => {
     expect(stepMatDisplay('', 'metric', 1)).toBe('0.1');
     expect(stepMatDisplay('0', 'metric', -1)).toBe('0');

@@ -13,6 +13,12 @@ import {
 
 describe('mat calculator logic', () => {
   describe('parseMatInput', () => {
+    it('stays fast on long runs of spaces (no polynomial backtracking)', () => {
+      const start = performance.now();
+      expect(parseMatInput(`3${' '.repeat(50_000)}x`)).toBeNaN();
+      expect(performance.now() - start).toBeLessThan(200);
+    });
+
     it('parses decimals', () => {
       expect(parseMatInput('1.5')).toBe(1.5);
       expect(parseMatInput('16')).toBe(16);

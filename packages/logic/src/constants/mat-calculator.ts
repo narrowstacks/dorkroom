@@ -72,6 +72,20 @@ const GLYPH_RE = new RegExp(
   `^(\\d+)?\\s*([${[...VULGAR_FRACTIONS.keys()].join('')}])$`
 );
 
+const INCH_MARKS = ['"', '″', '“', '”', '′′', "''", 'in'];
+
+/**
+ * Trim `str` and drop one trailing unit mark from `marks` (case-insensitive),
+ * plus any space before it. Done without a `\s*...$` regex, which backtracks
+ * polynomially on long runs of spaces.
+ */
+export function stripMatSuffix(str: string, marks: readonly string[]): string {
+  const s = str.trim();
+  const lower = s.toLowerCase();
+  const mark = marks.find((m) => lower.endsWith(m));
+  return mark ? s.slice(0, -mark.length).trimEnd() : s;
+}
+
 /**
  * Parse a measurement string into inches. Accepts decimals ("1.5", or "1,5"
  * with a comma separator), simple fractions ("1/4"), mixed numbers ("1 1/2",
@@ -82,9 +96,7 @@ const GLYPH_RE = new RegExp(
  * number.
  */
 export function parseMatInput(str: string | number): number {
-  const s = String(str)
-    .trim()
-    .replace(/\s*(?:["″“”]|′′|''|in)$/i, '');
+  const s = stripMatSuffix(String(str), INCH_MARKS);
   if (s === '') return NaN;
   const glyph = s.match(GLYPH_RE);
   if (glyph)
