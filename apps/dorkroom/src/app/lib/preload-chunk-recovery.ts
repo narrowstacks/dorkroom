@@ -9,6 +9,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+import { isSpeculativeImportInFlight } from './lazy-page';
+
 const RELOAD_GUARD_KEY = 'vite-preload-reload-at';
 const RELOAD_GUARD_WINDOW_MS = 10_000;
 
@@ -30,8 +32,16 @@ const RELOAD_GUARD_WINDOW_MS = 10_000;
  * happens there's no safe way to tell whether a reload loop is already in
  * progress, so this bails out entirely — no reload, no `preventDefault()` —
  * and lets the error surface instead of guessing.
+ *
+ * A failure while a chunk is loading only speculatively (a link hovered,
+ * focused or touched: see `isSpeculativeImportInFlight`) is left alone the
+ * same way. Vite fires this event from inside the import, before the
+ * preload's own `.catch` sees the rejection, and reloading because the user
+ * pointed at a link would throw away the page they are on. A click then
+ * imports the chunk again, and that failure reloads.
  */
 export function handleVitePreloadError(event: Event): void {
+  if (isSpeculativeImportInFlight()) return;
   const now = Date.now();
   let lastReload: number;
   try {

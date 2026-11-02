@@ -1,14 +1,16 @@
 import { serve } from 'https://deno.land/std@0.203.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { requireProxySecret } from '../_shared/auth.ts';
+import { buildDeveloperFilters } from '../_shared/developerFilters.ts';
 
 /**
  * Edge Function: /developers
  *
  * Query Parameters:
  *   - slug: Exact match on developer slug
- *   - query: Search term for developer name
- *   - fuzzy: Enable fuzzy search (true/false)
+ *   - query: Case-insensitive partial match on developer name or manufacturer
+ *     (punctuation acts as a wildcard)
+ *   - fuzzy: Deprecated and ignored; accepted so existing clients keep working
  *   - limit: Maximum number of results
  *   - type: Filter by developer type (concentrate/powder)
  *   - manufacturer: Filter by manufacturer
@@ -78,10 +80,14 @@ import { requireProxySecret } from '../_shared/auth.ts';
   const { searchParams } = new URL(req.url);
   const slug = searchParams.get('slug');
   const query = searchParams.get('query');
-  const fuzzy = searchParams.get('fuzzy') === 'true';
   const limit = parseInt(searchParams.get('limit') ?? '0', 10);
   const type = searchParams.get('type');
-  const manufacturer = searchParams.get('manufacturer');
+  const { orFilter, manufacturerPattern, invalidQuery } = buildDeveloperFilters(
+    {
+      query,
+      manufacturer: searchParams.get('manufacturer'),
+    }
+  );
 
   // ────────────────────────────────────────
   //  Build query
@@ -90,6 +96,16 @@ import { requireProxySecret } from '../_shared/auth.ts';
     count: 'exact',
   });
 
+  if (invalidQuery) {
+    return new Response(JSON.stringify({ error: 'Invalid query parameter' }), {
+      status: 400,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
+  }
+
   // Apply filters
   if (slug) {
     dbQuery = dbQuery.eq('slug', slug);
@@ -97,23 +113,13 @@ import { requireProxySecret } from '../_shared/auth.ts';
   if (type) {
     dbQuery = dbQuery.eq('type', type);
   }
-  if (manufacturer) {
-    dbQuery = dbQuery.ilike('manufacturer', `%${manufacturer}%`);
+  if (manufacturerPattern) {
+    dbQuery = dbQuery.ilike('manufacturer', manufacturerPattern);
   }
 
-  // Apply search
-  if (query) {
-    if (fuzzy) {
-      // Fuzzy search: use ilike with wildcards for typo tolerance
-      dbQuery = dbQuery.or(
-        `name.ilike.%${query}%,manufacturer.ilike.%${query}%`
-      );
-    } else {
-      // Exact search: case-insensitive partial match
-      dbQuery = dbQuery.or(
-        `name.ilike.%${query}%,manufacturer.ilike.%${query}%`
-      );
-    }
+  // Apply search: case-insensitive partial match on name or manufacturer
+  if (orFilter) {
+    dbQuery = dbQuery.or(orFilter);
   }
 
   // Apply limit
