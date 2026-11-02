@@ -1145,7 +1145,7 @@ describe('og handler - rate limiting', () => {
       .map(([, init]): UnkeyBody => JSON.parse(String(init?.body)));
   }
 
-  it('charges a recipe card its worst-case upstream calls against one global budget', async () => {
+  it('charges a recipe card its worst-case upstream calls against both global budgets', async () => {
     const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(true));
 
     await pngBytes(
@@ -1166,6 +1166,13 @@ describe('og handler - rate limiting', () => {
         identifier: 'og-upstream',
         limit: 1200,
         duration: 60_000,
+        cost: 2 + MAX_COMBINATION_PAGES,
+      },
+      {
+        namespace: 'api_test-anonymous',
+        identifier: 'og-upstream-day',
+        limit: 10_000,
+        duration: 86_400_000,
         cost: 2 + MAX_COMBINATION_PAGES,
       },
     ]);
@@ -1191,29 +1198,47 @@ describe('og handler - rate limiting', () => {
     ]);
   });
 
-  it('serves the uncached static card, with no lookups, when the global budget is spent', async () => {
-    // Per-IP check passes, the global one does not.
-    let unkeyCall = 0;
-    const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(unkeyCall++ === 0));
+  it.each([
+    ['per-minute', 'og-upstream', 1],
+    ['daily', 'og-upstream-day', 2],
+  ])(
+    'serves the uncached static card, with no lookups, when the %s global budget is spent',
+    async (_label, spent, limitedCall) => {
+      // Every check before `limitedCall` passes; that one does not.
+      let unkeyCall = 0;
+      const fetchMock = stubFetchWithUnkey(() =>
+        unkeyAnswer(unkeyCall++ < limitedCall)
+      );
 
-    const res = await handler(
-      ogRequest({
-        route: '/development',
-        film: 'kodak-tri-x-400',
-        developer: 'ilford-perceptol',
-      })
-    );
+      const res = await handler(
+        ogRequest({
+          route: '/development',
+          film: 'kodak-tri-x-400',
+          developer: 'ilford-perceptol',
+        })
+      );
 
-    expect(res.status).toBe(307);
-    expect(res.headers.get('location')).toBe(
-      'https://dorkroom.art/api/og?route=%2Fdevelopment'
-    );
-    expect(res.headers.get('cache-control')).toBe('no-store');
-    expect(fetchMock.mock.calls.map(([input]) => String(input))).toEqual([
-      UNKEY_URL,
-      UNKEY_URL,
-    ]);
-  });
+      expect(res.status).toBe(307);
+      expect(res.headers.get('location')).toBe(
+        'https://dorkroom.art/api/og?route=%2Fdevelopment'
+      );
+      expect(res.headers.get('cache-control')).toBe('no-store');
+      expect(Number(res.headers.get('retry-after'))).toBeGreaterThan(0);
+      // The global buckets' state is not reported to the caller.
+      for (const name of [
+        'x-ratelimit-limit',
+        'x-ratelimit-remaining',
+        'x-ratelimit-reset',
+      ]) {
+        expect(res.headers.get(name)).toBeNull();
+      }
+      // Only limiter calls, ending at the spent bucket: no lookups.
+      expect(fetchMock.mock.calls.map(([input]) => String(input))).toEqual(
+        Array.from({ length: limitedCall + 1 }, () => UNKEY_URL)
+      );
+      expect(unkeyBodies(fetchMock).at(-1)?.identifier).toBe(spent);
+    }
+  );
 
   it('skips the global budget for cards drawn from the params alone', async () => {
     const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(true));

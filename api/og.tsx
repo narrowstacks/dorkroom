@@ -20,6 +20,8 @@ import {
 import {
   ANONYMOUS_RATE_LIMIT,
   ANONYMOUS_RATE_WINDOW_MS,
+  OG_UPSTREAM_DAILY_LIMIT,
+  OG_UPSTREAM_DAILY_WINDOW_MS,
   OG_UPSTREAM_RATE_LIMIT,
   OG_UPSTREAM_RATE_WINDOW_MS,
 } from '../utils/rateLimitPolicy';
@@ -83,8 +85,22 @@ export const COMBINATION_PAGE_SIZE = 100;
  * what one recipe card can cost upstream; see `upstreamLookupCost`.
  */
 export const MAX_COMBINATION_PAGES = 3;
-/** Identifier of the global upstream budget, in the anonymous namespace. */
-const OG_UPSTREAM_IDENTIFIER = 'og-upstream';
+/**
+ * The global upstream budgets (`utils/rateLimitPolicy.ts`), in the anonymous
+ * namespace: a per-minute burst cap, then a daily cap.
+ */
+const OG_UPSTREAM_BUCKETS = [
+  {
+    identifier: 'og-upstream',
+    limit: OG_UPSTREAM_RATE_LIMIT,
+    durationMs: OG_UPSTREAM_RATE_WINDOW_MS,
+  },
+  {
+    identifier: 'og-upstream-day',
+    limit: OG_UPSTREAM_DAILY_LIMIT,
+    durationMs: OG_UPSTREAM_DAILY_WINDOW_MS,
+  },
+] as const;
 const FONT_URL =
   'https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Ew-.ttf';
 const FONT_BOLD_URL =
@@ -1142,11 +1158,16 @@ function staticCardRoute(route: string): string | null {
  * social crawler that trips the limit still gets a usable image instead of a
  * broken preview. `no-store` keeps the redirect itself from being cached
  * under the dynamic URL, so the real card renders once the window resets.
+ *
+ * `scope: 'client'` (the per-IP limit) reports the caller's own budget in
+ * `X-RateLimit-*`. `scope: 'global'` sends `Retry-After` only: the global
+ * upstream buckets' state is nobody's business outside the server.
  */
 function rateLimitedResponse(
   request: Request,
   route: string,
-  limit: { limit: number; remaining: number; resetMs: number }
+  limit: { limit: number; remaining: number; resetMs: number },
+  scope: 'client' | 'global'
 ): Response {
   const target = new URL('/api/og', request.url);
   const staticRoute = staticCardRoute(route);
@@ -1158,17 +1179,17 @@ function rateLimitedResponse(
     Math.ceil((limit.resetMs - Date.now()) / 1000)
   );
 
-  return new Response(null, {
-    status: 307,
-    headers: {
-      Location: target.toString(),
-      'Cache-Control': NO_STORE,
-      'Retry-After': String(retryAfter),
-      'X-RateLimit-Limit': String(limit.limit),
-      'X-RateLimit-Remaining': String(limit.remaining),
-      'X-RateLimit-Reset': String(Math.ceil(limit.resetMs / 1000)),
-    },
+  const headers = new Headers({
+    Location: target.toString(),
+    'Cache-Control': NO_STORE,
+    'Retry-After': String(retryAfter),
   });
+  if (scope === 'client') {
+    headers.set('X-RateLimit-Limit', String(limit.limit));
+    headers.set('X-RateLimit-Remaining', String(limit.remaining));
+    headers.set('X-RateLimit-Reset', String(Math.ceil(limit.resetMs / 1000)));
+  }
+  return new Response(null, { status: 307, headers });
 }
 
 export default async function handler(request: Request): Promise<Response> {
@@ -1193,24 +1214,23 @@ export default async function handler(request: Request): Promise<Response> {
       durationMs: ANONYMOUS_RATE_WINDOW_MS,
     });
     if (limit.status === 'limited') {
-      return rateLimitedResponse(request, params.route, limit);
+      return rateLimitedResponse(request, params.route, limit, 'client');
     }
   }
 
   // The catalogue lookups bypass the anonymous /api/* limiter (#443), so
-  // every render draws on one global budget, charged its worst-case call
-  // count. Over it, the static card (uncached) rather than a slug-only card,
-  // which the CDN would otherwise keep for a day.
+  // every render draws on the global upstream budgets, charged its
+  // worst-case call count. Over either, the static card (uncached) rather
+  // than a slug-only card, which the CDN would otherwise keep for a day.
   const cost = upstreamLookupCost(params);
   if (cost > 0) {
-    const budget = await checkEdgeRateLimit({
-      identifier: OG_UPSTREAM_IDENTIFIER,
-      limit: OG_UPSTREAM_RATE_LIMIT,
-      durationMs: OG_UPSTREAM_RATE_WINDOW_MS,
-      cost,
-    });
-    if (budget.status === 'limited') {
-      return rateLimitedResponse(request, params.route, budget);
+    // In order, so a render the burst cap turns away is not charged to the
+    // day's budget as well.
+    for (const bucket of OG_UPSTREAM_BUCKETS) {
+      const budget = await checkEdgeRateLimit({ ...bucket, cost });
+      if (budget.status === 'limited') {
+        return rateLimitedResponse(request, params.route, budget, 'global');
+      }
     }
   }
 
