@@ -28,8 +28,15 @@ export type LazyPage<P extends object> = LazyExoticComponent<
 /**
  * Imports in flight that only a speculative preload (hover, focus, touch)
  * asked for. A render or a real navigation joining the import takes it off
- * the count, and every import leaves it when it settles or after
- * `SPECULATIVE_IMPORT_CAP_MS`.
+ * the count, and every import leaves it when it settles.
+ *
+ * There is deliberately no time cap. A hover-only import that fails late
+ * must still not reload the page, so it stays counted until it settles. The
+ * cost, for an import that never settles (a stalled connection), is that the
+ * stale-chunk auto-reload stays off: a real navigation whose chunk then fails
+ * shows the route error fallback, whose Reload Page button does the same job
+ * by hand (see components/route-fallback.tsx). A surprise reload from
+ * pointing at a link is the worse of the two.
  */
 let speculativeImports = 0;
 
@@ -43,13 +50,6 @@ export function isSpeculativeImportInFlight(): boolean {
   return speculativeImports > 0;
 }
 
-/**
- * How long a speculative import may hold off the stale-chunk recovery. An
- * import that hangs (a stalled connection) leaves the count after this, so
- * it cannot switch the recovery off for the rest of the session.
- */
-export const SPECULATIVE_IMPORT_CAP_MS = 10_000;
-
 /** Counts one speculative import; the returned `leave` is idempotent. */
 function enterSpeculative(): () => void {
   speculativeImports += 1;
@@ -57,10 +57,8 @@ function enterSpeculative(): () => void {
   const leave = () => {
     if (!counted) return;
     counted = false;
-    clearTimeout(cap);
     speculativeImports -= 1;
   };
-  const cap = setTimeout(leave, SPECULATIVE_IMPORT_CAP_MS);
   return leave;
 }
 
@@ -68,7 +66,7 @@ function enterSpeculative(): () => void {
  * Wraps a dynamic import so it runs once and its callers share it, counting
  * it as speculative (see {@link isSpeculativeImportInFlight}) while only
  * speculative callers have asked for it. A non-speculative caller joining
- * takes it off the count, and so does settling or the time cap. A failed
+ * takes it off the count, and so does settling. A failed
  * import is dropped, so the next call tries again.
  *
  * For any chunk a route loader starts on intent: a plain `import()` there

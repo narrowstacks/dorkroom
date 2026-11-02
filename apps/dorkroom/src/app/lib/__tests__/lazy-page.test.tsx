@@ -6,7 +6,6 @@ import {
   isSpeculativeImportInFlight,
   lazyPage,
   preloadPage,
-  SPECULATIVE_IMPORT_CAP_MS,
   speculativeImport,
 } from '../lazy-page';
 
@@ -80,30 +79,21 @@ describe('speculativeImport', () => {
     expect(load).toHaveBeenCalledOnce();
   });
 
-  it('stops counting a hung hover import after the cap', () => {
+  it('keeps a slow hover import counted until it settles', async () => {
     vi.useFakeTimers();
-    const loadModule = speculativeImport(() => new Promise<never>(() => {}));
+    const loadModule = speculativeImport(
+      () =>
+        new Promise<string>((resolve) =>
+          setTimeout(() => resolve('late'), 60_000)
+        )
+    );
 
-    loadModule(true).catch(() => undefined);
-    vi.advanceTimersByTime(SPECULATIVE_IMPORT_CAP_MS - 1);
+    const hover = loadModule(true);
+    vi.advanceTimersByTime(59_999);
     expect(isSpeculativeImportInFlight()).toBe(true);
-    vi.advanceTimersByTime(1);
-    expect(isSpeculativeImportInFlight()).toBe(false);
-  });
+    await vi.advanceTimersByTimeAsync(1);
 
-  it('clears the cap when the import settles, so it cannot uncount another', async () => {
-    vi.useFakeTimers();
-    await speculativeImport(() => Promise.resolve('done'))(true);
-    expect(isSpeculativeImportInFlight()).toBe(false);
-
-    vi.advanceTimersByTime(SPECULATIVE_IMPORT_CAP_MS / 2);
-    const hung = speculativeImport(() => new Promise<never>(() => {}));
-    hung(true).catch(() => undefined);
-
-    // The settled import's cap would have fired here had it been left set.
-    vi.advanceTimersByTime(SPECULATIVE_IMPORT_CAP_MS / 2);
-    expect(isSpeculativeImportInFlight()).toBe(true);
-    vi.advanceTimersByTime(SPECULATIVE_IMPORT_CAP_MS / 2);
+    expect(await hover).toBe('late');
     expect(isSpeculativeImportInFlight()).toBe(false);
   });
 });

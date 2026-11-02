@@ -179,6 +179,28 @@ describe('handleVitePreloadError during a page preload (#354)', () => {
     expect(reloadSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('does not reload for a hover import that fails after a long delay', async () => {
+    vi.useFakeTimers();
+    const events: Event[] = [];
+    const loadModule = speculativeImport(
+      () =>
+        new Promise<never>((_resolve, reject) =>
+          setTimeout(() => {
+            events.push(dispatchPreloadError());
+            reject(new Error('Failed to fetch dynamically imported module'));
+          }, 60_000)
+        )
+    );
+
+    loadModule(true).catch(() => undefined);
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    expect(events).toHaveLength(1);
+    expect(reloadSpy).not.toHaveBeenCalled();
+    expect(events[0]?.defaultPrevented).toBe(false);
+    expect(isSpeculativeImportInFlight()).toBe(false);
+  });
+
   it('leaves the count at zero after a hover preload succeeds', async () => {
     const page = lazyPage<object>(() =>
       Promise.resolve({ default: () => null })
