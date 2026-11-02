@@ -260,7 +260,7 @@ export function PickSurface({
         ref={buttonRef}
         type="button"
         aria-label={`${label}. Tap the photo, or move with the arrow keys and press Enter.`}
-        className="absolute inset-0 z-20 cursor-crosshair touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-focus-ring)]"
+        className="absolute inset-0 z-20 h-full w-full cursor-crosshair touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-focus-ring)]"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}

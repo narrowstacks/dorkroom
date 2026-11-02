@@ -48,6 +48,32 @@ describe('buildLegacyCss', () => {
     expect(report).toMatchObject({ resolved: 1, dropped: [] });
   });
 
+  it('defines --lc-N for the base root before the theme roots (bg-background/20 in High Contrast)', async () => {
+    const out = await legacy(
+      [
+        ':root{--color-background:#09090b}',
+        '[data-theme=high-contrast]{--color-background:#fff}',
+        '[data-theme=light]{--color-background:#fafafa}',
+        '@media (prefers-color-scheme:light){:root:not([data-theme]){--color-background:#fff}}',
+        '.bg-background\\/20{background-color:color-mix(in srgb,var(--color-background) 20%,transparent)}',
+      ].join('')
+    );
+    // Same specificity as the theme selectors, so source order decides: the
+    // base definition must come first or it overrides every theme.
+    const at = (re: RegExp) => out.search(re);
+    const base = at(/:root[^{]*\{--lc-0:#09090b33\}/);
+    const hc = at(/\[data-theme=high-contrast\][^{]*\{--lc-0:#fff3\}/);
+    const light = at(/\[data-theme=light\][^{]*\{--lc-0:#fafafa33\}/);
+    expect(base).toBeGreaterThanOrEqual(0);
+    expect(hc).toBeGreaterThan(base);
+    expect(light).toBeGreaterThan(base);
+    // The system-preference variant is conditional, so it follows the plain ones.
+    const media = at(
+      /@media[^{]*prefers-color-scheme:\s*light[^{]*\{[^{]*:root:not\(\[data-theme\]\)[^{]*\{--lc-0:#fff3\}/
+    );
+    expect(media).toBeGreaterThan(hc);
+  });
+
   it('resolves a mix inside a theme root in place', async () => {
     const out = await legacy(
       ':root{--c:red;--d:color-mix(in srgb,var(--c) 50%,white)}'

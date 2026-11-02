@@ -618,7 +618,7 @@ function resolveColorMix(report: LegacyCssReport): Plugin {
       if (mixes.size === 0) return;
       const ordered = [...themes.values()].sort(
         (a, b) =>
-          Number(!isBaseTheme(b)) - Number(!isBaseTheme(a)) ||
+          Number(!isBaseTheme(a)) - Number(!isBaseTheme(b)) ||
           a.chain.length - b.chain.length
       );
       const baseValues = new Map<string, string | undefined>();
