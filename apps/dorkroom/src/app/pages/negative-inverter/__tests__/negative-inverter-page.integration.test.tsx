@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { linearToSrgb, type Rgb } from '@dorkroom/logic';
 import {
+  configure,
   fireEvent,
   render,
   screen,
@@ -18,9 +19,12 @@ import {
 } from './fake-canvas';
 
 // These tests push real pixels through the fake canvas: about 0.3s each on
-// their own, but several seconds when the whole suite shares CI's cores, which
-// tripped the 5s default. vi.setConfig only applies to this file.
+// their own, but several seconds when the whole suite shares CI's cores. That
+// tripped both the 5s test timeout and Testing Library's 1s wait in findBy* and
+// waitFor (an export finishing after 1s). Both are raised for this file only:
+// vi.setConfig is per file, and each file gets fresh module state (forks pool).
 vi.setConfig({ testTimeout: 20_000 });
+configure({ asyncUtilTimeout: 10_000 });
 
 const WIDTH = 400;
 const HEIGHT = 300;
