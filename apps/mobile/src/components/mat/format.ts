@@ -1,10 +1,13 @@
-import type {
-  MatCalculatorState,
-  MatDimensionRow,
-  UseMatCalculatorReturn,
+import {
+  INCH_MARKS,
+  type MatCalculatorState,
+  type MatDimensionRow,
+  stripMatSuffix,
+  type UseMatCalculatorReturn,
 } from '@dorkroom/logic';
 
-const shown = (value: string) => value.trim() || '—';
+/** The typed value without its inch mark (summaries already end in "in"). */
+const shown = (value: string) => stripMatSuffix(value, INCH_MARKS) || '—';
 
 export function formatMatPair(width: string, height: string): string {
   return `${shown(width)} × ${shown(height)} in`;
@@ -26,6 +29,7 @@ export function formatArtworkSummary(values: MatCalculatorState): string {
 type WarningInput = Pick<
   UseMatCalculatorReturn,
   | 'valid'
+  | 'revealValid'
   | 'hasRevealMismatch'
   | 'fmt'
   | 'revVal'
@@ -62,7 +66,9 @@ export function buildMatWarnings(calc: WarningInput): string[] {
   const warnings: string[] = [];
   if (!calc.valid) {
     warnings.push(
-      'Check inputs. The outer mat must be positive and the borders must leave a window larger than zero on both axes.'
+      calc.revealValid
+        ? 'Check inputs. The outer mat must be positive and the borders must leave a window larger than zero on both axes.'
+        : 'Check the reveal. Enter a measurement such as 1/8 or 0.125, or leave it empty for no reveal.'
     );
   }
   if (calc.hasRevealMismatch) {
