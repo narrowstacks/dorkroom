@@ -50,25 +50,51 @@ export const MAT_CALCULATOR_DEFAULTS = {
 
 export type MatCalculatorState = typeof MAT_CALCULATOR_DEFAULTS;
 
+const VULGAR_FRACTIONS = new Map([
+  ['½', 1 / 2],
+  ['⅓', 1 / 3],
+  ['⅔', 2 / 3],
+  ['¼', 1 / 4],
+  ['¾', 3 / 4],
+  ['⅕', 1 / 5],
+  ['⅖', 2 / 5],
+  ['⅗', 3 / 5],
+  ['⅘', 4 / 5],
+  ['⅙', 1 / 6],
+  ['⅚', 5 / 6],
+  ['⅛', 1 / 8],
+  ['⅜', 3 / 8],
+  ['⅝', 5 / 8],
+  ['⅞', 7 / 8],
+]);
+
+const GLYPH_RE = new RegExp(
+  `^(\\d+)?\\s*([${[...VULGAR_FRACTIONS.keys()].join('')}])$`
+);
+
 /**
  * Parse a measurement string into inches. Accepts decimals ("1.5", or "1,5"
- * with a comma separator), simple fractions ("1/4") and mixed numbers
- * ("1 1/2"). Returns NaN for empty or unparseable input.
+ * with a comma separator), simple fractions ("1/4"), mixed numbers ("1 1/2"
+ * or "1-1/2") and fraction glyphs ("3½", "3 ½"), each with an optional
+ * trailing inch mark (`"`, `″` or `in`). Returns NaN for empty input, a zero
+ * denominator, or any text left over, so a typo never reads as a truncated
+ * number.
  */
 export function parseMatInput(str: string | number): number {
-  const s = String(str).trim();
+  const s = String(str)
+    .trim()
+    .replace(/\s*(?:["″]|in)$/i, '');
   if (s === '') return NaN;
-  const mixed = s.match(/^(\d+(?:\.\d+)?)\s+(\d+)\/(\d+)$/);
-  if (mixed)
-    return parseFloat(mixed[1]) + parseInt(mixed[2]) / parseInt(mixed[3]);
+  const glyph = s.match(GLYPH_RE);
+  if (glyph)
+    return Number(glyph[1] ?? 0) + (VULGAR_FRACTIONS.get(glyph[2]) ?? NaN);
+  const ratio = (numer: string, denom: string) =>
+    Number(denom) === 0 ? NaN : Number(numer) / Number(denom);
+  const mixed = s.match(/^(\d+(?:\.\d+)?)(?:\s+|\s*-\s*)(\d+)\/(\d+)$/);
+  if (mixed) return Number(mixed[1]) + ratio(mixed[2], mixed[3]);
   const fraction = s.match(/^(\d+)\/(\d+)$/);
-  if (fraction) return parseInt(fraction[1]) / parseInt(fraction[2]);
-  const decimal = parseDecimalInput(s);
-  if (!Number.isNaN(decimal)) return decimal;
-  // Anything else keeps parseFloat's read-the-leading-number leniency
-  // (e.g. a trailing inch mark, `11"`), with a lone comma taken as the
-  // decimal separator so `12,5"` is 12.5 rather than 12.
-  return parseFloat(s.includes('.') ? s : s.replace(',', '.'));
+  if (fraction) return ratio(fraction[1], fraction[2]);
+  return parseDecimalInput(s);
 }
 
 /**

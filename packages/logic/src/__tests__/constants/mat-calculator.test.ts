@@ -2,8 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   bestFitBorders,
   bottomWeightFor,
+  calculateMatLayout,
   formatSignedMatValue,
   makeMatFormatter,
+  MAT_CALCULATOR_DEFAULTS,
   parseMatInput,
   toFraction,
   toFractionInput,
@@ -24,9 +26,54 @@ describe('mat calculator logic', () => {
       expect(parseMatInput('12,5"')).toBe(12.5);
     });
 
-    it('keeps reading a leading number with trailing text', () => {
+    it('strips a trailing inch mark', () => {
       expect(parseMatInput('11"')).toBe(11);
       expect(parseMatInput('1.5"')).toBe(1.5);
+    });
+
+    // #340: these all used to fall through to parseFloat and truncate.
+    it.each([
+      ['3-1/2', 3.5],
+      ['3 - 1/2', 3.5],
+      ['3 1/2"', 3.5],
+      ['3 1/2″', 3.5],
+      ['3 1/2 in', 3.5],
+      ['3in', 3],
+      ['1/4"', 0.25],
+      ['3½', 3.5],
+      ['3 ½', 3.5],
+      ['3½"', 3.5],
+      ['½', 0.5],
+      ['2¼', 2.25],
+      ['2¾', 2.75],
+      ['1⅛', 1.125],
+      ['1⅜', 1.375],
+      ['1⅝', 1.625],
+      ['1⅞', 1.875],
+      ['⅓', 1 / 3],
+      ['⅔', 2 / 3],
+      ['⅙', 1 / 6],
+      ['20,5', 20.5],
+      ['20,5 in', 20.5],
+    ])('parses %s as %d', (input, expected) => {
+      expect(parseMatInput(input)).toBeCloseTo(expected, 10);
+    });
+
+    it.each([
+      '3abc',
+      '3 1/0',
+      '1/0',
+      '',
+      '"',
+      '3 1/2 abc',
+      '3-',
+      '3--1/2',
+      '3½½',
+      '½3',
+      '3.5.1',
+      '1,234.5',
+    ])('rejects %j', (input) => {
+      expect(parseMatInput(input)).toBeNaN();
     });
 
     it('parses simple fractions', () => {
@@ -43,6 +90,23 @@ describe('mat calculator logic', () => {
 
     it('passes through numeric input unchanged', () => {
       expect(parseMatInput(2.5)).toBe(2.5);
+    });
+
+    it('reads a hyphenated border into the layout (#340)', () => {
+      const layout = calculateMatLayout({
+        ...MAT_CALCULATOR_DEFAULTS,
+        borderTop: '3-1/2',
+      });
+      expect(layout.bt).toBe(3.5);
+      expect(layout.windowH).toBe(13);
+    });
+
+    it('marks the layout invalid when a border does not parse', () => {
+      const layout = calculateMatLayout({
+        ...MAT_CALCULATOR_DEFAULTS,
+        borderTop: '3abc',
+      });
+      expect(layout.valid).toBe(false);
     });
 
     it('returns NaN for empty, nullish, or unparseable input', () => {
