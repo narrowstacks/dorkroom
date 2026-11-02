@@ -168,17 +168,17 @@ export default withEnvelope(
             <tr>
               <td><code>/films</code></td>
               <td>Film database search and filtering.</td>
-              <td><code>query</code>, <code>fuzzy</code>, <code>limit</code>, <code>colorType</code>, <code>brand</code></td>
+              <td><code>query</code>, <code>fuzzy</code> (deprecated), <code>limit</code>, <code>colorType</code>, <code>brand</code></td>
             </tr>
             <tr>
               <td><code>/developers</code></td>
               <td>Developer database search and filtering.</td>
-              <td><code>query</code>, <code>fuzzy</code>, <code>limit</code>, <code>type</code>, <code>manufacturer</code></td>
+              <td><code>query</code>, <code>fuzzy</code> (deprecated), <code>limit</code>, <code>type</code>, <code>manufacturer</code></td>
             </tr>
             <tr>
               <td><code>/combinations</code></td>
               <td>Film + developer combinations and recipes.</td>
-              <td><code>film</code>, <code>developer</code>, <code>count</code>, <code>page</code>, <code>id</code>, <code>query</code>, <code>fuzzy</code>, <code>limit</code></td>
+              <td><code>film</code>, <code>developer</code>, <code>count</code>, <code>page</code>, <code>id</code>, <code>query</code>, <code>fuzzy</code> (deprecated), <code>limit</code></td>
             </tr>
             <tr>
               <td><code>/filmdev?id=12345</code></td>
@@ -279,7 +279,9 @@ export default withEnvelope(
         </p>
         <p>
           Response headers: <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code>,
-          <code>X-RateLimit-Reset</code>, and <code>Retry-After</code> on <code>429</code>.
+          <code>X-RateLimit-Reset</code> (on every API-key response and on any <code>429</code>; anonymous
+          responses omit them except <code>429</code>s, because the CDN caches and shares them), and
+          <code>Retry-After</code> on <code>429</code>.
         </p>
       </section>
 

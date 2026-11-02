@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTheme } from '../contexts/theme-context';
+import { useEscapeKey } from '../hooks/use-escape-key';
 import { cn } from '../lib/cn';
 import type { Theme } from '../lib/themes';
 
@@ -151,6 +152,13 @@ export function ThemeToggle({
     });
   };
 
+  // Escape goes through the shared LIFO stack, so a dropdown over the phone
+  // menu closes alone (#617).
+  useEscapeKey(isOpen, () => {
+    setIsOpen(false);
+    buttonRef.current?.focus();
+  });
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -162,19 +170,10 @@ export function ThemeToggle({
       }
     };
 
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsOpen(false);
-        buttonRef.current?.focus();
-      }
-    };
-
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleEscape);
       return () => {
         document.removeEventListener('mousedown', handleClickOutside);
-        document.removeEventListener('keydown', handleEscape);
       };
     }
 

@@ -1,6 +1,6 @@
-import { ThemeProvider } from '@dorkroom/ui';
+import { Modal, ThemeProvider } from '@dorkroom/ui';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
-import type { ReactElement } from 'react';
+import { type ReactElement, useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { MobileNav } from '../mobile-nav';
 
@@ -31,7 +31,7 @@ describe('MobileNav (#346)', () => {
     // The dialog stays mounted through its exit transition (usePresence), so
     // assert the a11y state that flips synchronously rather than absence
     // from the DOM.
-    expect(drawer).toHaveAttribute('aria-hidden', 'true');
+    expect(drawer).toHaveAttribute('inert');
     expect(drawer).not.toHaveAttribute('aria-modal');
   });
 
@@ -79,7 +79,39 @@ describe('MobileNav (#346)', () => {
     expect(closeButton).not.toHaveFocus();
 
     fireEvent.click(closeButton);
-    expect(document.querySelector('[inert]')).toBeNull();
+    // The page is live again; only the sliding-out drawer itself is inert.
+    expect([...document.querySelectorAll('[inert]')]).toEqual([drawer]);
+  });
+
+  it('makes the drawer inert, with no focusable links, as soon as it closes (#603)', () => {
+    render346(<MobileNav pathname="/" onNavigate={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
+    const drawer = screen.getByRole('dialog', { name: 'Navigation menu' });
+    expect(drawer).not.toHaveAttribute('inert');
+    expect(drawer).not.toHaveAttribute('aria-hidden');
+    const links = within(drawer).getAllByRole('link');
+    expect(links.length).toBeGreaterThan(0);
+    expect(links[0].closest('[inert]')).toBeNull();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    // Still mounted while it slides out, but nothing in it is reachable.
+    expect(drawer).toBeInTheDocument();
+    expect(drawer).toHaveAttribute('inert');
+    expect(drawer).toHaveClass('pointer-events-none');
+    expect(drawer).not.toHaveAttribute('aria-hidden');
+    for (const link of links) expect(link.closest('[inert]')).toBe(drawer);
+
+    // A tap catcher stays over the page until unmount, so taps on the
+    // still-visible drawer never reach the page links underneath.
+    const backdrop = document.querySelector<HTMLElement>(
+      'div[aria-hidden="true"].fixed.inset-0'
+    );
+    if (!backdrop) throw new Error('backdrop missing during the exit');
+    expect(backdrop).not.toHaveClass('pointer-events-none');
+    fireEvent.click(backdrop);
+    expect(drawer).toHaveAttribute('inert');
   });
 
   it('returns focus to the FAB when the drawer is dismissed via Escape', () => {
@@ -91,6 +123,80 @@ describe('MobileNav (#346)', () => {
 
     fireEvent.keyDown(document, { key: 'Escape' });
 
+    expect(toggle).toHaveFocus();
+  });
+});
+
+/** Stands in for search: a modal opened from inside the open menu. */
+function MenuWithModal() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <MobileNav pathname="/" onNavigate={vi.fn()} />
+      <button type="button" onClick={() => setOpen(true)}>
+        Open overlay
+      </button>
+      <Modal isOpen={open} onClose={() => setOpen(false)} title="Overlay">
+        <button type="button">Inside overlay</button>
+      </Modal>
+    </>
+  );
+}
+
+describe('MobileNav Escape layering (#613)', () => {
+  it('closes only the modal over the menu, then the menu on the next Escape', () => {
+    render346(<MenuWithModal />);
+    const toggle = screen.getByRole('button', { name: 'Open navigation' });
+    fireEvent.click(toggle);
+    const drawer = screen.getByRole('dialog', { name: 'Navigation menu' });
+    const drawerClose = within(drawer).getByRole('button', {
+      name: 'Close navigation',
+    });
+    expect(drawerClose).toHaveFocus();
+
+    // Search opens from the keyboard shortcut with focus inside the menu.
+    const overlayOpener = screen.getByRole('button', {
+      name: 'Open overlay',
+      hidden: true,
+    });
+    act(() => overlayOpener.click());
+    expect(screen.getByRole('dialog', { name: 'Overlay' })).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(screen.queryByRole('dialog', { name: 'Overlay' })).toBeNull();
+    expect(drawer).not.toHaveAttribute('inert');
+    expect(drawer).toHaveAttribute('aria-modal', 'true');
+    expect(drawer.contains(document.activeElement)).toBe(true);
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(drawer).toHaveAttribute('inert');
+    expect(toggle).toHaveFocus();
+  });
+});
+
+describe('MobileNav theme dropdown Escape (#617)', () => {
+  it('closes only the theme dropdown, then the menu, focus staying on the trigger', () => {
+    render346(<MobileNav pathname="/" onNavigate={vi.fn()} />);
+    const toggle = screen.getByRole('button', { name: 'Open navigation' });
+    fireEvent.click(toggle);
+    const drawer = screen.getByRole('dialog', { name: 'Navigation menu' });
+    const themeButton = within(drawer).getByRole('button', {
+      name: 'Change theme',
+    });
+    fireEvent.click(themeButton);
+    expect(themeButton).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(themeButton).toHaveAttribute('aria-expanded', 'false');
+    expect(themeButton).toHaveFocus();
+    expect(drawer).not.toHaveAttribute('inert');
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(drawer).toHaveAttribute('inert');
     expect(toggle).toHaveFocus();
   });
 });
@@ -152,7 +258,7 @@ describe('MobileNav breakpoint', () => {
         width = 1024;
         for (const list of lists) list.dispatchEvent(new Event('change'));
       });
-      expect(drawer).toHaveAttribute('aria-hidden', 'true');
+      expect(drawer).toHaveAttribute('inert');
     } finally {
       window.matchMedia = originalMatchMedia;
     }

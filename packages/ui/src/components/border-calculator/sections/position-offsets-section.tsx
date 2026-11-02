@@ -46,7 +46,7 @@ export function PositionOffsetsSection({
         />
 
         {enableOffset && (
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <ToggleSwitch
               label="Ignore Min Border"
               value={ignoreMinBorder}
@@ -97,8 +97,9 @@ export function PositionOffsetsSection({
               />
             </div>
 
+            {/* Announced by the page's warnings card, not here (#585). */}
             {offsetWarning && (
-              <StatusAlert message={offsetWarning} action="warning" />
+              <StatusAlert message={offsetWarning} action="warning" omitRole />
             )}
           </div>
         )}

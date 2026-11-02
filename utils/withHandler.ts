@@ -8,6 +8,7 @@ import type {
 import {
   ANONYMOUS_RATE_LIMIT,
   ANONYMOUS_RATE_WINDOW_MS,
+  ANONYMOUS_UPSTREAM_BUCKETS,
   CLIENT_IP_RATE_LIMIT,
   CLIENT_RATE_LIMIT,
   CLIENT_RATE_WINDOW_MS,
@@ -32,7 +33,9 @@ export type { HandlerContext } from './requestEnvelope';
  *
  *  - `api.dorkroom.art` (and unknown hosts): `X-API-Key` verified through
  *    Unkey, the key's own tier limit, plus optional per-client limits.
- *  - `dorkroom.art`: no key, anonymous per-IP limit.
+ *  - `dorkroom.art`: no key, anonymous per-IP limit, then (for handlers that
+ *    opt in with `upstreamBudget`, and only for a URL with a query string)
+ *    the global anonymous upstream budget.
  */
 
 interface VerifyRateLimit {
@@ -55,8 +58,39 @@ export interface UnkeyClient {
 
 export type CreateUnkeyClient = (rootKey: string) => UnkeyClient;
 
-const createRealUnkeyClient: CreateUnkeyClient = (rootKey) =>
-  new Unkey({ rootKey });
+/**
+ * Client-wide ceiling on one Unkey HTTP call. The SDK's own default is no
+ * timeout at all, so a blackholed Unkey would hold every request until the
+ * function's `maxDuration`. It covers `verifyKey`, which fails closed: a
+ * fast 500 beats a hung request.
+ */
+export const UNKEY_CLIENT_TIMEOUT_MS = 3000;
+
+/**
+ * Per-call options for every `ratelimit.limit` check. Those checks fail open
+ * on an outage (`isUnkeyUnavailable`), so they get a short timeout and no
+ * retries: the SDK's default retries connection errors and 5xx with backoff
+ * for up to 10 s, and the request would wait that long only to skip the
+ * check anyway.
+ */
+export const RATE_LIMIT_REQUEST_OPTIONS = {
+  timeoutMs: 1500,
+  retries: { strategy: 'none' },
+} satisfies Parameters<Unkey['ratelimit']['limit']>[1];
+
+/**
+ * Per-call options for `verifyKey`: one attempt, bounded by the client-wide
+ * UNKEY_CLIENT_TIMEOUT_MS. Key verification fails closed, so retrying only
+ * delays the 500 (the SDK default would retry for up to 10 s) and multiplies
+ * the load on an Unkey that is already struggling.
+ */
+export const VERIFY_KEY_REQUEST_OPTIONS = {
+  retries: { strategy: 'none' },
+} satisfies Parameters<Unkey['keys']['verifyKey']>[1];
+
+/** The production Unkey client. Exported for tests only. */
+export const createRealUnkeyClient: CreateUnkeyClient = (rootKey) =>
+  new Unkey({ rootKey, timeoutMs: UNKEY_CLIENT_TIMEOUT_MS });
 
 export interface HandlerConfig {
   name: string;
@@ -71,7 +105,40 @@ export interface HandlerConfig {
    * real SDK client; deployed handlers leave it unset, tests pass a stand-in.
    */
   createUnkeyClient?: CreateUnkeyClient;
+  /**
+   * Charge each anonymous request with a query string that reaches this
+   * handler to the global upstream budget (`ANONYMOUS_UPSTREAM_BUCKETS`). Set by the Supabase
+   * proxies, whose every request costs one Edge Function invocation; off for
+   * handlers that do not call Supabase. Never applies to keyed traffic.
+   */
+  upstreamBudget?: boolean;
+  /**
+   * The one path (`/api/<name>`) anonymous requests for this resource should
+   * use. When the raw `req.url` path differs byte for byte, `withApiKey`
+   * answers a CDN-cacheable 308 to it before any Unkey or upstream call, with
+   * the raw query passed through untouched, so case, percent-encoding,
+   * trailing-slash and `.ts` variants collapse onto one CDN cache key instead
+   * of each reaching Supabase. The query is never rewritten: Vercel
+   * normalises query encoding itself, so rewriting it could redirect a URL
+   * to itself. Website host only: keyed `api.dorkroom.art` callers are never
+   * redirected.
+   */
+  canonicalPath?: string;
 }
+
+export interface ApiKeyOptions {
+  /** See `HandlerConfig.upstreamBudget`. */
+  upstreamBudget?: boolean;
+  /** See `HandlerConfig.canonicalPath`. */
+  canonicalPath?: string;
+}
+
+/**
+ * Cache-Control for the canonicalising 308: the CDN keeps it a day and
+ * answers repeats itself; browsers do not keep it, so a deploy that changes
+ * the routing is never stuck behind a stale browser redirect.
+ */
+const CANONICAL_REDIRECT_CACHE_CONTROL = 'public, max-age=0, s-maxage=86400';
 
 // Accepts `generateId()` output (timestamp+random, base36) and any future
 // UUID-shaped identity. Anything else is treated as an absent header rather
@@ -233,14 +300,19 @@ async function applyPublicApiKeyAuth(
 
   let verification: Awaited<ReturnType<typeof unkey.keys.verifyKey>>;
   try {
-    verification = await unkey.keys.verifyKey({
-      key: apiKey,
-      permissions: requiredPermission,
-    });
+    verification = await unkey.keys.verifyKey(
+      {
+        key: apiKey,
+        permissions: requiredPermission,
+      },
+      VERIFY_KEY_REQUEST_OPTIONS
+    );
   } catch (error) {
     serverlessError('Unkey key verification failed', {
       requestId,
-      error: error instanceof Error ? error.message : String(error),
+      ...(error instanceof Error
+        ? unkeyFailureFields(error)
+        : { errorName: 'non-Error throw' }),
     });
     res.status(500).json({
       error: 'API configuration error',
@@ -354,6 +426,60 @@ async function applyClientIdentityRateLimit(
 }
 
 /**
+ * Error names that mean Unkey could not be reached or did not answer in
+ * time. The SDK wraps transport failures in `HTTPClientError` subclasses
+ * (`ConnectionError`, `RequestTimeoutError`, `RequestAbortedError`); the
+ * native names cover a `fetch` abort or `AbortSignal.timeout` that reaches us
+ * unwrapped. Matched by `name`, not `instanceof`: the SDK's error classes
+ * live at `@unkey/api/models/errors`, a subpath export that `api/tsconfig.json`
+ * (`moduleResolution: node`, held for `@vercel/node`) cannot resolve.
+ */
+const UNKEY_UNAVAILABLE_ERROR_NAMES = new Set([
+  'ConnectionError',
+  'RequestTimeoutError',
+  'RequestAbortedError',
+  'AbortError',
+  'TimeoutError',
+]);
+
+/**
+ * The HTTP status an SDK `UnkeyError` carries as `statusCode`, or NaN for an
+ * error without one.
+ */
+function unkeyStatusCode(error: Error): number {
+  return 'statusCode' in error ? Number(error.statusCode) : Number.NaN;
+}
+
+/**
+ * Log fields for a failed Unkey call: the error's name and HTTP status only.
+ * Never the message, which for an SDK `UnkeyError` embeds up to 10 KB of the
+ * response body.
+ */
+function unkeyFailureFields(error: Error) {
+  return {
+    errorName: error.name,
+    statusCode: unkeyStatusCode(error) || undefined,
+  };
+}
+
+/**
+ * Whether an Unkey call failed because Unkey is down or unreachable, as
+ * opposed to answering with a refusal: a transport error (above), a raw
+ * fetch `TypeError`, or a 5xx answer. Permission and validation refusals are
+ * 4xx and stay out, so a misconfiguration still fails closed.
+ */
+function isUnkeyUnavailable(error: Error): boolean {
+  if (UNKEY_UNAVAILABLE_ERROR_NAMES.has(error.name)) {
+    return true;
+  }
+  if (error instanceof TypeError && error.message.includes('fetch failed')) {
+    return true;
+  }
+  const status = unkeyStatusCode(error);
+  return status >= 500 && status <= 599;
+}
+
+/**
  * Shared Unkey namespace rate-limit check, extracted so the anonymous
  * (per-IP) limiter and the keyed per-client limiter can reuse identical
  * error semantics instead of duplicating them:
@@ -361,7 +487,19 @@ async function applyClientIdentityRateLimit(
  *  - `create_namespace` permission error -> fail OPEN outside production
  *    (with a warning), fail CLOSED (500) in production.
  *  - Any other insufficient-permissions error -> always fail CLOSED (500).
- *  - Otherwise rethrow.
+ *  - Unkey unreachable, timed out, or answering 5xx (`isUnkeyUnavailable`)
+ *    -> warn and fail OPEN, like an unconfigured Unkey, the OG limiter and
+ *    the global upstream budget: a limiter outage must not take uncached
+ *    site data down with it.
+ *  - Unkey's own workspace quota (429) -> fail CLOSED (500), logged as
+ *    "Unkey quota exhausted".
+ *  - Otherwise rethrow (the envelope answers 500): an error nobody
+ *    classified is treated as a possible misconfiguration, not an outage.
+ *
+ * The keyed per-client checks share this path, so they fail open on an
+ * outage too. That is safe because they only run after `verifyKey` has
+ * authenticated the key and applied its own tier limit; `verifyKey` itself
+ * still fails closed, so an outage never lets an unverified key through.
  *
  * `setHeadersOnSuccess` (default true) lets a caller run more than one check
  * for a single request (see `applyClientIdentityRateLimit`) without a
@@ -372,6 +510,10 @@ async function applyClientIdentityRateLimit(
  * Also bails out without touching `res` if a concurrent check already ended
  * the response (relevant only to the dual client/IP check below, since a
  * single-check caller never observes `res.writableEnded` here).
+ *
+ * `onSkipped` runs when the check passes without Unkey having answered (not
+ * configured, or failed open), so a caller can skip follow-up checks that
+ * would only wait on the same unreachable Unkey.
  */
 async function applyNamespaceRateLimit(
   res: VercelResponse,
@@ -383,6 +525,7 @@ async function applyNamespaceRateLimit(
     limit: number;
     durationMs: number;
     setHeadersOnSuccess?: boolean;
+    onSkipped?: () => void;
   }
 ): Promise<boolean> {
   const unkey = getUnkeyClient(requestId, createUnkeyClient);
@@ -392,17 +535,21 @@ async function applyNamespaceRateLimit(
       requestId,
       namespace: opts.namespace,
     });
+    opts.onSkipped?.();
     return true;
   }
 
   let result: Awaited<ReturnType<typeof unkey.ratelimit.limit>>;
   try {
-    result = await unkey.ratelimit.limit({
-      namespace: opts.namespace,
-      identifier: opts.identifier,
-      limit: opts.limit,
-      duration: opts.durationMs,
-    });
+    result = await unkey.ratelimit.limit(
+      {
+        namespace: opts.namespace,
+        identifier: opts.identifier,
+        limit: opts.limit,
+        duration: opts.durationMs,
+      },
+      RATE_LIMIT_REQUEST_OPTIONS
+    );
   } catch (error) {
     if (res.writableEnded) {
       return false;
@@ -420,6 +567,7 @@ async function applyNamespaceRateLimit(
             namespace: opts.namespace,
           }
         );
+        opts.onSkipped?.();
         return true;
       }
 
@@ -457,6 +605,36 @@ async function applyNamespaceRateLimit(
       return false;
     }
 
+    if (error instanceof Error && isUnkeyUnavailable(error)) {
+      // Name and status only: an UnkeyError message embeds up to 10 KB of
+      // the response body, and the identifier is a caller's IP.
+      serverlessWarn('Rate limiting skipped (Unkey unavailable)', {
+        requestId,
+        namespace: opts.namespace,
+        ...unkeyFailureFields(error),
+      });
+      opts.onSkipped?.();
+      return true;
+    }
+
+    // Unkey's own API quota for the workspace. Stays CLOSED: failing open
+    // would let the flood that exhausted the quota through unbounded. Answered
+    // here rather than rethrown so the envelope never logs the SDK message,
+    // which embeds the response body.
+    if (error instanceof Error && unkeyStatusCode(error) === 429) {
+      serverlessError('Unkey quota exhausted', {
+        requestId,
+        namespace: opts.namespace,
+        ...unkeyFailureFields(error),
+      });
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'An unexpected error occurred',
+        requestId,
+      });
+      return false;
+    }
+
     throw error;
   }
 
@@ -479,6 +657,11 @@ async function applyNamespaceRateLimit(
   });
 
   if (exceeded) {
+    // A 429 must never be CDN-cached. The api host already pins
+    // `private, no-store`; on the website host nothing else sets one.
+    if (res.getHeader('Cache-Control') === undefined) {
+      res.setHeader('Cache-Control', 'no-store');
+    }
     res.status(429).json({
       error: 'Rate limit exceeded',
       message: 'Too many requests. Please try again later.',
@@ -494,14 +677,117 @@ async function applyAnonymousRateLimit(
   req: VercelRequest,
   res: VercelResponse,
   requestId: string,
-  createUnkeyClient: CreateUnkeyClient
+  createUnkeyClient: CreateUnkeyClient,
+  onSkipped: () => void
 ): Promise<boolean> {
   return applyNamespaceRateLimit(res, requestId, createUnkeyClient, {
     namespace: getRateLimitNamespace('anonymous'),
     identifier: getClientIp(req),
     limit: ANONYMOUS_RATE_LIMIT,
     durationMs: ANONYMOUS_RATE_WINDOW_MS,
+    // A passing response is CDN-cached (public s-maxage) and shared, so
+    // per-IP X-RateLimit-* would show every later visitor the first caller's
+    // budget. The 429 branch sets no-store itself, so it keeps them.
+    setHeadersOnSuccess: false,
+    onSkipped,
   });
+}
+
+/**
+ * Whether the CDN may have to send this request to the origin every time, so
+ * the CDN does not bound it and the global budget must:
+ *  - any query string (raw `req.url`, never the sanitized query: the proxy
+ *    drops unknown params, so `?junk=<x>` misses the CDN yet reaches Supabase
+ *    as a bare call);
+ *  - an `Authorization` or `Range` header, which Vercel's CDN never serves
+ *    from cache (its documented request-side criteria, beside the method,
+ *    which the envelope already limits to GET). Nothing first-party sends
+ *    either on `dorkroom.art`.
+ * A bare canonical URL without them is one CDN cache key per resource.
+ */
+function bypassesCdn(req: VercelRequest): boolean {
+  return (
+    (req.url ?? '').includes('?') ||
+    req.headers.authorization !== undefined ||
+    req.headers.range !== undefined
+  );
+}
+
+/**
+ * The global budget on anonymous upstream calls, charged only to requests
+ * the CDN cannot absorb (`bypassesCdn`) and checked after the per-IP
+ * limit has passed: a request that limit turns away never reaches Supabase,
+ * so it is never charged here, and one noisy IP cannot spend everyone's
+ * budget. Buckets are checked in order (burst, then day), each at cost 1.
+ *
+ * Over budget: 503 with `Retry-After` and `no-store`. It is not the caller's
+ * fault, so not a 429. The 503 carries no `X-RateLimit-*`: the per-IP check
+ * passed (and sends none on success) and the global buckets are never
+ * exposed.
+ *
+ * Fails OPEN on any Unkey failure (logged), like the OG limiter: a misconfig
+ * would already have failed the per-IP check against the same namespace, and
+ * turning a limiter outage into a site-wide data outage is the worse failure.
+ */
+async function applyAnonymousUpstreamBudget(
+  res: VercelResponse,
+  requestId: string,
+  createUnkeyClient: CreateUnkeyClient
+): Promise<boolean> {
+  const unkey = getUnkeyClient(requestId, createUnkeyClient);
+  if (!unkey) {
+    return true;
+  }
+
+  const namespace = getRateLimitNamespace('anonymous');
+  for (const bucket of ANONYMOUS_UPSTREAM_BUCKETS) {
+    let result: Awaited<ReturnType<typeof unkey.ratelimit.limit>>;
+    try {
+      result = await unkey.ratelimit.limit(
+        {
+          namespace,
+          identifier: bucket.identifier,
+          limit: bucket.limit,
+          duration: bucket.durationMs,
+          cost: 1,
+        },
+        RATE_LIMIT_REQUEST_OPTIONS
+      );
+    } catch (error) {
+      // Safe to fail open on anything: the per-IP check against this same
+      // namespace runs first and already stops 429 and permission errors.
+      serverlessWarn('Upstream budget skipped (Unkey request failed)', {
+        requestId,
+        namespace,
+        bucket: bucket.identifier,
+        ...(error instanceof Error
+          ? unkeyFailureFields(error)
+          : { errorName: 'non-Error throw' }),
+      });
+      return true;
+    }
+
+    if (!result.data.success) {
+      serverlessWarn('Anonymous upstream budget exhausted', {
+        requestId,
+        bucket: bucket.identifier,
+      });
+      res.setHeader('Cache-Control', 'no-store');
+      res.setHeader(
+        'Retry-After',
+        retryAfterSeconds(normalizeResetMs(result.data.reset))
+      );
+      res.status(503).json({
+        error: 'Service temporarily unavailable',
+        message:
+          'Too many filtered requests site-wide. Request without a query string, or retry after the time in Retry-After.',
+        requestId,
+      });
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function setVaryHeader(res: VercelResponse, value: string): void {
@@ -523,11 +809,13 @@ function setVaryHeader(res: VercelResponse, value: string): void {
 
 /**
  * The API-key layer on its own: `Vary`, then Unkey auth (public host) or the
- * anonymous per-IP limit, then `handler`. Runs inside `withEnvelope`.
+ * anonymous per-IP limit plus, with `upstreamBudget` and a query string, the
+ * global anonymous upstream budget, then `handler`. Runs inside `withEnvelope`.
  */
 export function withApiKey(
   handler: HandlerConfig['handler'],
-  createUnkeyClient: CreateUnkeyClient = createRealUnkeyClient
+  createUnkeyClient: CreateUnkeyClient = createRealUnkeyClient,
+  options: ApiKeyOptions = {}
 ): EnvelopeHandler {
   return async (req, res, ctx) => {
     setVaryHeader(res, 'Host');
@@ -536,16 +824,60 @@ export function withApiKey(
       setVaryHeader(res, 'X-Client-Id');
     }
 
+    // Before any limiter: the redirect is a cheap invocation with no Unkey or
+    // Supabase call, and the CDN caches it per variant. It is deliberately not
+    // metered per IP (like the JSON 404 handler), so `/api/films/?x=<random>`
+    // costs one function invocation each and nothing else.
+    if (!ctx.isPublicApi && options.canonicalPath) {
+      const rawUrl = req.url ?? '';
+      const queryStart = rawUrl.indexOf('?');
+      const rawPath = queryStart === -1 ? rawUrl : rawUrl.slice(0, queryStart);
+      if (rawPath !== options.canonicalPath) {
+        const canonical =
+          options.canonicalPath +
+          (queryStart === -1 ? '' : rawUrl.slice(queryStart));
+        res.setHeader('Cache-Control', CANONICAL_REDIRECT_CACHE_CONTROL);
+        res.setHeader('Location', canonical);
+        res.status(308).json({
+          error: 'Permanent redirect',
+          location: canonical,
+          requestId: ctx.requestId,
+        });
+        return;
+      }
+    }
+
+    let perIpSkipped = false;
     const passedChecks = ctx.isPublicApi
       ? await applyPublicApiKeyAuth(req, res, ctx.requestId, createUnkeyClient)
       : await applyAnonymousRateLimit(
           req,
           res,
           ctx.requestId,
-          createUnkeyClient
+          createUnkeyClient,
+          () => {
+            perIpSkipped = true;
+          }
         );
 
     if (!passedChecks) {
+      return;
+    }
+
+    // A per-IP check that failed open (or had no Unkey to ask) means the
+    // budget would wait out the same timeout against the same namespace
+    // before failing open too, so skip it.
+    if (
+      !ctx.isPublicApi &&
+      options.upstreamBudget &&
+      !perIpSkipped &&
+      bypassesCdn(req) &&
+      !(await applyAnonymousUpstreamBudget(
+        res,
+        ctx.requestId,
+        createUnkeyClient
+      ))
+    ) {
       return;
     }
 
@@ -563,6 +895,9 @@ export function withHandler(config: HandlerConfig): VercelApiHandler {
       cache: { publicApi: PUBLIC_API_CACHE_CONTROL },
       requiredEnv: config.requiredEnv,
     },
-    withApiKey(config.handler, config.createUnkeyClient)
+    withApiKey(config.handler, config.createUnkeyClient, {
+      upstreamBudget: config.upstreamBudget,
+      canonicalPath: config.canonicalPath,
+    })
   );
 }
