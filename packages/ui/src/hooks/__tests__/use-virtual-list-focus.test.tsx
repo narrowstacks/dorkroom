@@ -92,6 +92,64 @@ describe('useVirtualListFocus', () => {
     focus.mockRestore();
   });
 
+  describe('bringing a remounted item into view', () => {
+    /** Lay out the list at 0..100 and the focused control at `top`. */
+    const layOut = (top: number) =>
+      vi
+        .spyOn(Element.prototype, 'getBoundingClientRect')
+        .mockImplementation(function (this: Element) {
+          const box =
+            this.getAttribute('data-testid') === 'list'
+              ? { top: 0, height: 100 }
+              : this.textContent === 'Delete c'
+                ? { top, height: 20 }
+                : { top: 0, height: 0 };
+          return DOMRect.fromRect({ x: 0, y: box.top, width: 100, ...box });
+        });
+
+    const spyScroll = () =>
+      vi
+        .spyOn(Element.prototype, 'scrollIntoView')
+        .mockImplementation(() => undefined);
+
+    afterEach(() => vi.restoreAllMocks());
+
+    it('scrolls the item back into view when it was in view before', () => {
+      layOut(40);
+      const scroll = spyScroll();
+      const { rerender } = render(<Grid columns={3} />);
+      screen.getByRole('button', { name: 'Delete c' }).focus();
+
+      rerender(<Grid columns={2} />);
+
+      const item = screen
+        .getByRole('button', { name: 'Delete c' })
+        .closest('[data-list-item-key]');
+      expect(document.activeElement?.textContent).toBe('Delete c');
+      expect(scroll).toHaveBeenCalledTimes(1);
+      expect(scroll.mock.contexts[0]).toBe(item);
+      expect(scroll).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
+    });
+
+    it('leaves the scroll alone when the item was scrolled out of view', () => {
+      // Scrolled past: the card sits above the list's visible area.
+      layOut(-200);
+      const scroll = spyScroll();
+      const { rerender } = render(<Grid columns={3} />);
+      screen.getByRole('button', { name: 'Delete c' }).focus();
+      // A render while it is still mounted re-checks; it is still out of view.
+      rerender(<Grid columns={3} />);
+
+      rerender(<Grid columns={2} />);
+
+      expect(document.activeElement?.textContent).toBe('Delete c');
+      expect(scroll).not.toHaveBeenCalled();
+    });
+  });
+
   it('does not scroll back or move focus when the focused item leaves the window', () => {
     const scrollToIndex = vi.fn();
     const { rerender } = render(

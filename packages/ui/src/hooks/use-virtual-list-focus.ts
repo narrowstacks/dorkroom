@@ -22,10 +22,14 @@ import {
  * grid keeps the focused item's row in its virtual window with
  * `keepFocusedInRange` (pass it the virtualizer's `rangeExtractor`). That also
  * stops the focused card from virtualizing away when the list is scrolled
- * past it. The remount path never scrolls (it focuses with `preventScroll`,
- * and never calls `scrollToIndex`): a list whose focused item did
- * leave the window (the table, scrolled far enough) simply loses focus, as
- * any virtualized list does, rather than fighting the user's scroll.
+ * past it. The remount path never calls `scrollToIndex`: a list whose focused
+ * item did leave the window (the table, scrolled far enough) simply loses
+ * focus, as any virtualized list does, rather than fighting the user's
+ * scroll. It focuses with `preventScroll` too, and only brings the remounted
+ * item into view when the item was in view before the remount: opening the
+ * sidebar from a card deep in a wide grid moves that card to another row,
+ * possibly off-screen, while a card the user had scrolled away from stays
+ * where the scroll left it.
  *
  * Spread `containerProps` on the scroll container. Each item's root carries
  * `data-list-item-key`. The control that had focus is found again by its
@@ -129,6 +133,39 @@ function findItem(container: HTMLElement, key: string): HTMLElement | null {
   return null;
 }
 
+/**
+ * Whether any of the element overlaps the scroll container's visible area
+ * and the viewport. A test DOM without layout reports an empty rect, which
+ * counts as visible.
+ */
+function isInView(
+  element: HTMLElement,
+  container: HTMLElement | null
+): boolean {
+  const rect = element.getBoundingClientRect();
+  if (rect.width === 0 && rect.height === 0) return true;
+  const overlaps = (bounds: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  }) =>
+    rect.bottom > bounds.top &&
+    rect.top < bounds.bottom &&
+    rect.right > bounds.left &&
+    rect.left < bounds.right;
+  const viewport = {
+    top: 0,
+    left: 0,
+    bottom: window.innerHeight,
+    right: window.innerWidth,
+  };
+  if (!overlaps(viewport)) return false;
+  const bounds = container?.getBoundingClientRect();
+  if (!bounds || (bounds.width === 0 && bounds.height === 0)) return true;
+  return overlaps(bounds);
+}
+
 function isFocusLost(): boolean {
   const active = document.activeElement;
   return active === null || active === document.body;
@@ -145,10 +182,16 @@ export function useVirtualListFocus({
   handleRef,
   fallbackRef,
 }: UseVirtualListFocusOptions): VirtualListFocus {
-  /** The item control that last had focus, while it (or its remount) does. */
-  const lastRef = useRef<{ element: HTMLElement; target: FocusTarget } | null>(
-    null
-  );
+  /**
+   * The item control that last had focus, while it (or its remount) does, and
+   * whether it was in view when last checked (on focus and after each render
+   * while it is still mounted).
+   */
+  const lastRef = useRef<{
+    element: HTMLElement;
+    target: FocusTarget;
+    inView: boolean;
+  } | null>(null);
   /** An item waiting to be focused once it renders. */
   const pendingRef = useRef<FocusTarget | null>(null);
   const latestRef = useRef({ keys, scrollToIndex });
@@ -235,6 +278,7 @@ export function useVirtualListFocus({
         ? {
             element: control,
             target: { key, control: focusablesIn(item).indexOf(control) },
+            inView: isInView(control, container),
           }
         : null;
   };
@@ -256,20 +300,30 @@ export function useVirtualListFocus({
   // to its new element. Runs before paint, so focus never visibly drops. Only
   // an element rendered in this same commit counts; anything else means the
   // item left the window, and focus is not dragged back to it (no scrolling).
+  // While the control is still mounted, note whether it is in view, so the
+  // remount knows whether to bring it back into view.
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- runs after every render on purpose: any render can remount the focused item
   useLayoutEffect(() => {
     const last = lastRef.current;
-    if (last && !last.element.isConnected && isFocusLost()) {
+    if (last?.element.isConnected) {
+      last.inView = isInView(last.element, containerRef.current);
+    } else if (last && isFocusLost()) {
       lastRef.current = null;
       const container = containerRef.current;
       const item = container && findItem(container, last.target.key);
       if (item) {
         const controls = focusablesIn(item);
-        // No scrolling here either: a card kept in the window while scrolled
-        // out of view must not pull the list back when a resize remounts it.
+        // A card kept in the window while scrolled out of view must not pull
+        // the list back when a resize remounts it, so focus never scrolls.
+        // A card that was in view stays in view: the remount can have moved
+        // it to a row off-screen (the sidebar narrowing a wide grid).
         (controls[last.target.control] ?? controls[0] ?? item).focus({
           preventScroll: true,
         });
+        // Older test DOMs lack scrollIntoView.
+        if (last.inView && 'scrollIntoView' in item) {
+          item.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        }
       }
     }
     settlePending();
