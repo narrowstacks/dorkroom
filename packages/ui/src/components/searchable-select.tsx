@@ -166,6 +166,22 @@ function ClearButton({ onClear }: { onClear: (pointerType: string) => void }) {
   );
 }
 
+/** Keys that change the text, so a closed input selects its label first. */
+function isEditKey(e: React.KeyboardEvent) {
+  if (e.key === 'Backspace' || e.key === 'Delete') return true;
+  return (
+    e.key.length === 1 && e.key !== ' ' && !e.ctrlKey && !e.metaKey && !e.altKey
+  );
+}
+
+/**
+ * Closed, the input shows the label. Text that arrived without a usable
+ * keydown (paste, Android keyboards) lands after it: keep only the new part.
+ */
+function stripLabel(raw: string, label: string) {
+  return label && raw.startsWith(label) ? raw.slice(label.length) : raw;
+}
+
 export function SearchableSelect({
   label,
   selectedValue,
@@ -243,12 +259,7 @@ export function SearchableSelect({
 
   // Handle input change
   const handleInputChange = (raw: string) => {
-    // Closed, the input shows the label. Text that arrived without a usable
-    // keydown (paste, Android keyboards) lands after it: keep only the new part.
-    const value =
-      !isOpen && displayValue && raw.startsWith(displayValue)
-        ? raw.slice(displayValue.length)
-        : raw;
+    const value = isOpen ? raw : stripLabel(raw, displayValue);
     setSearchTerm(value);
     setIsOpen(true);
     setFocusedIndex(-1);
@@ -280,17 +291,8 @@ export function SearchableSelect({
     // IME composition and Android keyboards (keyCode 229) report no usable key.
     if (e.nativeEvent.isComposing || e.keyCode === 229) return;
     if (!isOpen) {
-      // The closed input shows the selected label (or "All ..."), so typing
-      // would append to it. Select it so the first keystroke replaces it.
-      const edits =
-        (e.key.length === 1 &&
-          e.key !== ' ' &&
-          !e.ctrlKey &&
-          !e.metaKey &&
-          !e.altKey) ||
-        e.key === 'Backspace' ||
-        e.key === 'Delete';
-      if (edits) inputRef.current?.select();
+      // The closed input shows the label: select it so typing replaces it.
+      if (isEditKey(e)) inputRef.current?.select();
       if (e.key === 'Enter' || e.key === 'ArrowDown') {
         e.preventDefault();
         openAndFocusSelected();
