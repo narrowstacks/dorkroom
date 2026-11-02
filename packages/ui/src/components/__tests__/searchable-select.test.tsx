@@ -788,4 +788,43 @@ describe('SearchableSelect keeps focus after Clear selection (#639)', () => {
     expect(input).not.toHaveFocus();
     expect(input).toHaveAttribute('aria-expanded', 'false');
   });
+
+  function setupIso() {
+    render(
+      <SearchableSelect
+        label="ISO"
+        selectedValue="100"
+        onValueChange={vi.fn()}
+        items={[
+          { value: '100', label: '100' },
+          { value: '1000', label: '1000' },
+        ]}
+      />
+    );
+    const input = screen.getByRole('combobox');
+    if (!(input instanceof HTMLInputElement)) throw new Error('not an input');
+    return input;
+  }
+
+  it('pasting over a fully selected label searches for the pasted text', () => {
+    const input = setupIso();
+    input.focus();
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    act(() => input.setSelectionRange(0, 3));
+    fireEvent.paste(input);
+    fireEvent.change(input, { target: { value: '1000' } });
+    expect(input).toHaveValue('1000');
+  });
+
+  it('pasting at the end of an unselected label searches for just the pasted text', () => {
+    const input = setupIso();
+    input.focus();
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    act(() => input.setSelectionRange(3, 3));
+    fireEvent.paste(input);
+    fireEvent.change(input, { target: { value: '100Q' } });
+    expect(input).toHaveValue('Q');
+  });
 });

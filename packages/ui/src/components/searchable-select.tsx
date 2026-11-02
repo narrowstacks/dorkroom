@@ -174,12 +174,49 @@ function isEditKey(e: React.KeyboardEvent) {
   );
 }
 
+interface Selection {
+  start: number | null;
+  end: number | null;
+}
+
 /**
  * Closed, the input shows the label. Text that arrived without a usable
  * keydown (paste, Android keyboards) lands after it: keep only the new part.
+ * Only when it was inserted at the unselected end of the label; when the
+ * label (or part of it) was selected, the new value already is the
+ * replacement. An unknown selection counts as the caret at the end.
  */
-function stripLabel(raw: string, label: string) {
-  return label && raw.startsWith(label) ? raw.slice(label.length) : raw;
+function stripLabel(raw: string, label: string, selection: Selection | null) {
+  if (!label || !raw.startsWith(label)) return raw;
+  const atEnd =
+    !selection ||
+    (selection.start === label.length && selection.end === label.length);
+  return atEnd ? raw.slice(label.length) : raw;
+}
+
+/** Selection just before the next edit, read from the events that precede it. */
+function useSelectionTracker() {
+  const lastSelection = useRef<Selection | null>(null);
+  const recordSelection = (el: HTMLInputElement) => {
+    lastSelection.current = { start: el.selectionStart, end: el.selectionEnd };
+  };
+  return { lastSelection, recordSelection };
+}
+
+function NoResultsHint() {
+  return (
+    <div
+      aria-hidden="true"
+      className="absolute left-0 top-full z-[100] mt-1 block w-full rounded-lg border px-3 py-2 text-sm backdrop-blur-sm"
+      style={{
+        borderColor: 'var(--color-border-secondary)',
+        backgroundColor: 'var(--color-surface)',
+        color: 'var(--color-text-muted)',
+      }}
+    >
+      No results found
+    </div>
+  );
 }
 
 export function SearchableSelect({
@@ -201,6 +238,7 @@ export function SearchableSelect({
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const lastPointerType = useRef('');
+  const { lastSelection, recordSelection } = useSelectionTracker();
   const rootRef = useRef<HTMLDivElement>(null);
 
   // Find the selected item to display its label
@@ -225,6 +263,7 @@ export function SearchableSelect({
   }, [isListShown]);
 
   const closeList = () => {
+    lastSelection.current = null;
     setIsOpen(false);
     setSearchTerm('');
     setFocusedIndex(-1);
@@ -259,7 +298,9 @@ export function SearchableSelect({
 
   // Handle input change
   const handleInputChange = (raw: string) => {
-    const value = isOpen ? raw : stripLabel(raw, displayValue);
+    const value = isOpen
+      ? raw
+      : stripLabel(raw, displayValue, lastSelection.current);
     setSearchTerm(value);
     setIsOpen(true);
     setFocusedIndex(-1);
@@ -290,9 +331,15 @@ export function SearchableSelect({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // IME composition and Android keyboards (keyCode 229) report no usable key.
     if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+    if (e.currentTarget instanceof HTMLInputElement) {
+      recordSelection(e.currentTarget);
+    }
     if (!isOpen) {
       // The closed input shows the label: select it so typing replaces it.
-      if (isEditKey(e)) inputRef.current?.select();
+      if (isEditKey(e) && inputRef.current) {
+        inputRef.current.select();
+        recordSelection(inputRef.current);
+      }
       if (e.key === 'Enter' || e.key === 'ArrowDown') {
         e.preventDefault();
         openAndFocusSelected();
@@ -381,6 +428,8 @@ export function SearchableSelect({
             handleInputBlur(e);
           }}
           onKeyDown={handleKeyDown}
+          onPaste={(e) => recordSelection(e.currentTarget)}
+          onSelect={(e) => recordSelection(e.currentTarget)}
           // The input keeps focus after a selection, so a click on it has to
           // reopen the list; focus alone no longer does.
           onClick={() => {
@@ -415,19 +464,7 @@ export function SearchableSelect({
           {isOpen && filteredItems.length === 0 ? 'No results found' : ''}
         </output>
 
-        {isOpen && filteredItems.length === 0 && (
-          <div
-            aria-hidden="true"
-            className="absolute left-0 top-full z-[100] mt-1 block w-full rounded-lg border px-3 py-2 text-sm backdrop-blur-sm"
-            style={{
-              borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'var(--color-surface)',
-              color: 'var(--color-text-muted)',
-            }}
-          >
-            No results found
-          </div>
-        )}
+        {isOpen && filteredItems.length === 0 && <NoResultsHint />}
 
         {isOpen && filteredItems.length > 0 && (
           <div
