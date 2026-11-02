@@ -254,7 +254,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
           type="button"
           aria-label="Collapse to panel"
           tabIndex={-1}
-          className="absolute inset-0 cursor-default"
+          className="absolute inset-0 h-full w-full cursor-default"
           style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
           onClick={handleCollapseModal}
         />
@@ -307,7 +307,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
           type="button"
           aria-label="Close"
           tabIndex={-1}
-          className="absolute inset-0 cursor-default"
+          className="absolute inset-0 h-full w-full cursor-default"
           style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
           onClick={onClose}
         />
