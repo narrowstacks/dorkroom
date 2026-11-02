@@ -82,4 +82,17 @@ describe('root layout', () => {
       'lg:pb-0'
     );
   });
+
+  it('keeps the logo link named while the wordmark is visually hidden below xl', async () => {
+    await renderRootLayout();
+
+    const wordmark = screen.getByText('Dorkroom', {
+      selector: 'header a span',
+    });
+    // jsdom has no layout, so assert the class: sr-only keeps the text in the
+    // accessibility tree, where display:none would leave the link unnamed.
+    expect(wordmark).toHaveClass('sr-only', 'xl:not-sr-only');
+    expect(wordmark).not.toHaveClass('hidden');
+    expect(wordmark.closest('a')).toHaveAccessibleName('Dorkroom');
+  });
 });

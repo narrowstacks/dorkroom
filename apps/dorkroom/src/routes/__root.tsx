@@ -108,7 +108,7 @@ function RootComponent() {
                   <Beaker className="size-10" />
                 </span>
                 <span
-                  className="hidden text-2xl font-semibold tracking-tight xl:block"
+                  className="sr-only text-2xl font-semibold tracking-tight xl:not-sr-only"
                   style={{ fontFamily: 'var(--font-family-display)' }}
                 >
                   Dorkroom
