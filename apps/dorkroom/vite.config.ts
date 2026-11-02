@@ -44,11 +44,76 @@ function fontPreloadPlugin(): Plugin {
   };
 }
 
+/** Packages that only lazy pages use. If the entry chunk reaches one of them
+ *  through static imports, `index.html` modulepreloads it and every page pays
+ *  for it before first render (issue #352: ~35 KB gzip of zod and TanStack
+ *  Form on the home page). */
+const LAZY_ONLY_PACKAGES = [
+  '/node_modules/zod/',
+  '/node_modules/@tanstack/form-core/',
+  '/node_modules/@tanstack/react-form/',
+];
+
+/** Fails the build when the modern entry's static import graph (what
+ *  `index.html` modulepreloads) contains a lazy-only package. The legacy
+ *  output (`*-legacy-*` chunks, SystemJS behind `nomodule`) is skipped: it
+ *  has no modulepreload list. */
+function initialChunkGuardPlugin(): Plugin {
+  return {
+    name: 'initial-chunk-guard',
+    apply: 'build',
+    generateBundle(_options, bundle) {
+      const chunks = new Map<string, { imports: string[]; ids: string[] }>();
+      for (const output of Object.values(bundle)) {
+        if (output.type === 'chunk') {
+          chunks.set(output.fileName, {
+            imports: output.imports,
+            ids: output.moduleIds,
+          });
+        }
+      }
+      const initial = new Set<string>();
+      const queue = Object.values(bundle).flatMap((output) =>
+        output.type === 'chunk' &&
+        output.isEntry &&
+        !output.fileName.includes('-legacy')
+          ? [output.fileName]
+          : []
+      );
+      for (let file = queue.pop(); file !== undefined; file = queue.pop()) {
+        if (initial.has(file)) continue;
+        initial.add(file);
+        queue.push(...(chunks.get(file)?.imports ?? []));
+      }
+      const offenders = [...initial].flatMap((file) => {
+        const ids = chunks.get(file)?.ids ?? [];
+        return LAZY_ONLY_PACKAGES.filter((pkg) =>
+          ids.some((id) => id.replaceAll('\\', '/').includes(pkg))
+        ).map((pkg) => `${file} contains ${pkg}`);
+      });
+      if (offenders.length > 0) {
+        this.error(
+          `Lazy-only packages reached the initial chunks, so every page would ` +
+            `preload them (issue #352):\n  ${offenders.join('\n  ')}\n` +
+            `Import them from a lazy page, not from code the route tree or ` +
+            `main.tsx loads.`
+        );
+      }
+    },
+  };
+}
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/apps/dorkroom',
+  define: {
+    // True only in a build running on Vercel, which sets VERCEL=1 (it must be
+    // declared in turbo.json's build `env`, or strict env mode drops it). Gates
+    // features that exist only on a Vercel deployment, such as `/_vercel/image`.
+    __VERCEL__: JSON.stringify(process.env.VERCEL === '1'),
+  },
   server: {
     // No `port` here on purpose. The @vercel/microfrontends plugin's `config()`
     // hook sets `server.port` (and `preview.port`) from a hash of the package
@@ -119,6 +184,7 @@ export default defineConfig(() => ({
       additionalLegacyPolyfills: ['regenerator-runtime/runtime'],
     }),
     fontPreloadPlugin(),
+    initialChunkGuardPlugin(),
   ],
   resolve: {
     alias: {
@@ -171,7 +237,15 @@ export default defineConfig(() => ({
           compress: { dropConsole: true, dropDebugger: true },
         },
         manualChunks(id) {
+          // The modern build targets es2020 (plugin-legacy's floor), so the
+          // `#private` fields in query-core and form-core are down-levelled to
+          // oxc runtime helpers. Left alone, those helpers land in whichever
+          // manual chunk claims them first (`tanstack-form`), and the entry's
+          // QueryClient then modulepreloads that whole chunk on every page
+          // (issue #352). Keep them with the vendor code every page loads.
           if (
+            id.includes('@oxc-project+runtime') ||
+            id.includes('@oxc-project/runtime') ||
             id.includes('node_modules/react/') ||
             id.includes('node_modules/react-dom/') ||
             id.includes('node_modules/@tanstack/react-router/')
@@ -190,9 +264,10 @@ export default defineConfig(() => ({
           ) {
             return 'tanstack-table-virtual';
           }
-          if (id.includes('node_modules/zod/')) {
-            return 'zod';
-          }
+          // No manual chunk for zod: a forced chunk holding every zod file
+          // makes any small zod import in the entry preload all of it (issue
+          // #352). Rolldown's own splitting keeps zod with the lazy pages that
+          // use it; the route schemas (search-schemas.ts) use no zod at all.
           return undefined;
         },
       },

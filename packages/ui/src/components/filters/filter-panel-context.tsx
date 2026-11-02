@@ -1,8 +1,12 @@
-import { createContext, use } from 'react';
+import { createContext, type Ref, use } from 'react';
 
 interface FilterPanelContextValue {
   isCollapsed: boolean;
   toggle: () => void;
+  /** Id of the panel region the toggles control (aria-controls). */
+  panelId: string;
+  /** Ref for the collapse toggle in the header, so focus can return to it. */
+  collapseButtonRef: Ref<HTMLButtonElement>;
   activeFilterCount: number;
   hasActiveFilters: boolean;
 }

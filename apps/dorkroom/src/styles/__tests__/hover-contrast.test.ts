@@ -486,3 +486,8 @@ describe('migrated hover utilities keep their content legible in every theme', (
     }
   }
 });
+
+// SearchableSelect (#522) draws its focused-row ring in `--color-on-hover-surface`,
+// the row's own text colour, so the ring-vs-fill pair is the 'searchable select
+// option' (bg-hover-surface / text-on-hover-surface) entry in
+// MIGRATED_HOVER_PAIRS above. The component test covers which rows get the ring.

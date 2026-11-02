@@ -10,7 +10,8 @@ interface FilterPanelHeaderProps {
 export const FilterPanelHeader: FC<FilterPanelHeaderProps> = ({
   title = 'Filters',
 }) => {
-  const { toggle, activeFilterCount } = useFilterPanel();
+  const { toggle, activeFilterCount, panelId, collapseButtonRef } =
+    useFilterPanel();
 
   return (
     <div
@@ -50,7 +51,10 @@ export const FilterPanelHeader: FC<FilterPanelHeaderProps> = ({
       </div>
       <button
         type="button"
+        ref={collapseButtonRef}
         onClick={toggle}
+        aria-expanded={true}
+        aria-controls={panelId}
         className="flex size-8 items-center justify-center rounded-lg border border-transparent text-muted transition-all duration-200 hover:border-secondary hover:bg-surface-muted hover:text-primary"
         aria-label="Collapse filters"
         title="Collapse filters"
