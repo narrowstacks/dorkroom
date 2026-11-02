@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import { StrictMode } from 'react';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { SearchableSelect } from '../searchable-select';
 
@@ -194,5 +195,93 @@ describe('SearchableSelect ARIA wiring', () => {
     // Screen reader or Voice Control activation: click only.
     fireEvent.click(screen.getByRole('option', { name: 'Alpha' }));
     expect(input).toHaveFocus();
+  });
+});
+
+describe('SearchableSelect open-list marker (#629)', () => {
+  beforeAll(() => {
+    Element.prototype.scrollIntoView = vi.fn();
+  });
+
+  it('marks <html> while the list is open and clears it on close', async () => {
+    const user = userEvent.setup();
+    const { input } = setup();
+    expect(document.documentElement).not.toHaveAttribute('data-listbox-open');
+    await user.click(input);
+    expect(document.documentElement).toHaveAttribute('data-listbox-open');
+    await user.keyboard('{Escape}');
+    expect(document.documentElement).not.toHaveAttribute('data-listbox-open');
+  });
+
+  it('clears the marker when unmounted while open', async () => {
+    const user = userEvent.setup();
+    const onValueChange = vi.fn();
+    const { unmount } = render(
+      <SearchableSelect
+        label="Film"
+        selectedValue="b"
+        onValueChange={onValueChange}
+        items={items}
+      />
+    );
+    await user.click(screen.getByRole('combobox'));
+    expect(document.documentElement).toHaveAttribute('data-listbox-open');
+    unmount();
+    expect(document.documentElement).not.toHaveAttribute('data-listbox-open');
+  });
+
+  it('keeps the marker while another list is open and clears it when both close', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <SearchableSelect
+          label="First"
+          selectedValue="a"
+          onValueChange={vi.fn()}
+          items={items}
+        />
+        <SearchableSelect
+          label="Second"
+          selectedValue="b"
+          onValueChange={vi.fn()}
+          items={items}
+        />
+      </>
+    );
+    const [first, second] = screen.getAllByRole('combobox');
+    // Open both without blurring either (focus-driven close is bypassed).
+    fireEvent.focus(first);
+    fireEvent.change(first, { target: { value: 'A' } });
+    fireEvent.focus(second);
+    fireEvent.change(second, { target: { value: 'B' } });
+    expect(screen.getAllByRole('listbox')).toHaveLength(2);
+    expect(document.documentElement).toHaveAttribute('data-listbox-open');
+
+    fireEvent.keyDown(first, { key: 'Escape' });
+    expect(screen.getAllByRole('listbox')).toHaveLength(1);
+    expect(document.documentElement).toHaveAttribute('data-listbox-open');
+
+    await user.click(second);
+    fireEvent.keyDown(second, { key: 'Escape' });
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(document.documentElement).not.toHaveAttribute('data-listbox-open');
+  });
+
+  it('opens and closes cleanly under StrictMode', async () => {
+    const user = userEvent.setup();
+    render(
+      <StrictMode>
+        <SearchableSelect
+          label="Film"
+          selectedValue="b"
+          onValueChange={vi.fn()}
+          items={items}
+        />
+      </StrictMode>
+    );
+    await user.click(screen.getByRole('combobox'));
+    expect(document.documentElement).toHaveAttribute('data-listbox-open');
+    await user.keyboard('{Escape}');
+    expect(document.documentElement).not.toHaveAttribute('data-listbox-open');
   });
 });
