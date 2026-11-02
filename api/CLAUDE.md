@@ -44,6 +44,27 @@ Everything else:
   request other than a bare static card (`?route=<known page>`) is limited per
   IP through `utils/edgeRateLimit.ts`. Over the limit it answers a `no-store`
   307 to the static card rather than a 429, so crawlers still get an image.
+  Its film, developer and combination lookups go through
+  `utils/internalDataSource.ts`: straight to the Supabase Edge Functions with
+  the proxy's own credentials when `SUPABASE_ENDPOINT`,
+  `SUPABASE_MASTER_API_KEY` and `SUPABASE_PROXY_SECRET` are all set, else
+  through the public `/api/*` (local dev). Going through the public API would
+  key the anonymous limit on the function's egress IP and share one 30/min
+  budget among every render (#443). The choice rests on env vars only, never
+  on a request header, so a caller cannot opt in. In its place, every render
+  that looks anything up is charged its worst-case call count (`upstreamLookupCost`:
+  1 per film or developer, plus `MAX_COMBINATION_PAGES` for a recipe) against
+  two global buckets after the per-IP check, as Unkey `cost`: `og-upstream`,
+  a 1200/min burst cap (`OG_UPSTREAM_RATE_LIMIT`), then `og-upstream-day`,
+  10000 a day (`OG_UPSTREAM_DAILY_LIMIT`), both in `utils/rateLimitPolicy.ts`.
+  The daily number assumes the Supabase **Free** plan (about 500k Edge
+  Function invocations a month, and a project over quota can be restricted);
+  revisit it if the plan changes. It bounds OG cards only: the public
+  `/api/*` path still has no global ceiling. Over either bucket, the same
+  `no-store` 307 to the static card, never a slug-only card the CDN would
+  keep for a day, with `Retry-After` but no `X-RateLimit-*` (those report
+  only the caller's own per-IP budget). Like the per-IP check, both fail open
+  if Unkey is down, so the page cap is what still bounds one render then.
 
 Host-based routing lives in `vercel.json`: on `api.dorkroom.art` the bare paths
 (`/films`, `/openapi.json`, `/reference`, …) map onto these handlers, while
@@ -103,8 +124,8 @@ swaps in a test stand-in, and deployed handlers get the real SDK client.
 `docs.ts`, `openapi.ts`, `reference.ts`, `meta.ts`, and `not-found.ts` use the
 envelope alone: they serve static or derived content and need no key. `meta.ts`
 also allows `HEAD`, since some crawlers probe with it. `og.tsx` is edge
-runtime and keeps its own guards (above); it calls `/api/films`,
-`/api/developers`, and `/api/combinations`, which is why it has its own rate
+runtime and keeps its own guards (above); its catalogue lookups can fan out
+to several upstream calls per render, which is why it has its own rate
 limit.
 
 ### Upstream fetches
@@ -155,6 +176,11 @@ All under `/utils`:
   `docs/API.md`, this file, or `packages/api/CLAUDE.md` drift from it
 - `edgeRateLimit.ts` - edge-safe Unkey rate limit over plain `fetch` (no SDK,
   no Node imports), using the anonymous namespace and budget from `rateLimitPolicy.ts`
+- `internalDataSource.ts` - edge-safe target for `og.tsx`'s catalogue
+  lookups: the Edge Function with the proxy credentials (`redirect: 'error'`,
+  so they never follow a redirect), or the public API when those env vars are
+  missing or the endpoint is not a bare `https:` origin. Logs the fallback
+  once per isolate, naming the variables, never their values
 - `queryPatterns.ts` - slug/UUID/ISO/brand/preset patterns shared by `meta.ts` and `og.tsx`
 - `createSupabaseProxy.ts` - the proxy factory described above
 - `queryValidation.ts` - allowlist-based query sanitization
@@ -209,13 +235,17 @@ Two access modes are supported from one Vercel project:
   - No API key required
   - Anonymous rate limiting by client IP (30 req/min)
   - `/api/og` uses the same namespace and budget under a separate `og:<ip>`
-    identifier, and fails open if Unkey is unreachable
+    identifier, plus global `og-upstream` (per minute) and `og-upstream-day`
+    budgets for its catalogue lookups,
+    and fails open if Unkey is unreachable
 
 When Unkey is not configured (`UNKEY_ROOT_KEY` missing), anonymous rate limiting is skipped with warning logs for local development.
 
 ## Required Environment Variables
 
-Supabase proxy handlers (`films`, `developers`, `combinations`, `stats`):
+Supabase proxy handlers (`films`, `developers`, `combinations`, `stats`),
+and `og.tsx`'s catalogue lookups (which fall back to the public API without
+them, rather than failing):
 
 - `SUPABASE_MASTER_API_KEY` - Supabase secret API key (`sb_secret_...`) used as the `Bearer` token when calling Edge Functions
 - `SUPABASE_ENDPOINT` - Project URL, e.g. `https://<ref>.supabase.co`
