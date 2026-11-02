@@ -75,7 +75,7 @@ function ShareModalError({
                 'var(--color-semantic-error)',
                 15,
                 'transparent',
-                'var(--color-border-muted)'
+                'transparent'
               ),
             }}
           >
@@ -344,7 +344,7 @@ function ShareModalContent({
                 'var(--color-semantic-info)',
                 15,
                 'transparent',
-                'var(--color-border-muted)'
+                'transparent'
               ),
             }}
           >

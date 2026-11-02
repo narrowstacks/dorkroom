@@ -35,6 +35,7 @@ import {
   classicInlineScripts,
   es5SyntaxProblem,
 } from '../apps/dorkroom/es5-syntax';
+import { legacyCssProblem } from '../apps/dorkroom/legacy-css';
 import { CaptureView } from './webview-capture';
 
 const root = join(dirname(import.meta.url), '..');
@@ -182,11 +183,11 @@ function check(name: string, pass: boolean, detail?: string): void {
   console.log(`${pass ? '✓' : '✗'} ${name}${detail ? ` — ${detail}` : ''}`);
 }
 
-async function openAndWait(url: string): Promise<CaptureView> {
+async function openAndWait(url: string, extraInit = ''): Promise<CaptureView> {
   const view = await CaptureView.open({
     width: 1280,
     height: 918,
-    initScript: ERROR_COLLECTOR,
+    initScript: ERROR_COLLECTOR + extraInit,
   });
   await view.goto(url);
   await view.waitForVisible('.hero-grain', 30_000);
@@ -264,8 +265,46 @@ async function checkLegacyOutputIsEs5(): Promise<void> {
   );
 }
 
+/**
+ * The Chromium 80 fallback stylesheet (Kindle Silk) must exist, be free of
+ * `@layer` and `color-mix()`, and be wired into index.html through the classic
+ * inline script that swaps it in. The build's `legacy-css` plugin enforces the
+ * same; this checks the files on disk.
+ */
+async function checkLegacyCss(): Promise<void> {
+  const assetsDir = join(distDir, 'assets');
+  const files = (await readdir(assetsDir)).filter((f) =>
+    /-legacy-[^/]*\.css$/.test(f)
+  );
+  check(
+    'legacy css: one fallback stylesheet',
+    files.length === 1,
+    files.join(', ')
+  );
+  const [file] = files;
+  if (!file) return;
+  const problem = legacyCssProblem(
+    await readFile(join(assetsDir, file), 'utf8')
+  );
+  check('legacy css: no @layer or color-mix()', !problem, problem ?? 'clean');
+  const html = await readFile(join(distDir, 'index.html'), 'utf8');
+  check(
+    'legacy css: index.html writes it in (render-blocking) from a classic inline script',
+    classicInlineScripts(html).some(
+      (body) =>
+        body.includes('CSSLayerBlockRule') &&
+        // A parser-inserted link blocks rendering; a changed href does not.
+        body.includes('.write(') &&
+        !body.includes('.href=') &&
+        body.includes(file)
+    )
+  );
+}
+
 async function run(): Promise<void> {
   await checkLegacyOutputIsEs5();
+  await checkLegacyCss();
+  await checkStylesheetSwap();
   await checkLegacyChunksHaveNoPropertyEscapes();
 
   // ---- 1. MODERN PATH ------------------------------------------------------
@@ -296,6 +335,12 @@ async function run(): Promise<void> {
         anyLegacy.length
           ? anyLegacy.map((u) => u.split('/').pop()).join(', ')
           : 'none'
+      );
+      const legacyCss = requests.filter((u) => /-legacy-[^/]*\.css$/.test(u));
+      check(
+        'modern: does NOT request the legacy stylesheet',
+        legacyCss.length === 0,
+        legacyCss.join(', ') || 'none'
       );
       const missing = notFound.filter((u) => !u.startsWith('/_vercel/'));
       check('modern: no 404s', missing.length === 0, missing.join(', '));
@@ -354,6 +399,61 @@ async function run(): Promise<void> {
       view?.close();
       await server.close();
     }
+  }
+}
+
+/** Hides cascade-layer support before any page script runs, so the inline
+ *  loader takes the branch Kindle Silk (Chromium 80) takes. */
+const HIDE_CSS_LAYERS = `
+delete window.CSSLayerBlockRule;
+window.__layersHidden = typeof window.CSSLayerBlockRule === 'undefined';
+`;
+
+/** Runs the inline stylesheet loader's no-`@layer` branch in this modern
+ *  engine: the legacy sheet must replace the modern one, not join it. */
+async function checkStylesheetSwap(): Promise<void> {
+  const requests: string[] = [];
+  const notFound: string[] = [];
+  const server = await startStaticServer(undefined, requests, notFound);
+  let view: CaptureView | undefined;
+  try {
+    view = await openAndWait(server.url, HIDE_CSS_LAYERS);
+    const state = await view.evaluate<{
+      hidden: boolean;
+      links: string[];
+      sheets: string[];
+      legacyRules: number;
+      font: string;
+    }>(`function () {
+      var links = [].slice.call(document.querySelectorAll('link[rel=stylesheet]'));
+      var sheets = [].slice.call(document.styleSheets).filter(function (s) { return s.href; });
+      var legacy = sheets.filter(function (s) { return /-legacy-[^/]*\\.css$/.test(s.href); })[0];
+      return {
+        hidden: window.__layersHidden === true,
+        links: links.map(function (l) { return l.getAttribute('href'); }),
+        sheets: sheets.map(function (s) { return s.href.split('/').pop(); }),
+        legacyRules: legacy ? legacy.cssRules.length : 0,
+        font: getComputedStyle(document.body).fontFamily
+      };
+    }`);
+    const legacyRequested = requests.some((u) => /-legacy-[^/]*\.css$/.test(u));
+    check('swap: CSSLayerBlockRule hidden before the loader ran', state.hidden);
+    check('swap: legacy stylesheet requested', legacyRequested);
+    check(
+      'swap: exactly one stylesheet link, the legacy one',
+      state.links.length === 1 &&
+        /-legacy-[^/]*\.css$/.test(state.links[0] ?? ''),
+      state.links.join(', ')
+    );
+    check(
+      'swap: legacy sheet applied, modern sheet gone',
+      state.sheets.length === 1 && state.legacyRules > 0,
+      `${state.sheets.join(', ')} (${state.legacyRules} rules)`
+    );
+    check('swap: app font applied', /Montserrat/.test(state.font), state.font);
+  } finally {
+    view?.close();
+    await server.close();
   }
 }
 

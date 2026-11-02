@@ -165,7 +165,7 @@ export function BladeResultsDisplay({
               'var(--color-semantic-info)',
               10,
               'transparent',
-              'var(--color-border-muted)'
+              'transparent'
             ),
           }}
         >

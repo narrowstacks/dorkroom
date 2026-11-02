@@ -130,7 +130,7 @@ export function CustomBadge({ showTooltip = true }: CustomBadgeProps) {
             'var(--color-accent)',
             15,
             'transparent',
-            'var(--color-border-muted)'
+            'transparent'
           ),
           borderColor: colorMixOr(
             'var(--color-accent)',

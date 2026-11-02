@@ -64,7 +64,7 @@ function ModeToggle({ isEnlargerHeightMode, onModeChange }: ModeToggleProps) {
           'var(--color-surface)',
           80,
           'transparent',
-          'var(--color-border-muted)'
+          'transparent'
         ),
       }}
     >
@@ -194,7 +194,7 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
                 'var(--color-surface)',
                 80,
                 'transparent',
-                'var(--color-border-muted)'
+                'transparent'
               ),
               color: 'var(--color-text-primary)',
             }}

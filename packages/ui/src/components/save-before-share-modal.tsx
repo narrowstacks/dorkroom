@@ -102,7 +102,7 @@ export function SaveBeforeShareModal({
                     'var(--color-semantic-info)',
                     20,
                     'transparent',
-                    'var(--color-border-muted)'
+                    'transparent'
                   ),
                 }}
               >
