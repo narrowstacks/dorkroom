@@ -32,8 +32,9 @@ describe('DetailPanel modality (#286)', () => {
     opener.focus();
 
     rerender(<Page isOpen isMobile />);
-    const sheet = screen.getByRole('dialog', { name: 'Film details' });
-    expect(sheet.contains(document.activeElement)).toBe(true);
+    screen.getByRole('dialog', { name: 'Film details' });
+    // Not the pointer-only drag handle, which does nothing from the keyboard.
+    expect(screen.getByRole('button', { name: 'Close panel' })).toHaveFocus();
     expect(opener.closest('[inert]')).not.toBeNull();
     // The sheet's own backdrop still closes it on tap.
     expect(

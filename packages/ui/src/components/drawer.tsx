@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useBodyScrollLock } from '../hooks/use-body-scroll-lock';
 import { useEscapeKey } from '../hooks/use-escape-key';
+import { useModalLayer } from '../hooks/use-modal-layer';
 import { cn } from '../lib/cn';
 
 const sizeClasses = {
@@ -25,6 +26,15 @@ interface DrawerProps {
   enableBackgroundBlur?: boolean;
   enableBackgroundOverlay?: boolean;
   className?: string;
+  /**
+   * Make the drawer a modal dialog: focus moves in, Tab stays inside, the page
+   * behind is inert, and focus returns to the opener. Opt-in, because a
+   * live-preview sheet (the border calculator's settings) must leave the
+   * result behind it readable and announced.
+   */
+  modal?: boolean;
+  /** Id of the element that names the dialog. Used only with `modal`. */
+  ariaLabelledBy?: string;
 }
 
 export function Drawer({
@@ -36,6 +46,8 @@ export function Drawer({
   enableBackgroundBlur = false,
   enableBackgroundOverlay = true,
   className,
+  modal = false,
+  ariaLabelledBy,
 }: DrawerProps) {
   // Consolidated transition state so updates flow through a single setter.
   const [transition, setTransition] = useState({
@@ -77,6 +89,14 @@ export function Drawer({
   useBodyScrollLock(isOpen);
   useEscapeKey(isOpen, onClose);
 
+  // Gated on showContent: the first open render mounts the panel with no
+  // children, so there would be nothing yet to move focus to.
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const panelRef = useModalLayer<HTMLDivElement>(
+    modal && isOpen && showContent,
+    { keepInteractive: [backdropRef] }
+  );
+
   const transformClasses = {
     bottom: animateOpen ? 'translate-y-0' : 'translate-y-full',
     top: animateOpen ? 'translate-y-0' : '-translate-y-full',
@@ -94,6 +114,7 @@ export function Drawer({
     <div className="fixed inset-0 z-50" style={{ height: '100dvh' }}>
       {/* biome-ignore lint/a11y/noStaticElementInteractions: backdrop overlay dismiss pattern */}
       <div
+        ref={backdropRef}
         className={cn(
           'absolute inset-0 transition-opacity duration-300 h-full',
           enableBackgroundBlur && 'backdrop-blur-sm',
@@ -108,6 +129,13 @@ export function Drawer({
 
       {/* Drawer */}
       <div
+        ref={panelRef}
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a native <dialog> is display:none when closed and breaks the slide transition; role="dialog" is required so aria-modal is valid here
+        // eslint-disable-next-line react-doctor/prefer-html-dialog, react-doctor/prefer-tag-over-role -- native <dialog> is display:none when closed, which breaks the slide-in transition; this is an intentional custom modal
+        role={modal ? 'dialog' : undefined}
+        aria-modal={modal || undefined}
+        aria-labelledby={modal ? ariaLabelledBy : undefined}
+        tabIndex={modal ? -1 : undefined}
         className={cn(
           'absolute border transition-transform duration-300 ease-out overflow-hidden',
           anchor === 'bottom' || anchor === 'top'

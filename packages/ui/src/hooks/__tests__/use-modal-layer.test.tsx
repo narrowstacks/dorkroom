@@ -116,6 +116,80 @@ describe('useModalLayer', () => {
     });
   });
 
+  describe('what counts as tabbable', () => {
+    /** A layer whose last element is the one under test. */
+    function Tail({ children }: { children: ReactNode }) {
+      const ref = useModalLayer<HTMLDialogElement>(true);
+      return (
+        <dialog ref={ref} open aria-label="Tail" tabIndex={-1}>
+          <button type="button">Head</button>
+          <button type="button">Middle</button>
+          {children}
+        </dialog>
+      );
+    }
+
+    it.each([
+      [
+        'display: none',
+        <button key="x" type="button" style={{ display: 'none' }}>
+          X
+        </button>,
+      ],
+      [
+        'visibility: hidden',
+        <button key="x" type="button" style={{ visibility: 'hidden' }}>
+          X
+        </button>,
+      ],
+      [
+        'a hidden ancestor',
+        <div key="x" style={{ display: 'none' }}>
+          <button type="button">X</button>
+        </div>,
+      ],
+      [
+        'a disabled fieldset',
+        <fieldset key="x" disabled>
+          <button type="button">X</button>
+        </fieldset>,
+      ],
+    ])('skips a last element under %s when wrapping', (_label, tail) => {
+      render(<Tail>{tail}</Tail>);
+      const head = screen.getByRole('button', { name: 'Head' });
+      const middle = screen.getByRole('button', { name: 'Middle' });
+
+      middle.focus();
+      fireEvent.keyDown(middle, { key: 'Tab' });
+      expect(head).toHaveFocus();
+
+      fireEvent.keyDown(head, { key: 'Tab', shiftKey: true });
+      expect(middle).toHaveFocus();
+    });
+
+    it('gives a radio group one Tab stop, on its checked radio', () => {
+      render(
+        <Tail>
+          <input type="radio" name="speed" aria-label="ISO 100" />
+          <input
+            type="radio"
+            name="speed"
+            aria-label="ISO 400"
+            defaultChecked
+          />
+          <input type="radio" name="speed" aria-label="ISO 1600" />
+        </Tail>
+      );
+      const head = screen.getByRole('button', { name: 'Head' });
+      const checked = screen.getByRole('radio', { name: 'ISO 400' });
+
+      fireEvent.keyDown(head, { key: 'Tab', shiftKey: true });
+      expect(checked).toHaveFocus();
+      fireEvent.keyDown(checked, { key: 'Tab' });
+      expect(head).toHaveFocus();
+    });
+  });
+
   describe('background', () => {
     it('makes the rest of the page inert while open, and clears it on close', () => {
       const { rerender } = render(
@@ -219,6 +293,111 @@ describe('useModalLayer', () => {
         </Page>
       );
       unmount();
+      expect(document.querySelector('[inert]')).toBeNull();
+    });
+  });
+
+  describe('focus restoration fallbacks', () => {
+    it('sends focus to returnFocus when given', () => {
+      function WithReturn({ isOpen }: { isOpen: boolean }) {
+        const targetRef = useRef<HTMLButtonElement>(null);
+        const ref = useModalLayer<HTMLDialogElement>(isOpen, {
+          returnFocus: targetRef,
+        });
+        return (
+          <main>
+            <button type="button">Opener</button>
+            <button type="button" ref={targetRef}>
+              Target
+            </button>
+            {isOpen && (
+              <dialog ref={ref} open aria-label="D" tabIndex={-1}>
+                <button type="button">Inside</button>
+              </dialog>
+            )}
+          </main>
+        );
+      }
+      const { rerender } = render(<WithReturn isOpen={false} />);
+      screen.getByRole('button', { name: 'Opener' }).focus();
+      rerender(<WithReturn isOpen />);
+      rerender(<WithReturn isOpen={false} />);
+      expect(screen.getByRole('button', { name: 'Target' })).toHaveFocus();
+    });
+
+    it('falls back to the layer below when the opener is gone', () => {
+      // A confirm opened from a button inside the outer layer, where
+      // confirming removes that button along with the confirm.
+      function Confirming({
+        confirmOpen,
+        showDelete,
+      }: {
+        confirmOpen: boolean;
+        showDelete: boolean;
+      }) {
+        return (
+          <Page>
+            <Layer isOpen label="Outer">
+              {showDelete && <button type="button">Delete</button>}
+            </Layer>
+            <Layer isOpen={confirmOpen} label="Confirm" />
+          </Page>
+        );
+      }
+      const { rerender } = render(
+        <Confirming confirmOpen={false} showDelete />
+      );
+      screen.getByRole('button', { name: 'Delete' }).focus();
+      rerender(<Confirming confirmOpen showDelete />);
+      rerender(<Confirming confirmOpen={false} showDelete={false} />);
+      expect(screen.getByRole('dialog', { name: 'Outer' })).toHaveFocus();
+    });
+  });
+
+  describe('out-of-order close', () => {
+    it('keeps the top layer modal and focused when the lower layer closes first', () => {
+      const { rerender } = render(
+        <Page>
+          <Layer isOpen={false} label="Outer" />
+          <Layer isOpen={false} label="Inner" />
+        </Page>
+      );
+      // The outer layer's opener, which it must not reclaim while the inner
+      // layer is still open.
+      screen.getByRole('button', { name: 'Opener' }).focus();
+      rerender(
+        <Page>
+          <Layer isOpen label="Outer" />
+          <Layer isOpen={false} label="Inner" />
+        </Page>
+      );
+      rerender(
+        <Page>
+          <Layer isOpen label="Outer" />
+          <Layer isOpen label="Inner" />
+        </Page>
+      );
+      const innerFirst = screen.getByRole('button', { name: 'Inner first' });
+      expect(innerFirst).toHaveFocus();
+
+      rerender(
+        <Page>
+          <Layer isOpen={false} label="Outer" />
+          <Layer isOpen label="Inner" />
+        </Page>
+      );
+      expect(innerFirst).toHaveFocus();
+      expect(isInert(innerFirst)).toBe(false);
+      expect(isInert(screen.getByRole('button', { name: 'Opener' }))).toBe(
+        true
+      );
+
+      rerender(
+        <Page>
+          <Layer isOpen={false} label="Outer" />
+          <Layer isOpen={false} label="Inner" />
+        </Page>
+      );
       expect(document.querySelector('[inert]')).toBeNull();
     });
   });

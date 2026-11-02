@@ -27,10 +27,73 @@ const TABBABLE =
 const NEVER_INERT =
   '[aria-live], [role="status"], [role="alert"], script, style, link, template';
 
-function tabbablesIn(root: HTMLElement): HTMLElement[] {
-  return [...root.querySelectorAll<HTMLElement>(TABBABLE)].filter(
-    (element) => !element.closest('[hidden], [inert]')
+/**
+ * Whether the element is rendered: not `display: none` or
+ * `visibility: hidden`, itself or through an ancestor. `checkVisibility` is
+ * in every current browser; where it is missing (older Safari, test DOMs)
+ * only the `[hidden]` check in `tabbablesIn` applies.
+ */
+function isRendered(element: HTMLElement): boolean {
+  if (!('checkVisibility' in element)) return true;
+  return element.checkVisibility({
+    visibilityProperty: true,
+    checkVisibilityCSS: true,
+  });
+}
+
+/**
+ * Radio buttons take one Tab stop per group: the checked one, or the first
+ * one when none is checked.
+ */
+function isRadioTabStop(
+  element: HTMLElement,
+  candidates: readonly HTMLElement[]
+): boolean {
+  if (!(element instanceof HTMLInputElement) || element.type !== 'radio') {
+    return true;
+  }
+  if (!element.name) return true;
+  const group = candidates.filter(
+    (other): other is HTMLInputElement =>
+      other instanceof HTMLInputElement &&
+      other.type === 'radio' &&
+      other.name === element.name &&
+      other.form === element.form
   );
+  const checked = group.find((radio) => radio.checked);
+  return checked ? checked === element : group[0] === element;
+}
+
+/**
+ * Whether a disabled `<fieldset>` disables the element. `:disabled` covers
+ * this in browsers; the explicit walk keeps it true in test DOMs too. A
+ * control in the fieldset's first `<legend>` stays enabled, per the HTML spec.
+ */
+function isDisabled(element: HTMLElement): boolean {
+  if (element.matches(':disabled')) return true;
+  for (
+    let fieldset = element.closest('fieldset');
+    fieldset;
+    fieldset = fieldset.parentElement?.closest('fieldset') ?? null
+  ) {
+    if (!fieldset.disabled) continue;
+    const legend = fieldset.querySelector(':scope > legend');
+    if (!legend?.contains(element)) return true;
+  }
+  return false;
+}
+
+function tabbablesIn(root: HTMLElement): HTMLElement[] {
+  const candidates = [...root.querySelectorAll<HTMLElement>(TABBABLE)].filter(
+    (element) =>
+      !element.closest('[hidden], [inert]') &&
+      // A native control taken out of the Tab order with a negative tabindex.
+      !element.matches('[tabindex^="-"]') &&
+      // Covers a control inside a disabled <fieldset>, which [disabled] misses.
+      !isDisabled(element) &&
+      isRendered(element)
+  );
+  return candidates.filter((element) => isRadioTabStop(element, candidates));
 }
 
 interface ModalLayer {
@@ -116,6 +179,11 @@ export interface UseModalLayerOptions {
    * sibling.
    */
   keepInteractive?: readonly RefObject<HTMLElement | null>[];
+  /**
+   * Where focus goes on close, when the element that had focus at open time
+   * is not the right place (or may be gone by then).
+   */
+  returnFocus?: RefObject<HTMLElement | null>;
 }
 
 /**
@@ -136,15 +204,43 @@ export function useModalLayer<T extends HTMLElement>(
 ): RefObject<T | null> {
   const ref = useRef<T>(null);
   const optionsRef = useRef(options);
+  /** Where focus belongs after a close that kept the element mounted. */
+  const pendingReturnRef = useRef<{
+    target: HTMLElement;
+    layer: HTMLElement;
+  } | null>(null);
 
   useLayoutEffect(() => {
     optionsRef.current = options;
   });
 
   useLayoutEffect(() => {
+    // A close that leaves the element mounted (a drawer sliding out) runs the
+    // cleanup below during React's mutation phase, and React then puts focus
+    // back on whatever had it before the commit, inside the closing layer.
+    // This run comes after that, so it settles focus where it belongs, unless
+    // something else (a component's own layout effect) already moved it out.
+    const pending = pendingReturnRef.current;
+    pendingReturnRef.current = null;
+    if (pending && !isOpen) {
+      const active = document.activeElement;
+      if (
+        pending.target.isConnected &&
+        (active === null ||
+          active === document.body ||
+          pending.layer.contains(active))
+      ) {
+        pending.target.focus();
+      }
+    }
+
     const element = ref.current;
     if (!isOpen || !element) return undefined;
-    const { initialFocus, keepInteractive = [] } = optionsRef.current;
+    const {
+      initialFocus,
+      keepInteractive = [],
+      returnFocus,
+    } = optionsRef.current;
 
     const active = document.activeElement;
     const opener =
@@ -169,9 +265,23 @@ export function useModalLayer<T extends HTMLElement>(
     return () => {
       element.removeEventListener('keydown', trapTab);
       const index = layers.indexOf(layer);
+      // A layer that closes beneath another (out of order) must not pull
+      // focus out of the layer still on top.
+      const wasTop = index !== -1 && index === layers.length - 1;
       if (index !== -1) layers.splice(index, 1);
       syncInert();
-      if (opener?.isConnected) opener.focus();
+      if (!wasTop) return;
+      // The opener can be gone by now (a confirmed delete unmounts the card
+      // and its Delete button), so fall back to the layer now on top.
+      // Read at close on purpose: the target is whatever the ref holds now.
+      // oxlint-disable-next-line react-hooks/exhaustive-deps -- the latest ref value is the point, not a snapshot from open time
+      const returnTarget = returnFocus?.current;
+      const target = [returnTarget, opener, layers.at(-1)?.element].find(
+        (candidate) => candidate?.isConnected
+      );
+      if (!target) return;
+      target.focus();
+      pendingReturnRef.current = { target, layer: element };
     };
   }, [isOpen]);
 

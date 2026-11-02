@@ -685,8 +685,9 @@ describe('FilmsPage across a breakpoint change', () => {
     const drawer = screen.getByRole('dialog', {
       name: 'Ilford HP5 Plus details',
     });
+    // The drag handle is pointer-only, so it is hidden from the a11y tree.
     expect(
-      within(drawer).getByRole('button', { name: /Drag handle/ })
+      drawer.querySelector('[aria-label^="Drag handle"]')
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Collapse to panel' })

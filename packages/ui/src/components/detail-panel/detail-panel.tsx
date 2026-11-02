@@ -310,11 +310,16 @@ export const DetailPanel: FC<DetailPanelProps> = ({
             transform: `translateY(${dragOffset}px)`,
           }}
         >
-          {/* Drag handle (carries drag-to-dismiss interactions) */}
+          {/* Drag handle (carries drag-to-dismiss interactions). Pointer
+              only: it does nothing on Enter or Space, so it is out of the Tab
+              order and hidden from assistive tech, and the sheet opens on its
+              Close button instead. */}
           <div className="flex justify-center pt-3 pb-2">
             <button
               type="button"
-              aria-label="Drag handle — swipe down to dismiss"
+              tabIndex={-1}
+              aria-hidden="true"
+              aria-label="Drag handle, swipe down to dismiss"
               className="flex cursor-grab justify-center active:cursor-grabbing"
               onTouchStart={(e) => handleDragStart(e.touches[0].clientY)}
               onTouchMove={(e) => handleDragMove(e.touches[0].clientY)}

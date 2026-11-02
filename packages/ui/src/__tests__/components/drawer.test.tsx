@@ -221,6 +221,54 @@ describe('Drawer', () => {
     });
   });
 
+  describe('modal', () => {
+    it('is not a dialog and leaves the page alone by default', () => {
+      render(<Drawer {...defaultProps} />);
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(document.querySelector('[inert]')).toBeNull();
+    });
+
+    it('with modal: focus moves in, the page is inert, focus returns on close', () => {
+      const opener = document.createElement('button');
+      document.body.prepend(opener);
+      opener.focus();
+      const children = (
+        <>
+          <h2 id="drawer-title">Add recipe</h2>
+          <button type="button">Save</button>
+        </>
+      );
+
+      const { rerender } = render(
+        <Drawer {...defaultProps} modal ariaLabelledBy="drawer-title">
+          {children}
+        </Drawer>
+      );
+      expect(
+        screen.getByRole('dialog', { name: 'Add recipe' })
+      ).toHaveAttribute('aria-modal', 'true');
+      expect(screen.getByRole('button', { name: 'Save' })).toHaveFocus();
+      expect(opener).toHaveAttribute('inert');
+
+      // The panel stays mounted through its slide-out, so focus has to leave
+      // it while its content is still in the document.
+      rerender(
+        <Drawer
+          {...defaultProps}
+          isOpen={false}
+          modal
+          ariaLabelledBy="drawer-title"
+        >
+          {children}
+        </Drawer>
+      );
+      expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
+      expect(opener).toHaveFocus();
+      expect(opener).not.toHaveAttribute('inert');
+      opener.remove();
+    });
+  });
+
   describe('body overflow management', () => {
     it('sets body overflow to hidden when drawer opens', () => {
       render(<Drawer {...defaultProps} isOpen={true} />);
