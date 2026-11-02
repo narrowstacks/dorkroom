@@ -52,6 +52,36 @@ describe('MobileNav (#346)', () => {
     expect(toggle).toHaveFocus();
   });
 
+  it('is modal while open: Tab stays in the drawer, the page is inert, the FAB is not (#286)', () => {
+    render346(
+      <>
+        <a href="/elsewhere">Page link</a>
+        <MobileNav pathname="/" onNavigate={vi.fn()} />
+      </>
+    );
+
+    const toggle = screen.getByRole('button', { name: 'Open navigation' });
+    fireEvent.click(toggle);
+    const drawer = screen.getByRole('dialog', { name: 'Navigation menu' });
+
+    expect(
+      screen.getByRole('link', { name: 'Page link' }).closest('[inert]')
+    ).not.toBeNull();
+    // The FAB stays the topmost tap target that closes the drawer.
+    expect(toggle.closest('[inert]')).toBeNull();
+    expect(drawer.closest('[inert]')).toBeNull();
+
+    const closeButton = within(drawer).getByRole('button', {
+      name: 'Close navigation',
+    });
+    fireEvent.keyDown(closeButton, { key: 'Tab', shiftKey: true });
+    expect(drawer.contains(document.activeElement)).toBe(true);
+    expect(closeButton).not.toHaveFocus();
+
+    fireEvent.click(closeButton);
+    expect(document.querySelector('[inert]')).toBeNull();
+  });
+
   it('returns focus to the FAB when the drawer is dismissed via Escape', () => {
     render346(<MobileNav pathname="/" onNavigate={vi.fn()} />);
 

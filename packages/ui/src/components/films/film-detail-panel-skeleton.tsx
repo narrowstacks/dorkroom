@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { createPortal } from 'react-dom';
+import { useModalLayer } from '../../hooks/use-modal-layer';
 import { hasGlobal } from '../../lib/dom';
 
 /**
@@ -22,6 +23,10 @@ interface FilmDetailPanelSkeletonProps {
 export const FilmDetailPanelSkeleton: FC<FilmDetailPanelSkeletonProps> = ({
   isMobile,
 }) => {
+  // The mobile sheet stands in for the real (modal) detail sheet, so it is
+  // modal too: focus parks on it and the page behind is inert while it loads.
+  const dialogRef = useModalLayer<HTMLDialogElement>(isMobile);
+
   if (!hasGlobal('document')) {
     return null;
   }
@@ -37,9 +42,11 @@ export const FilmDetailPanelSkeleton: FC<FilmDetailPanelSkeletonProps> = ({
         }}
       >
         <dialog
+          ref={dialogRef}
           open
           aria-modal="true"
           aria-label="Loading film details"
+          tabIndex={-1}
           className="relative m-0 max-h-none w-full rounded-t-3xl border border-b-0 shadow-xl"
           style={{
             borderColor: 'var(--color-border-secondary)',

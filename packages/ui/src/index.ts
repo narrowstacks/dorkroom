@@ -119,6 +119,10 @@ export type { FieldApi, FormInstance } from './forms/utils/form-api-types';
 export { useBodyScrollLock } from './hooks/use-body-scroll-lock';
 export { useEscapeKey } from './hooks/use-escape-key';
 export {
+  type UseModalLayerOptions,
+  useModalLayer,
+} from './hooks/use-modal-layer';
+export {
   useMeasurementConverter,
   useMeasurementFormatter,
 } from './hooks/use-measurement-conversion';

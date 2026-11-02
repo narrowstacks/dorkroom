@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Drawer } from '../../components/drawer';
+import { Modal } from '../../components/modal';
 
 // Mock timers for testing animations
 beforeEach(() => {
@@ -17,7 +18,7 @@ afterEach(() => {
   vi.useRealTimers();
   cleanup();
   // Reset body overflow
-  document.body.style.overflow = 'unset';
+  document.body.style.overflow = '';
 });
 
 describe('Drawer', () => {
@@ -29,7 +30,7 @@ describe('Drawer', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    document.body.style.overflow = 'unset';
+    document.body.style.overflow = '';
   });
 
   it('renders when isOpen is true', () => {
@@ -227,12 +228,54 @@ describe('Drawer', () => {
       expect(document.body.style.overflow).toBe('hidden');
     });
 
-    it('resets body overflow when drawer closes', () => {
+    it('restores the overflow the page had before it opened', () => {
+      // A value no code path writes on its own, so only a real restore of
+      // the captured value passes (a literal 'unset' reset would not).
+      document.body.style.overflow = 'scroll';
       const { rerender } = render(<Drawer {...defaultProps} isOpen={true} />);
       expect(document.body.style.overflow).toBe('hidden');
 
       rerender(<Drawer {...defaultProps} isOpen={false} />);
-      expect(document.body.style.overflow).toBe('unset');
+      expect(document.body.style.overflow).toBe('scroll');
+    });
+
+    it('keeps a Modal opened over it scroll-locked after the drawer closes', () => {
+      document.body.style.overflow = 'scroll';
+      const { rerender } = render(
+        <>
+          <Drawer {...defaultProps} isOpen={true} />
+          <Modal isOpen={false} onClose={vi.fn()}>
+            Over the drawer
+          </Modal>
+        </>
+      );
+      rerender(
+        <>
+          <Drawer {...defaultProps} isOpen={true} />
+          <Modal isOpen={true} onClose={vi.fn()}>
+            Over the drawer
+          </Modal>
+        </>
+      );
+      rerender(
+        <>
+          <Drawer {...defaultProps} isOpen={false} />
+          <Modal isOpen={true} onClose={vi.fn()}>
+            Over the drawer
+          </Modal>
+        </>
+      );
+      expect(document.body.style.overflow).toBe('hidden');
+
+      rerender(
+        <>
+          <Drawer {...defaultProps} isOpen={false} />
+          <Modal isOpen={false} onClose={vi.fn()}>
+            Over the drawer
+          </Modal>
+        </>
+      );
+      expect(document.body.style.overflow).toBe('scroll');
     });
   });
 

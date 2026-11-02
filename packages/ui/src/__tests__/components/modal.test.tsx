@@ -190,6 +190,37 @@ describe('Modal', () => {
       </>
     );
 
+    it('moves focus into the dialog on open', () => {
+      render(<Modal {...defaultProps}>{body}</Modal>);
+      expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();
+    });
+
+    it('focuses the dialog itself when it has nothing tabbable', () => {
+      render(<Modal {...defaultProps} hideCloseButton title="Notice" />);
+      expect(screen.getByRole('dialog', { name: 'Notice' })).toHaveFocus();
+    });
+
+    it('makes the page behind inert but keeps its own backdrop clickable', () => {
+      const page = document.createElement('main');
+      page.append(document.createElement('button'));
+      document.body.prepend(page);
+      const onClose = vi.fn();
+
+      const { unmount } = render(
+        <Modal {...defaultProps} onClose={onClose}>
+          {body}
+        </Modal>
+      );
+      expect(page).toHaveAttribute('inert');
+      const backdrop = screen.getByTestId('modal-backdrop');
+      expect(backdrop.closest('[inert]')).toBeNull();
+      expect(screen.getByRole('dialog').closest('[inert]')).toBeNull();
+
+      unmount();
+      expect(page).not.toHaveAttribute('inert');
+      page.remove();
+    });
+
     it('keeps Tab inside the dialog, wrapping at both ends', () => {
       render(
         <Modal {...defaultProps} hideCloseButton>

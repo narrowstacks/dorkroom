@@ -1,9 +1,17 @@
 import { GripVertical, Maximize2, Minimize2, X } from 'lucide-react';
-import { type FC, type ReactNode, useEffect, useRef, useState } from 'react';
+import {
+  type FC,
+  type ReactNode,
+  type Ref,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '../../hooks/use-body-scroll-lock';
 import { useEscapeKey } from '../../hooks/use-escape-key';
 import { hasGlobal } from '../../lib/dom';
+import { useDetailPanelLayers } from './use-detail-panel-layers';
 
 /** Props for the reusable CloseButton component */
 interface CloseButtonProps {
@@ -31,6 +39,7 @@ interface ExpandButtonProps {
   isExpanded: boolean;
   onClick: () => void;
   className?: string;
+  ref?: Ref<HTMLButtonElement>;
 }
 
 /** Reusable expand/collapse button with hover styling */
@@ -39,8 +48,10 @@ export const DetailPanelExpandButton: FC<ExpandButtonProps> = ({
   isExpanded,
   onClick,
   className = '',
+  ref,
 }) => (
   <button
+    ref={ref}
     type="button"
     onClick={onClick}
     className={`rounded-full p-2 text-muted transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] hoverable-icon-btn ${className}`}
@@ -138,6 +149,14 @@ export const DetailPanel: FC<DetailPanelProps> = ({
     }
   });
 
+  const {
+    expandedBackdropRef,
+    expandedDialogRef,
+    mobileBackdropRef,
+    mobileDialogRef,
+    expandButtonRef,
+  } = useDetailPanelLayers(isOpen, isMobile, isExpanded);
+
   // Mobile drag handlers
   const handleDragStart = (clientY: number) => {
     isDraggingRef.current = true;
@@ -215,6 +234,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
       >
         {/* Backdrop: a real button so click-to-collapse is keyboard-accessible */}
         <button
+          ref={expandedBackdropRef}
           type="button"
           aria-label="Collapse to panel"
           tabIndex={-1}
@@ -223,9 +243,11 @@ export const DetailPanel: FC<DetailPanelProps> = ({
           onClick={handleCollapseModal}
         />
         <dialog
+          ref={expandedDialogRef}
           open
           aria-modal="true"
           aria-label={ariaLabel}
+          tabIndex={-1}
           className="relative z-10 m-0 max-h-none w-full max-w-4xl rounded-2xl border shadow-xl animate-scale-fade-in"
           style={{
             borderColor: 'var(--color-border-secondary)',
@@ -265,6 +287,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
       >
         {/* Backdrop: a real button so click-to-close is keyboard-accessible */}
         <button
+          ref={mobileBackdropRef}
           type="button"
           aria-label="Close"
           tabIndex={-1}
@@ -273,9 +296,11 @@ export const DetailPanel: FC<DetailPanelProps> = ({
           onClick={onClose}
         />
         <dialog
+          ref={mobileDialogRef}
           open
           aria-modal="true"
           aria-label={ariaLabel}
+          tabIndex={-1}
           className="relative z-10 m-0 max-h-none w-full rounded-t-3xl border border-b-0 shadow-xl transition-transform duration-300 ease-out"
           style={{
             borderColor: 'var(--color-border-secondary)',
@@ -339,6 +364,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
         {headerButtons}
         {showExpandButton && (
           <DetailPanelExpandButton
+            ref={expandButtonRef}
             isExpanded={isExpanded}
             onClick={() => setIsExpanded(!isExpanded)}
           />

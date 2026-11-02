@@ -1,8 +1,9 @@
 import { X } from 'lucide-react';
-import { type KeyboardEvent, useId, useLayoutEffect } from 'react';
+import { useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '../hooks/use-body-scroll-lock';
 import { useEscapeKey } from '../hooks/use-escape-key';
+import { useModalLayer } from '../hooks/use-modal-layer';
 import { cn } from '../lib/cn';
 import { hasGlobal } from '../lib/dom';
 
@@ -42,29 +43,6 @@ interface ModalProps {
   bodyClassName?: string;
 }
 
-/** What Tab can reach inside the dialog. */
-const TABBABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-/**
- * Keep Tab inside the dialog: from the last tabbable element it wraps to the
- * first, and Shift+Tab from the first wraps to the last.
- */
-function trapTab(event: KeyboardEvent<HTMLDialogElement>) {
-  if (event.key !== 'Tab' || event.defaultPrevented) return;
-  const tabbable = [
-    ...event.currentTarget.querySelectorAll<HTMLElement>(TABBABLE),
-  ].filter((element) => !element.closest('[hidden], [inert]'));
-  const first = tabbable[0];
-  const last = tabbable.at(-1);
-  if (!first || !last) return;
-  const edge = event.shiftKey ? first : last;
-  if (document.activeElement === edge) {
-    event.preventDefault();
-    (event.shiftKey ? last : first).focus();
-  }
-}
-
 const SIZE_CLASSES = {
   sm: 'max-w-md',
   md: 'max-w-2xl',
@@ -74,8 +52,9 @@ const SIZE_CLASSES = {
 
 /**
  * Render a modal dialog into a portal with a backdrop and automatic body-scroll locking when open.
- * Tab stays inside the dialog while it is open, and focus returns to the
- * element that had it when the dialog opened.
+ * Modal in fact, not just in `aria-modal`: focus moves into the dialog on
+ * open, Tab stays inside, the rest of the page is inert, and focus returns to
+ * the element that had it when the dialog opened (see `useModalLayer`).
  *
  * Renders nothing during server-side rendering or when `isOpen` is false.
  *
@@ -106,16 +85,13 @@ export function Modal({
   useEscapeKey(isOpen, onClose);
   const titleId = useId();
 
-  // Focus goes back to whatever had it when the dialog opened (its trigger,
-  // usually) once it closes or unmounts. A layout effect, so the opener is
-  // read before any child's mount effect moves focus into the dialog.
-  useLayoutEffect(() => {
-    if (!isOpen) return undefined;
-    const opener = document.activeElement;
-    return () => {
-      if (opener instanceof HTMLElement && opener.isConnected) opener.focus();
-    };
-  }, [isOpen]);
+  // Focus moves in on open, Tab stays inside, the page behind is inert, and
+  // focus returns to the opener on close or unmount.
+  // The backdrop is the dialog's sibling, so it is kept clickable explicitly.
+  const backdropRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useModalLayer<HTMLDialogElement>(isOpen, {
+    keepInteractive: [backdropRef],
+  });
 
   if (!hasGlobal('document') || !isOpen) {
     return null;
@@ -130,6 +106,7 @@ export function Modal({
           the tab sequence since Escape already covers keyboard dismissal
           (as does the header close button, when shown). */}
       <button
+        ref={backdropRef}
         type="button"
         aria-hidden="true"
         tabIndex={-1}
@@ -139,10 +116,11 @@ export function Modal({
         onClick={onClose}
       />
       <dialog
+        ref={dialogRef}
         open
         aria-modal="true"
         aria-labelledby={title ? titleId : ariaLabelledBy}
-        onKeyDown={trapTab}
+        tabIndex={-1}
         className={cn(
           'relative z-10 m-0 max-h-none w-full rounded-2xl border p-6 shadow-xl backdrop-blur-lg animate-scale-fade-in',
           SIZE_CLASSES[size],
