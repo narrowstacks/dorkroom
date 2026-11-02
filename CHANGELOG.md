@@ -21,6 +21,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Fixed
 
+- **The dev server port can be pinned again.** `MFE_APP_PORT=4200 bun run dev` was ignored (turbo filtered the variable out), so the dev server always started on port 4503, which broke the Docker setup that publishes port 4200. The variable now reaches the dev server. (fixes #592)
 - **Mat measurements read the way you write them.** On /mat, `3-1/2`, `3 1/2"`, `3 1/2 in`, `3½` and `3 ½` are now 3.5 instead of being cut down to 3, a comma decimal with an inch mark (`20,5 in`) keeps its decimals, and metric fields accept a trailing `cm`. A border or reveal with anything else left over, such as `3abc`, now shows the "Check inputs" message instead of quietly using the leading number or no reveal. (fixes #340)
 - **A third of a stop is exact on the Stops page.** The page worked a third of a stop out as 0.33, so 12s +1/3 gave 15.08s while the home search said 15.12s. Thirds and two-thirds are now exact, from the +1/3 buttons, a typed 0.33, or a link, including older shared links, and three +1/3 presses add exactly one stop. The multiplier reads ×1.260. (fixes #551)
 

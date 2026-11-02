@@ -46,7 +46,8 @@
     "dev": {
       "cache": false,
       "persistent": true,
-      "env": ["PORT"]
+      "env": ["PORT"],
+      "passThroughEnv": ["MFE_APP_PORT"]
     },
     "test": {
       "dependsOn": ["^build"]
