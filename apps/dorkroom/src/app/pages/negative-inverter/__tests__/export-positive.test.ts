@@ -29,6 +29,11 @@ import {
   syntheticNegative,
 } from './fake-canvas';
 
+// These tests push real pixels through the fake canvas: about 0.3s each on
+// their own, but several seconds when the whole suite shares CI's cores, which
+// tripped the 5s default. vi.setConfig only applies to this file.
+vi.setConfig({ testTimeout: 20_000 });
+
 let env: FakeCanvasEnvironment | null = null;
 
 afterEach(() => {
