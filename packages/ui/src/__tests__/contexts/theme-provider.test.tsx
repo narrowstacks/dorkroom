@@ -32,6 +32,24 @@ describe('ThemeProvider animations default', () => {
     localStorage.clear();
   });
 
+  it('keeps animations off in a legacy browser, even over a stored opt-in', () => {
+    document.documentElement.setAttribute('data-lc-legacy', '');
+    try {
+      stubReducedMotion(false);
+      localStorage.setItem(ANIMATIONS_KEY, 'true');
+      const { result } = renderTheme();
+
+      expect(result.current.animationsEnabled).toBe(false);
+      expect(document.documentElement).toHaveAttribute(
+        'data-animations-disabled',
+        'true'
+      );
+      expect(localStorage.getItem(ANIMATIONS_KEY)).toBe('true');
+    } finally {
+      document.documentElement.removeAttribute('data-lc-legacy');
+    }
+  });
+
   it('disables animations by default when the OS prefers reduced motion', () => {
     stubReducedMotion(true);
     const { result } = renderTheme();
@@ -88,51 +106,100 @@ function stubMonochrome(monochrome: boolean) {
   );
 }
 
-describe('ThemeProvider e-ink default', () => {
+const FIRE_TABLET_SILK_UA =
+  'Mozilla/5.0 (Linux; Android 9; KFMAWI) AppleWebKit/537.36 (KHTML, like Gecko) Silk/118.5.1 like Chrome/118.0.0.0 Safari/537.36';
+
+function stubUserAgent(userAgent: string) {
+  vi.stubGlobal('navigator', { ...navigator, userAgent });
+}
+
+describe('ThemeProvider e-ink lock', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     localStorage.clear();
   });
 
-  it('resolves system to high contrast on a monochrome screen, without saving it', () => {
+  it('locks to high contrast on a monochrome screen, saving nothing', () => {
     stubMonochrome(true);
     const { result } = renderTheme();
 
-    expect(result.current.theme).toBe('system');
+    expect(result.current.themeLocked).toBe(true);
+    expect(result.current.theme).toBe('high-contrast');
     expect(result.current.resolvedTheme).toBe('high-contrast');
-    expect(localStorage.getItem(THEME_KEY)).toBe('system');
+    expect(localStorage.getItem(THEME_KEY)).toBeNull();
     expect(document.documentElement).toHaveAttribute(
       'data-theme',
       'high-contrast'
     );
   });
 
-  it('resolves system to high contrast in a Kindle browser with a color screen', () => {
+  it('locks in a legacy-path Kindle browser with a color screen', () => {
     stubMonochrome(false);
-    vi.stubGlobal('navigator', {
-      ...navigator,
-      userAgent: KINDLE_SCRIBE_UA,
-    });
+    stubUserAgent(KINDLE_SCRIBE_UA);
     const { result } = renderTheme();
 
+    expect(result.current.themeLocked).toBe(true);
     expect(result.current.resolvedTheme).toBe('high-contrast');
   });
 
-  it('follows the color scheme on a color Kindle Fire', () => {
-    stubMonochrome(false);
-    vi.stubGlobal('navigator', { ...navigator, userAgent: KINDLE_FIRE_UA });
+  it('overrides a stored theme without deleting it', () => {
+    stubMonochrome(true);
+    localStorage.setItem(THEME_KEY, 'dark');
     const { result } = renderTheme();
 
+    expect(result.current.theme).toBe('high-contrast');
+    expect(localStorage.getItem(THEME_KEY)).toBe('dark');
+  });
+
+  it('ignores setTheme', () => {
+    stubMonochrome(true);
+    localStorage.setItem(THEME_KEY, 'dark');
+    const { result } = renderTheme();
+
+    act(() => result.current.setTheme('light'));
+
+    expect(result.current.theme).toBe('high-contrast');
+    expect(result.current.resolvedTheme).toBe('high-contrast');
+    expect(localStorage.getItem(THEME_KEY)).toBe('dark');
+  });
+
+  it('leaves a Kindle UA alone on a browser with cascade layers', () => {
+    stubMonochrome(false);
+    stubUserAgent(KINDLE_SCRIBE_UA);
+    vi.stubGlobal('CSSLayerBlockRule', function CSSLayerBlockRule() {});
+    const { result } = renderTheme();
+
+    expect(result.current.themeLocked).toBe(false);
+  });
+
+  it('leaves a color Kindle Fire selectable', () => {
+    stubMonochrome(false);
+    stubUserAgent(KINDLE_FIRE_UA);
+    const { result } = renderTheme();
+
+    expect(result.current.themeLocked).toBe(false);
     expect(result.current.resolvedTheme).toBe('light');
   });
 
-  it('keeps a stored theme on a monochrome screen', () => {
-    stubMonochrome(true);
-    localStorage.setItem(THEME_KEY, 'light');
+  it('leaves a Fire tablet running Silk selectable', () => {
+    stubMonochrome(false);
+    stubUserAgent(FIRE_TABLET_SILK_UA);
     const { result } = renderTheme();
 
-    expect(result.current.theme).toBe('light');
+    expect(result.current.themeLocked).toBe(false);
     expect(result.current.resolvedTheme).toBe('light');
+  });
+
+  it('follows the stored choice on a color screen', () => {
+    stubMonochrome(false);
+    localStorage.setItem(THEME_KEY, 'dark');
+    const { result } = renderTheme();
+
+    act(() => result.current.setTheme('darkroom'));
+
+    expect(result.current.themeLocked).toBe(false);
+    expect(result.current.theme).toBe('darkroom');
+    expect(localStorage.getItem(THEME_KEY)).toBe('darkroom');
   });
 
   it('follows the color scheme on a color screen', () => {

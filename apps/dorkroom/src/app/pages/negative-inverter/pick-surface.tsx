@@ -3,6 +3,7 @@ import {
   type PixelSize,
   screenToImagePoint,
 } from '@dorkroom/logic';
+import { scrollBehavior } from '@dorkroom/ui';
 import {
   type KeyboardEvent,
   type MouseEvent,
@@ -168,7 +169,10 @@ export function PickSurface({
   useEffect(() => {
     if (!focusOnMount) return;
     buttonRef.current?.focus({ preventScroll: true });
-    frameRef.current?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+    frameRef.current?.scrollIntoView?.({
+      block: 'center',
+      behavior: scrollBehavior(),
+    });
   }, [focusOnMount, frameRef]);
 
   /** Where the loupe goes for a point at this height in the viewport. */

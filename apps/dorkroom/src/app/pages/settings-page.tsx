@@ -1,4 +1,5 @@
 import {
+  isLegacyBrowser,
   SettingsButton,
   ToggleSwitch,
   useMeasurement,
@@ -15,11 +16,18 @@ import {
 } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { theme, setTheme, animationsEnabled, setAnimationsEnabled } =
-    useTheme();
+  const {
+    theme,
+    setTheme,
+    themeLocked,
+    animationsEnabled,
+    setAnimationsEnabled,
+  } = useTheme();
   const { unit, setUnit } = useMeasurement();
 
-  const showAnimations = theme !== 'high-contrast' && theme !== 'darkroom';
+  // Legacy (e-ink) browsers never animate, so the switch would do nothing.
+  const showAnimations =
+    theme !== 'high-contrast' && theme !== 'darkroom' && !isLegacyBrowser();
   const hideEmojis = theme === 'high-contrast' || theme === 'darkroom';
 
   return (
@@ -57,58 +65,67 @@ export default function SettingsPage() {
             >
               Theme
             </h2>
-            <div className="space-y-3">
-              {/* System theme - full width */}
-              <SettingsButton
-                label="System"
-                value="Follow system preference (chaotic neutral)"
-                onPress={() => setTheme('system')}
-                icon={Monitor}
-                iconClassName="h-[22px] w-[22px]"
-                showChevron={false}
-                isSelected={theme === 'system'}
-              />
+            {themeLocked ? (
+              <p
+                className="text-sm sm:text-base"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                High contrast is used on e-ink screens.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {/* System theme - full width */}
+                <SettingsButton
+                  label="System"
+                  value="Follow system preference (chaotic neutral)"
+                  onPress={() => setTheme('system')}
+                  icon={Monitor}
+                  iconClassName="h-[22px] w-[22px]"
+                  showChevron={false}
+                  isSelected={theme === 'system'}
+                />
 
-              {/* Other themes - 2 column grid */}
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <SettingsButton
-                  label="Dark"
-                  value="The correct choice."
-                  onPress={() => setTheme('dark')}
-                  icon={Moon}
-                  iconClassName="h-[22px] w-[22px]"
-                  showChevron={false}
-                  isSelected={theme === 'dark'}
-                />
-                <SettingsButton
-                  label="Light"
-                  value="Honestly, why would you want to do this? It's a darkroom app!"
-                  onPress={() => setTheme('light')}
-                  icon={Sun}
-                  iconClassName="h-[22px] w-[22px]"
-                  showChevron={false}
-                  isSelected={theme === 'light'}
-                />
-                <SettingsButton
-                  label="High Contrast"
-                  value="Ideal for e-ink devices. Black on white, no gradients, no motion"
-                  onPress={() => setTheme('high-contrast')}
-                  icon={Contrast}
-                  iconClassName="h-[22px] w-[22px]"
-                  showChevron={false}
-                  isSelected={theme === 'high-contrast'}
-                />
-                <SettingsButton
-                  label="Darkroom"
-                  value="Pure black with red accents - the authentic darkroom experience"
-                  onPress={() => setTheme('darkroom')}
-                  icon={Camera}
-                  iconClassName="h-[22px] w-[22px]"
-                  showChevron={false}
-                  isSelected={theme === 'darkroom'}
-                />
+                {/* Other themes - 2 column grid */}
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <SettingsButton
+                    label="Dark"
+                    value="The correct choice."
+                    onPress={() => setTheme('dark')}
+                    icon={Moon}
+                    iconClassName="h-[22px] w-[22px]"
+                    showChevron={false}
+                    isSelected={theme === 'dark'}
+                  />
+                  <SettingsButton
+                    label="Light"
+                    value="Honestly, why would you want to do this? It's a darkroom app!"
+                    onPress={() => setTheme('light')}
+                    icon={Sun}
+                    iconClassName="h-[22px] w-[22px]"
+                    showChevron={false}
+                    isSelected={theme === 'light'}
+                  />
+                  <SettingsButton
+                    label="High Contrast"
+                    value="Ideal for e-ink devices. Black on white, no gradients, no motion"
+                    onPress={() => setTheme('high-contrast')}
+                    icon={Contrast}
+                    iconClassName="h-[22px] w-[22px]"
+                    showChevron={false}
+                    isSelected={theme === 'high-contrast'}
+                  />
+                  <SettingsButton
+                    label="Darkroom"
+                    value="Pure black with red accents - the authentic darkroom experience"
+                    onPress={() => setTheme('darkroom')}
+                    icon={Camera}
+                    iconClassName="h-[22px] w-[22px]"
+                    showChevron={false}
+                    isSelected={theme === 'darkroom'}
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </section>
 
           {/* Right column - Animations & Units */}

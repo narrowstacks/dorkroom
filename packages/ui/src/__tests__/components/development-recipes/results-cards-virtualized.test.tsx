@@ -119,6 +119,7 @@ const themeContext: ThemeContextValue = {
   resolvedTheme: 'light',
   setTheme: () => {},
   animationsEnabled: true,
+  themeLocked: false,
   setAnimationsEnabled: () => {},
 };
 

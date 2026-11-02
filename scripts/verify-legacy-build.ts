@@ -35,7 +35,12 @@ import {
   classicInlineScripts,
   es5SyntaxProblem,
 } from '../apps/dorkroom/es5-syntax';
-import { legacyCssProblem } from '../apps/dorkroom/legacy-css';
+import {
+  KINDLE_UA_SOURCE,
+  LEGACY_BROWSER_ATTR,
+  legacyCssProblem,
+  NO_MOTION_CSS,
+} from '../apps/dorkroom/legacy-css';
 import { CaptureView } from './webview-capture';
 
 const root = join(dirname(import.meta.url), '..');
@@ -283,11 +288,28 @@ async function checkLegacyCss(): Promise<void> {
   );
   const [file] = files;
   if (!file) return;
-  const problem = legacyCssProblem(
-    await readFile(join(assetsDir, file), 'utf8')
-  );
+  const legacyCss = await readFile(join(assetsDir, file), 'utf8');
+  const problem = legacyCssProblem(legacyCss);
   check('legacy css: no @layer or color-mix()', !problem, problem ?? 'clean');
+  check(
+    'legacy css: ends with the no-motion override',
+    legacyCss.endsWith(NO_MOTION_CSS)
+  );
   const html = await readFile(join(distDir, 'index.html'), 'utf8');
+  check(
+    'legacy css: loader themes a Kindle high contrast before first paint',
+    classicInlineScripts(html).some(
+      (body) =>
+        body.includes(KINDLE_UA_SOURCE) &&
+        body.includes('setAttribute("data-theme","high-contrast")')
+    )
+  );
+  check(
+    'legacy css: loader marks <html> for the app',
+    classicInlineScripts(html).some((body) =>
+      body.includes(`setAttribute("${LEGACY_BROWSER_ATTR}","")`)
+    )
+  );
   check(
     'legacy css: index.html writes it in (render-blocking) from a classic inline script',
     classicInlineScripts(html).some(

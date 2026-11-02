@@ -15,7 +15,7 @@ export function resolveTheme(
   if (!hasGlobal('window')) {
     return 'dark';
   }
-  if (isEInkDisplay()) {
+  if (isEInkDevice()) {
     return 'high-contrast';
   }
   return window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -24,20 +24,30 @@ export function resolveTheme(
 }
 
 /**
- * Best-effort e-ink detection, used only to resolve `system`: a stored
- * explicit theme always wins, and nothing here is persisted. Two signals,
+ * Best-effort e-ink detection. On an e-ink device the theme is locked to high
+ * contrast (nothing is persisted), and `system` resolves to it. Two signals,
  * since neither covers every reader:
  * - the standard `monochrome` media feature, false on color screens and in
  *   engines that don't know it (an unknown query never matches);
  * - `Kindle/` (the old Kindle browser) or `Kindle Build/` (Silk, Chromium 80,
  *   on the Kindle Scribe, which likely reports a color screen) in the user
- *   agent. The color Kindle Fire (`Kindle Fire Build/`) does not match.
+ *   agent, but only on the legacy path, where the browser lacks
+ *   `CSSLayerBlockRule`. Fire tablets also run Silk, but have color LCDs: their
+ *   agent says `Kindle Fire Build/` or has no `Kindle` at all, and they are
+ *   never monochrome.
+ *
+ * Web only: the iOS app has neither a `window` nor a user agent like these.
  */
-function isEInkDisplay(): boolean {
+export function isEInkDevice(): boolean {
+  if (!hasGlobal('window')) {
+    return false;
+  }
   if (hasGlobal('matchMedia') && window.matchMedia('(monochrome)').matches) {
     return true;
   }
   return (
-    hasGlobal('navigator') && /\bKindle(\/|\sBuild\/)/.test(navigator.userAgent)
+    hasGlobal('navigator') &&
+    /\bKindle(\/|\sBuild\/)/.test(navigator.userAgent) &&
+    !('CSSLayerBlockRule' in window)
   );
 }

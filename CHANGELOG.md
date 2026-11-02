@@ -22,6 +22,8 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Fixed
 
+- **Kindle's browser shows no animations or transitions.** On browsers that get the compatibility stylesheet (Kindle's Chromium 80 and other browsers from before early 2022), fades, slides, spinners and smooth scrolling are off, so changes appear instantly instead of ghosting. The Animations switch in Settings is hidden there, since motion is always off. Other browsers are unchanged. (fixes #637)
+- **E-ink screens always use high contrast.** On a Kindle Scribe or any monochrome screen the theme is fixed to High Contrast, whatever was chosen before, and the theme menu and the theme options in Settings give way to a short note. The earlier choice is kept for your other devices. Colour e-ink such as the Kindle Colorsoft is locked too. Fire tablets and other LCD or OLED screens are unchanged. (refs #637)
 - **Tabbing out of a filter field closes its list.** Pressing Tab or Shift+Tab to leave a filter dropdown (Brand, ISO, Film, Developer and the like) now closes its list at once, so lists no longer pile up over each other and over the results. Picking an option with the mouse or a tap works as before. (fixes #635)
 - **Tapping outside an open filter list only closes it.** On a phone, tapping a film or recipe card while a filter dropdown (Brand, ISO, Film, Developer and the like) was open also opened that card. The first tap now just closes the list, and the next tap opens the card. Mouse clicks on desktop are unchanged. (fixes #633)
 - **Phone filter lists are no longer covered.** The floating search and menu buttons step aside while a filter dropdown (Brand, ISO and the like) is open, so every row can be seen and tapped across its full width. (fixes #629)
