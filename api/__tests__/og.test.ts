@@ -92,6 +92,11 @@ beforeEach(() => {
   // `bun run` loads the repo .env, which may carry a real root key. Keep the
   // limiter unconfigured unless a test opts in.
   vi.stubEnv('UNKEY_ROOT_KEY', '');
+  // Same for the Supabase credentials: lookups take the public API path
+  // unless a test opts in to the direct one.
+  vi.stubEnv('SUPABASE_ENDPOINT', '');
+  vi.stubEnv('SUPABASE_MASTER_API_KEY', '');
+  vi.stubEnv('SUPABASE_PROXY_SECRET', '');
   // Default: every upstream lookup answers empty (API unavailable).
   stubFetch(() => Promise.resolve(jsonResponse(EMPTY_LIST)));
 });
@@ -1123,5 +1128,138 @@ describe('og handler - rate limiting', () => {
 describe('getRouteIcon coverage', () => {
   it.each(Object.keys(ROUTE_TITLES))('has an icon for %s', (route) => {
     expect(getRouteIcon(route)).not.toBeNull();
+  });
+});
+
+/**
+ * Issue #443: the enrichment lookups must not go through the anonymous
+ * per-IP limiter on the public API, which would key every render on this
+ * function's egress IP and share one budget among them.
+ */
+describe('og handler - catalogue lookups bypass the public API limiter', () => {
+  const ENDPOINT = 'https://example-ref.supabase.co';
+  const API_KEY = 'sb_secret_test_value';
+  const PROXY_SECRET = 'proxy-secret-test-value';
+
+  function configureDirect(): void {
+    vi.stubEnv('SUPABASE_ENDPOINT', ENDPOINT);
+    vi.stubEnv('SUPABASE_MASTER_API_KEY', API_KEY);
+    vi.stubEnv('SUPABASE_PROXY_SECRET', PROXY_SECRET);
+  }
+
+  function outboundHeaders(init: RequestInit | undefined): Headers {
+    return new Headers(init?.headers);
+  }
+
+  const FILM = {
+    data: [{ brand: 'Adox', name: 'CHS 100 II', iso_speed: 100 }],
+    count: 1,
+  };
+
+  it('queries the Edge Function directly with the server credentials', async () => {
+    configureDirect();
+    const fetchMock = stubFetch(() =>
+      Promise.resolve(jsonResponse(JSON.stringify(FILM)))
+    );
+
+    const res = await handler(
+      makeRequest({ route: '/films', film: 'adox-chs-100-ii' })
+    );
+    const withData = await pngBytes(res);
+
+    const calls = fetchMock.mock.calls.filter(
+      ([input]) => !isFontRequest(String(input))
+    );
+    expect(calls).toHaveLength(1);
+    const [input, init] = calls[0] ?? [];
+    expect(String(input)).toBe(
+      `${ENDPOINT}/functions/v1/films?slug=adox-chs-100-ii&limit=1`
+    );
+    const headers = outboundHeaders(init);
+    expect(headers.get('authorization')).toBe(`Bearer ${API_KEY}`);
+    expect(headers.get('x-proxy-secret')).toBe(PROXY_SECRET);
+    // A redirect must never carry the credentials anywhere else.
+    expect(init?.redirect).toBe('error');
+    // Nothing goes through the rate-limited public API.
+    expect(upstreamCalls(fetchMock).some((url) => url.includes('/api/'))).toBe(
+      false
+    );
+
+    // The credentials never surface in the response.
+    for (const value of res.headers.values()) {
+      expect(value).not.toContain(API_KEY);
+      expect(value).not.toContain(PROXY_SECRET);
+    }
+
+    // The data really is drawn: an empty answer gives a different card.
+    stubFetch(() => Promise.resolve(jsonResponse(EMPTY_LIST)));
+    const slugOnly = await renderCard({
+      route: '/films',
+      film: 'adox-chs-100-ii',
+    });
+    expect(withData.equals(slugOnly)).toBe(false);
+  });
+
+  it('pages the combinations Edge Function directly for a recipe card', async () => {
+    configureDirect();
+    const fetchMock = stubFetch(() =>
+      Promise.resolve(jsonResponse(EMPTY_LIST))
+    );
+
+    await lookupCombination('kodak-tri-x-400', 'ilford-perceptol', TARGET_UUID);
+
+    expect(upstreamCalls(fetchMock)).toEqual([
+      `${ENDPOINT}/functions/v1/combinations?film=kodak-tri-x-400&developer=ilford-perceptol&count=50&page=1`,
+    ]);
+  });
+
+  it('falls back to the public API when a credential is missing', async () => {
+    vi.stubEnv('SUPABASE_ENDPOINT', ENDPOINT);
+    vi.stubEnv('SUPABASE_MASTER_API_KEY', API_KEY);
+    const fetchMock = stubFetch(() =>
+      Promise.resolve(jsonResponse(EMPTY_LIST))
+    );
+
+    await renderCard({ route: '/films', film: 'adox-chs-100-ii' });
+
+    const calls = fetchMock.mock.calls.filter(
+      ([input]) => !isFontRequest(String(input))
+    );
+    expect(calls.map(([input]) => String(input))).toEqual([
+      'https://dorkroom.art/api/films?slug=adox-chs-100-ii&limit=1',
+    ]);
+    const headers = outboundHeaders(calls[0]?.[1]);
+    expect(headers.get('authorization')).toBeNull();
+    expect(headers.get('x-proxy-secret')).toBeNull();
+  });
+
+  it('ignores credential-looking headers on the incoming request', async () => {
+    // No server credentials: a caller cannot switch the lookup to the
+    // direct path, or smuggle a value into the outbound request.
+    const fetchMock = stubFetch(() =>
+      Promise.resolve(jsonResponse(EMPTY_LIST))
+    );
+    const url = new URL('https://dorkroom.art/api/og');
+    url.searchParams.set('route', '/films');
+    url.searchParams.set('film', 'adox-chs-100-ii');
+    const forged = new Request(url.toString(), {
+      headers: {
+        authorization: 'Bearer forged',
+        'x-proxy-secret': 'forged',
+        'x-api-key': 'forged',
+      },
+    });
+
+    await pngBytes(await handler(forged));
+
+    const calls = fetchMock.mock.calls.filter(
+      ([input]) => !isFontRequest(String(input))
+    );
+    expect(calls).toHaveLength(1);
+    expect(String(calls[0]?.[0])).toMatch(/^https:\/\/dorkroom\.art\/api\//);
+    const headers = outboundHeaders(calls[0]?.[1]);
+    for (const name of ['authorization', 'x-proxy-secret', 'x-api-key']) {
+      expect(headers.get(name)).toBeNull();
+    }
   });
 });

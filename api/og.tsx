@@ -7,6 +7,10 @@ import {
 } from '../utils/calculatorShare';
 import { checkEdgeRateLimit, getRequestIp } from '../utils/edgeRateLimit';
 import {
+  catalogueRequest,
+  type CatalogueSource,
+} from '../utils/internalDataSource';
+import {
   BRAND_RE,
   ISO_RE,
   PRESET_RE,
@@ -18,7 +22,6 @@ import {
   ANONYMOUS_RATE_WINDOW_MS,
 } from '../utils/rateLimitPolicy';
 import {
-  BASE_URL,
   buildFilmFilterParts,
   decodeBorderPreset,
   getRouteMetadata,
@@ -66,7 +69,7 @@ function rejectUnknownParams(searchParams: URLSearchParams): boolean {
 }
 
 const FETCH_TIMEOUT_MS = 3000;
-/** Rows requested per `/api/combinations` page when scanning for a recipe UUID. */
+/** Rows requested per combinations page when scanning for a recipe UUID. */
 const COMBINATION_PAGE_SIZE = 50;
 /**
  * Upper bound on pages scanned for a recipe UUID (500 rows at
@@ -133,9 +136,21 @@ interface CombinationInfo {
   push_pull?: number | null;
 }
 
-async function fetchJson<T>(url: string): Promise<T | null> {
+/**
+ * One catalogue lookup, direct to the data layer when the server holds its
+ * credentials, else through the public API (`utils/internalDataSource.ts`).
+ * Any failure yields null and the card falls back to the slug. Nothing about
+ * the request, its credentials included, is logged or echoed.
+ */
+async function fetchCatalogue<T>(
+  source: CatalogueSource,
+  params: Record<string, string>
+): Promise<T | null> {
+  const target = catalogueRequest(source, new URLSearchParams(params));
   try {
-    const res = await fetch(url, {
+    const res = await fetch(target.url, {
+      headers: target.headers,
+      redirect: target.redirect,
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!res.ok) return null;
@@ -183,16 +198,18 @@ export function clearFontCache(): void {
 }
 
 async function lookupFilm(slug: string): Promise<FilmInfo | null> {
-  const data = await fetchJson<{ data: FilmInfo[] }>(
-    `${BASE_URL}/api/films?slug=${encodeURIComponent(slug)}&limit=1`
-  );
+  const data = await fetchCatalogue<{ data: FilmInfo[] }>('films', {
+    slug,
+    limit: '1',
+  });
   return data?.data?.[0] ?? null;
 }
 
 async function lookupDeveloper(slug: string): Promise<DeveloperInfo | null> {
-  const data = await fetchJson<{ data: DeveloperInfo[] }>(
-    `${BASE_URL}/api/developers?slug=${encodeURIComponent(slug)}&limit=1`
-  );
+  const data = await fetchCatalogue<{ data: DeveloperInfo[] }>('developers', {
+    slug,
+    limit: '1',
+  });
   return data?.data?.[0] ?? null;
 }
 
@@ -202,7 +219,7 @@ async function lookupDeveloper(slug: string): Promise<DeveloperInfo | null> {
  * Without a `recipeUuid`, returns the first row (`limit=1`) — there is no
  * specific recipe to match, so any row for the pairing is fine.
  *
- * With a `recipeUuid`, pages through `/api/combinations` looking for that
+ * With a `recipeUuid`, pages through the combinations lookup for that
  * exact row, since the backend gives no ordering guarantee that would put it
  * on page 1. The upstream function only honours `page` when the page size is
  * sent as `count`; with `limit` it ignores `page` and returns the first rows
@@ -217,21 +234,25 @@ export async function lookupCombination(
   developerSlug: string,
   recipeUuid?: string
 ): Promise<CombinationInfo | null> {
-  const baseUrl = `${BASE_URL}/api/combinations?film=${encodeURIComponent(filmSlug)}&developer=${encodeURIComponent(developerSlug)}`;
+  const pairing = { film: filmSlug, developer: developerSlug };
 
   if (!recipeUuid) {
-    const data = await fetchJson<{
+    const data = await fetchCatalogue<{
       data: (CombinationInfo & { uuid?: string })[];
       count?: number;
-    }>(`${baseUrl}&limit=1`);
+    }>('combinations', { ...pairing, limit: '1' });
     return data?.data?.[0] ?? null;
   }
 
   for (let page = 1; page <= MAX_COMBINATION_PAGES; page++) {
-    const data = await fetchJson<{
+    const data = await fetchCatalogue<{
       data: (CombinationInfo & { uuid?: string })[];
       count?: number;
-    }>(`${baseUrl}&count=${COMBINATION_PAGE_SIZE}&page=${page}`);
+    }>('combinations', {
+      ...pairing,
+      count: String(COMBINATION_PAGE_SIZE),
+      page: String(page),
+    });
     if (!data?.data?.length) return null;
 
     const match = data.data.find((c) => c.uuid === recipeUuid);
