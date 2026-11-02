@@ -32,6 +32,7 @@ export function SearchableSelect({
   const optionId = (index: number) => `${id}-option-${index}`;
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const lastPointerType = useRef('');
 
   // Find the selected item to display its label
   const selectedItem = items.find((item) => item.value === selectedValue);
@@ -166,7 +167,9 @@ export function SearchableSelect({
           // eslint-disable-next-line react-doctor/prefer-tag-over-role -- WAI-ARIA combobox pattern: a filterable text input that owns a listbox; <datalist> cannot style or announce options
           role="combobox"
           aria-expanded={isOpen}
-          aria-controls={isOpen ? listboxId : undefined}
+          aria-controls={
+            isOpen && filteredItems.length > 0 ? listboxId : undefined
+          }
           aria-haspopup="listbox"
           aria-autocomplete="list"
           aria-activedescendant={
@@ -222,14 +225,31 @@ export function SearchableSelect({
           />
         </div>
 
-        {isOpen && (
+        {isOpen && filteredItems.length === 0 && (
+          <output
+            className="absolute z-[100] mt-1 w-full rounded-lg border px-3 py-2 text-sm backdrop-blur-sm"
+            style={{
+              borderColor: 'var(--color-border-secondary)',
+              backgroundColor: 'var(--color-surface)',
+              color: 'var(--color-text-muted)',
+            }}
+          >
+            No results found
+          </output>
+        )}
+
+        {isOpen && filteredItems.length > 0 && (
           <div
             ref={listRef}
             id={listboxId}
+            // Not a tab stop; oxlint requires a focusable listbox role.
             tabIndex={-1}
             // Keep DOM focus on the input while the pointer is on the list
             // (scrollbar drags, option clicks); the options are never focused.
             onMouseDown={(e) => e.preventDefault()}
+            onPointerDown={(e) => {
+              lastPointerType.current = e.pointerType;
+            }}
             // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- combobox listbox pattern; a native <select>/<datalist> cannot provide the type-to-filter UX
             // eslint-disable-next-line react-doctor/prefer-tag-over-role -- combobox listbox pattern; <datalist> cannot provide the type-to-filter UX or custom option markup
             role="listbox"
@@ -240,53 +260,48 @@ export function SearchableSelect({
               backgroundColor: 'var(--color-surface)',
             }}
           >
-            {filteredItems.length === 0 ? (
+            {filteredItems.map((item, index) => (
+              // oxlint-disable-next-line jsx-a11y/click-events-have-key-events -- keyboard selection happens on the combobox input (Enter)
               <div
-                className="px-3 py-2 text-sm"
-                style={{ color: 'var(--color-text-muted)' }}
+                key={item.value}
+                // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- combobox option pattern; native <option> cannot host custom filtered markup
+                // eslint-disable-next-line react-doctor/prefer-tag-over-role -- combobox option pattern; native <option> cannot host custom filtered markup
+                role="option"
+                id={optionId(index)}
+                aria-selected={item.value === selectedValue}
+                onClick={() => {
+                  handleSelectItem(item);
+                  // Touch users get the keyboard dismissed after a pick; mouse
+                  // and keyboard keep focus on the input (WAI-ARIA APG).
+                  if (lastPointerType.current === 'touch') {
+                    inputRef.current?.blur();
+                  }
+                }}
+                // Options are driven by the input via aria-activedescendant,
+                // never focused, so there is no key handler to add.
+                tabIndex={-1}
+                className={cn(
+                  'flex cursor-pointer items-center justify-between gap-2 px-3 py-2 text-sm transition-colors',
+                  // Hover, focus and selection share one surface pair. The
+                  // monochrome themes collapse the border and text tokens to
+                  // one value (darkroom: surface and hover-surface are both
+                  // black), so colour alone can't mark a row. Focus is an
+                  // inset ring and selection is a check icon, both drawn
+                  // from theme tokens (guarded by hover-contrast.test.ts).
+                  index === focusedIndex || item.value === selectedValue
+                    ? 'bg-hover-surface text-on-hover-surface'
+                    : 'text-secondary hover:bg-hover-surface hover:text-on-hover-surface',
+                  index === focusedIndex &&
+                    'shadow-[inset_0_0_0_2px_var(--color-on-hover-surface)]',
+                  item.value === selectedValue ? 'font-medium' : 'font-normal'
+                )}
               >
-                No results found
+                <span>{item.label}</span>
+                {item.value === selectedValue && (
+                  <Check className="size-4 shrink-0" aria-hidden="true" />
+                )}
               </div>
-            ) : (
-              filteredItems.map((item, index) => (
-                <div
-                  key={item.value}
-                  // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- combobox option pattern; native <option> cannot host custom filtered markup
-                  // eslint-disable-next-line react-doctor/prefer-tag-over-role -- combobox option pattern; native <option> cannot host custom filtered markup
-                  role="option"
-                  id={optionId(index)}
-                  aria-selected={item.value === selectedValue}
-                  onClick={() => handleSelectItem(item)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleSelectItem(item);
-                    }
-                  }}
-                  tabIndex={-1}
-                  className={cn(
-                    'flex cursor-pointer items-center justify-between gap-2 px-3 py-2 text-sm transition-colors',
-                    // Hover, focus and selection share one surface pair. The
-                    // monochrome themes collapse the border and text tokens to
-                    // one value (darkroom: surface and hover-surface are both
-                    // black), so colour alone can't mark a row. Focus is an
-                    // inset ring and selection is a check icon, both drawn
-                    // from theme tokens (guarded by hover-contrast.test.ts).
-                    index === focusedIndex || item.value === selectedValue
-                      ? 'bg-hover-surface text-on-hover-surface'
-                      : 'text-secondary hover:bg-hover-surface hover:text-on-hover-surface',
-                    index === focusedIndex &&
-                      'shadow-[inset_0_0_0_2px_var(--color-on-hover-surface)]',
-                    item.value === selectedValue ? 'font-medium' : 'font-normal'
-                  )}
-                >
-                  <span>{item.label}</span>
-                  {item.value === selectedValue && (
-                    <Check className="size-4 shrink-0" aria-hidden="true" />
-                  )}
-                </div>
-              ))
-            )}
+            ))}
           </div>
         )}
       </div>

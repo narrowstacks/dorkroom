@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { SearchableSelect } from '../searchable-select';
@@ -109,7 +109,11 @@ describe('SearchableSelect ARIA wiring', () => {
     await user.click(input);
     await user.keyboard('zzz');
     expect(input).not.toHaveAttribute('aria-activedescendant');
+    expect(input).not.toHaveAttribute('aria-controls');
     expect(screen.queryAllByRole('option')).toHaveLength(0);
+    // The empty message is announced, and lives outside the listbox.
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(screen.getByRole('status')).toHaveTextContent('No results found');
   });
 
   it('marks the selected row with a check icon and the focused row with an inset ring', async () => {
@@ -155,5 +159,20 @@ describe('SearchableSelect ARIA wiring', () => {
     expect(input).toHaveAttribute('aria-expanded', 'false');
     await user.click(input);
     expect(input).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('dismisses the keyboard after a touch pick but not after a mouse pick', async () => {
+    const user = userEvent.setup();
+    const { input } = setup('b');
+    await user.pointer({ keys: '[MouseLeft]', target: input });
+    const mouseOption = screen.getByRole('option', { name: 'Alpha' });
+    await user.pointer({ keys: '[MouseLeft]', target: mouseOption });
+    expect(input).toHaveFocus();
+
+    await user.click(input);
+    const touchOption = screen.getByRole('option', { name: 'Gamma' });
+    fireEvent.pointerDown(touchOption, { pointerType: 'touch' });
+    fireEvent.click(touchOption);
+    expect(input).not.toHaveFocus();
   });
 });
