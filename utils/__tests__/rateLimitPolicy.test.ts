@@ -8,6 +8,8 @@ import {
   getRateLimitNamespace,
   KEY_TIERS,
   normalizeResetMs,
+  OG_UPSTREAM_DAILY_LIMIT,
+  OG_UPSTREAM_RATE_LIMIT,
 } from '../rateLimitPolicy';
 
 describe('getRateLimitNamespace', () => {
@@ -70,6 +72,8 @@ describe('documented limits match the policy', () => {
         `${CLIENT_IP_RATE_LIMIT} req/min \`ip:<ip>\``,
         `single ${KEY_TIERS.free.limit} req/min budget`,
         `Anonymous rate limiting by client IP (${ANONYMOUS_RATE_LIMIT} req/min)`,
+        `a ${OG_UPSTREAM_RATE_LIMIT}/min burst cap (\`OG_UPSTREAM_RATE_LIMIT\`)`,
+        `${OG_UPSTREAM_DAILY_LIMIT} a day (\`OG_UPSTREAM_DAILY_LIMIT\`)`,
       ],
     ],
     ['packages/api/CLAUDE.md', [`own ${CLIENT_RATE_LIMIT} req/min budget`]],

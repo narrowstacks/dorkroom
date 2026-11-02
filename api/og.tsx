@@ -1207,6 +1207,7 @@ export default async function handler(request: Request): Promise<Response> {
   // Every request that is not one of the fixed static cards can name a fresh
   // CDN cache key, and so costs a render and possibly upstream lookups.
   // Budget those per client IP, like the anonymous limit on /api/*.
+  let unkeyReachable = true;
   if (!isStaticCardRequest(searchParams)) {
     const limit = await checkEdgeRateLimit({
       identifier: `og:${getRequestIp(request)}`,
@@ -1216,21 +1217,30 @@ export default async function handler(request: Request): Promise<Response> {
     if (limit.status === 'limited') {
       return rateLimitedResponse(request, params.route, limit, 'client');
     }
+    unkeyReachable = limit.status !== 'skipped';
   }
 
   // The catalogue lookups bypass the anonymous /api/* limiter (#443), so
   // every render draws on the global upstream budgets, charged its
   // worst-case call count. Over either, the static card (uncached) rather
   // than a slug-only card, which the CDN would otherwise keep for a day.
+  //
+  // A static card request carries `route` alone, so its cost is always 0:
+  // every request that reaches the global checks also ran the per-IP one.
+  // When that per-IP check was skipped (Unkey unconfigured, or unreachable
+  // after its timeout), the global checks are skipped too, since they talk
+  // to the same Unkey namespace and would each wait out the same timeout.
   const cost = upstreamLookupCost(params);
-  if (cost > 0) {
+  if (cost > 0 && unkeyReachable) {
     // In order, so a render the burst cap turns away is not charged to the
-    // day's budget as well.
+    // day's budget as well. One skipped bucket means the next would fail
+    // the same way, so stop there and fail open.
     for (const bucket of OG_UPSTREAM_BUCKETS) {
       const budget = await checkEdgeRateLimit({ ...bucket, cost });
       if (budget.status === 'limited') {
         return rateLimitedResponse(request, params.route, budget, 'global');
       }
+      if (budget.status === 'skipped') break;
     }
   }
 
