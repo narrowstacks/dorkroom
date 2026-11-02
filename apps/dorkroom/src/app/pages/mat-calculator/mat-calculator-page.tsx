@@ -187,15 +187,18 @@ function describeMatResult(
   >
 ): string {
   if (!calc.valid) {
-    return 'No window opening. Check the outer mat and borders';
+    return 'No window opening. Check the inputs';
   }
   const opening = `Window opening ${spokenLength(calc.fmt(calc.windowW))} by ${spokenLength(calc.fmt(calc.windowH))}`;
   if (!calc.revealMode) return opening;
-  const reveal = spokenLength(calc.fmt(calc.revVal));
+  const reveal =
+    calc.revVal > 0
+      ? `the reveal of ${spokenLength(calc.fmt(calc.revVal))}`
+      : 'the art with no reveal';
   if (!calc.hasRevealMismatch) {
-    return `${opening}; matches the reveal of ${reveal}`;
+    return `${opening}; matches ${reveal}`;
   }
-  return `${opening}; doesn't match the reveal of ${reveal}, ${spokenOverlap(calc.fmt, calc.overlapLeft)} left and right, ${spokenOverlap(calc.fmt, calc.overlapTop)} top and bottom`;
+  return `${opening}; doesn't match ${reveal}, ${spokenOverlap(calc.fmt, calc.overlapLeft)} left and right, ${spokenOverlap(calc.fmt, calc.overlapTop)} top and bottom`;
 }
 
 function MatResults({

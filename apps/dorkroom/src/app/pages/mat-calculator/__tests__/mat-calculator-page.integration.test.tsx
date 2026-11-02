@@ -205,13 +205,24 @@ describe('MatCalculatorPage', () => {
       );
     });
 
+    it('names an empty reveal as no reveal, not a reveal of 0', () => {
+      const container = renderSettled();
+
+      edit('Enter Reveal (overlap onto art, per side)', '');
+      edit('Enter Art width', '12');
+
+      expect(announcement(container)).toContain(
+        "doesn't match the art with no reveal"
+      );
+    });
+
     it('announces when the borders leave no window', () => {
       const container = renderSettled();
 
       edit('Enter Left', '20');
 
       expect(announcement(container)).toBe(
-        'No window opening. Check the outer mat and borders'
+        'No window opening. Check the inputs'
       );
     });
   });
