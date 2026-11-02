@@ -42,6 +42,8 @@ export interface UseMatCalculatorReturn {
   fmt: (value: number) => string;
   /** Whether the outer mat and borders leave a positive window on both axes. */
   valid: boolean;
+  /** False when a reveal was typed but does not parse (the layout is then invalid). */
+  revealValid: boolean;
   /** Whether the artwork inputs are valid (enables reveal-based fitting). */
   revealMode: boolean;
   ow: number;
@@ -224,6 +226,7 @@ export function useMatCalculator(
     bestFitPreview,
     fmt,
     valid,
+    revealValid,
     revealMode,
     ow,
     oh,

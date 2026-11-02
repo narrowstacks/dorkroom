@@ -366,6 +366,7 @@ function ArtworkBestFitCard({
   bestFitPreview,
   fmt,
   valid,
+  revealValid,
   revVal,
   overlapLeft,
   overlapTop,
@@ -378,6 +379,7 @@ function ArtworkBestFitCard({
   | 'bestFitPreview'
   | 'fmt'
   | 'valid'
+  | 'revealValid'
   | 'revVal'
   | 'overlapLeft'
   | 'overlapTop'
@@ -465,7 +467,11 @@ function ArtworkBestFitCard({
       {!valid && (
         <StatusAlert
           action="warning"
-          message="Check inputs. The outer mat must be positive and the borders must leave a window larger than zero on both axes."
+          message={
+            revealValid
+              ? 'Check inputs. The outer mat must be positive and the borders must leave a window larger than zero on both axes.'
+              : 'Check the reveal. Enter a measurement such as 1/8 or 0.125, or leave it empty for no reveal.'
+          }
         />
       )}
       {hasRevealMismatch && (
@@ -555,6 +561,7 @@ export default function MatCalculatorPage({
           bestFitPreview={calc.bestFitPreview}
           fmt={calc.fmt}
           valid={calc.valid}
+          revealValid={calc.revealValid}
           revVal={calc.revVal}
           overlapLeft={calc.overlapLeft}
           overlapTop={calc.overlapTop}

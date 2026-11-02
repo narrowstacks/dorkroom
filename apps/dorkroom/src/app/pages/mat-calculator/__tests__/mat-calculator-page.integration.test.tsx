@@ -110,6 +110,18 @@ describe('MatCalculatorPage', () => {
     ).toBeInTheDocument();
   });
 
+  it('points at the reveal, not the borders, when only the reveal does not parse', () => {
+    renderPage();
+
+    fireEvent.change(
+      screen.getByTitle('Enter Reveal (overlap onto art, per side)'),
+      { target: { value: '1/8abc' } }
+    );
+
+    expect(screen.getByText(/Check the reveal\./i)).toBeInTheDocument();
+    expect(screen.queryByText(/Check inputs\./i)).not.toBeInTheDocument();
+  });
+
   it('shows a signed gap instead of a blank value when the window is larger than the art (#342)', () => {
     renderPage();
 
