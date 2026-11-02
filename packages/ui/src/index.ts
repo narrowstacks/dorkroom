@@ -110,6 +110,7 @@ export {
 // Theme
 export { useTheme } from './contexts/theme-context';
 export { ThemeProvider } from './contexts/theme-provider';
+export { isLegacyBrowser, scrollBehavior } from './lib/motion';
 // Volume
 export { useVolume, VolumeProvider } from './contexts/volume-context';
 // Forms (utilities only — components and schemas via @dorkroom/ui/forms)

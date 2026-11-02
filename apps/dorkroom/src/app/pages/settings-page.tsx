@@ -1,4 +1,5 @@
 import {
+  isLegacyBrowser,
   SettingsButton,
   ToggleSwitch,
   useMeasurement,
@@ -19,7 +20,9 @@ export default function SettingsPage() {
     useTheme();
   const { unit, setUnit } = useMeasurement();
 
-  const showAnimations = theme !== 'high-contrast' && theme !== 'darkroom';
+  // Legacy (e-ink) browsers never animate, so the switch would do nothing.
+  const showAnimations =
+    theme !== 'high-contrast' && theme !== 'darkroom' && !isLegacyBrowser();
   const hideEmojis = theme === 'high-contrast' || theme === 'darkroom';
 
   return (

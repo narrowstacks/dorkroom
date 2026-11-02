@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { hasGlobal, matchMediaQuery } from '../lib/dom';
+import { isLegacyBrowser } from '../lib/motion';
 import type { Theme } from '../lib/themes';
 import { resolveTheme } from '../lib/themes';
 import { ThemeContext, type ThemeContextValue } from './theme-context';
@@ -43,8 +44,13 @@ function prefersReducedMotion(): boolean {
 
 // Read the persisted animations preference on first render. With nothing
 // stored, seed from the OS reduce-motion setting and do not persist: only an
-// explicit user toggle is written.
+// explicit user toggle is written. A legacy (e-ink) browser is always off, even
+// over a stored "true": its stylesheet already stops all motion, so an "on"
+// switch would only lie. The stored value is left alone.
 function getInitialAnimationsEnabled(): boolean {
+  if (isLegacyBrowser()) {
+    return false;
+  }
   if (hasGlobal('localStorage')) {
     const savedAnimations = localStorage.getItem(ANIMATIONS_STORAGE_KEY);
     if (savedAnimations === 'true' || savedAnimations === 'false') {

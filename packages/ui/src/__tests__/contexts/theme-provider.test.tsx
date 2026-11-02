@@ -32,6 +32,24 @@ describe('ThemeProvider animations default', () => {
     localStorage.clear();
   });
 
+  it('keeps animations off in a legacy browser, even over a stored opt-in', () => {
+    document.documentElement.setAttribute('data-lc-legacy', '');
+    try {
+      stubReducedMotion(false);
+      localStorage.setItem(ANIMATIONS_KEY, 'true');
+      const { result } = renderTheme();
+
+      expect(result.current.animationsEnabled).toBe(false);
+      expect(document.documentElement).toHaveAttribute(
+        'data-animations-disabled',
+        'true'
+      );
+      expect(localStorage.getItem(ANIMATIONS_KEY)).toBe('true');
+    } finally {
+      document.documentElement.removeAttribute('data-lc-legacy');
+    }
+  });
+
   it('disables animations by default when the OS prefers reduced motion', () => {
     stubReducedMotion(true);
     const { result } = renderTheme();

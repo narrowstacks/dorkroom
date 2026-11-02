@@ -83,6 +83,11 @@ export function legacyCssFileName(cssFileName: string, css: string): string {
  *  scopes the margin emulation (`emulateFlexGap`). */
 export const NO_FLEX_GAP_ATTR = 'data-lc-nogap';
 
+/** Attribute the loader sets on `<html>` for every browser that gets the legacy
+ *  stylesheet. The app reads it (`isLegacyBrowser` in packages/ui) to turn off
+ *  JS-driven motion, which the stylesheet's no-motion override cannot reach. */
+export const LEGACY_BROWSER_ATTR = 'data-lc-legacy';
+
 /** Body of the classic inline script, placed right after the stylesheet
  *  `<link>` with `href`, that loads `legacyHref` instead in browsers without
  *  cascade layers. It must stay ES5, because the build parses classic inline
@@ -97,13 +102,15 @@ export const NO_FLEX_GAP_ATTR = 'data-lc-nogap';
  *
  *  It also measures whether flex `gap` works (Chrome 84, Firefox 63, Safari
  *  14.1) and sets `NO_FLEX_GAP_ATTR` when it does not, so browsers that have
- *  gap but not `@layer` do not get the emulated margins on top. */
+ *  gap but not `@layer` do not get the emulated margins on top. It also sets
+ *  `LEGACY_BROWSER_ATTR`, whether or not the `<link>` was found. */
 export function legacyCssLoader(href: string, legacyHref: string): string {
   const selector = JSON.stringify(`link[rel=stylesheet][href="${href}"]`);
   const tag = JSON.stringify(`<link rel="stylesheet" href="${legacyHref}">`);
   return (
     'window.CSSLayerBlockRule||function(d,l){' +
     'var e=d.documentElement,p=d.createElement("div");' +
+    `e.setAttribute("${LEGACY_BROWSER_ATTR}","");` +
     'p.style.cssText="display:flex;flex-direction:column;row-gap:1px;position:absolute";' +
     'p.appendChild(d.createElement("div"));p.appendChild(d.createElement("div"));' +
     `e.appendChild(p);p.offsetHeight!==1&&e.setAttribute("${NO_FLEX_GAP_ATTR}","");e.removeChild(p);` +
@@ -169,8 +176,25 @@ export async function buildLegacyCss(
     lowered.code.toString(),
     { from: undefined }
   );
-  return { css: split.css, report };
+  return { css: split.css + NO_MOTION_CSS, report };
 }
+
+/** Appended last, so it wins over every rule above regardless of specificity
+ *  (`!important`). Kindle's e-ink screen ghosts and refreshes slowly, so the
+ *  legacy stylesheet runs no animation or transition (issue #637).
+ *
+ *  Animations are finished instantly rather than removed with
+ *  `animation: none`. A zero-length run with one iteration still applies the
+ *  `to` keyframe when `animation-fill-mode` is `forwards` or `both`, and the
+ *  base style otherwise, so an element that fades or slides in ends up visible
+ *  and in place. Every keyframe the site defines (animations.css, components.css,
+ *  Tailwind's spin/ping/pulse) ends at the element's resting style. `none`
+ *  would also work for them, but would skip `animationend`, which libraries
+ *  listen for before unmounting an exit animation. */
+export const NO_MOTION_CSS =
+  '*,*::before,*::after{animation-duration:0s!important;animation-delay:0s!important;' +
+  'animation-iteration-count:1!important;transition:none!important;' +
+  'scroll-behavior:auto!important}';
 
 // ---------------------------------------------------------------------------
 // 1. @supports and @property
