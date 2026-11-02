@@ -215,6 +215,45 @@ describe('DorkroomApiClient', () => {
       });
     });
 
+    it('keeps a film with a null description and maps it to an empty string', async () => {
+      // Shape of a row created by the admin batch import (2026-11-02).
+      const importedFilm: RawFilm = {
+        id: 187,
+        uuid: '3b397204-02e6-41d9-9acd-a289c51a258a',
+        slug: 'fuji-neopan-400',
+        brand: 'Fuji',
+        name: 'Neopan 400',
+        color_type: 'bw',
+        iso_speed: 400,
+        grain_structure: null,
+        description: null,
+        manufacturer_notes: null,
+        reciprocity_failure: null,
+        discontinued: true,
+        static_image_url: null,
+        aliases: [],
+        base_film_slug: null,
+        date_added: '2026-11-02T03:20:01.356106',
+        created_at: '2026-11-02T03:20:01.356106',
+        updated_at: '2026-11-02T03:20:01.356106',
+      };
+      const onInvalidRows = vi.fn();
+      client.configure({ onInvalidRows });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [importedFilm] }),
+      });
+
+      const result = await client.fetchFilms();
+
+      expect(onInvalidRows).not.toHaveBeenCalled();
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        slug: 'fuji-neopan-400',
+        description: '',
+      });
+    });
+
     it('rejects with the AbortError and hands the signal to fetch', async () => {
       const controller = new AbortController();
       controller.abort();
@@ -306,6 +345,42 @@ describe('DorkroomApiClient', () => {
           { id: '2', name: '1+4', dilution: '1+4' },
         ],
         notes: null, // Should be set to null
+      });
+    });
+
+    it('keeps a developer with a null description and maps it to an empty string', async () => {
+      // Shape of a row created by the admin batch import (2026-11-02).
+      const importedDeveloper: RawDeveloper = {
+        id: 30,
+        uuid: '9c8ee08d-96dd-46d6-b2ed-6fa94c1d251d',
+        slug: 'agfa-studional',
+        name: 'Studional',
+        manufacturer: 'Agfa',
+        type: 'concentrate',
+        description: null,
+        film_or_paper: true,
+        dilutions: [{ id: '1', name: '1+15', ratio: '1+15' }],
+        mixing_instructions: null,
+        storage_requirements: null,
+        safety_notes: null,
+        created_at: '2026-11-02T03:33:54.174109',
+        updated_at: '2026-11-02T03:33:54.174109',
+      };
+      const onInvalidRows = vi.fn();
+      client.configure({ onInvalidRows });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [importedDeveloper] }),
+      });
+
+      const result = await client.fetchDevelopers();
+
+      expect(onInvalidRows).not.toHaveBeenCalled();
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        slug: 'agfa-studional',
+        description: '',
+        dilutions: [{ id: '1', name: '1+15', dilution: '1+15' }],
       });
     });
   });

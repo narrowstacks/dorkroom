@@ -339,7 +339,7 @@ export class DorkroomApiClient {
       colorType: raw.color_type,
       isoSpeed: raw.iso_speed,
       grainStructure: raw.grain_structure,
-      description: raw.description,
+      description: raw.description ?? '',
       manufacturerNotes,
       reciprocityFailure: raw.reciprocity_failure,
       discontinued: raw.discontinued,
@@ -363,7 +363,7 @@ export class DorkroomApiClient {
       name: raw.name,
       manufacturer: raw.manufacturer,
       type: raw.type,
-      description: raw.description,
+      description: raw.description ?? '',
       filmOrPaper: raw.film_or_paper,
       dilutions:
         raw.dilutions
