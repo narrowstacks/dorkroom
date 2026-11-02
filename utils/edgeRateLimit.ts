@@ -43,6 +43,8 @@ export interface EdgeRateLimitOptions {
   identifier: string;
   limit: number;
   durationMs: number;
+  /** Units this check consumes (Unkey `cost`). Defaults to Unkey's 1. */
+  cost?: number;
 }
 
 export type EdgeRateLimitResult =
@@ -125,6 +127,8 @@ export async function checkEdgeRateLimit(
         identifier: options.identifier,
         limit: options.limit,
         duration: options.durationMs,
+        // Omitted from the JSON when undefined, so Unkey applies its default of 1.
+        cost: options.cost,
       }),
       signal: controller.signal,
     });

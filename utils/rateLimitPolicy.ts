@@ -5,7 +5,8 @@
  * rule of its own:
  *  - `withHandler.ts` (Node runtime): keyed and anonymous limits on the data
  *    endpoints.
- *  - `edgeRateLimit.ts` (edge runtime, `api/og.tsx`): the anonymous limit.
+ *  - `edgeRateLimit.ts` (edge runtime, `api/og.tsx`): the anonymous limit,
+ *    and the global budget on the card renders' catalogue lookups.
  *  - `scripts/unkey-keys.ts`: per-key tier limits and namespace bootstrap.
  *
  * The per-key tier limits are also quoted in `docs/API.md`, `api/CLAUDE.md`
@@ -22,6 +23,35 @@ export const RATE_WINDOW_MS = 60_000;
 /** Anonymous (per-IP) budget on `dorkroom.art/api/*`, shared by Node and edge handlers. */
 export const ANONYMOUS_RATE_LIMIT = 30;
 export const ANONYMOUS_RATE_WINDOW_MS = RATE_WINDOW_MS;
+
+/**
+ * One budget shared by every `api/og.tsx` render, counted in upstream
+ * catalogue calls (a render is charged its worst-case call count up front).
+ * The card lookups skip the anonymous `/api/*` limiter (#443), so this is
+ * the ceiling on how hard renders can drive the data layer, whatever the
+ * spread of client IPs. Generous: share bursts mostly hit the CDN, and a
+ * cache miss costs at most a handful of calls.
+ */
+export const OG_UPSTREAM_RATE_LIMIT = 1200;
+export const OG_UPSTREAM_RATE_WINDOW_MS = RATE_WINDOW_MS;
+
+/**
+ * The same cost, against a daily bucket. The per-minute cap alone is a burst
+ * limit: sustained, 1200/min is 72k calls an hour.
+ *
+ * Plan assumption: the Supabase project is on the Free plan, about 500k Edge
+ * Function invocations a month (roughly 16k a day), and a project over quota
+ * can be restricted, which would take the whole site's data down. 10k a day
+ * keeps OG cards to at most about 300k a month, leaving room for the site
+ * itself. Revisit both numbers if the plan changes.
+ *
+ * This does not fully protect the quota: the public `dorkroom.art/api/*`
+ * path is limited per IP only, with no global ceiling.
+ *
+ * Unkey allows a window of up to 30 days, so a 24-hour one is fine.
+ */
+export const OG_UPSTREAM_DAILY_LIMIT = 10_000;
+export const OG_UPSTREAM_DAILY_WINDOW_MS = 24 * 60 * RATE_WINDOW_MS;
 
 /**
  * Per-client budgets on the keyed (`api.dorkroom.art`) path, applied only when

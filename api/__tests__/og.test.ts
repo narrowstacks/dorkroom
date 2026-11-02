@@ -10,11 +10,14 @@ import {
 import { ACCENT_TONE_HEX, ROUTE_TITLES } from '../../utils/routeMetadata';
 import handler, {
   clearFontCache,
+  COMBINATION_PAGE_SIZE,
   getDilutionLabel,
   getRouteAccent,
   getRouteIcon,
   loadFontData,
   lookupCombination,
+  MAX_COMBINATION_PAGES,
+  upstreamLookupCost,
 } from '../og';
 
 const FONT_HOST = 'fonts.gstatic.com';
@@ -92,6 +95,11 @@ beforeEach(() => {
   // `bun run` loads the repo .env, which may carry a real root key. Keep the
   // limiter unconfigured unless a test opts in.
   vi.stubEnv('UNKEY_ROOT_KEY', '');
+  // Same for the Supabase credentials: lookups take the public API path
+  // unless a test opts in to the direct one.
+  vi.stubEnv('SUPABASE_ENDPOINT', '');
+  vi.stubEnv('SUPABASE_MASTER_API_KEY', '');
+  vi.stubEnv('SUPABASE_PROXY_SECRET', '');
   // Default: every upstream lookup answers empty (API unavailable).
   stubFetch(() => Promise.resolve(jsonResponse(EMPTY_LIST)));
 });
@@ -386,7 +394,7 @@ describe('og handler - development recipe', () => {
                     push_pull: 0,
                   },
                 ],
-                count: 51,
+                count: COMBINATION_PAGE_SIZE + 1,
               })
             )
           );
@@ -394,13 +402,13 @@ describe('og handler - development recipe', () => {
         return Promise.resolve(
           jsonResponse(
             JSON.stringify({
-              data: Array.from({ length: 50 }, (_, i) => ({
+              data: Array.from({ length: COMBINATION_PAGE_SIZE }, (_, i) => ({
                 uuid: `other-${i}`,
                 time_minutes: 1,
                 temperature_celsius: 20,
                 shooting_iso: 400,
               })),
-              count: 51,
+              count: COMBINATION_PAGE_SIZE + 1,
             })
           )
         );
@@ -492,14 +500,19 @@ describe('lookupCombination', () => {
       requestedUrls.push(url);
       if (requestedPage(url) === 2) {
         return Promise.resolve(
-          combinationsResponse([{ uuid: 'target', time_minutes: 20 }], 75)
+          combinationsResponse(
+            [{ uuid: 'target', time_minutes: 20 }],
+            COMBINATION_PAGE_SIZE + 25
+          )
         );
       }
-      const page1 = Array.from({ length: 50 }, (_, i) => ({
+      const page1 = Array.from({ length: COMBINATION_PAGE_SIZE }, (_, i) => ({
         uuid: `other-${i}`,
         time_minutes: 1,
       }));
-      return Promise.resolve(combinationsResponse(page1, 75));
+      return Promise.resolve(
+        combinationsResponse(page1, COMBINATION_PAGE_SIZE + 25)
+      );
     });
 
     const result = await lookupCombination(
@@ -510,7 +523,11 @@ describe('lookupCombination', () => {
 
     expect(result?.time_minutes).toBe(20);
     expect(requestedUrls.some((url) => requestedPage(url) === 2)).toBe(true);
-    expect(requestedUrls.every((url) => url.includes('count=50'))).toBe(true);
+    expect(
+      requestedUrls.every((url) =>
+        url.includes(`count=${COMBINATION_PAGE_SIZE}`)
+      )
+    ).toBe(true);
   });
 
   it('returns null, never the first row, when the uuid is absent', async () => {
@@ -520,13 +537,17 @@ describe('lookupCombination', () => {
           uuid: `other-page2-${i}`,
           time_minutes: 2,
         }));
-        return Promise.resolve(combinationsResponse(page2, 60));
+        return Promise.resolve(
+          combinationsResponse(page2, COMBINATION_PAGE_SIZE + 10)
+        );
       }
-      const page1 = Array.from({ length: 50 }, (_, i) => ({
+      const page1 = Array.from({ length: COMBINATION_PAGE_SIZE }, (_, i) => ({
         uuid: `other-page1-${i}`,
         time_minutes: 1,
       }));
-      return Promise.resolve(combinationsResponse(page1, 60));
+      return Promise.resolve(
+        combinationsResponse(page1, COMBINATION_PAGE_SIZE + 10)
+      );
     });
 
     const result = await lookupCombination(
@@ -540,11 +561,11 @@ describe('lookupCombination', () => {
 
   it('stops at the page cap and returns null when the uuid is never found', async () => {
     const fetchMock = stubFetch((url) => {
-      const page = Array.from({ length: 50 }, (_, i) => ({
+      const page = Array.from({ length: COMBINATION_PAGE_SIZE }, (_, i) => ({
         uuid: `${url}-${i}`,
         time_minutes: 1,
       }));
-      // count far exceeds what MAX_COMBINATION_PAGES * 50 rows can cover.
+      // count far exceeds what MAX_COMBINATION_PAGES pages can cover.
       return Promise.resolve(combinationsResponse(page, 10_000));
     });
 
@@ -555,8 +576,9 @@ describe('lookupCombination', () => {
     );
 
     expect(result).toBeNull();
-    // 10 combination pages (MAX_COMBINATION_PAGES) — no font requests here.
-    expect(fetchMock).toHaveBeenCalledTimes(10);
+    // MAX_COMBINATION_PAGES pages, no font requests here.
+    expect(MAX_COMBINATION_PAGES).toBe(3);
+    expect(fetchMock).toHaveBeenCalledTimes(MAX_COMBINATION_PAGES);
   });
 
   it('requests limit=1 and returns the first row when no uuid is given', async () => {
@@ -1110,6 +1132,126 @@ describe('og handler - rate limiting', () => {
     );
   });
 
+  /** The request body `edgeRateLimit.ts` sends Unkey. */
+  interface UnkeyBody {
+    identifier: string;
+    cost?: number;
+  }
+
+  /** Bodies of every Unkey call, in order. */
+  function unkeyBodies(fetchMock: Mock<typeof fetch>): UnkeyBody[] {
+    return fetchMock.mock.calls
+      .filter(([input]) => String(input) === UNKEY_URL)
+      .map(([, init]): UnkeyBody => JSON.parse(String(init?.body)));
+  }
+
+  it('charges a recipe card its worst-case upstream calls against both global budgets', async () => {
+    const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(true));
+
+    await pngBytes(
+      await handler(
+        ogRequest({
+          route: '/development',
+          film: 'kodak-tri-x-400',
+          developer: 'ilford-perceptol',
+          recipe: TARGET_UUID,
+        })
+      )
+    );
+
+    expect(unkeyBodies(fetchMock)).toEqual([
+      expect.objectContaining({ identifier: 'og:203.0.113.7' }),
+      {
+        namespace: 'api_test-anonymous',
+        identifier: 'og-upstream',
+        limit: 1200,
+        duration: 60_000,
+        cost: 2 + MAX_COMBINATION_PAGES,
+      },
+      {
+        namespace: 'api_test-anonymous',
+        identifier: 'og-upstream-day',
+        limit: 10_000,
+        duration: 86_400_000,
+        cost: 2 + MAX_COMBINATION_PAGES,
+      },
+    ]);
+  });
+
+  it('shares the global budget across client IPs', async () => {
+    const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(true));
+
+    for (const ip of ['203.0.113.7', '198.51.100.9']) {
+      await pngBytes(
+        await handler(
+          ogRequest({ route: '/films', film: 'kodak-tri-x-400' }, ip)
+        )
+      );
+    }
+
+    const globalChecks = unkeyBodies(fetchMock).filter(
+      (body) => body.identifier === 'og-upstream'
+    );
+    expect(globalChecks).toEqual([
+      expect.objectContaining({ cost: 1 }),
+      expect.objectContaining({ cost: 1 }),
+    ]);
+  });
+
+  it.each([
+    ['per-minute', 'og-upstream', 1],
+    ['daily', 'og-upstream-day', 2],
+  ])(
+    'serves the uncached static card, with no lookups, when the %s global budget is spent',
+    async (_label, spent, limitedCall) => {
+      // Every check before `limitedCall` passes; that one does not.
+      let unkeyCall = 0;
+      const fetchMock = stubFetchWithUnkey(() =>
+        unkeyAnswer(unkeyCall++ < limitedCall)
+      );
+
+      const res = await handler(
+        ogRequest({
+          route: '/development',
+          film: 'kodak-tri-x-400',
+          developer: 'ilford-perceptol',
+        })
+      );
+
+      expect(res.status).toBe(307);
+      expect(res.headers.get('location')).toBe(
+        'https://dorkroom.art/api/og?route=%2Fdevelopment'
+      );
+      expect(res.headers.get('cache-control')).toBe('no-store');
+      expect(Number(res.headers.get('retry-after'))).toBeGreaterThan(0);
+      // The global buckets' state is not reported to the caller.
+      for (const name of [
+        'x-ratelimit-limit',
+        'x-ratelimit-remaining',
+        'x-ratelimit-reset',
+      ]) {
+        expect(res.headers.get(name)).toBeNull();
+      }
+      // Only limiter calls, ending at the spent bucket: no lookups.
+      expect(fetchMock.mock.calls.map(([input]) => String(input))).toEqual(
+        Array.from({ length: limitedCall + 1 }, () => UNKEY_URL)
+      );
+      expect(unkeyBodies(fetchMock).at(-1)?.identifier).toBe(spent);
+    }
+  );
+
+  it('skips the global budget for cards drawn from the params alone', async () => {
+    const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(true));
+
+    await pngBytes(
+      await handler(ogRequest({ route: '/films', color: 'bw', brand: 'Kodak' }))
+    );
+
+    expect(unkeyBodies(fetchMock)).toEqual([
+      expect.objectContaining({ identifier: 'og:203.0.113.7' }),
+    ]);
+  });
+
   it('does not rate limit the cheap 400 for unknown params', async () => {
     const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(false));
 
@@ -1123,5 +1265,175 @@ describe('og handler - rate limiting', () => {
 describe('getRouteIcon coverage', () => {
   it.each(Object.keys(ROUTE_TITLES))('has an icon for %s', (route) => {
     expect(getRouteIcon(route)).not.toBeNull();
+  });
+});
+
+/**
+ * Issue #443: the enrichment lookups must not go through the anonymous
+ * per-IP limiter on the public API, which would key every render on this
+ * function's egress IP and share one budget among them.
+ */
+describe('og handler - catalogue lookups bypass the public API limiter', () => {
+  const ENDPOINT = 'https://example-ref.supabase.co';
+  const API_KEY = 'sb_secret_test_value';
+  const PROXY_SECRET = 'proxy-secret-test-value';
+
+  function configureDirect(): void {
+    vi.stubEnv('SUPABASE_ENDPOINT', ENDPOINT);
+    vi.stubEnv('SUPABASE_MASTER_API_KEY', API_KEY);
+    vi.stubEnv('SUPABASE_PROXY_SECRET', PROXY_SECRET);
+  }
+
+  function outboundHeaders(init: RequestInit | undefined): Headers {
+    return new Headers(init?.headers);
+  }
+
+  const FILM = {
+    data: [{ brand: 'Adox', name: 'CHS 100 II', iso_speed: 100 }],
+    count: 1,
+  };
+
+  it('queries the Edge Function directly with the server credentials', async () => {
+    configureDirect();
+    const fetchMock = stubFetch(() =>
+      Promise.resolve(jsonResponse(JSON.stringify(FILM)))
+    );
+
+    const res = await handler(
+      makeRequest({ route: '/films', film: 'adox-chs-100-ii' })
+    );
+    const withData = await pngBytes(res);
+
+    const calls = fetchMock.mock.calls.filter(
+      ([input]) => !isFontRequest(String(input))
+    );
+    expect(calls).toHaveLength(1);
+    const [input, init] = calls[0] ?? [];
+    expect(String(input)).toBe(
+      `${ENDPOINT}/functions/v1/films?slug=adox-chs-100-ii&limit=1`
+    );
+    const headers = outboundHeaders(init);
+    expect(headers.get('authorization')).toBe(`Bearer ${API_KEY}`);
+    expect(headers.get('x-proxy-secret')).toBe(PROXY_SECRET);
+    // A redirect must never carry the credentials anywhere else.
+    expect(init?.redirect).toBe('error');
+    // Nothing goes through the rate-limited public API.
+    expect(upstreamCalls(fetchMock).some((url) => url.includes('/api/'))).toBe(
+      false
+    );
+
+    // The credentials never surface in the response.
+    for (const value of res.headers.values()) {
+      expect(value).not.toContain(API_KEY);
+      expect(value).not.toContain(PROXY_SECRET);
+    }
+
+    // The data really is drawn: an empty answer gives a different card.
+    stubFetch(() => Promise.resolve(jsonResponse(EMPTY_LIST)));
+    const slugOnly = await renderCard({
+      route: '/films',
+      film: 'adox-chs-100-ii',
+    });
+    expect(withData.equals(slugOnly)).toBe(false);
+  });
+
+  it('pages the combinations Edge Function directly for a recipe card', async () => {
+    configureDirect();
+    const fetchMock = stubFetch(() =>
+      Promise.resolve(jsonResponse(EMPTY_LIST))
+    );
+
+    await lookupCombination('kodak-tri-x-400', 'ilford-perceptol', TARGET_UUID);
+
+    expect(upstreamCalls(fetchMock)).toEqual([
+      `${ENDPOINT}/functions/v1/combinations?film=kodak-tri-x-400&developer=ilford-perceptol&count=${COMBINATION_PAGE_SIZE}&page=1`,
+    ]);
+  });
+
+  it('falls back to the public API when a credential is missing', async () => {
+    vi.stubEnv('SUPABASE_ENDPOINT', ENDPOINT);
+    vi.stubEnv('SUPABASE_MASTER_API_KEY', API_KEY);
+    const fetchMock = stubFetch(() =>
+      Promise.resolve(jsonResponse(EMPTY_LIST))
+    );
+
+    await renderCard({ route: '/films', film: 'adox-chs-100-ii' });
+
+    const calls = fetchMock.mock.calls.filter(
+      ([input]) => !isFontRequest(String(input))
+    );
+    expect(calls.map(([input]) => String(input))).toEqual([
+      'https://dorkroom.art/api/films?slug=adox-chs-100-ii&limit=1',
+    ]);
+    const headers = outboundHeaders(calls[0]?.[1]);
+    expect(headers.get('authorization')).toBeNull();
+    expect(headers.get('x-proxy-secret')).toBeNull();
+  });
+
+  it('ignores credential-looking headers on the incoming request', async () => {
+    // No server credentials: a caller cannot switch the lookup to the
+    // direct path, or smuggle a value into the outbound request.
+    const fetchMock = stubFetch(() =>
+      Promise.resolve(jsonResponse(EMPTY_LIST))
+    );
+    const url = new URL('https://dorkroom.art/api/og');
+    url.searchParams.set('route', '/films');
+    url.searchParams.set('film', 'adox-chs-100-ii');
+    const forged = new Request(url.toString(), {
+      headers: {
+        authorization: 'Bearer forged',
+        'x-proxy-secret': 'forged',
+        'x-api-key': 'forged',
+      },
+    });
+
+    await pngBytes(await handler(forged));
+
+    const calls = fetchMock.mock.calls.filter(
+      ([input]) => !isFontRequest(String(input))
+    );
+    expect(calls).toHaveLength(1);
+    expect(String(calls[0]?.[0])).toMatch(/^https:\/\/dorkroom\.art\/api\//);
+    const headers = outboundHeaders(calls[0]?.[1]);
+    for (const name of ['authorization', 'x-proxy-secret', 'x-api-key']) {
+      expect(headers.get(name)).toBeNull();
+    }
+  });
+});
+
+describe('upstreamLookupCost', () => {
+  const base = {
+    route: '/',
+    film: null,
+    developer: null,
+    recipe: null,
+    color: null,
+    iso: null,
+    brand: null,
+    status: null,
+    preset: null,
+    linkSearch: {},
+  };
+
+  it.each([
+    ['a static page', { route: '/border' }, 0],
+    ['a film filter card', { route: '/films', color: 'bw' }, 0],
+    ['a film card', { route: '/films', film: 'f' }, 1],
+    ['a film-only search', { route: '/development', film: 'f' }, 1],
+    ['a developer-only card', { route: '/development', developer: 'd' }, 1],
+    [
+      'a film and developer search',
+      { route: '/development', film: 'f', developer: 'd' },
+      2,
+    ],
+    [
+      'a recipe card',
+      { route: '/development', film: 'f', developer: 'd', recipe: 'r' },
+      2 + MAX_COMBINATION_PAGES,
+    ],
+    ['a recipe without its pairing', { route: '/development', recipe: 'r' }, 0],
+    ['a film on another route', { route: '/border', film: 'f' }, 0],
+  ])('costs %s', (_label, overrides, expected) => {
+    expect(upstreamLookupCost({ ...base, ...overrides })).toBe(expected);
   });
 });
