@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
-import { hasGlobal } from '../lib/dom';
+import { hasGlobal, matchMediaQuery } from '../lib/dom';
 import type { Theme } from '../lib/themes';
 import { resolveTheme } from '../lib/themes';
 import { ThemeContext, type ThemeContextValue } from './theme-context';
@@ -27,9 +27,22 @@ function getInitialTheme(): Theme {
   ) {
     return saved;
   }
-  // First time visitor - default to system preference and save it
-  localStorage.setItem(STORAGE_KEY, 'system');
-  return 'system';
+  // First-time visitor: follow the system, except on a monochrome screen (an
+  // e-ink reader such as the Kindle), where high contrast reads best. Saved
+  // like any other choice, so the theme toggle still changes it.
+  const initial: Theme = isMonochromeDisplay() ? 'high-contrast' : 'system';
+  localStorage.setItem(STORAGE_KEY, initial);
+  return initial;
+}
+
+// Whether the screen shows no color, per the standard `monochrome` media
+// feature. False on color screens, where matchMedia is missing, and in engines
+// that do not know the feature (an unknown query never matches).
+function isMonochromeDisplay(): boolean {
+  if (!hasGlobal('matchMedia')) {
+    return false;
+  }
+  return window.matchMedia('(monochrome)').matches;
 }
 
 // Whether the OS asks for reduced motion. False where matchMedia is missing
@@ -109,9 +122,14 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
     // Listen for system theme changes when using 'system'
     if (theme === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const mediaQuery = matchMediaQuery('(prefers-color-scheme: dark)');
       const handleChange = () => updateResolvedTheme();
 
+      // Safari <14 and the legacy bundle's WebKit only have `addListener`.
+      if (mediaQuery.addEventListener === undefined) {
+        mediaQuery.addListener(handleChange);
+        return () => mediaQuery.removeListener(handleChange);
+      }
       mediaQuery.addEventListener('change', handleChange);
       return () => mediaQuery.removeEventListener('change', handleChange);
     }

@@ -68,3 +68,79 @@ describe('ThemeProvider animations default', () => {
     expect(result.current.animationsEnabled).toBe(true);
   });
 });
+
+const THEME_KEY = 'dorkroom-theme';
+
+function stubMonochrome(monochrome: boolean) {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query: string) => ({
+      matches: query === '(monochrome)' ? monochrome : false,
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }))
+  );
+}
+
+describe('ThemeProvider monochrome (e-ink) default', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    localStorage.clear();
+  });
+
+  it('starts a first-time visitor on a monochrome screen in high contrast', () => {
+    stubMonochrome(true);
+    const { result } = renderTheme();
+
+    expect(result.current.theme).toBe('high-contrast');
+    expect(localStorage.getItem(THEME_KEY)).toBe('high-contrast');
+    expect(document.documentElement).toHaveAttribute(
+      'data-theme',
+      'high-contrast'
+    );
+  });
+
+  it('keeps a stored theme on a monochrome screen', () => {
+    stubMonochrome(true);
+    localStorage.setItem(THEME_KEY, 'light');
+    const { result } = renderTheme();
+
+    expect(result.current.theme).toBe('light');
+  });
+
+  it('defaults to system on a color screen', () => {
+    stubMonochrome(false);
+    const { result } = renderTheme();
+
+    expect(result.current.theme).toBe('system');
+    expect(localStorage.getItem(THEME_KEY)).toBe('system');
+  });
+});
+
+describe('ThemeProvider on engines without MediaQueryList.addEventListener', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    localStorage.clear();
+  });
+
+  it('follows the system theme through addListener', () => {
+    const addListener = vi.fn();
+    const removeListener = vi.fn();
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        matches: false,
+        media: query,
+        addListener,
+        removeListener,
+      }))
+    );
+
+    const { unmount } = renderTheme();
+    expect(addListener).toHaveBeenCalledTimes(1);
+
+    unmount();
+    expect(removeListener).toHaveBeenCalledWith(addListener.mock.calls[0][0]);
+  });
+});
