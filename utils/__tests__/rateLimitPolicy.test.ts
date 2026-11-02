@@ -3,6 +3,8 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   ANONYMOUS_RATE_LIMIT,
+  ANONYMOUS_UPSTREAM_DAILY_LIMIT,
+  ANONYMOUS_UPSTREAM_RATE_LIMIT,
   CLIENT_IP_RATE_LIMIT,
   CLIENT_RATE_LIMIT,
   getRateLimitNamespace,
@@ -72,6 +74,8 @@ describe('documented limits match the policy', () => {
         `${CLIENT_IP_RATE_LIMIT} req/min \`ip:<ip>\``,
         `single ${KEY_TIERS.free.limit} req/min budget`,
         `Anonymous rate limiting by client IP (${ANONYMOUS_RATE_LIMIT} req/min)`,
+        `burst cap of ${ANONYMOUS_UPSTREAM_RATE_LIMIT} req/min`,
+        `cap of ${ANONYMOUS_UPSTREAM_DAILY_LIMIT} req/day`,
         `a ${OG_UPSTREAM_RATE_LIMIT}/min burst cap (\`OG_UPSTREAM_RATE_LIMIT\`)`,
         `${OG_UPSTREAM_DAILY_LIMIT} a day (\`OG_UPSTREAM_DAILY_LIMIT\`)`,
       ],

@@ -4,7 +4,10 @@ import {
   createMockResponse,
   type MockVercelResponse,
 } from '../../utils/__tests__/mock-vercel';
-import { createSupabaseProxyHandler } from '../../utils/createSupabaseProxy';
+import {
+  createSupabaseProxyHandler,
+  supabaseProxyHandlerConfig,
+} from '../../utils/createSupabaseProxy';
 import type { HandlerContext } from '../../utils/withHandler';
 import { combinationsProxyConfig } from '../combinations';
 import { developersProxyConfig } from '../developers';
@@ -308,6 +311,13 @@ describe('createSupabaseProxyHandler', () => {
       expect(res._headers['cache-control']).toContain('s-maxage=300');
     });
 
+    it('lets the CDN serve the last good copy for a day when the origin fails', async () => {
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext(res));
+
+      expect(res._headers['cache-control']).toContain('stale-if-error=86400');
+    });
+
     it('should leave the public API cache policy to the envelope instead of branching on host', async () => {
       // `private, no-store` on api.dorkroom.art is pinned by the envelope and
       // asserted in withHandler.test.ts; the proxy asks for the same value on
@@ -320,7 +330,7 @@ describe('createSupabaseProxyHandler', () => {
       });
 
       expect(setCacheControl).toHaveBeenCalledExactlyOnceWith(
-        'public, max-age=60, s-maxage=300, stale-while-revalidate=600'
+        'public, max-age=60, s-maxage=300, stale-while-revalidate=600, stale-if-error=86400'
       );
       expect(res._headers['cache-control']).toBeUndefined();
     });
@@ -423,5 +433,32 @@ describe.each([
 
     const target = new URL(fetchMock.mock.calls[0][0]);
     expect(Object.fromEntries(target.searchParams)).toEqual(kept);
+  });
+});
+
+describe('supabaseProxyHandlerConfig', () => {
+  it.each([
+    filmsProxyConfig,
+    developersProxyConfig,
+    combinationsProxyConfig,
+    statsProxyConfig,
+  ])('$name is charged to the anonymous upstream budget', (proxyConfig) => {
+    expect(supabaseProxyHandlerConfig(proxyConfig).upstreamBudget).toBe(true);
+  });
+});
+
+describe('canonical paths', () => {
+  // The app fetches `INTERNAL_API_BASE_URL` ('/api') plus `/<resource>`,
+  // with no query (packages/api/src/dorkroom/client.ts); that must be the
+  // canonical path, or every page load would pay a redirect.
+  it.each([
+    filmsProxyConfig,
+    developersProxyConfig,
+    combinationsProxyConfig,
+    statsProxyConfig,
+  ])("is the app's own request path for $name", (proxyConfig) => {
+    expect(supabaseProxyHandlerConfig(proxyConfig).canonicalPath).toBe(
+      `/api/${proxyConfig.name}`
+    );
   });
 });

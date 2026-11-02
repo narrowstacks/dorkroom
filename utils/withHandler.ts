@@ -8,6 +8,7 @@ import type {
 import {
   ANONYMOUS_RATE_LIMIT,
   ANONYMOUS_RATE_WINDOW_MS,
+  ANONYMOUS_UPSTREAM_BUCKETS,
   CLIENT_IP_RATE_LIMIT,
   CLIENT_RATE_LIMIT,
   CLIENT_RATE_WINDOW_MS,
@@ -32,7 +33,9 @@ export type { HandlerContext } from './requestEnvelope';
  *
  *  - `api.dorkroom.art` (and unknown hosts): `X-API-Key` verified through
  *    Unkey, the key's own tier limit, plus optional per-client limits.
- *  - `dorkroom.art`: no key, anonymous per-IP limit.
+ *  - `dorkroom.art`: no key, anonymous per-IP limit, then (for handlers that
+ *    opt in with `upstreamBudget`, and only for a URL with a query string)
+ *    the global anonymous upstream budget.
  */
 
 interface VerifyRateLimit {
@@ -71,7 +74,40 @@ export interface HandlerConfig {
    * real SDK client; deployed handlers leave it unset, tests pass a stand-in.
    */
   createUnkeyClient?: CreateUnkeyClient;
+  /**
+   * Charge each anonymous request with a query string that reaches this
+   * handler to the global upstream budget (`ANONYMOUS_UPSTREAM_BUCKETS`). Set by the Supabase
+   * proxies, whose every request costs one Edge Function invocation; off for
+   * handlers that do not call Supabase. Never applies to keyed traffic.
+   */
+  upstreamBudget?: boolean;
+  /**
+   * The one path (`/api/<name>`) anonymous requests for this resource should
+   * use. When the raw `req.url` path differs byte for byte, `withApiKey`
+   * answers a CDN-cacheable 308 to it before any Unkey or upstream call, with
+   * the raw query passed through untouched, so case, percent-encoding,
+   * trailing-slash and `.ts` variants collapse onto one CDN cache key instead
+   * of each reaching Supabase. The query is never rewritten: Vercel
+   * normalises query encoding itself, so rewriting it could redirect a URL
+   * to itself. Website host only: keyed `api.dorkroom.art` callers are never
+   * redirected.
+   */
+  canonicalPath?: string;
 }
+
+export interface ApiKeyOptions {
+  /** See `HandlerConfig.upstreamBudget`. */
+  upstreamBudget?: boolean;
+  /** See `HandlerConfig.canonicalPath`. */
+  canonicalPath?: string;
+}
+
+/**
+ * Cache-Control for the canonicalising 308: the CDN keeps it a day and
+ * answers repeats itself; browsers do not keep it, so a deploy that changes
+ * the routing is never stuck behind a stale browser redirect.
+ */
+const CANONICAL_REDIRECT_CACHE_CONTROL = 'public, max-age=0, s-maxage=86400';
 
 // Accepts `generateId()` output (timestamp+random, base36) and any future
 // UUID-shaped identity. Anything else is treated as an absent header rather
@@ -504,6 +540,96 @@ async function applyAnonymousRateLimit(
   });
 }
 
+/**
+ * Whether the CDN may have to send this request to the origin every time, so
+ * the CDN does not bound it and the global budget must:
+ *  - any query string (raw `req.url`, never the sanitized query: the proxy
+ *    drops unknown params, so `?junk=<x>` misses the CDN yet reaches Supabase
+ *    as a bare call);
+ *  - an `Authorization` or `Range` header, which Vercel's CDN never serves
+ *    from cache (its documented request-side criteria, beside the method,
+ *    which the envelope already limits to GET). Nothing first-party sends
+ *    either on `dorkroom.art`.
+ * A bare canonical URL without them is one CDN cache key per resource.
+ */
+function bypassesCdn(req: VercelRequest): boolean {
+  return (
+    (req.url ?? '').includes('?') ||
+    req.headers.authorization !== undefined ||
+    req.headers.range !== undefined
+  );
+}
+
+/**
+ * The global budget on anonymous upstream calls, charged only to requests
+ * the CDN cannot absorb (`bypassesCdn`) and checked after the per-IP
+ * limit has passed: a request that limit turns away never reaches Supabase,
+ * so it is never charged here, and one noisy IP cannot spend everyone's
+ * budget. Buckets are checked in order (burst, then day), each at cost 1.
+ *
+ * Over budget: 503 with `Retry-After` and `no-store`. It is not the caller's
+ * fault, so not a 429, and the bucket's limit and remaining count stay out of
+ * the response: `X-RateLimit-*` keeps describing the caller's own per-IP
+ * budget, set by the check before this one.
+ *
+ * Fails OPEN on any Unkey failure (logged), like the OG limiter: a misconfig
+ * would already have failed the per-IP check against the same namespace, and
+ * turning a limiter outage into a site-wide data outage is the worse failure.
+ */
+async function applyAnonymousUpstreamBudget(
+  res: VercelResponse,
+  requestId: string,
+  createUnkeyClient: CreateUnkeyClient
+): Promise<boolean> {
+  const unkey = getUnkeyClient(requestId, createUnkeyClient);
+  if (!unkey) {
+    return true;
+  }
+
+  const namespace = getRateLimitNamespace('anonymous');
+  for (const bucket of ANONYMOUS_UPSTREAM_BUCKETS) {
+    let result: Awaited<ReturnType<typeof unkey.ratelimit.limit>>;
+    try {
+      result = await unkey.ratelimit.limit({
+        namespace,
+        identifier: bucket.identifier,
+        limit: bucket.limit,
+        duration: bucket.durationMs,
+        cost: 1,
+      });
+    } catch (error) {
+      serverlessWarn('Upstream budget skipped (Unkey request failed)', {
+        requestId,
+        namespace,
+        bucket: bucket.identifier,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return true;
+    }
+
+    if (!result.data.success) {
+      serverlessWarn('Anonymous upstream budget exhausted', {
+        requestId,
+        bucket: bucket.identifier,
+      });
+      res.setHeader('Cache-Control', 'no-store');
+      res.setHeader(
+        'Retry-After',
+        retryAfterSeconds(normalizeResetMs(result.data.reset))
+      );
+      res.status(503).json({
+        error: 'Service temporarily unavailable',
+        message:
+          'Too many filtered requests site-wide. Request without a query string, or retry after the time in Retry-After.',
+        requestId,
+      });
+      return false;
+    }
+  }
+
+  return true;
+}
+
 function setVaryHeader(res: VercelResponse, value: string): void {
   const current = res.getHeader('Vary');
   const existing = Array.isArray(current)
@@ -523,17 +649,40 @@ function setVaryHeader(res: VercelResponse, value: string): void {
 
 /**
  * The API-key layer on its own: `Vary`, then Unkey auth (public host) or the
- * anonymous per-IP limit, then `handler`. Runs inside `withEnvelope`.
+ * anonymous per-IP limit plus, with `upstreamBudget` and a query string, the
+ * global anonymous upstream budget, then `handler`. Runs inside `withEnvelope`.
  */
 export function withApiKey(
   handler: HandlerConfig['handler'],
-  createUnkeyClient: CreateUnkeyClient = createRealUnkeyClient
+  createUnkeyClient: CreateUnkeyClient = createRealUnkeyClient,
+  options: ApiKeyOptions = {}
 ): EnvelopeHandler {
   return async (req, res, ctx) => {
     setVaryHeader(res, 'Host');
     if (ctx.isPublicApi) {
       setVaryHeader(res, 'X-API-Key');
       setVaryHeader(res, 'X-Client-Id');
+    }
+
+    // Before any limiter: a redirect costs no Unkey or Supabase call, and a
+    // cached 308 must not carry one caller's X-RateLimit-* headers.
+    if (!ctx.isPublicApi && options.canonicalPath) {
+      const rawUrl = req.url ?? '';
+      const queryStart = rawUrl.indexOf('?');
+      const rawPath = queryStart === -1 ? rawUrl : rawUrl.slice(0, queryStart);
+      if (rawPath !== options.canonicalPath) {
+        const canonical =
+          options.canonicalPath +
+          (queryStart === -1 ? '' : rawUrl.slice(queryStart));
+        res.setHeader('Cache-Control', CANONICAL_REDIRECT_CACHE_CONTROL);
+        res.setHeader('Location', canonical);
+        res.status(308).json({
+          error: 'Permanent redirect',
+          location: canonical,
+          requestId: ctx.requestId,
+        });
+        return;
+      }
     }
 
     const passedChecks = ctx.isPublicApi
@@ -546,6 +695,19 @@ export function withApiKey(
         );
 
     if (!passedChecks) {
+      return;
+    }
+
+    if (
+      !ctx.isPublicApi &&
+      options.upstreamBudget &&
+      bypassesCdn(req) &&
+      !(await applyAnonymousUpstreamBudget(
+        res,
+        ctx.requestId,
+        createUnkeyClient
+      ))
+    ) {
       return;
     }
 
@@ -563,6 +725,9 @@ export function withHandler(config: HandlerConfig): VercelApiHandler {
       cache: { publicApi: PUBLIC_API_CACHE_CONTROL },
       requiredEnv: config.requiredEnv,
     },
-    withApiKey(config.handler, config.createUnkeyClient)
+    withApiKey(config.handler, config.createUnkeyClient, {
+      upstreamBudget: config.upstreamBudget,
+      canonicalPath: config.canonicalPath,
+    })
   );
 }

@@ -59,8 +59,8 @@ Everything else:
   10000 a day (`OG_UPSTREAM_DAILY_LIMIT`), both in `utils/rateLimitPolicy.ts`.
   The daily number assumes the Supabase **Free** plan (about 500k Edge
   Function invocations a month, and a project over quota can be restricted);
-  revisit it if the plan changes. It bounds OG cards only: the public
-  `/api/*` path still has no global ceiling. Over either bucket, the same
+  revisit it if the plan changes. It bounds OG cards only; the public
+  `/api/*` path has its own global budget (below). Over either bucket, the same
   `no-store` 307 to the static card, never a slug-only card the CDN would
   keep for a day, with `Retry-After` but no `X-RateLimit-*` (those report
   only the caller's own per-IP budget). Like the per-IP check, both fail open
@@ -268,6 +268,55 @@ Operational note:
   runtime fails closed (500) if a namespace is missing and the key lacks
   `create_namespace`, so bootstrap both before deploying.
 - This command uses `UNKEY_ROOT_KEY` (runtime key), not `UNKEY_ADMIN_ROOT_KEY`.
+
+### Global anonymous upstream budget
+
+The per-IP limit bounds one caller, not the total, so anonymous
+`dorkroom.art/api/*` requests to the Supabase proxies **with a query string**
+also draw on two global buckets in the anonymous namespace (#598):
+`api-upstream`, a burst cap of 60 req/min (`ANONYMOUS_UPSTREAM_RATE_LIMIT`),
+then `api-upstream-day`, a cap of 2000 req/day
+(`ANONYMOUS_UPSTREAM_DAILY_LIMIT`). Each charged request costs 1. The sizing
+arithmetic against the Supabase Free plan quota sits beside the constants in
+`utils/rateLimitPolicy.ts`; check real origin call counts in Vercel
+observability before changing them.
+
+`og.tsx`'s catalogue lookups are off this path: it calls the Supabase Edge
+Functions directly (`utils/internalDataSource.ts`, #443), under its own OG
+budget. Only its fallback, used when the Supabase env vars are missing (local
+dev, a preview without them), requests filtered `/api/films`,
+`/api/developers` or `/api/combinations` URLs and is charged here.
+
+- Canonical paths first (`HandlerConfig.canonicalPath`, `/api/<name>`): on
+  the website host, a raw `req.url` path that is not byte for byte the
+  canonical one (case, percent-encoding, trailing slash, `.ts`) gets a `308`
+  to it, query passed through untouched, with
+  `public, max-age=0, s-maxage=86400`. It runs before the per-IP limiter: no
+  Unkey or Supabase call, a cheap invocation, and the CDN caches it per
+  variant. The query is never rewritten or redirected on: Vercel normalises
+  query encoding before `req.url` and the cache key, so rewriting it looped
+  (`?query=tri%20x` to `+` to itself). The app's own bare requests are
+  already canonical; keyed `api.dorkroom.art` traffic is never redirected
+- Then every request the CDN cannot absorb is charged: any query string
+  (raw `req.url`, so `?junk=<x>`, which the proxy drops, still counts), or an
+  `Authorization` or `Range` header (Vercel's CDN never caches those). A bare
+  canonical URL without them is one CDN cache key per resource, so the CDN
+  bounds it, and it is what the app itself fetches: exhausting the budget can
+  never take the site's own data down
+- Opt-in per handler (`HandlerConfig.upstreamBudget`): `createSupabaseProxy`
+  sets it; `filmdev.ts` (no Supabase call) does not
+- Checked after the per-IP limit, so a request that limit rejects is never
+  charged and one noisy IP cannot spend the shared budget
+- Keyed `api.dorkroom.art` traffic is never charged, so anonymous abuse cannot
+  starve API-key holders
+- Over budget: `503` with `Retry-After` and `Cache-Control: no-store`, and no
+  `X-RateLimit-*` for the global buckets (those headers keep describing the
+  caller's own per-IP budget). Filtered requests stay refused until the
+  bucket frees up, which for the daily one can take hours
+- Fails open on any Unkey failure, like the OG limiter
+- Proxy responses carry `stale-if-error=86400`, so the CDN keeps serving the
+  last good copy for a day if the origin fails (Vercel documents it for 500s,
+  network and DNS errors; whether a 502 or 503 qualifies is unconfirmed)
 
 ## Testing
 

@@ -45,8 +45,8 @@ export const OG_UPSTREAM_RATE_WINDOW_MS = RATE_WINDOW_MS;
  * keeps OG cards to at most about 300k a month, leaving room for the site
  * itself. Revisit both numbers if the plan changes.
  *
- * This does not fully protect the quota: the public `dorkroom.art/api/*`
- * path is limited per IP only, with no global ceiling.
+ * The public `dorkroom.art/api/*` path has its own global budget for the
+ * requests the CDN cannot absorb (`ANONYMOUS_UPSTREAM_*` below, #598).
  *
  * Unkey allows a window of up to 30 days, so a 24-hour one is fine.
  */
@@ -126,3 +126,75 @@ export function getRateLimitNamespace(
 export function normalizeResetMs(reset: number, now = Date.now()): number {
   return reset > 1_000_000_000_000 ? reset : now + reset;
 }
+
+/*
+ * Global upstream budget for anonymous `dorkroom.art/api/*` traffic (#598).
+ *
+ * The per-IP limit above bounds one caller, not the total: a query string
+ * that varies on every request misses the CDN, so each one reaches the
+ * function and costs one Supabase Edge Function invocation, and enough IPs
+ * (or one IPv6 host rotating addresses) at 30/min each can exhaust the
+ * project's monthly quota. These two buckets cap the total of those requests,
+ * cost 1 each.
+ *
+ * Only requests the CDN cannot absorb are charged (`withHandler.ts`): any
+ * query string in the raw URL (including params the proxy later drops, since
+ * `?junk=<random>` misses the CDN just as well), or an `Authorization` or
+ * `Range` header, which Vercel's CDN never caches. Path variants
+ * (`/API/films`, `/api/%66ilms`, `/api/films/`) are first redirected to the
+ * canonical path, uncharged. A bare canonical URL is never charged: the CDN
+ * bounds it, and it is what the app itself fetches (`INTERNAL_API_BASE_URL`
+ * plus the resource, no query), so a flood of filtered requests can never
+ * take the site's own data down. Keyed `api.dorkroom.art` traffic is never
+ * charged: it does not take the anonymous path.
+ *
+ * Sizing, for the maintainer to confirm (plan from the Supabase org settings).
+ * Before changing either number, check the real origin call counts for
+ * `/api/films`, `/api/developers`, `/api/combinations` and `/api/stats`, with
+ * and without a query string, in Vercel observability:
+ *  - Free plan: about 500k Edge Function invocations a month, about 16.1k a
+ *    day over a 31-day month.
+ *  - The OG budget (`OG_UPSTREAM_DAILY_LIMIT`, above) reserves up to 10k a
+ *    day, 310k a month at most. `api/og.tsx` calls the Supabase Edge
+ *    Functions directly (`utils/internalDataSource.ts`), so OG cards are not
+ *    charged here. Only its fallback, used when the Supabase env vars are
+ *    missing (local dev, a preview without them), sends filtered `/api/*`
+ *    requests and is charged.
+ *  - Query-string traffic: no first-party client sends any, so whatever
+ *    arrives is third-party or abuse. 2k a day caps it at 62k a month.
+ *  - That leaves about 128k a month (about 4.1k a day) for what these
+ *    buckets do not cover: bare-URL CDN revalidations and keyed traffic. A
+ *    bare URL costs at most one origin call per CDN region per `s-maxage`
+ *    (300 s), so 4 URLs x 288 = 1,152 a day per region kept busy around the
+ *    clock; the headroom covers about three such regions.
+ *  - Burst cap, 60 a minute: no legitimate client needs one, and it keeps a
+ *    flood from spending the day's budget in under about half an hour, long
+ *    enough to notice and add a WAF rule.
+ *
+ * Exhausting a bucket refuses filtered requests until it frees up, which for
+ * the daily bucket can take hours. Revisit both numbers if the plan, the OG
+ * budget, or the app's fetch pattern changes. Unkey allows windows up to 30
+ * days.
+ */
+export const ANONYMOUS_UPSTREAM_RATE_LIMIT = 60;
+export const ANONYMOUS_UPSTREAM_RATE_WINDOW_MS = RATE_WINDOW_MS;
+export const ANONYMOUS_UPSTREAM_DAILY_LIMIT = 2_000;
+export const ANONYMOUS_UPSTREAM_DAILY_WINDOW_MS = 24 * 60 * RATE_WINDOW_MS;
+
+/**
+ * The buckets in check order, in the anonymous namespace (their identifiers
+ * cannot collide with an IP or an `og:<ip>` identifier). Burst first, so a
+ * request the burst cap turns away is not charged to the day as well.
+ */
+export const ANONYMOUS_UPSTREAM_BUCKETS = [
+  {
+    identifier: 'api-upstream',
+    limit: ANONYMOUS_UPSTREAM_RATE_LIMIT,
+    durationMs: ANONYMOUS_UPSTREAM_RATE_WINDOW_MS,
+  },
+  {
+    identifier: 'api-upstream-day',
+    limit: ANONYMOUS_UPSTREAM_DAILY_LIMIT,
+    durationMs: ANONYMOUS_UPSTREAM_DAILY_WINDOW_MS,
+  },
+] as const;
