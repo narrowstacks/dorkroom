@@ -662,6 +662,7 @@ describe('findBestDeveloperMatch', () => {
       createMockDeveloper('kodak-d-76', 'Kodak', 'D-76'),
       createMockDeveloper('ilford-ilfotec-hc', 'Ilford', 'Ilfotec HC'),
       createMockDeveloper('ilford-ilfosol-3', 'Ilford', 'ILFOSOL 3'),
+      createMockDeveloper('ilford-ilfotec-lc29', 'Ilford', 'Ilfotec LC29'),
       createMockDeveloper('tetenal-ultrafin-plus', 'Tetenal', 'Ultrafin Plus'),
       createMockDeveloper('tetenal-ultrafin-sf', 'Tetenal', 'Ultrafin SF'),
     ];
@@ -681,6 +682,8 @@ describe('findBestDeveloperMatch', () => {
       ['Adox HC-110 pro', 'kodak-hc-110'],
       ['Kodak T-MAX', 'kodak-t-max-developer'],
       ['Ilford Ilfosol 3', 'ilford-ilfosol-3'],
+      ['Ilford LC29', 'ilford-ilfotec-lc29'],
+      ['Ilford LC 29', 'ilford-ilfotec-lc29'],
       ['Tetenal Ultrafin', 'tetenal-ultrafin-plus'],
     ])('matches "%s" to %s', (query, uuid) => {
       expect(findBestDeveloperMatch(query, catalogue)?.uuid).toBe(uuid);

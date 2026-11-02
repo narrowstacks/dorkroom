@@ -173,6 +173,7 @@ function scoreCandidate(
   let best: number | null = null;
   for (const variant of expandAlternatives(name)) {
     const nameTokens = tokenize(variant);
+    const nameSet = new Set(nameTokens);
 
     // A speed in the query that the film doesn't have rules it out.
     if (
@@ -219,8 +220,18 @@ function scoreCandidate(
 
     // Query words this entry can't account for, like "Ortho" in
     // "Fomapan Ortho 400" or "Diafine" in "Acufine Diafine".
+    // Query words used up by a joined pair ("LC 29" read as "lc29").
+    const consumedByPair = new Set(
+      query.tokens.flatMap((q, i) => {
+        const next = query.tokens[i + 1];
+        // Exact only: a prefix match would let "Fomapan Ortho" swallow
+        // "ortho" as part of "fomapanortho".
+        return next !== undefined && nameSet.has(q + next) ? [q, next] : [];
+      })
+    );
     const unexplained = query.tokens.filter(
       (q) =>
+        !consumedByPair.has(q) &&
         !isNumeric(q) &&
         q.length > 1 &&
         !GENERIC_WORDS.has(q) &&
@@ -262,7 +273,6 @@ function scoreCandidate(
     score -= 5 * unexplained.length;
     // Tie-break between near twins ("BRF 400" vs "BRF 400 Plus"): prefer the
     // entry whose words line up with the query's, generic ones included.
-    const nameSet = new Set(nameTokens);
     score -= nameTokens.filter(
       (t) => !query.tokenSet.has(t) && !pairedTokens.has(t) && !isIsoToken(t)
     ).length;
