@@ -827,4 +827,44 @@ describe('SearchableSelect keeps focus after Clear selection (#639)', () => {
     fireEvent.change(input, { target: { value: '100Q' } });
     expect(input).toHaveValue('Q');
   });
+
+  it('Space after a clear opens the full list with an empty search', async () => {
+    const user = userEvent.setup();
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    await user.click(screen.getByRole('button', { name: 'Clear selection' }));
+    await user.keyboard(' ');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(input).toHaveValue('');
+    expect(screen.getAllByRole('option')).toHaveLength(3);
+  });
+
+  it('Space after Escape with a value opens the full list with an empty search', async () => {
+    const user = userEvent.setup();
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    await user.keyboard('{Escape}');
+    await user.keyboard(' ');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(input).toHaveValue('');
+    expect(screen.getAllByRole('option')).toHaveLength(3);
+  });
+
+  it('keeps a space typed in the middle of a search', async () => {
+    const user = userEvent.setup();
+    render(
+      <SearchableSelect
+        label="Brand"
+        selectedValue=""
+        onValueChange={vi.fn()}
+        items={[{ value: 'k', label: 'Kosmo Foto' }, ...items]}
+      />
+    );
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    await user.keyboard('Kosmo F');
+    expect(input).toHaveValue('Kosmo F');
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+  });
 });

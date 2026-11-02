@@ -298,9 +298,12 @@ export function SearchableSelect({
 
   // Handle input change
   const handleInputChange = (raw: string) => {
-    const value = isOpen
+    // From the closed state, a whitespace-only result (Space on the label)
+    // opens the full list instead of searching for a blank.
+    const stripped = isOpen
       ? raw
       : stripLabel(raw, displayValue, lastSelection.current);
+    const value = !isOpen && stripped.trim() === '' ? '' : stripped;
     setSearchTerm(value);
     setIsOpen(true);
     setFocusedIndex(-1);
