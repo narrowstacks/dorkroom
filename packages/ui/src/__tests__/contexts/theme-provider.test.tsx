@@ -83,22 +83,35 @@ function stubMonochrome(monochrome: boolean) {
   );
 }
 
-describe('ThemeProvider monochrome (e-ink) default', () => {
+describe('ThemeProvider e-ink default', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     localStorage.clear();
   });
 
-  it('starts a first-time visitor on a monochrome screen in high contrast', () => {
+  it('resolves system to high contrast on a monochrome screen, without saving it', () => {
     stubMonochrome(true);
     const { result } = renderTheme();
 
-    expect(result.current.theme).toBe('high-contrast');
-    expect(localStorage.getItem(THEME_KEY)).toBe('high-contrast');
+    expect(result.current.theme).toBe('system');
+    expect(result.current.resolvedTheme).toBe('high-contrast');
+    expect(localStorage.getItem(THEME_KEY)).toBe('system');
     expect(document.documentElement).toHaveAttribute(
       'data-theme',
       'high-contrast'
     );
+  });
+
+  it('resolves system to high contrast in a Kindle browser with a color screen', () => {
+    stubMonochrome(false);
+    vi.stubGlobal('navigator', {
+      ...navigator,
+      userAgent:
+        'Mozilla/5.0 (X11; Linux aarch64; Kindle) AppleWebKit/537.36 (KHTML, like Gecko) Silk/80.4.14 like Chrome/80.0.3987.162 Safari/537.36',
+    });
+    const { result } = renderTheme();
+
+    expect(result.current.resolvedTheme).toBe('high-contrast');
   });
 
   it('keeps a stored theme on a monochrome screen', () => {
@@ -107,14 +120,15 @@ describe('ThemeProvider monochrome (e-ink) default', () => {
     const { result } = renderTheme();
 
     expect(result.current.theme).toBe('light');
+    expect(result.current.resolvedTheme).toBe('light');
   });
 
-  it('defaults to system on a color screen', () => {
+  it('follows the color scheme on a color screen', () => {
     stubMonochrome(false);
     const { result } = renderTheme();
 
     expect(result.current.theme).toBe('system');
-    expect(localStorage.getItem(THEME_KEY)).toBe('system');
+    expect(result.current.resolvedTheme).toBe('light');
   });
 });
 

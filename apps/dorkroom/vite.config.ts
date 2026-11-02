@@ -49,7 +49,13 @@ async function lowerToEs5(code: string): Promise<string> {
     presets: [
       [
         createRequire(import.meta.url).resolve('@babel/preset-env'),
-        { targets: LEGACY_TARGETS, modules: false },
+        {
+          targets: LEGACY_TARGETS,
+          modules: false,
+          // core-js advises against Babel's typeof-Symbol helper over its
+          // own Symbol polyfill, and the polyfill chunk is core-js.
+          exclude: ['transform-typeof-symbol'],
+        },
       ],
     ],
   });
@@ -70,7 +76,13 @@ async function lowerToEs5(code: string): Promise<string> {
  *     its new content. Its old hash covered the pre-lowering code, and
  *     `/assets/*` is cached immutably, so keeping the name would leave
  *     browsers on the broken copy they already have.
- *  3. Every legacy chunk is then parsed as ES5. */
+ *     The rename emits no sourcemap: `build.sourcemap` is off today, and
+ *     turning it on would need the polyfill map regenerated here too.
+ *  3. Every legacy chunk is then parsed as ES5.
+ *  This is hygiene, not full support for ES5-only engines: the app also needs
+ *  Proxy (TanStack Query), AbortController, fetch and CSS custom properties,
+ *  none of which core-js provides, so pre-5.16.4 Kindles (old WebKit) stay
+ *  unsupported. Newer Kindles run Chromium 80 (Silk), which parses ES2015+. */
 function legacyEs5Plugin(): Plugin {
   const renamed = new Map<string, string>();
   return {

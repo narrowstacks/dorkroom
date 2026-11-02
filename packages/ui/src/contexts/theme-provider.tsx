@@ -27,22 +27,9 @@ function getInitialTheme(): Theme {
   ) {
     return saved;
   }
-  // First-time visitor: follow the system, except on a monochrome screen (an
-  // e-ink reader such as the Kindle), where high contrast reads best. Saved
-  // like any other choice, so the theme toggle still changes it.
-  const initial: Theme = isMonochromeDisplay() ? 'high-contrast' : 'system';
-  localStorage.setItem(STORAGE_KEY, initial);
-  return initial;
-}
-
-// Whether the screen shows no color, per the standard `monochrome` media
-// feature. False on color screens, where matchMedia is missing, and in engines
-// that do not know the feature (an unknown query never matches).
-function isMonochromeDisplay(): boolean {
-  if (!hasGlobal('matchMedia')) {
-    return false;
-  }
-  return window.matchMedia('(monochrome)').matches;
+  // First time visitor - default to system preference and save it
+  localStorage.setItem(STORAGE_KEY, 'system');
+  return 'system';
 }
 
 // Whether the OS asks for reduced motion. False where matchMedia is missing
