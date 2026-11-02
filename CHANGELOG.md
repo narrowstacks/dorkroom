@@ -22,6 +22,8 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Fixed
 
+- **Searches with commas work, and names match themselves.** A `query` containing a comma used to fail on `/developers` with a 502. In film, developer and recipe searches, accents now count and any run of punctuation or symbols (apostrophes, `+`, `/`, commas) matches any characters, so `Photographers' Formulary`, `Spürsinn`, `ADX A+B` and `Rodinal/Adonal` find themselves instead of having those characters stripped, and `HP5+` still finds `HP5 Plus`. A search with no letter or digit returns a 400 on all three. (fixes #333)
+- **The API docs no longer promise fuzzy search.** `query` is a case-insensitive partial match, not an exact one, and `fuzzy` never did anything. It is now marked deprecated and ignored (still accepted, so existing clients keep working). (fixes #333)
 - **Mat measurements read the way you write them.** On /mat, `3-1/2`, `3 1/2"`, `3 1/2 in`, `3½` and `3 ½` are now 3.5 instead of being cut down to 3, a comma decimal with an inch mark (`20,5 in`) keeps its decimals, and metric fields accept a trailing `cm`. A border or reveal with anything else left over, such as `3abc`, now shows the "Check inputs" message instead of quietly using the leading number or no reveal. (fixes #340)
 - **A third of a stop is exact on the Stops page.** The page worked a third of a stop out as 0.33, so 12s +1/3 gave 15.08s while the home search said 15.12s. Thirds and two-thirds are now exact, from the +1/3 buttons, a typed 0.33, or a link, including older shared links, and three +1/3 presses add exactly one stop. The multiplier reads ×1.260. (fixes #551)
 
