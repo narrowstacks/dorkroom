@@ -289,9 +289,14 @@ async function checkLegacyCss(): Promise<void> {
   check('legacy css: no @layer or color-mix()', !problem, problem ?? 'clean');
   const html = await readFile(join(distDir, 'index.html'), 'utf8');
   check(
-    'legacy css: index.html swaps it in from a classic inline script',
+    'legacy css: index.html writes it in (render-blocking) from a classic inline script',
     classicInlineScripts(html).some(
-      (body) => body.includes('CSSLayerBlockRule') && body.includes(file)
+      (body) =>
+        body.includes('CSSLayerBlockRule') &&
+        // A parser-inserted link blocks rendering; a changed href does not.
+        body.includes('.write(') &&
+        !body.includes('.href=') &&
+        body.includes(file)
     )
   );
 }

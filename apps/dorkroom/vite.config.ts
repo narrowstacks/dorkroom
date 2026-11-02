@@ -13,6 +13,7 @@ import { classicInlineScripts, es5SyntaxProblem } from './es5-syntax';
 import {
   buildLegacyCss,
   legacyCssFileName,
+  legacyCssLeftovers,
   legacyCssLoader,
   legacyCssProblem,
 } from './legacy-css';
@@ -146,8 +147,8 @@ function legacyEs5Plugin(): Plugin {
  *  legacy-css.ts for the rewrite. Fails the build if the copy still has
  *  `@layer` or `color-mix()`.
  *
- *  Modern browsers download nothing new: the script is a ~200-byte check of
- *  `window.CSSLayerBlockRule` in index.html. It sits right after the
+ *  Modern browsers download nothing new: the script (about 450 bytes) stops
+ *  at `window.CSSLayerBlockRule`. It sits right after the
  *  stylesheet `<link>`, so it waits for that sheet, but nothing that runs
  *  later is held up: module scripts already wait for pending stylesheets. */
 function legacyCssPlugin(): Plugin {
@@ -187,6 +188,12 @@ function legacyCssPlugin(): Plugin {
         for (const dropped of report.dropped) {
           this.info(`legacy-css: dropped non-static color-mix(): ${dropped}`);
         }
+        const leftovers = [...legacyCssLeftovers(legacyCss)]
+          .map(([name, count]) => `${name} ${count}`)
+          .join(', ');
+        this.info(
+          `legacy-css: left for Chromium 80 to ignore (degrades gracefully): ${leftovers}`
+        );
         const fileName = legacyCssFileName(modern.fileName, legacyCss);
         this.emitFile({ type: 'asset', fileName, source: legacyCss });
 

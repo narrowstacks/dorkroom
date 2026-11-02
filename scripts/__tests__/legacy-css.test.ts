@@ -1,8 +1,12 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { es5SyntaxProblem } from '../../apps/dorkroom/es5-syntax';
 import {
+  BREAKPOINTS,
   buildLegacyCss,
   legacyCssFileName,
+  legacyCssLeftovers,
   legacyCssLoader,
   legacyCssProblem,
 } from '../../apps/dorkroom/legacy-css';
@@ -108,10 +112,10 @@ describe('buildLegacyCss', () => {
   it('emulates flex gap with margins', async () => {
     const out = await legacy('.gap-2{gap:8px}');
     expect(out).toMatch(
-      /\.gap-2:not\(\[class\*=grid\]\)\[class\*=flex\][^{]*>:not\(:last-child\)[^{]*\{margin-right:8px\}/
+      /\[data-lc-nogap\] \.gap-2:not\(\[class\*=grid\]\)\[class\*=flex\][^{]*>:not\(:last-child\)[^{]*\{margin-right:8px\}/
     );
     expect(out).toMatch(
-      /\.gap-2:not\(\[class\*=grid\]\)\.flex-col[^{]*>:not\(:last-child\)\{margin-bottom:8px\}/
+      /\[data-lc-nogap\] \.gap-2:not\(\[class\*=grid\]\)\.flex-col[^{]*>:not\(:last-child\)\{margin-bottom:8px\}/
     );
   });
 
@@ -144,7 +148,51 @@ describe('legacyCssLoader', () => {
     expect(script).toContain(
       'link[rel=stylesheet][href=\\"/assets/index-abc.css\\"]'
     );
-    expect(script).toContain('"/assets/index-legacy-def.css"');
+    expect(script).toContain('removeChild(l)');
+  });
+
+  it('writes a parser-inserted, render-blocking link instead of changing href', () => {
+    const script = legacyCssLoader('/a.css', '/a-legacy.css');
+    expect(script).toContain(
+      'd.write("<link rel=\\"stylesheet\\" href=\\"/a-legacy.css\\">")'
+    );
+    expect(script).not.toContain('.href=');
+  });
+
+  it('flags engines without flex gap', () => {
+    expect(legacyCssLoader('/a.css', '/b.css')).toContain(
+      'setAttribute("data-lc-nogap","")'
+    );
+  });
+});
+
+describe('legacyCssLeftovers', () => {
+  it('counts constructs Chromium 80 ignores', () => {
+    const counts = legacyCssLeftovers(
+      'a:focus-visible{aspect-ratio:1}b:has(i){c:d}'
+    );
+    expect(counts.get(':focus-visible')).toBe(1);
+    expect(counts.get('aspect-ratio')).toBe(1);
+    expect(counts.get(':has()')).toBe(1);
+  });
+});
+
+describe('BREAKPOINTS', () => {
+  it("match Tailwind's breakpoints, which the app does not override", () => {
+    const root = join(import.meta.dirname, '..', '..');
+    const tailwind = readFileSync(
+      join(root, 'node_modules/tailwindcss/theme.css'),
+      'utf8'
+    );
+    const defaults = [
+      ...tailwind.matchAll(/--breakpoint-([\w]+):\s*([^;]+);/g),
+    ].map(([, name, value]) => [name, value?.trim()]);
+    expect(BREAKPOINTS).toEqual(defaults);
+    const appTheme = readFileSync(
+      join(root, 'apps/dorkroom/src/styles/theme.css'),
+      'utf8'
+    );
+    expect(appTheme).not.toMatch(/--breakpoint-/);
   });
 });
 

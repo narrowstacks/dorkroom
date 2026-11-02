@@ -79,15 +79,56 @@ export function legacyCssFileName(cssFileName: string, css: string): string {
   return cssFileName.replace(/[^/]+$/, `${name}-legacy-${hash}.css`);
 }
 
-/** Body of the classic inline script that swaps the stylesheet `<link>` with
- *  `href` to `legacyHref` in browsers without cascade layers. It must stay
- *  ES5, because the build parses classic inline scripts as ES5.
- *  `CSSLayerBlockRule` ships with `@layer` itself (Chrome 99, Safari 15.4,
- *  Firefox 97), so it is an exact probe. */
+/** Attribute the loader sets on `<html>` when flex `gap` does not work, which
+ *  scopes the margin emulation (`emulateFlexGap`). */
+export const NO_FLEX_GAP_ATTR = 'data-lc-nogap';
+
+/** Body of the classic inline script, placed right after the stylesheet
+ *  `<link>` with `href`, that loads `legacyHref` instead in browsers without
+ *  cascade layers. It must stay ES5, because the build parses classic inline
+ *  scripts as ES5. `CSSLayerBlockRule` ships with `@layer` itself (Chrome 99,
+ *  Safari 15.4, Firefox 97), so it is an exact probe.
+ *
+ *  The modern `<link>` is removed and the legacy one is written with
+ *  `document.write`, so the parser inserts it and it blocks rendering like
+ *  the original. Changing `href` on the parsed link instead makes the new
+ *  sheet non-blocking, and Chromium paints the whole app unstyled until it
+ *  arrives.
+ *
+ *  It also measures whether flex `gap` works (Chrome 84, Firefox 63, Safari
+ *  14.1) and sets `NO_FLEX_GAP_ATTR` when it does not, so browsers that have
+ *  gap but not `@layer` do not get the emulated margins on top. */
 export function legacyCssLoader(href: string, legacyHref: string): string {
+  const selector = JSON.stringify(`link[rel=stylesheet][href="${href}"]`);
+  const tag = JSON.stringify(`<link rel="stylesheet" href="${legacyHref}">`);
   return (
-    `window.CSSLayerBlockRule||function(l){l&&(l.href=${JSON.stringify(legacyHref)})}` +
-    `(document.querySelector(${JSON.stringify(`link[rel=stylesheet][href="${href}"]`)}))`
+    'window.CSSLayerBlockRule||function(d,l){' +
+    'var e=d.documentElement,p=d.createElement("div");' +
+    'p.style.cssText="display:flex;flex-direction:column;row-gap:1px;position:absolute";' +
+    'p.appendChild(d.createElement("div"));p.appendChild(d.createElement("div"));' +
+    `e.appendChild(p);p.offsetHeight!==1&&e.setAttribute("${NO_FLEX_GAP_ATTR}","");e.removeChild(p);` +
+    `l&&(l.parentNode.removeChild(l),d.write(${tag}))` +
+    `}(document,document.querySelector(${selector}))`
+  );
+}
+
+/** Constructs Chromium 80 ignores that are knowingly left in the legacy
+ *  stylesheet (the rules degrade gracefully), counted for the build log. */
+const KNOWN_LEFTOVERS: ReadonlyArray<readonly [string, RegExp]> = [
+  ['aspect-ratio', /[{;]aspect-ratio:/g],
+  [':focus-visible', /:focus-visible/g],
+  [':has()', /:has\(/g],
+  ['@container', /@container\b/g],
+  ['@starting-style', /@starting-style\b/g],
+];
+
+/** How often each known-unsupported construct occurs in `css`. */
+export function legacyCssLeftovers(css: string): Map<string, number> {
+  return new Map(
+    KNOWN_LEFTOVERS.map(([name, pattern]) => [
+      name,
+      css.match(pattern)?.length ?? 0,
+    ])
   );
 }
 
@@ -581,8 +622,10 @@ function lowerLogical(decl: Declaration): boolean {
   return false;
 }
 
-/** Tailwind's default breakpoints, for the responsive direction classes. */
-const BREAKPOINTS: ReadonlyArray<readonly [string, string]> = [
+/** Tailwind's default breakpoints, for the responsive direction classes.
+ *  scripts/__tests__/legacy-css.test.ts checks these against
+ *  `--breakpoint-*` in tailwindcss/theme.css and the app's theme. */
+export const BREAKPOINTS: ReadonlyArray<readonly [string, string]> = [
   ['sm', '40rem'],
   ['md', '48rem'],
   ['lg', '64rem'],
@@ -657,7 +700,12 @@ function flexContexts(root: Root): FlexContext[] {
  *  separator shown only at a breakpoint, leaves no stray gap. A bare text
  *  node cannot take a margin, so an icon that is the only element child
  *  (`<svg/> Label`) gets one on its own. Wrapping rows use the pre-`gap`
- *  negative-margin technique, so every line starts flush. */
+ *  negative-margin technique, so every line starts flush.
+ *
+ *  Browsers with flex gap but no `@layer` (Chrome 84-98, Firefox 63-96,
+ *  Safari 14.1-15.3) also load this stylesheet. Every rule here is scoped to
+ *  `[data-lc-nogap]`, which the loader sets only after a failed gap probe, so
+ *  they keep their native gap and get no margins on top. */
 function emulateFlexGap(): Plugin {
   return {
     postcssPlugin: 'legacy-css-flex-gap',
@@ -684,7 +732,9 @@ function emulateFlexGap(): Plugin {
           parent.append(clone);
           parent = clone;
         }
-        const base = rule.selectors.map((s) => `${s}:not([class*=grid])`);
+        const base = rule.selectors.map(
+          (s) => `[${NO_FLEX_GAP_ATTR}] ${s}:not([class*=grid])`
+        );
         for (const context of contexts) {
           const rules: Rule[] = [];
           const add = (
