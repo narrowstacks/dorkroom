@@ -1,8 +1,11 @@
 import { ChevronRight, type LucideIcon } from 'lucide-react';
+import { useId } from 'react';
 import { cn } from '../lib/cn';
 
 interface SettingsButtonProps {
   label?: string;
+  /** Decorative text after the label (a flag emoji). Hidden from assistive tech. */
+  labelDecoration?: string;
   value?: string;
   onPress: () => void;
   icon?: LucideIcon;
@@ -21,6 +24,7 @@ interface SettingsButtonProps {
 
 export function SettingsButton({
   label,
+  labelDecoration,
   value,
   onPress,
   icon: Icon,
@@ -31,12 +35,21 @@ export function SettingsButton({
   isSelected = false,
   asRadio = false,
 }: SettingsButtonProps) {
+  const labelId = useId();
+  const valueId = useId();
+  const named = asRadio && Boolean(label);
   return (
+    // A button with role="radio" rather than <input type="radio">: it keeps the
+    // card styling and onPress; SettingsRadioGroup supplies the radio keyboard
+    // behavior. The lint rules preferring a native input are deliberately bypassed
+    // via the asRadio prop.
     <button
       type="button"
       role={asRadio ? 'radio' : undefined}
       aria-checked={asRadio ? isSelected : undefined}
       tabIndex={asRadio ? (isSelected ? 0 : -1) : undefined}
+      aria-labelledby={named ? labelId : undefined}
+      aria-describedby={named && value ? valueId : undefined}
       onClick={onPress}
       className={cn(
         'w-full rounded-lg border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] hoverable-settings-btn',
@@ -70,14 +83,22 @@ export function SettingsButton({
           <div className={cn(centerLabel && 'text-center')}>
             {label && (
               <div
+                id={labelId}
                 className="text-sm font-medium"
                 style={{ color: 'var(--color-text-primary)' }}
               >
                 {label}
+                {labelDecoration && (
+                  <>
+                    {' '}
+                    <span aria-hidden="true">{labelDecoration}</span>
+                  </>
+                )}
               </div>
             )}
             {value && (
               <div
+                id={valueId}
                 className={cn('text-sm', !label && 'font-medium')}
                 style={{
                   color: !label

@@ -180,7 +180,8 @@ export default function SettingsPage() {
               >
                 <SettingsButton
                   asRadio
-                  label={hideEmojis ? 'Imperial' : 'Imperial 🇺🇸'}
+                  label="Imperial"
+                  labelDecoration={hideEmojis ? undefined : '🇺🇸'}
                   value="Inches, feet"
                   onPress={() => setUnit('imperial')}
                   icon={Ruler}
@@ -190,7 +191,8 @@ export default function SettingsPage() {
                 />
                 <SettingsButton
                   asRadio
-                  label={hideEmojis ? 'Metric' : 'Metric 🌍'}
+                  label="Metric"
+                  labelDecoration={hideEmojis ? undefined : '🌍'}
                   value="Millimeters, centimeters"
                   onPress={() => setUnit('metric')}
                   icon={Globe}

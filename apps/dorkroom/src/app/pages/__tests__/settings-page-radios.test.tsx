@@ -1,5 +1,10 @@
 import '@testing-library/jest-dom/vitest';
-import { MeasurementProvider, ThemeProvider } from '@dorkroom/ui';
+import {
+  MeasurementProvider,
+  SettingsButton,
+  SettingsRadioGroup,
+  ThemeProvider,
+} from '@dorkroom/ui';
 import { render, screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -104,15 +109,73 @@ describe('SettingsPage single-choice groups', () => {
     expect(checked(themeGroup())).toEqual([themes[0]]);
   });
 
-  it('selects once per arrow keypress', async () => {
+  it('persists the theme once per arrow keypress', async () => {
     const user = userEvent.setup();
     renderSettings();
     const themes = within(themeGroup()).getAllByRole('radio');
     themes[0].focus();
+    const setItem = vi.spyOn(window.localStorage, 'setItem');
+    setItem.mockClear();
     await user.keyboard('{ArrowRight}');
-    expect(localStorage.length).toBeGreaterThan(0);
-    expect(themes[1]).toHaveFocus();
-    expect(checked(themeGroup())).toEqual([themes[1]]);
+    const themeWrites = () =>
+      setItem.mock.calls.filter(([key]) => key === 'dorkroom-theme');
+    expect(themeWrites()).toHaveLength(1);
+    await user.keyboard('{ArrowRight}');
+    expect(themeWrites()).toHaveLength(2);
+    setItem.mockRestore();
+  });
+
+  it('ignores arrow keys with Alt held', async () => {
+    const user = userEvent.setup();
+    renderSettings();
+    const before = checked(themeGroup())[0];
+    before.focus();
+    await user.keyboard('{Alt>}{ArrowRight}{/Alt}');
+    expect(checked(themeGroup())).toEqual([before]);
+    const event = new KeyboardEvent('keydown', {
+      key: 'ArrowRight',
+      altKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    before.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('names a radio by its label and describes it with the value', () => {
+    renderSettings();
+    const dark = within(themeGroup()).getByRole('radio', { name: 'Dark' });
+    expect(dark).toHaveAccessibleDescription('The correct choice.');
+    expect(
+      within(unitsGroup()).getByRole('radio', { name: 'Imperial' })
+    ).toBeInTheDocument();
+  });
+
+  it('keeps a tab stop when nothing is checked', () => {
+    render(
+      <SettingsRadioGroup labelledBy="x">
+        <SettingsButton asRadio label="A" onPress={vi.fn()} />
+        <SettingsButton asRadio label="B" onPress={vi.fn()} />
+      </SettingsRadioGroup>
+    );
+    const radios = screen.getAllByRole('radio');
+    expect(radios.map((r) => r.tabIndex)).toEqual([0, -1]);
+  });
+
+  it('calls onPress once per arrow keypress', async () => {
+    const user = userEvent.setup();
+    const onA = vi.fn();
+    const onB = vi.fn();
+    render(
+      <SettingsRadioGroup labelledBy="x">
+        <SettingsButton asRadio isSelected label="A" onPress={onA} />
+        <SettingsButton asRadio label="B" onPress={onB} />
+      </SettingsRadioGroup>
+    );
+    screen.getByRole('radio', { name: 'A' }).focus();
+    await user.keyboard('{ArrowRight}');
+    expect(onB).toHaveBeenCalledTimes(1);
+    expect(onA).not.toHaveBeenCalled();
   });
 
   it('keeps the e-ink note without radios', () => {
@@ -127,6 +190,9 @@ describe('SettingsPage single-choice groups', () => {
     );
     renderSettings();
     expect(screen.queryByRole('radiogroup', { name: 'Theme' })).toBeNull();
+    expect(
+      screen.getByText('High contrast is used on e-ink screens.')
+    ).toBeInTheDocument();
     expect(unitsGroup()).toBeInTheDocument();
   });
 });
