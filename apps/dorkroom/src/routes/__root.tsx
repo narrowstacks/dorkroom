@@ -19,6 +19,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Beaker, GitBranch, Home, Newspaper, Settings } from 'lucide-react';
 import { useEffect } from 'react';
 import { usePreferenceAnalytics } from '../app/lib/analytics/use-preference-analytics';
+import { MOBILE_FAB_BAR } from '../components/mobile-fab';
 import { MobileNav } from '../components/mobile-nav';
 import { NavSearchButton, useNavSearch } from '../components/search/nav-search';
 
@@ -206,6 +207,15 @@ function RootComponent() {
             </div>
           </header>
 
+          <div
+            data-testid="mobile-fab-bar"
+            aria-hidden="true"
+            className={MOBILE_FAB_BAR}
+            style={{
+              backgroundColor: 'rgba(var(--color-background-rgb), 0.8)',
+              borderColor: 'var(--color-border-muted)',
+            }}
+          />
           <NavSearchButton variant="fab" search={navSearch} />
           <MobileNav pathname={pathname} onNavigate={handleNavigate} />
           {navSearch.dialog}
@@ -214,7 +224,8 @@ function RootComponent() {
               nothing at the bottom of a route's content can end up under the
               floating mobile-nav toggle (`MobileNav`, fixed bottom-right,
               size-12). At lg+ the toggle is hidden, so the padding is removed
-              there. See issues #345 and #548. */}
+              there. MOBILE_FAB_BAR is the same height, so the page's end
+              stops right above it. See issues #345, #548 and #552. */}
           <main
             id="main-content"
             className="pb-[calc(env(safe-area-inset-bottom)+5rem)] lg:pb-0"

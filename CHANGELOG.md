@@ -21,6 +21,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - **The custom recipe form lists every film and developer**, including ones that don't have a recipe yet.
 - **filmdev.org recipes shot at box speed import at box speed.** Recipes that don't say what speed the film was shot at came in as ISO 400, so a recipe for a 100-speed film showed as "pushed 2 stops". They now use the film's own speed.
 - **Pages no longer scroll sideways on tablets and narrow windows.** Between 640 and about 1090 px wide the top bar was wider than the window, cutting off its right end. Windows narrower than 1024 px now get the menu and search buttons at the bottom right, as on phones, and the full top bar fits from 1024 px up. (fixes #548)
+- **The menu and search buttons no longer cover the page.** On phones and tablets they floated over whatever scrolled beneath them, hiding recipe times and search result counts. They now sit in a bar along the bottom of the screen, so content scrolls above them instead of under them. (fixes #552)
 
 ## [2026.10.30]
 

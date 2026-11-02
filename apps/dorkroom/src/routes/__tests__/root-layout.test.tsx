@@ -95,4 +95,21 @@ describe('root layout', () => {
     expect(wordmark).not.toHaveClass('hidden');
     expect(wordmark.closest('a')).toHaveAccessibleName('Dorkroom');
   });
+
+  // #552: the padding above only clears the END of the page. Mid-scroll,
+  // recipe times and match badges slid under the floating buttons. A bar
+  // behind them, as tall as that padding, keeps content out from under them
+  // at every scroll position.
+  it('docks the floating buttons in a bar as tall as the reserved padding, below lg only', async () => {
+    await renderRootLayout();
+
+    const bar = screen.getByTestId('mobile-fab-bar');
+    expect(bar).toHaveAttribute('aria-hidden', 'true');
+    expect(bar).toHaveClass(
+      'fixed',
+      'bottom-0',
+      'h-[calc(env(safe-area-inset-bottom)+5rem)]',
+      'lg:hidden'
+    );
+  });
 });
