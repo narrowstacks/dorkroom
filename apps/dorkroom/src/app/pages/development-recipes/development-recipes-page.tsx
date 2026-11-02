@@ -12,6 +12,7 @@ import {
 import {
   ConfirmModal,
   TemperatureProvider,
+  useBreakpoint,
   useIsMobile,
   useTheme,
   useToast,
@@ -122,6 +123,7 @@ export default function DevelopmentRecipesPage({
 
   const { isFavorite, toggleFavorite, addFavorite } = useFavorites();
   const isMobile = useIsMobile();
+  const isXlUp = useBreakpoint('xl');
   const { viewMode, setViewMode } = useViewPreference();
   const { showToast } = useToast();
 
@@ -170,8 +172,12 @@ export default function DevelopmentRecipesPage({
     { id: 'film', desc: false },
   ]);
   const [pageIndex, setPageIndex] = useState(0);
-  const [isFiltersSidebarCollapsed, setIsFiltersSidebarCollapsed] =
-    useState(false);
+  // Below xl the open 304px sidebar squeezes the table until Time scrolls out
+  // of view, so start collapsed there. Only the initial value: once the user
+  // toggles the sidebar their choice stands, whatever the viewport does.
+  const [isFiltersSidebarCollapsed, setIsFiltersSidebarCollapsed] = useState(
+    () => !isXlUp
+  );
   const resultsContainerRef = useRef<HTMLDivElement>(null);
   const virtualScrollContainerRef = useRef<HTMLDivElement>(null);
   const mainContentRef = useRef<HTMLElement>(null);

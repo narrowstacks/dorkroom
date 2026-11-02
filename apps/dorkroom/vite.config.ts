@@ -108,6 +108,12 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/apps/dorkroom',
+  define: {
+    // True only in a build running on Vercel, which sets VERCEL=1 (it must be
+    // declared in turbo.json's build `env`, or strict env mode drops it). Gates
+    // features that exist only on a Vercel deployment, such as `/_vercel/image`.
+    __VERCEL__: JSON.stringify(process.env.VERCEL === '1'),
+  },
   server: {
     // No `port` here on purpose. The @vercel/microfrontends plugin's `config()`
     // hook sets `server.port` (and `preview.port`) from a hash of the package
