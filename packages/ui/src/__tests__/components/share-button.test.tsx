@@ -15,6 +15,7 @@ function makeThemeContext(
     resolvedTheme,
     setTheme: vi.fn(),
     animationsEnabled: true,
+    themeLocked: false,
     setAnimationsEnabled: vi.fn(),
   };
 }

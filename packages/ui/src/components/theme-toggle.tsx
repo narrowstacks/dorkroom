@@ -127,7 +127,7 @@ export function ThemeToggle({
   className,
   onSelect,
 }: ThemeToggleProps) {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, themeLocked } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   // Tracks the active menu item index. It only ever drives imperative focus
   // (never the rendered output), so a ref avoids needless re-renders.
@@ -242,6 +242,11 @@ export function ThemeToggle({
     setIsOpen(false);
     onSelect?.();
   };
+
+  // Nothing to choose on e-ink, and an empty menu would be a dead tab stop.
+  if (themeLocked) {
+    return null;
+  }
 
   if (variant === 'grid') {
     return (

@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { hasGlobal, matchMediaQuery } from '../lib/dom';
 import { isLegacyBrowser } from '../lib/motion';
 import type { Theme } from '../lib/themes';
-import { resolveTheme } from '../lib/themes';
+import { isEInkDevice, resolveTheme } from '../lib/themes';
 import { ThemeContext, type ThemeContextValue } from './theme-context';
 
 interface ThemeProviderProps {
@@ -15,6 +15,11 @@ const ANIMATIONS_STORAGE_KEY = 'dorkroom-animations-enabled';
 // Read the persisted theme on first render. On the server (no localStorage) or
 // for a first-time visitor, default to 'system' and persist that default.
 function getInitialTheme(): Theme {
+  // E-ink is locked to high contrast over any stored choice. Nothing is read
+  // or written, so the stored theme still applies on the user's other devices.
+  if (isEInkDevice()) {
+    return 'high-contrast';
+  }
   if (!hasGlobal('localStorage')) {
     return 'system';
   }
@@ -61,6 +66,7 @@ function getInitialAnimationsEnabled(): boolean {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
+  const [themeLocked] = useState(isEInkDevice);
   const [theme, setThemeState] = useState<Theme>(getInitialTheme);
   const [resolvedTheme, setResolvedTheme] = useState<
     'light' | 'dark' | 'darkroom' | 'high-contrast'
@@ -132,6 +138,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
   const contextValue = useMemo<ThemeContextValue>(() => {
     const setTheme = (newTheme: Theme) => {
+      if (themeLocked) return;
       setThemeState(newTheme);
       localStorage.setItem(STORAGE_KEY, newTheme);
     };
@@ -145,10 +152,11 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       theme,
       resolvedTheme,
       setTheme,
+      themeLocked,
       animationsEnabled,
       setAnimationsEnabled,
     };
-  }, [theme, resolvedTheme, animationsEnabled]);
+  }, [theme, resolvedTheme, themeLocked, animationsEnabled]);
 
   return <ThemeContext value={contextValue}>{children}</ThemeContext>;
 }
