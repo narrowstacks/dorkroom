@@ -138,6 +138,7 @@ const CUSTOM: CustomRecipe = {
 // --- viewport ---------------------------------------------------------------
 
 let viewportIsMobile = false;
+let viewportIsTablet = false;
 const mediaListeners = new Set<(event: { matches: boolean }) => void>();
 
 function setViewport(mobile: boolean) {
@@ -148,7 +149,10 @@ function setViewport(mobile: boolean) {
 function stubMatchMedia() {
   vi.stubGlobal('matchMedia', (query: string) => ({
     get matches() {
-      return query.includes('max-width') ? viewportIsMobile : false;
+      // min-width queries (breakpoints) hold at desktop, fail on mobile.
+      return query.includes('max-width')
+        ? viewportIsMobile
+        : !viewportIsMobile && !(viewportIsTablet && query.includes('1280'));
     },
     media: query,
     onchange: null,
@@ -184,14 +188,17 @@ const writeText = vi.fn<(text: string) => Promise<void>>();
 
 function renderPage({
   mobile,
+  tablet = false,
   search = '',
   customRecipes = [],
 }: {
   mobile: boolean;
+  tablet?: boolean;
   search?: string;
   customRecipes?: CustomRecipe[];
 }) {
   viewportIsMobile = mobile;
+  viewportIsTablet = tablet;
   window.history.replaceState(null, '', `/development${search}`);
   if (customRecipes.length > 0) {
     localStorage.setItem(
@@ -587,5 +594,17 @@ describe('DevelopmentRecipesPage editing from the mobile drawer', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(queryDetailPanel()).toBeNull();
     expect(document.body.style.overflow).toBe('');
+  });
+});
+
+describe('DevelopmentRecipesPage at tablet width', () => {
+  it('starts with the filters sidebar collapsed so the Time column fits', async () => {
+    renderPage({ mobile: false, tablet: true });
+    expect(
+      await screen.findByRole('button', { name: 'Expand filters' })
+    ).toBeVisible();
+    expect(
+      screen.queryByRole('button', { name: 'Collapse filters' })
+    ).not.toBeInTheDocument();
   });
 });
