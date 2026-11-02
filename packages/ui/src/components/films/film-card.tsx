@@ -10,6 +10,8 @@ interface FilmCardProps {
   isSelected?: boolean;
   onClick: (film: Film) => void;
   className?: string;
+  /** Identifies the card to its list's focus tracking (`data-list-item-key`). */
+  itemKey?: string;
 }
 
 const FilmCardComponent: FC<FilmCardProps> = ({
@@ -17,6 +19,7 @@ const FilmCardComponent: FC<FilmCardProps> = ({
   isSelected,
   onClick,
   className,
+  itemKey,
 }) => {
   const tagsContent = (
     <>
@@ -39,6 +42,7 @@ const FilmCardComponent: FC<FilmCardProps> = ({
   return (
     <button
       type="button"
+      data-list-item-key={itemKey}
       aria-pressed={isSelected}
       onClick={() => onClick(film)}
       className={cn(

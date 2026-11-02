@@ -16,9 +16,13 @@ import {
   Star,
   Trash2,
 } from 'lucide-react';
-import { type FC, useMemo, useRef, useState } from 'react';
+import { type FC, type Ref, useMemo, useRef, useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { useColumnCount } from '../../hooks/use-column-count';
+import {
+  useVirtualListFocus,
+  type VirtualListFocusHandle,
+} from '../../hooks/use-virtual-list-focus';
 import { cn } from '../../lib/cn';
 import { hasGlobal } from '../../lib/dom';
 import type { ShareResult } from '../share-button';
@@ -60,6 +64,11 @@ interface DevelopmentResultsCardsVirtualizedProps {
   scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
   /** ID of the currently selected recipe to highlight in the grid */
   selectedRecipeId?: string | null;
+  /**
+   * Receives a handle that puts focus back on a recipe (by combination uuid
+   * or id), such as when the detail sidebar closes with focus inside it.
+   */
+  focusHandleRef?: Ref<VirtualListFocusHandle>;
 }
 
 /** A recipe's tags split into official badges and other display tags. */
@@ -159,6 +168,8 @@ function TempStat({
 
 interface RecipeCardProps {
   rowData: DevelopmentCombinationView;
+  /** Identifies the card to its list's focus tracking. */
+  itemKey: string;
   unit: ReturnType<typeof useTemperature>['unit'];
   isSelected: boolean;
   isMobile: boolean;
@@ -182,6 +193,7 @@ interface RecipeCardProps {
 // eslint-disable-next-line react-doctor/no-many-boolean-props -- internal card row; its boolean inputs are independent display states, not a variant axis
 function RecipeCard({
   rowData,
+  itemKey,
   unit,
   isSelected,
   isMobile,
@@ -207,6 +219,7 @@ function RecipeCard({
 
   return (
     <div
+      data-list-item-key={itemKey}
       className={cn(
         'relative cursor-pointer rounded-2xl border p-3 shadow-subtle transition-all duration-200 hover:scale-[1.02]',
         'animate-slide-fade-bottom',
@@ -415,6 +428,7 @@ export const DevelopmentResultsCardsVirtualized: FC<
   height = DEFAULT_CONTAINER_HEIGHT,
   scrollContainerRef,
   selectedRecipeId,
+  focusHandleRef,
 }) => {
   const { unit } = useTemperature();
   const [hoveredFavoriteId, setHoveredFavoriteId] = useState<string | null>(
@@ -452,12 +466,33 @@ export const DevelopmentResultsCardsVirtualized: FC<
 
   const virtualRows = rowVirtualizer.getVirtualItems();
 
+  // A column count change (the detail sidebar narrowing the grid) moves every
+  // card into another row container and remounts it. This keeps focus on the
+  // card (#604).
+  const recipeKeys = useMemo(
+    () =>
+      rows.map(({ original: { combination } }) =>
+        String(combination.uuid || combination.id)
+      ),
+    [rows]
+  );
+  const listFocusProps = useVirtualListFocus({
+    containerRef: parentRef,
+    keys: recipeKeys,
+    scrollToIndex: (index) =>
+      rowVirtualizer.scrollToIndex(Math.floor(index / columnCount)),
+    handleRef: focusHandleRef,
+  });
+
   return (
     <div
       ref={parentRef}
+      // Focus lands here when the card it was meant for is gone (#604).
+      tabIndex={-1}
+      {...listFocusProps}
       // p-2 (8px) adds padding so the card hover scale effect isn't clipped
       // at the scroll container edges; overflow-auto enables virtualized scroll.
-      className="overflow-auto p-2"
+      className="overflow-auto p-2 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--color-focus-ring)]"
       style={{
         height,
         minHeight: MIN_CONTAINER_HEIGHT,
@@ -522,6 +557,7 @@ export const DevelopmentResultsCardsVirtualized: FC<
                   return (
                     <RecipeCard
                       key={combination.uuid || combination.id}
+                      itemKey={id}
                       rowData={rowData}
                       unit={unit}
                       isSelected={isSelected}

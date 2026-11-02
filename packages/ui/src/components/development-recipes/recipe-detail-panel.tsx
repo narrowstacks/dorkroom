@@ -43,6 +43,11 @@ export interface RecipeDetailPanelProps {
   onCopyRecipe?: (view: DevelopmentCombinationView) => void;
   /** Max height for the desktop sidebar */
   maxHeight?: number;
+  /**
+   * Called when the desktop sidebar closes with focus inside it, to put focus
+   * back on whatever opened it (see `DetailPanel`).
+   */
+  returnFocus?: () => void;
 }
 
 /** Resolve the human-readable dilution label for a recipe view. */
@@ -597,6 +602,7 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
   onShareRecipe,
   onCopyRecipe,
   maxHeight,
+  returnFocus,
 }) => {
   const { unit } = useTemperature();
   const [isFilmExpanded, setIsFilmExpanded] = useState(false);
@@ -651,6 +657,7 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
     <DetailPanel
       isOpen={isOpen}
       onClose={onClose}
+      returnFocus={returnFocus}
       isMobile={isMobile}
       ariaLabel={ariaLabel}
       expandedContent={<ExpandedPanelContent {...layoutProps} />}

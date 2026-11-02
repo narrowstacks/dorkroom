@@ -48,8 +48,9 @@ interface ModalProps {
   initialFocus?: RefObject<HTMLElement | null>;
   /**
    * Where focus goes on close, in place of the element that had focus when
-   * the dialog opened. For an opener that hands focus to something else
-   * while the dialog loads.
+   * the dialog opened. Read when the dialog closes, so a null `current` keeps
+   * the opener. For an opener that hands focus to something else while the
+   * dialog loads, or an action that removes the opener (a confirmed delete).
    */
   returnFocus?: RefObject<HTMLElement | null>;
 }

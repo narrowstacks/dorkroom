@@ -1,5 +1,5 @@
 import { AlertTriangle } from 'lucide-react';
-import { useId } from 'react';
+import { type RefObject, useId } from 'react';
 import { cn } from '../lib/cn';
 import { Modal } from './modal';
 
@@ -24,6 +24,12 @@ interface ConfirmModalProps {
   isDestructive?: boolean;
   /** Whether confirmation is in progress */
   isProcessing?: boolean;
+  /**
+   * Where focus goes on close instead of the element that opened the dialog,
+   * read when the dialog closes (a null `current` keeps the opener). Set it
+   * on confirm when the action removes the opener, as a delete does.
+   */
+  returnFocus?: RefObject<HTMLElement | null>;
 }
 
 /**
@@ -42,6 +48,7 @@ export function ConfirmModal({
   showWarningIcon = true,
   isDestructive = false,
   isProcessing = false,
+  returnFocus,
 }: ConfirmModalProps) {
   const titleId = useId();
 
@@ -66,6 +73,7 @@ export function ConfirmModal({
       ariaLabelledBy={titleId}
       className="max-w-sm p-5"
       bodyClassName="max-h-none overflow-visible"
+      returnFocus={returnFocus}
     >
       <div>
         {/* Header */}

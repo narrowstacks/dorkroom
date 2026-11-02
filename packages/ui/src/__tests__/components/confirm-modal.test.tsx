@@ -1,4 +1,11 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react';
+import { useRef, useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmModal } from '../../components/confirm-modal';
 
@@ -120,5 +127,76 @@ describe('ConfirmModal', () => {
       expect(confirm).toHaveClass('bg-error');
       expect(confirm).toHaveClass('text-background');
     });
+  });
+});
+
+describe('ConfirmModal returnFocus (#604)', () => {
+  afterEach(() => {
+    cleanup();
+    document.body.style.overflow = '';
+  });
+
+  /** A Delete button that opens the confirm; a confirmed delete removes it. */
+  function DeleteFlow() {
+    const [isOpen, setIsOpen] = useState(false);
+    const [isDeleted, setIsDeleted] = useState(false);
+    const listRef = useRef<HTMLDivElement>(null);
+    const returnFocusRef = useRef<HTMLElement | null>(null);
+    return (
+      <>
+        <div ref={listRef} tabIndex={-1} data-testid="list">
+          {!isDeleted && (
+            <button type="button" onClick={() => setIsOpen(true)}>
+              Delete
+            </button>
+          )}
+        </div>
+        <ConfirmModal
+          isOpen={isOpen}
+          onClose={() => {
+            returnFocusRef.current = null;
+            setIsOpen(false);
+          }}
+          onConfirm={() => {
+            returnFocusRef.current = listRef.current;
+            setIsDeleted(true);
+            setIsOpen(false);
+          }}
+          title="Delete Recipe"
+          message="Are you sure?"
+          confirmText="Delete"
+          returnFocus={returnFocusRef}
+        />
+      </>
+    );
+  }
+
+  const openConfirm = () => {
+    const opener = screen.getByRole('button', { name: 'Delete' });
+    opener.focus();
+    fireEvent.click(opener);
+    return opener;
+  };
+
+  it('sends focus to the returnFocus target after a confirmed delete', () => {
+    render(<DeleteFlow />);
+    openConfirm();
+
+    fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', {
+        name: 'Delete',
+      })
+    );
+
+    expect(document.activeElement).toBe(screen.getByTestId('list'));
+  });
+
+  it('returns focus to the opener on cancel', () => {
+    render(<DeleteFlow />);
+    const opener = openConfirm();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(document.activeElement).toBe(opener);
   });
 });

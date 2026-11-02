@@ -45,3 +45,30 @@ export function useDetailPanelLayers(
     expandButtonRef,
   };
 }
+
+/**
+ * Close for the desktop sidebar. It is not modal, so it has no opener to
+ * return focus to, and closing it removes the element that has focus. When
+ * focus is inside it (or already lost), `returnFocus` runs first to put focus
+ * back where the panel was opened from (#604). Focus elsewhere on the page,
+ * such as the card that opened it, is left alone. The ref is null outside the
+ * desktop sidebar, so the modal views close as before.
+ */
+export function useSidebarClose(
+  onClose: () => void,
+  returnFocus: (() => void) | undefined
+) {
+  const sidebarRef = useRef<HTMLElement>(null);
+  const handleClose = () => {
+    const active = document.activeElement;
+    const sidebar = sidebarRef.current;
+    if (
+      sidebar &&
+      (active === null || active === document.body || sidebar.contains(active))
+    ) {
+      returnFocus?.();
+    }
+    onClose();
+  };
+  return { sidebarRef, handleClose };
+}

@@ -1,8 +1,12 @@
 import type { Film } from '@dorkroom/api';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { Film as FilmIcon } from 'lucide-react';
-import { type FC, useMemo, useRef } from 'react';
+import { type FC, type Ref, useMemo, useRef } from 'react';
 import { useColumnCount } from '../../hooks/use-column-count';
+import {
+  useVirtualListFocus,
+  type VirtualListFocusHandle,
+} from '../../hooks/use-virtual-list-focus';
 import { cn } from '../../lib/cn';
 import {
   createDebouncedObserveElementRect,
@@ -47,6 +51,11 @@ interface FilmResultsVirtualizedProps {
   onClearFilters?: () => void;
   /** Whether any filter or search query is currently active. */
   hasActiveFilters?: boolean;
+  /**
+   * Receives a handle that puts focus back on a film's card (by uuid), such
+   * as when the detail sidebar closes with focus inside it.
+   */
+  focusHandleRef?: Ref<VirtualListFocusHandle>;
 }
 
 // eslint-disable-next-line react-doctor/no-many-boolean-props -- independent display/state flags for the virtualized list, not a single variant axis
@@ -62,8 +71,10 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
   className,
   onClearFilters,
   hasActiveFilters = false,
+  focusHandleRef,
 }) => {
   const parentRef = useRef<HTMLDivElement>(null);
+  const emptyStateRef = useRef<HTMLDivElement>(null);
 
   // Base column count from the container width. The mobile film grid is
   // always two columns of compact cards.
@@ -102,6 +113,19 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
 
   const virtualRows = rowVirtualizer.getVirtualItems();
 
+  // Opening or closing the detail sidebar changes the column count, which
+  // moves every card into another row container and remounts it. This keeps
+  // focus on the card (#604).
+  const filmKeys = useMemo(() => films.map((film) => film.uuid), [films]);
+  const listFocusProps = useVirtualListFocus({
+    containerRef: parentRef,
+    keys: filmKeys,
+    scrollToIndex: (index) =>
+      rowVirtualizer.scrollToIndex(Math.floor(index / columnCount)),
+    handleRef: focusHandleRef,
+    fallbackRef: emptyStateRef,
+  });
+
   // Show loading skeletons
   if (isLoading) {
     // When detail panel is open on desktop, show fewer skeleton columns
@@ -124,8 +148,10 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
   if (films.length === 0) {
     return (
       <div
+        ref={emptyStateRef}
+        tabIndex={-1}
         className={cn(
-          'flex flex-col items-center justify-center rounded-2xl border p-12 text-center',
+          'flex flex-col items-center justify-center rounded-2xl border p-12 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]',
           className
         )}
         style={{
@@ -175,9 +201,15 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
   return (
     <div
       ref={parentRef}
+      // Focus lands here when the card it was meant for is gone (#604).
+      tabIndex={-1}
+      {...listFocusProps}
       // p-2 (8px) adds padding so the card hover scale effect isn't clipped
       // at the scroll container edges; overflow-auto enables virtualized scroll.
-      className={cn('overflow-auto p-2', className)}
+      className={cn(
+        'overflow-auto p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-focus-ring)]',
+        className
+      )}
       style={{
         height,
         minHeight: MIN_CONTAINER_HEIGHT,
@@ -218,6 +250,7 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
                 {rowItems.map((film: Film) => (
                   <FilmCard
                     key={film.uuid}
+                    itemKey={film.uuid}
                     film={film}
                     isSelected={film.uuid === selectedFilmId}
                     onClick={() => onSelectFilm(film)}

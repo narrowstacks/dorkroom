@@ -1,5 +1,6 @@
 import type { Film } from '@dorkroom/api';
 import type { UseFilmDatabaseReturn } from '@dorkroom/logic';
+import type { VirtualListFocusHandle } from '@dorkroom/ui';
 import { VirtualizedErrorBoundary } from '@dorkroom/ui/development-recipes';
 import {
   FilmDetailPanel,
@@ -8,6 +9,7 @@ import {
   FilmFiltersPanel,
   FilmResultsVirtualized,
 } from '@dorkroom/ui/films';
+import { useRef } from 'react';
 import { useShareLink } from '../../lib/use-share-link';
 
 interface FilmsPageBodyProps {
@@ -40,6 +42,9 @@ export function FilmsPageBody({
   onCollapsedChange,
 }: FilmsPageBodyProps) {
   const { share, manualCopyDialog } = useShareLink('film');
+  // Closing the desktop sidebar from inside it puts focus back on the card
+  // that opened it (#604).
+  const resultsFocusRef = useRef<VirtualListFocusHandle>(null);
 
   // One props object for whichever filter module the breakpoint mounts.
   const filterProps = {
@@ -71,6 +76,7 @@ export function FilmsPageBody({
         isFiltersCollapsed={!isMobile && isFiltersCollapsed}
         onClearFilters={db.clearFilters}
         hasActiveFilters={db.hasActiveFilters}
+        focusHandleRef={resultsFocusRef}
       />
     </VirtualizedErrorBoundary>
   );
@@ -115,6 +121,11 @@ export function FilmsPageBody({
           baseFilm={baseFilm}
           isOpen={!!selectedFilm}
           onClose={onClosePanel}
+          returnFocus={() => {
+            if (selectedFilm) {
+              resultsFocusRef.current?.focusItem(selectedFilm.uuid);
+            }
+          }}
           isMobile={isMobile}
           onShare={(film) =>
             share({ film: film.slug }, `${film.brand} ${film.name}`)
