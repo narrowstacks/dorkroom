@@ -1,6 +1,6 @@
-import { ThemeProvider } from '@dorkroom/ui';
+import { Modal, ThemeProvider } from '@dorkroom/ui';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
-import type { ReactElement } from 'react';
+import { type ReactElement, useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { MobileNav } from '../mobile-nav';
 
@@ -123,6 +123,55 @@ describe('MobileNav (#346)', () => {
 
     fireEvent.keyDown(document, { key: 'Escape' });
 
+    expect(toggle).toHaveFocus();
+  });
+});
+
+/** Stands in for search: a modal opened from inside the open menu. */
+function MenuWithModal() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <MobileNav pathname="/" onNavigate={vi.fn()} />
+      <button type="button" onClick={() => setOpen(true)}>
+        Open overlay
+      </button>
+      <Modal isOpen={open} onClose={() => setOpen(false)} title="Overlay">
+        <button type="button">Inside overlay</button>
+      </Modal>
+    </>
+  );
+}
+
+describe('MobileNav Escape layering (#613)', () => {
+  it('closes only the modal over the menu, then the menu on the next Escape', () => {
+    render346(<MenuWithModal />);
+    const toggle = screen.getByRole('button', { name: 'Open navigation' });
+    fireEvent.click(toggle);
+    const drawer = screen.getByRole('dialog', { name: 'Navigation menu' });
+    const drawerClose = within(drawer).getByRole('button', {
+      name: 'Close navigation',
+    });
+    expect(drawerClose).toHaveFocus();
+
+    // Search opens from the keyboard shortcut with focus inside the menu.
+    const overlayOpener = screen.getByRole('button', {
+      name: 'Open overlay',
+      hidden: true,
+    });
+    act(() => overlayOpener.click());
+    expect(screen.getByRole('dialog', { name: 'Overlay' })).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(screen.queryByRole('dialog', { name: 'Overlay' })).toBeNull();
+    expect(drawer).not.toHaveAttribute('inert');
+    expect(drawer).toHaveAttribute('aria-modal', 'true');
+    expect(drawer.contains(document.activeElement)).toBe(true);
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(drawer).toHaveAttribute('inert');
     expect(toggle).toHaveFocus();
   });
 });

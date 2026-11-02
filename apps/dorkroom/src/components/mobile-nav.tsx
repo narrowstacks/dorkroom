@@ -3,10 +3,11 @@ import {
   MobileSidebar,
   useBodyScrollLock,
   useBreakpoint,
+  useEscapeKey,
   useModalLayer,
 } from '@dorkroom/ui';
 import { Menu, X } from 'lucide-react';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { MOBILE_FAB, MOBILE_FAB_EDGE } from './mobile-fab';
 import { usePresence } from './use-presence';
 
@@ -65,17 +66,9 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
     if (isLgUp) setIsMobileMenuOpen(false);
   }
 
-  // Close on Escape
-  useEffect(() => {
-    if (!isMobileMenuOpen) return undefined;
-
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsMobileMenuOpen(false);
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isMobileMenuOpen]);
+  // Close on Escape through the shared LIFO stack, so a modal opened over the
+  // menu (search) takes the keypress and the menu stays open (#613).
+  useEscapeKey(isMobileMenuOpen, () => setIsMobileMenuOpen(false));
 
   return (
     <>
