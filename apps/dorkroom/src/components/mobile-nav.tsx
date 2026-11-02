@@ -126,9 +126,10 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
             ref={backdropRef}
             className={cn(
               'fixed inset-0 z-40 backdrop-blur-sm transition-opacity duration-300 lg:hidden',
-              visible
-                ? 'pointer-events-auto opacity-100'
-                : 'pointer-events-none opacity-0'
+              // Stays a tap catcher through the exit (its click is a no-op once
+              // closed): the drawer ignores taps while sliding out, and
+              // without this they would land on the page links underneath.
+              visible ? 'opacity-100' : 'opacity-0'
             )}
             style={{
               backgroundColor: 'rgba(var(--color-background-rgb), 0.6)',

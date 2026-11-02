@@ -102,6 +102,16 @@ describe('MobileNav (#346)', () => {
     expect(drawer).toHaveClass('pointer-events-none');
     expect(drawer).not.toHaveAttribute('aria-hidden');
     for (const link of links) expect(link.closest('[inert]')).toBe(drawer);
+
+    // A tap catcher stays over the page until unmount, so taps on the
+    // still-visible drawer never reach the page links underneath.
+    const backdrop = document.querySelector<HTMLElement>(
+      'div[aria-hidden="true"].fixed.inset-0'
+    );
+    expect(backdrop).not.toBeNull();
+    expect(backdrop).not.toHaveClass('pointer-events-none');
+    fireEvent.click(backdrop as HTMLElement);
+    expect(drawer).toHaveAttribute('inert');
   });
 
   it('returns focus to the FAB when the drawer is dismissed via Escape', () => {
