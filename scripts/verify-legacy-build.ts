@@ -31,7 +31,10 @@ import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parse } from 'acorn';
+import {
+  classicInlineScripts,
+  es5SyntaxProblem,
+} from '../apps/dorkroom/es5-syntax';
 import { CaptureView } from './webview-capture';
 
 const root = join(dirname(import.meta.url), '..');
@@ -249,13 +252,8 @@ async function checkLegacyOutputIsEs5(): Promise<void> {
   );
 
   const html = await readFile(join(distDir, 'index.html'), 'utf8');
-  const scripts = [
-    ...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi),
-  ].filter(
-    ([, attrs, body]) =>
-      !/\btype\s*=\s*["']?module/i.test(attrs) && body.trim() !== ''
-  );
-  const htmlOffenders = scripts.flatMap(([, , body], index) => {
+  const scripts = classicInlineScripts(html);
+  const htmlOffenders = scripts.flatMap((body, index) => {
     const problem = es5SyntaxProblem(body);
     return problem ? [`inline script ${index + 1}: ${problem}`] : [];
   });
@@ -264,15 +262,6 @@ async function checkLegacyOutputIsEs5(): Promise<void> {
     htmlOffenders.length === 0,
     htmlOffenders.join(', ')
   );
-}
-
-function es5SyntaxProblem(code: string): string | undefined {
-  try {
-    parse(code, { ecmaVersion: 5, sourceType: 'script' });
-    return undefined;
-  } catch (cause) {
-    return cause instanceof Error ? cause.message : String(cause);
-  }
 }
 
 async function run(): Promise<void> {

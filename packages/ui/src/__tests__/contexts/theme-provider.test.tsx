@@ -71,6 +71,11 @@ describe('ThemeProvider animations default', () => {
 
 const THEME_KEY = 'dorkroom-theme';
 
+const KINDLE_SCRIBE_UA =
+  'Mozilla/5.0 (Linux; Android 9; Kindle Build/1.0) AppleWebKit/537.36 (KHTML, like Gecko) Silk/80.4.14 like Chrome/80.0.3987.119 Safari/537.36';
+const KINDLE_FIRE_UA =
+  'Mozilla/5.0 (Linux; U; Android 2.3.4; en-us; Kindle Fire Build/GINGERBREAD) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1';
+
 function stubMonochrome(monochrome: boolean) {
   vi.stubGlobal(
     'matchMedia',
@@ -106,12 +111,19 @@ describe('ThemeProvider e-ink default', () => {
     stubMonochrome(false);
     vi.stubGlobal('navigator', {
       ...navigator,
-      userAgent:
-        'Mozilla/5.0 (X11; Linux aarch64; Kindle) AppleWebKit/537.36 (KHTML, like Gecko) Silk/80.4.14 like Chrome/80.0.3987.162 Safari/537.36',
+      userAgent: KINDLE_SCRIBE_UA,
     });
     const { result } = renderTheme();
 
     expect(result.current.resolvedTheme).toBe('high-contrast');
+  });
+
+  it('follows the color scheme on a color Kindle Fire', () => {
+    stubMonochrome(false);
+    vi.stubGlobal('navigator', { ...navigator, userAgent: KINDLE_FIRE_UA });
+    const { result } = renderTheme();
+
+    expect(result.current.resolvedTheme).toBe('light');
   });
 
   it('keeps a stored theme on a monochrome screen', () => {

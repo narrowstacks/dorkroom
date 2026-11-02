@@ -25,7 +25,8 @@
         "tsconfig*.json",
         "../../packages/logic/src/**",
         "../../packages/ui/src/**",
-        "../../packages/api/src/**"
+        "../../packages/api/src/**",
+        "es5-syntax.ts"
       ],
       "outputs": ["dist/**"],
       "env": [
@@ -113,6 +114,7 @@
         "!api/dist/**",
         "utils/**",
         "scripts/**",
+        "apps/dorkroom/es5-syntax.ts",
         "README.md",
         "docs/API.md",
         "packages/api/CLAUDE.md",

@@ -29,13 +29,15 @@ export function resolveTheme(
  * since neither covers every reader:
  * - the standard `monochrome` media feature, false on color screens and in
  *   engines that don't know it (an unknown query never matches);
- * - `Kindle` in the user agent, present in both the old Kindle browser's UA
- *   and the Silk (Chromium 80) UA on the Kindle Scribe, which likely reports a
- *   color screen.
+ * - `Kindle/` (the old Kindle browser) or `Kindle Build/` (Silk, Chromium 80,
+ *   on the Kindle Scribe, which likely reports a color screen) in the user
+ *   agent. The color Kindle Fire (`Kindle Fire Build/`) does not match.
  */
 function isEInkDisplay(): boolean {
   if (hasGlobal('matchMedia') && window.matchMedia('(monochrome)').matches) {
     return true;
   }
-  return hasGlobal('navigator') && /\bKindle\b/.test(navigator.userAgent);
+  return (
+    hasGlobal('navigator') && /\bKindle(\/|\sBuild\/)/.test(navigator.userAgent)
+  );
 }

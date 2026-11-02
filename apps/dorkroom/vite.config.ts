@@ -9,30 +9,10 @@ import { microfrontends } from '@vercel/microfrontends/experimental/vite';
 import legacy from '@vitejs/plugin-legacy';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
+import { classicInlineScripts, es5SyntaxProblem } from './es5-syntax';
 
 /** Same browsers as the `legacy()` call below, for lowering the polyfill chunk. */
 const LEGACY_TARGETS = ['ie >= 11', 'safari >= 5'];
-
-/** Whether `code` parses as an ES5 script, as the Kindle browser would parse it.
- *  Returns the parser's message (with position) when it does not. */
-async function es5SyntaxProblem(code: string): Promise<string | undefined> {
-  const { parse } = await import('acorn');
-  try {
-    parse(code, { ecmaVersion: 5, sourceType: 'script' });
-    return undefined;
-  } catch (cause) {
-    return cause instanceof Error ? cause.message : String(cause);
-  }
-}
-
-/** Bodies of the inline `<script>` tags in `html` that are not
- *  `type="module"`: the ones an ES5-only browser parses. */
-function classicInlineScripts(html: string): string[] {
-  return [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
-    .filter(([, attrs]) => !/\btype\s*=\s*["']?module/i.test(attrs))
-    .map(([, , body]) => body)
-    .filter((body) => body.trim() !== '');
-}
 
 /** Babel down-levels `code` to the legacy targets, then terser re-minifies it
  *  as ES5. Only the polyfill chunk needs this: plugin-legacy builds it in a
@@ -105,7 +85,7 @@ function legacyEs5Plugin(): Plugin {
             continue;
           }
           let { code, fileName } = output;
-          if (output.name === 'polyfills' && (await es5SyntaxProblem(code))) {
+          if (output.name === 'polyfills' && es5SyntaxProblem(code)) {
             code = await lowerToEs5(code);
             const hash = createHash('sha256')
               .update(code)
@@ -124,7 +104,7 @@ function legacyEs5Plugin(): Plugin {
               exports: [],
             });
           }
-          const problem = await es5SyntaxProblem(code);
+          const problem = es5SyntaxProblem(code);
           if (problem) problems.push(`${fileName}: ${problem}`);
         }
         // index.html lands in the modern output, after the legacy one. Its
@@ -137,7 +117,7 @@ function legacyEs5Plugin(): Plugin {
           for (const [from, to] of renamed) html = html.replaceAll(from, to);
           output.source = html;
           for (const script of classicInlineScripts(html)) {
-            const problem = await es5SyntaxProblem(script);
+            const problem = es5SyntaxProblem(script);
             if (problem) problems.push(`${output.fileName} script: ${problem}`);
           }
         }
