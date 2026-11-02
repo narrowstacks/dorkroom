@@ -80,6 +80,16 @@ describe('durationFromParts / durationToParts', () => {
 
   it('clamps negatives to zero', () => {
     expect(durationFromParts(-1, -5)).toBe(0);
+    expect(durationFromParts(0, -5)).toBe(0);
+  });
+
+  it('borrows from the minutes when seconds step below zero', () => {
+    expect(durationFromParts(2, -5)).toBe(115);
+    expect(durationFromParts(1, -5)).toBe(55);
+  });
+
+  it('keeps the seconds when minutes step below zero', () => {
+    expect(durationFromParts(-1, 30)).toBe(30);
   });
 
   it('splits seconds back into parts', () => {

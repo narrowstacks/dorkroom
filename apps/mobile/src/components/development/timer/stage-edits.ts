@@ -50,12 +50,15 @@ export function appendStage(stages: TimerStage[]): TimerStage[] {
 
 /**
  * Combine whole minutes and seconds into a duration in seconds, clamped ≥ 0.
- * Used by the editor's two-stepper duration control.
+ * Used by the editor's two-stepper duration control. Negative seconds borrow
+ * from the minutes, so stepping seconds down from 2:00 gives 1:55; negative
+ * minutes clamp to 0 on their own, so stepping minutes down from 0:30 keeps
+ * the 30 seconds.
  */
 export function durationFromParts(minutes: number, seconds: number): number {
   const safeMinutes = Number.isFinite(minutes) ? Math.max(0, minutes) : 0;
-  const safeSeconds = Number.isFinite(seconds) ? Math.max(0, seconds) : 0;
-  return Math.round(safeMinutes) * 60 + Math.round(safeSeconds);
+  const safeSeconds = Number.isFinite(seconds) ? seconds : 0;
+  return Math.max(0, Math.round(safeMinutes) * 60 + Math.round(safeSeconds));
 }
 
 export interface DurationParts {
