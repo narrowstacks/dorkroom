@@ -711,7 +711,10 @@
             ]
           },
           "description": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "manufacturer_notes": {
             "type": [
@@ -814,7 +817,10 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "film_or_paper": {
             "type": "boolean"

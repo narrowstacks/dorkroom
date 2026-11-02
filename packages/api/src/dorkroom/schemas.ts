@@ -36,7 +36,8 @@ export const rawFilmSchema = z.object({
   color_type: z.string(),
   iso_speed: z.number(),
   grain_structure: z.string().nullable(),
-  description: z.string(),
+  // Null on rows created by the admin batch import; the client maps it to ''.
+  description: z.string().nullable(),
   manufacturer_notes: z.string().nullable(), // PostgreSQL array format string
   reciprocity_failure: z.string().nullable(),
   discontinued: z.boolean(),
@@ -58,7 +59,8 @@ export const rawDeveloperSchema = z.object({
   name: z.string(),
   manufacturer: z.string(),
   type: z.string(),
-  description: z.string(),
+  // Null on rows created by the admin batch import; the client maps it to ''.
+  description: z.string().nullable(),
   film_or_paper: z.boolean(),
   dilutions: z.array(rawDilutionSchema),
   mixing_instructions: z.string().nullable(),
