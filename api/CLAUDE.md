@@ -241,6 +241,17 @@ Two access modes are supported from one Vercel project:
 
 When Unkey is not configured (`UNKEY_ROOT_KEY` missing), anonymous rate limiting is skipped with warning logs for local development.
 
+Unkey outages (`utils/withHandler.ts`): the SDK client has a 3000 ms timeout
+(`UNKEY_CLIENT_TIMEOUT_MS`), and every rate limit check runs with a 1500 ms
+timeout and no retries (`RATE_LIMIT_REQUEST_OPTIONS`). The per-IP, per-client
+and global budget checks fail open when Unkey is unreachable or times out
+(logged, no key material), since a limiter outage must not take the site's
+data down. Key verification fails closed with a `500` instead, in a single
+attempt with no retries (`VERIFY_KEY_REQUEST_OPTIONS`), so an unverified key is
+never let through and the caller gets a fast answer. A per-IP check that was
+skipped (failed open, or Unkey not configured) also skips the global upstream
+budget below, which would only wait out the same timeout.
+
 ## Required Environment Variables
 
 Supabase proxy handlers (`films`, `developers`, `combinations`, `stats`),
@@ -313,7 +324,8 @@ dev, a preview without them), requests filtered `/api/films`,
   `X-RateLimit-*` for the global buckets (those headers keep describing the
   caller's own per-IP budget). Filtered requests stay refused until the
   bucket frees up, which for the daily one can take hours
-- Fails open on any Unkey failure, like the OG limiter
+- Fails open on any Unkey failure, like the OG limiter, and is not checked at
+  all when the per-IP check before it was skipped
 - Proxy responses carry `stale-if-error=86400`, so the CDN keeps serving the
   last good copy for a day if the origin fails (Vercel documents it for 500s,
   network and DNS errors; whether a 502 or 503 qualifies is unconfirmed)

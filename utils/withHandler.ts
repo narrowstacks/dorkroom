@@ -64,7 +64,7 @@ export type CreateUnkeyClient = (rootKey: string) => UnkeyClient;
  * function's `maxDuration`. It covers `verifyKey`, which fails closed: a
  * fast 500 beats a hung request.
  */
-const UNKEY_CLIENT_TIMEOUT_MS = 3000;
+export const UNKEY_CLIENT_TIMEOUT_MS = 3000;
 
 /**
  * Per-call options for every `ratelimit.limit` check. Those checks fail open
@@ -73,10 +73,20 @@ const UNKEY_CLIENT_TIMEOUT_MS = 3000;
  * for up to 10 s, and the request would wait that long only to skip the
  * check anyway.
  */
-const RATE_LIMIT_REQUEST_OPTIONS = {
+export const RATE_LIMIT_REQUEST_OPTIONS = {
   timeoutMs: 1500,
   retries: { strategy: 'none' },
 } satisfies Parameters<Unkey['ratelimit']['limit']>[1];
+
+/**
+ * Per-call options for `verifyKey`: one attempt, bounded by the client-wide
+ * UNKEY_CLIENT_TIMEOUT_MS. Key verification fails closed, so retrying only
+ * delays the 500 (the SDK default would retry for up to 10 s) and multiplies
+ * the load on an Unkey that is already struggling.
+ */
+export const VERIFY_KEY_REQUEST_OPTIONS = {
+  retries: { strategy: 'none' },
+} satisfies Parameters<Unkey['keys']['verifyKey']>[1];
 
 /** The production Unkey client. Exported for tests only. */
 export const createRealUnkeyClient: CreateUnkeyClient = (rootKey) =>
@@ -290,10 +300,13 @@ async function applyPublicApiKeyAuth(
 
   let verification: Awaited<ReturnType<typeof unkey.keys.verifyKey>>;
   try {
-    verification = await unkey.keys.verifyKey({
-      key: apiKey,
-      permissions: requiredPermission,
-    });
+    verification = await unkey.keys.verifyKey(
+      {
+        key: apiKey,
+        permissions: requiredPermission,
+      },
+      VERIFY_KEY_REQUEST_OPTIONS
+    );
   } catch (error) {
     serverlessError('Unkey key verification failed', {
       requestId,
@@ -497,6 +510,10 @@ function isUnkeyUnavailable(error: Error): boolean {
  * Also bails out without touching `res` if a concurrent check already ended
  * the response (relevant only to the dual client/IP check below, since a
  * single-check caller never observes `res.writableEnded` here).
+ *
+ * `onSkipped` runs when the check passes without Unkey having answered (not
+ * configured, or failed open), so a caller can skip follow-up checks that
+ * would only wait on the same unreachable Unkey.
  */
 async function applyNamespaceRateLimit(
   res: VercelResponse,
@@ -508,6 +525,7 @@ async function applyNamespaceRateLimit(
     limit: number;
     durationMs: number;
     setHeadersOnSuccess?: boolean;
+    onSkipped?: () => void;
   }
 ): Promise<boolean> {
   const unkey = getUnkeyClient(requestId, createUnkeyClient);
@@ -517,6 +535,7 @@ async function applyNamespaceRateLimit(
       requestId,
       namespace: opts.namespace,
     });
+    opts.onSkipped?.();
     return true;
   }
 
@@ -548,6 +567,7 @@ async function applyNamespaceRateLimit(
             namespace: opts.namespace,
           }
         );
+        opts.onSkipped?.();
         return true;
       }
 
@@ -593,6 +613,7 @@ async function applyNamespaceRateLimit(
         namespace: opts.namespace,
         ...unkeyFailureFields(error),
       });
+      opts.onSkipped?.();
       return true;
     }
 
@@ -651,13 +672,15 @@ async function applyAnonymousRateLimit(
   req: VercelRequest,
   res: VercelResponse,
   requestId: string,
-  createUnkeyClient: CreateUnkeyClient
+  createUnkeyClient: CreateUnkeyClient,
+  onSkipped: () => void
 ): Promise<boolean> {
   return applyNamespaceRateLimit(res, requestId, createUnkeyClient, {
     namespace: getRateLimitNamespace('anonymous'),
     identifier: getClientIp(req),
     limit: ANONYMOUS_RATE_LIMIT,
     durationMs: ANONYMOUS_RATE_WINDOW_MS,
+    onSkipped,
   });
 }
 
@@ -813,22 +836,30 @@ export function withApiKey(
       }
     }
 
+    let perIpSkipped = false;
     const passedChecks = ctx.isPublicApi
       ? await applyPublicApiKeyAuth(req, res, ctx.requestId, createUnkeyClient)
       : await applyAnonymousRateLimit(
           req,
           res,
           ctx.requestId,
-          createUnkeyClient
+          createUnkeyClient,
+          () => {
+            perIpSkipped = true;
+          }
         );
 
     if (!passedChecks) {
       return;
     }
 
+    // A per-IP check that failed open (or had no Unkey to ask) means the
+    // budget would wait out the same timeout against the same namespace
+    // before failing open too, so skip it.
     if (
       !ctx.isPublicApi &&
       options.upstreamBudget &&
+      !perIpSkipped &&
       bypassesCdn(req) &&
       !(await applyAnonymousUpstreamBudget(
         res,

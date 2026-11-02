@@ -666,6 +666,26 @@ describe('withHandler', () => {
       expect(ratelimitLimitMock).not.toHaveBeenCalled();
     });
 
+    it('verifies the key in one attempt, with SDK retries off', async () => {
+      setupKeyedEnv();
+      verifyKeyMock.mockResolvedValueOnce(validVerification());
+      const handler = await buildHandler({
+        name: 'test',
+        handler: async (_req, res) => {
+          res.status(200).json({ ok: true });
+        },
+      });
+
+      const res = createMockResponse();
+      await handler(keyedRequest(), res);
+
+      expect(res._status).toBe(200);
+      expect(verifyKeyMock).toHaveBeenCalledOnce();
+      expect(verifyKeyMock.mock.calls[0][1]).toEqual({
+        retries: { strategy: 'none' },
+      });
+    });
+
     it('invalid key + X-Client-Id: still 401 (key auth runs first)', async () => {
       setupKeyedEnv();
       verifyKeyMock.mockResolvedValueOnce({
@@ -1192,6 +1212,24 @@ describe('withHandler', () => {
 
       expect(res._status).toBe(200);
       expect(ran).toHaveBeenCalledOnce();
+    });
+
+    it('skips the budget when the per-IP check timed out, so the request waits out one timeout, not two', async () => {
+      vi.stubEnv('NODE_ENV', 'production');
+      ratelimitLimitMock.mockRejectedValue(
+        new RequestTimeoutError('Request timed out', {
+          cause: new DOMException('signal timed out', 'TimeoutError'),
+        })
+      );
+      const { handler, ran } = await budgetedHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest(), res);
+
+      expect(res._status).toBe(200);
+      expect(ran).toHaveBeenCalledOnce();
+      expect(ratelimitLimitMock).toHaveBeenCalledOnce();
+      expect(identifiers()).toEqual(['203.0.113.5']);
     });
 
     it('logs only the name and status of a failed budget check, never the response body', async () => {
