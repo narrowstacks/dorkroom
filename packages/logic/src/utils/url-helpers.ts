@@ -95,6 +95,7 @@ export function clearPresetFromUrl(): void {
  * substring match like `value.includes('filmdev.org')` — a substring check
  * would wrongly accept `evil.com/filmdev.org` or `filmdev.org.attacker.com`.
  * Accepts protocol-less input (e.g. `filmdev.org/12345`) by assuming https.
+ * Only `http:` and `https:` are accepted; other schemes are rejected.
  *
  * @public
  * @param value - URL or host-like string to test
@@ -110,9 +111,10 @@ export function isFilmDevOrgUrl(value: string | null | undefined): boolean {
   if (!value) return false;
   const trimmed = value.trim();
   try {
-    const { hostname } = new URL(
+    const { hostname, protocol } = new URL(
       trimmed.includes('://') ? trimmed : `https://${trimmed}`
     );
+    if (protocol !== 'http:' && protocol !== 'https:') return false;
     return hostname === 'filmdev.org' || hostname.endsWith('.filmdev.org');
   } catch {
     return false;
