@@ -15,6 +15,11 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - **The negative inverter finds the film base on its own.** After you load a photo the positive appears straight away, using a film base found in the rebate (marked "Auto base"), and it is found again when you change the crop or film type. Picking the base yourself replaces it. When the photo leaves room for doubt (no clear rebate to compare against), the preview still appears but the page asks you to tap the film base and points at the tool. If no base can be found at all, pick it as before. (#527)
 - **The automatic film base is steadier.** It now takes the middle of the clear rebate rather than its brightest corner, so uneven light-table illumination and sprocket-hole edges move it less. (#527)
 
+### Fixed
+
+- **filmdev.org imports pick the right film and developer.** Importing a recipe used to match only films and developers that already had a recipe on Dorkroom, so Fomapan 100 came in as Kentmere Pan 100 and several Adox developers came in as ADOTECH IV. Imports now search the whole catalogue and need a real name match, and anything Dorkroom doesn't list comes in as a custom film or developer instead of the nearest lookalike.
+- **The custom recipe form lists every film and developer**, including ones that don't have a recipe yet.
+
 ## [2026.10.30]
 
 ### Added
