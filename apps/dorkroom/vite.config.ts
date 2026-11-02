@@ -11,7 +11,7 @@ import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
 import { classicInlineScripts, es5SyntaxProblem } from './es5-syntax';
 
-/** Same browsers as the `legacy()` call below, for lowering the polyfill chunk. */
+/** Single source of truth for the `legacy()` plugin and `lowerToEs5`. */
 const LEGACY_TARGETS = ['ie >= 11', 'safari >= 5'];
 
 /** Babel down-levels `code` to the legacy targets, then terser re-minifies it
@@ -237,7 +237,7 @@ export default defineConfig(() => ({
     // real-world target. Modern browsers never load this — it sits behind
     // `nomodule`, so there is zero impact on the modern ES-module bundle.
     legacy({
-      targets: ['ie >= 11', 'safari >= 5'],
+      targets: LEGACY_TARGETS,
       // Polyfill the bare globals the Kindle's ancient engine is missing even
       // before app code runs (the usage scan covers the rest).
       additionalLegacyPolyfills: ['regenerator-runtime/runtime'],
