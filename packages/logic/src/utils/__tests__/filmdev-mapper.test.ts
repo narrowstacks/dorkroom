@@ -685,6 +685,9 @@ describe('findBestDeveloperMatch', () => {
       ['Ilford LC29', 'ilford-ilfotec-lc29'],
       ['Ilford LC 29', 'ilford-ilfotec-lc29'],
       ['Tetenal Ultrafin', 'tetenal-ultrafin-plus'],
+      ['Tetenal Ultrafin+', 'tetenal-ultrafin-plus'],
+      ['Tetenal Ultrafin+ Developer', 'tetenal-ultrafin-plus'],
+      ['Tetenal Ultrafin+ Liquid', 'tetenal-ultrafin-plus'],
     ])('matches "%s" to %s', (query, uuid) => {
       expect(findBestDeveloperMatch(query, catalogue)?.uuid).toBe(uuid);
     });

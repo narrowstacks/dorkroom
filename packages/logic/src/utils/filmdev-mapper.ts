@@ -351,9 +351,12 @@ export function findBestDeveloperMatch(
 ): Developer | null {
   if (!filmdevDeveloperString.trim() || !availableDevelopers.length)
     return null;
-  // "A + B" between words is a blend; "1+2" is a dilution and stays.
+  // "XTOL + Rodinal" is a blend: a spaced "+" before another product's name.
+  // "Ultrafin+ Developer" is a product's own "+" (read as "plus") before a
+  // generic word, and "1+2" is a dilution; both stay.
   const collapsed = filmdevDeveloperString.replace(/\s+/g, ' ');
-  if (/[a-z0-9] ?\+ ?[a-z]/i.test(collapsed)) return null;
+  const blend = /[a-z0-9] \+ ([a-z][a-z0-9]*)/i.exec(collapsed);
+  if (blend && !GENERIC_WORDS.has(blend[1].toLowerCase())) return null;
   const query = parseQuery(filmdevDeveloperString);
 
   return pickBest(availableDevelopers, (developer) =>
