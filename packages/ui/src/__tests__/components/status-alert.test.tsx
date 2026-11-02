@@ -41,13 +41,6 @@ describe('LiveStatusAlert', () => {
     expect(screen.getAllByRole('alert')).toHaveLength(1);
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
-
-  it('stops announcing, but stays mounted, when announce is false', () => {
-    render(<LiveStatusAlert message="Also shown elsewhere" announce={false} />);
-
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
-    expect(screen.getByText('Also shown elsewhere')).toBeInTheDocument();
-  });
 });
 
 describe('StatusAlert omitRole', () => {

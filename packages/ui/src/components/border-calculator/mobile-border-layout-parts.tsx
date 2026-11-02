@@ -85,8 +85,6 @@ interface WarningsCardProps {
   minBorderWarning: string | null;
   paperSizeWarning: string | null;
   offsetWarning: string | null;
-  /** Which drawer section is open, if any: its own alert announces instead. */
-  openSection: ActiveSection | null;
 }
 
 export function MobileWarningsCard({
@@ -95,12 +93,13 @@ export function MobileWarningsCard({
   minBorderWarning,
   paperSizeWarning,
   offsetWarning,
-  openSection,
 }: WarningsCardProps) {
   const hasWarnings = Boolean(
     bladeWarning || minBorderWarning || paperSizeWarning || offsetWarning
   );
-  // The alert regions below stay mounted even with no warnings, so the first
+  // This card is the single announcer for these warnings: it is mounted for
+  // the whole page, and the drawer sections show the same text without a live
+  // role. The alert regions below stay mounted even with no warnings, so the first
   // warning is announced; only the card's box is taken out of flow then.
   return (
     <div
@@ -123,17 +122,9 @@ export function MobileWarningsCard({
       }
     >
       <LiveStatusAlert message={bladeWarning} action="error" />
-      <LiveStatusAlert
-        message={minBorderWarning}
-        action="error"
-        announce={openSection !== 'borderSize'}
-      />
+      <LiveStatusAlert message={minBorderWarning} action="error" />
       <LiveStatusAlert message={paperSizeWarning} action="warning" />
-      <LiveStatusAlert
-        message={offsetWarning}
-        action="warning"
-        announce={openSection !== 'positionOffsets'}
-      />
+      <LiveStatusAlert message={offsetWarning} action="warning" />
     </div>
   );
 }

@@ -223,7 +223,6 @@ export function MobileBorderLayout() {
           minBorderWarning={minBorderWarning}
           paperSizeWarning={paperSizeWarning}
           offsetWarning={offsetWarning}
-          openSection={isDrawerOpen ? activeSection : null}
         />
 
         <MobileSettingsCard

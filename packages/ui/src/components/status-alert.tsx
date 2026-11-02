@@ -103,12 +103,6 @@ interface LiveStatusAlertProps {
   className?: string;
   onDismiss?: () => void;
   dismissLabel?: string;
-  /**
-   * Set to false while another live region already announces this same
-   * message (e.g. an open drawer section), so it is not spoken twice. The
-   * region stays mounted, it just has no live role meanwhile.
-   */
-  announce?: boolean;
 }
 
 /**
@@ -137,7 +131,6 @@ export function LiveStatusAlert({
   className,
   onDismiss,
   dismissLabel,
-  announce = true,
 }: LiveStatusAlertProps) {
   const alert = message ? (
     <StatusAlert
@@ -150,9 +143,6 @@ export function LiveStatusAlert({
     />
   ) : null;
 
-  if (!announce) {
-    return <div className="block empty:absolute">{alert}</div>;
-  }
   if (action === 'error') {
     return (
       <div role="alert" className="block empty:absolute">

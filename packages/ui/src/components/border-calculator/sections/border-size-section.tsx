@@ -7,7 +7,7 @@ import {
 import { X } from 'lucide-react';
 import { useMemo } from 'react';
 import { LabeledSliderInput } from '../../../components/labeled-slider-input';
-import { LiveStatusAlert } from '../../../components/status-alert';
+import { StatusAlert } from '../../../components/status-alert';
 import { useBorderCalculator } from '../border-calculator-context';
 
 interface BorderSizeSectionProps {
@@ -85,7 +85,10 @@ export function BorderSizeSection({ onClose }: BorderSizeSectionProps) {
           </p>
         </div>
 
-        <LiveStatusAlert message={minBorderWarning} action="error" />
+        {/* Announced by the page's warnings card, not here (#585). */}
+        {minBorderWarning && (
+          <StatusAlert message={minBorderWarning} action="error" omitRole />
+        )}
 
         <div className="rounded-lg border border-secondary bg-border-muted p-4">
           <h4 className="text-sm font-medium text-primary mb-2">

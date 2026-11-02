@@ -6,7 +6,7 @@ import {
 } from '@dorkroom/logic';
 import { X } from 'lucide-react';
 import { LabeledSliderInput } from '../../../components/labeled-slider-input';
-import { LiveStatusAlert } from '../../../components/status-alert';
+import { StatusAlert } from '../../../components/status-alert';
 import { ToggleSwitch } from '../../../components/toggle-switch';
 import { useBorderCalculator } from '../border-calculator-context';
 
@@ -97,7 +97,10 @@ export function PositionOffsetsSection({
               />
             </div>
 
-            <LiveStatusAlert message={offsetWarning} action="warning" />
+            {/* Announced by the page's warnings card, not here (#585). */}
+            {offsetWarning && (
+              <StatusAlert message={offsetWarning} action="warning" omitRole />
+            )}
           </div>
         )}
 
