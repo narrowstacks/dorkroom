@@ -1,10 +1,10 @@
 import { CAMERA_EXPOSURE_LINK_PARAMS } from '@dorkroom/logic';
 import { ROUTE_DESCRIPTIONS, ROUTE_TITLES } from '@dorkroom/ui';
 import { createFileRoute } from '@tanstack/react-router';
-import { lazy } from 'react';
+import { lazyPage } from '../app/lib/lazy-page';
 import { calculatorRoute } from '../components/calculator-route';
 
-const CameraExposureCalculatorPage = lazy(
+const CameraExposureCalculatorPage = lazyPage(
   () =>
     import('../app/pages/camera-exposure-calculator/camera-exposure-calculator-page')
 );

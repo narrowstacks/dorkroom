@@ -5,3 +5,8 @@
  */
 
 export { queryKeys } from './query-keys';
+export {
+  combinationsQueryOptions,
+  developersQueryOptions,
+  filmsQueryOptions,
+} from './api-query-options';

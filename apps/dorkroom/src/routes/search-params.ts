@@ -1,13 +1,13 @@
 /**
  * Search params for this app are flat strings — `?iso=400`, `?favorites=true`,
- * `?film=rollei-retro-400s`. The route schemas type them as `z.string()`, and the
+ * `?film=rollei-retro-400s`. The route validators (./search-schemas) type them as strings, and the
  * development page's URL hook parses them as strings, as `URLSearchParams`
  * yields them.
  *
  * TanStack Router's default disagrees: it coerces each value, so `?iso=400`
  * arrived as the number `400` and `?favorites=true` as the boolean `true`. Both
- * then failed the `z.string()` schemas, and the schemas' trailing
- * `.catch(undefined)` swallowed the failure — so the params were dropped and
+ * then failed the route validators' string check, which recovers a failed
+ * param to undefined and so swallowed the failure — the params were dropped and
  * stripped straight back out of the URL. A shared link silently lost its ISO and
  * favourites filters.
  *
@@ -19,7 +19,7 @@
  * - The router's own `parseSearchWith` helper cannot fix it. Its internal decode
  *   coerces `"400"` to a number *before* the supplied parser runs, and the parser
  *   only sees values that are still strings.
- * - Coercing to a string inside the zod schema instead doesn't work either: the
+ * - Coercing to a string inside the route validators instead doesn't work either: the
  *   default serializer then re-encodes it as `?iso="400"` (quoted, to preserve
  *   string-ness), which breaks shared links and any reader that expects plain
  *   `URLSearchParams` strings.

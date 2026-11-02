@@ -7,6 +7,10 @@ import {
 } from '../utils/calculatorShare';
 import { checkEdgeRateLimit, getRequestIp } from '../utils/edgeRateLimit';
 import {
+  catalogueRequest,
+  type CatalogueSource,
+} from '../utils/internalDataSource';
+import {
   BRAND_RE,
   ISO_RE,
   PRESET_RE,
@@ -16,9 +20,12 @@ import {
 import {
   ANONYMOUS_RATE_LIMIT,
   ANONYMOUS_RATE_WINDOW_MS,
+  OG_UPSTREAM_DAILY_LIMIT,
+  OG_UPSTREAM_DAILY_WINDOW_MS,
+  OG_UPSTREAM_RATE_LIMIT,
+  OG_UPSTREAM_RATE_WINDOW_MS,
 } from '../utils/rateLimitPolicy';
 import {
-  BASE_URL,
   buildFilmFilterParts,
   decodeBorderPreset,
   getRouteMetadata,
@@ -66,14 +73,34 @@ function rejectUnknownParams(searchParams: URLSearchParams): boolean {
 }
 
 const FETCH_TIMEOUT_MS = 3000;
-/** Rows requested per `/api/combinations` page when scanning for a recipe UUID. */
-const COMBINATION_PAGE_SIZE = 50;
 /**
- * Upper bound on pages scanned for a recipe UUID (500 rows at
- * `COMBINATION_PAGE_SIZE`). Prevents a pathological film+developer pairing
- * from fanning out into unbounded upstream requests.
+ * Rows requested per combinations page when scanning for a recipe UUID.
+ * The largest film+developer pairing in the catalogue had 70 rows
+ * (2026-11), so one page covers nearly every recipe card.
  */
-const MAX_COMBINATION_PAGES = 10;
+export const COMBINATION_PAGE_SIZE = 100;
+/**
+ * Upper bound on pages scanned for a recipe UUID (300 rows at
+ * `COMBINATION_PAGE_SIZE`, about four times the largest pairing). Bounds
+ * what one recipe card can cost upstream; see `upstreamLookupCost`.
+ */
+export const MAX_COMBINATION_PAGES = 3;
+/**
+ * The global upstream budgets (`utils/rateLimitPolicy.ts`), in the anonymous
+ * namespace: a per-minute burst cap, then a daily cap.
+ */
+const OG_UPSTREAM_BUCKETS = [
+  {
+    identifier: 'og-upstream',
+    limit: OG_UPSTREAM_RATE_LIMIT,
+    durationMs: OG_UPSTREAM_RATE_WINDOW_MS,
+  },
+  {
+    identifier: 'og-upstream-day',
+    limit: OG_UPSTREAM_DAILY_LIMIT,
+    durationMs: OG_UPSTREAM_DAILY_WINDOW_MS,
+  },
+] as const;
 const FONT_URL =
   'https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Ew-.ttf';
 const FONT_BOLD_URL =
@@ -133,9 +160,21 @@ interface CombinationInfo {
   push_pull?: number | null;
 }
 
-async function fetchJson<T>(url: string): Promise<T | null> {
+/**
+ * One catalogue lookup, direct to the data layer when the server holds its
+ * credentials, else through the public API (`utils/internalDataSource.ts`).
+ * Any failure yields null and the card falls back to the slug. Nothing about
+ * the request, its credentials included, is logged or echoed.
+ */
+async function fetchCatalogue<T>(
+  source: CatalogueSource,
+  params: Record<string, string>
+): Promise<T | null> {
+  const target = catalogueRequest(source, new URLSearchParams(params));
   try {
-    const res = await fetch(url, {
+    const res = await fetch(target.url, {
+      headers: target.headers,
+      redirect: target.redirect,
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!res.ok) return null;
@@ -183,16 +222,18 @@ export function clearFontCache(): void {
 }
 
 async function lookupFilm(slug: string): Promise<FilmInfo | null> {
-  const data = await fetchJson<{ data: FilmInfo[] }>(
-    `${BASE_URL}/api/films?slug=${encodeURIComponent(slug)}&limit=1`
-  );
+  const data = await fetchCatalogue<{ data: FilmInfo[] }>('films', {
+    slug,
+    limit: '1',
+  });
   return data?.data?.[0] ?? null;
 }
 
 async function lookupDeveloper(slug: string): Promise<DeveloperInfo | null> {
-  const data = await fetchJson<{ data: DeveloperInfo[] }>(
-    `${BASE_URL}/api/developers?slug=${encodeURIComponent(slug)}&limit=1`
-  );
+  const data = await fetchCatalogue<{ data: DeveloperInfo[] }>('developers', {
+    slug,
+    limit: '1',
+  });
   return data?.data?.[0] ?? null;
 }
 
@@ -202,7 +243,7 @@ async function lookupDeveloper(slug: string): Promise<DeveloperInfo | null> {
  * Without a `recipeUuid`, returns the first row (`limit=1`) — there is no
  * specific recipe to match, so any row for the pairing is fine.
  *
- * With a `recipeUuid`, pages through `/api/combinations` looking for that
+ * With a `recipeUuid`, pages through the combinations lookup for that
  * exact row, since the backend gives no ordering guarantee that would put it
  * on page 1. The upstream function only honours `page` when the page size is
  * sent as `count`; with `limit` it ignores `page` and returns the first rows
@@ -217,21 +258,25 @@ export async function lookupCombination(
   developerSlug: string,
   recipeUuid?: string
 ): Promise<CombinationInfo | null> {
-  const baseUrl = `${BASE_URL}/api/combinations?film=${encodeURIComponent(filmSlug)}&developer=${encodeURIComponent(developerSlug)}`;
+  const pairing = { film: filmSlug, developer: developerSlug };
 
   if (!recipeUuid) {
-    const data = await fetchJson<{
+    const data = await fetchCatalogue<{
       data: (CombinationInfo & { uuid?: string })[];
       count?: number;
-    }>(`${baseUrl}&limit=1`);
+    }>('combinations', { ...pairing, limit: '1' });
     return data?.data?.[0] ?? null;
   }
 
   for (let page = 1; page <= MAX_COMBINATION_PAGES; page++) {
-    const data = await fetchJson<{
+    const data = await fetchCatalogue<{
       data: (CombinationInfo & { uuid?: string })[];
       count?: number;
-    }>(`${baseUrl}&count=${COMBINATION_PAGE_SIZE}&page=${page}`);
+    }>('combinations', {
+      ...pairing,
+      count: String(COMBINATION_PAGE_SIZE),
+      page: String(page),
+    });
     if (!data?.data?.length) return null;
 
     const match = data.data.find((c) => c.uuid === recipeUuid);
@@ -1042,7 +1087,7 @@ const NO_STORE = 'no-store';
  * `og:image` URL — so no upstream lookup ever runs on a malformed slug and
  * attacker-chosen text never reaches the rendered card.
  */
-interface OgParams {
+export interface OgParams {
   route: string;
   film: string | null;
   developer: string | null;
@@ -1113,11 +1158,16 @@ function staticCardRoute(route: string): string | null {
  * social crawler that trips the limit still gets a usable image instead of a
  * broken preview. `no-store` keeps the redirect itself from being cached
  * under the dynamic URL, so the real card renders once the window resets.
+ *
+ * `scope: 'client'` (the per-IP limit) reports the caller's own budget in
+ * `X-RateLimit-*`. `scope: 'global'` sends `Retry-After` only: the global
+ * upstream buckets' state is nobody's business outside the server.
  */
 function rateLimitedResponse(
   request: Request,
   route: string,
-  limit: { limit: number; remaining: number; resetMs: number }
+  limit: { limit: number; remaining: number; resetMs: number },
+  scope: 'client' | 'global'
 ): Response {
   const target = new URL('/api/og', request.url);
   const staticRoute = staticCardRoute(route);
@@ -1129,17 +1179,17 @@ function rateLimitedResponse(
     Math.ceil((limit.resetMs - Date.now()) / 1000)
   );
 
-  return new Response(null, {
-    status: 307,
-    headers: {
-      Location: target.toString(),
-      'Cache-Control': NO_STORE,
-      'Retry-After': String(retryAfter),
-      'X-RateLimit-Limit': String(limit.limit),
-      'X-RateLimit-Remaining': String(limit.remaining),
-      'X-RateLimit-Reset': String(Math.ceil(limit.resetMs / 1000)),
-    },
+  const headers = new Headers({
+    Location: target.toString(),
+    'Cache-Control': NO_STORE,
+    'Retry-After': String(retryAfter),
   });
+  if (scope === 'client') {
+    headers.set('X-RateLimit-Limit', String(limit.limit));
+    headers.set('X-RateLimit-Remaining', String(limit.remaining));
+    headers.set('X-RateLimit-Reset', String(Math.ceil(limit.resetMs / 1000)));
+  }
+  return new Response(null, { status: 307, headers });
 }
 
 export default async function handler(request: Request): Promise<Response> {
@@ -1157,6 +1207,7 @@ export default async function handler(request: Request): Promise<Response> {
   // Every request that is not one of the fixed static cards can name a fresh
   // CDN cache key, and so costs a render and possibly upstream lookups.
   // Budget those per client IP, like the anonymous limit on /api/*.
+  let unkeyReachable = true;
   if (!isStaticCardRequest(searchParams)) {
     const limit = await checkEdgeRateLimit({
       identifier: `og:${getRequestIp(request)}`,
@@ -1164,7 +1215,32 @@ export default async function handler(request: Request): Promise<Response> {
       durationMs: ANONYMOUS_RATE_WINDOW_MS,
     });
     if (limit.status === 'limited') {
-      return rateLimitedResponse(request, params.route, limit);
+      return rateLimitedResponse(request, params.route, limit, 'client');
+    }
+    unkeyReachable = limit.status !== 'skipped';
+  }
+
+  // The catalogue lookups bypass the anonymous /api/* limiter (#443), so
+  // every render draws on the global upstream budgets, charged its
+  // worst-case call count. Over either, the static card (uncached) rather
+  // than a slug-only card, which the CDN would otherwise keep for a day.
+  //
+  // A static card request carries `route` alone, so its cost is always 0:
+  // every request that reaches the global checks also ran the per-IP one.
+  // When that per-IP check was skipped (Unkey unconfigured, or unreachable
+  // after its timeout), the global checks are skipped too, since they talk
+  // to the same Unkey namespace and would each wait out the same timeout.
+  const cost = upstreamLookupCost(params);
+  if (cost > 0 && unkeyReachable) {
+    // In order, so a render the burst cap turns away is not charged to the
+    // day's budget as well. One skipped bucket means the next would fail
+    // the same way, so stop there and fail open.
+    for (const bucket of OG_UPSTREAM_BUCKETS) {
+      const budget = await checkEdgeRateLimit({ ...bucket, cost });
+      if (budget.status === 'limited') {
+        return rateLimitedResponse(request, params.route, budget, 'global');
+      }
+      if (budget.status === 'skipped') break;
     }
   }
 
@@ -1180,6 +1256,20 @@ export default async function handler(request: Request): Promise<Response> {
       headers: { 'Cache-Control': NO_STORE },
     });
   }
+}
+
+/**
+ * The most upstream catalogue calls `renderCard` can make for `params`,
+ * mirroring its branches: one per film or developer lookup, plus up to
+ * `MAX_COMBINATION_PAGES` for a recipe card. Zero for every card drawn from
+ * the params alone.
+ */
+export function upstreamLookupCost(params: OgParams): number {
+  const { route, film, developer, recipe } = params;
+  if (route === '/films') return film ? 1 : 0;
+  if (route !== '/development') return 0;
+  if (film && developer) return recipe ? 2 + MAX_COMBINATION_PAGES : 2;
+  return film || developer ? 1 : 0;
 }
 
 async function renderCard(params: OgParams): Promise<Response> {

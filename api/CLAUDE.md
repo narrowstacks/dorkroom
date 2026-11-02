@@ -44,6 +44,27 @@ Everything else:
   request other than a bare static card (`?route=<known page>`) is limited per
   IP through `utils/edgeRateLimit.ts`. Over the limit it answers a `no-store`
   307 to the static card rather than a 429, so crawlers still get an image.
+  Its film, developer and combination lookups go through
+  `utils/internalDataSource.ts`: straight to the Supabase Edge Functions with
+  the proxy's own credentials when `SUPABASE_ENDPOINT`,
+  `SUPABASE_MASTER_API_KEY` and `SUPABASE_PROXY_SECRET` are all set, else
+  through the public `/api/*` (local dev). Going through the public API would
+  key the anonymous limit on the function's egress IP and share one 30/min
+  budget among every render (#443). The choice rests on env vars only, never
+  on a request header, so a caller cannot opt in. In its place, every render
+  that looks anything up is charged its worst-case call count (`upstreamLookupCost`:
+  1 per film or developer, plus `MAX_COMBINATION_PAGES` for a recipe) against
+  two global buckets after the per-IP check, as Unkey `cost`: `og-upstream`,
+  a 1200/min burst cap (`OG_UPSTREAM_RATE_LIMIT`), then `og-upstream-day`,
+  10000 a day (`OG_UPSTREAM_DAILY_LIMIT`), both in `utils/rateLimitPolicy.ts`.
+  The daily number assumes the Supabase **Free** plan (about 500k Edge
+  Function invocations a month, and a project over quota can be restricted);
+  revisit it if the plan changes. It bounds OG cards only; the public
+  `/api/*` path has its own global budget (below). Over either bucket, the same
+  `no-store` 307 to the static card, never a slug-only card the CDN would
+  keep for a day, with `Retry-After` but no `X-RateLimit-*` (those report
+  only the caller's own per-IP budget). Like the per-IP check, both fail open
+  if Unkey is down, so the page cap is what still bounds one render then.
 
 Host-based routing lives in `vercel.json`: on `api.dorkroom.art` the bare paths
 (`/films`, `/openapi.json`, `/reference`, …) map onto these handlers, while
@@ -103,8 +124,8 @@ swaps in a test stand-in, and deployed handlers get the real SDK client.
 `docs.ts`, `openapi.ts`, `reference.ts`, `meta.ts`, and `not-found.ts` use the
 envelope alone: they serve static or derived content and need no key. `meta.ts`
 also allows `HEAD`, since some crawlers probe with it. `og.tsx` is edge
-runtime and keeps its own guards (above); it calls `/api/films`,
-`/api/developers`, and `/api/combinations`, which is why it has its own rate
+runtime and keeps its own guards (above); its catalogue lookups can fan out
+to several upstream calls per render, which is why it has its own rate
 limit.
 
 ### Upstream fetches
@@ -155,6 +176,11 @@ All under `/utils`:
   `docs/API.md`, this file, or `packages/api/CLAUDE.md` drift from it
 - `edgeRateLimit.ts` - edge-safe Unkey rate limit over plain `fetch` (no SDK,
   no Node imports), using the anonymous namespace and budget from `rateLimitPolicy.ts`
+- `internalDataSource.ts` - edge-safe target for `og.tsx`'s catalogue
+  lookups: the Edge Function with the proxy credentials (`redirect: 'error'`,
+  so they never follow a redirect), or the public API when those env vars are
+  missing or the endpoint is not a bare `https:` origin. Logs the fallback
+  once per isolate, naming the variables, never their values
 - `queryPatterns.ts` - slug/UUID/ISO/brand/preset patterns shared by `meta.ts` and `og.tsx`
 - `createSupabaseProxy.ts` - the proxy factory described above
 - `queryValidation.ts` - allowlist-based query sanitization
@@ -209,13 +235,28 @@ Two access modes are supported from one Vercel project:
   - No API key required
   - Anonymous rate limiting by client IP (30 req/min)
   - `/api/og` uses the same namespace and budget under a separate `og:<ip>`
-    identifier, and fails open if Unkey is unreachable
+    identifier, plus global `og-upstream` (per minute) and `og-upstream-day`
+    budgets for its catalogue lookups,
+    and fails open if Unkey is unreachable
 
 When Unkey is not configured (`UNKEY_ROOT_KEY` missing), anonymous rate limiting is skipped with warning logs for local development.
 
+Unkey outages (`utils/withHandler.ts`): the SDK client has a 3000 ms timeout
+(`UNKEY_CLIENT_TIMEOUT_MS`), and every rate limit check runs with a 1500 ms
+timeout and no retries (`RATE_LIMIT_REQUEST_OPTIONS`). The per-IP, per-client
+and global budget checks fail open when Unkey is unreachable or times out
+(logged, no key material), since a limiter outage must not take the site's
+data down. Key verification fails closed with a `500` instead, in a single
+attempt with no retries (`VERIFY_KEY_REQUEST_OPTIONS`), so an unverified key is
+never let through and the caller gets a fast answer. A per-IP check that was
+skipped (failed open, or Unkey not configured) also skips the global upstream
+budget below, which would only wait out the same timeout.
+
 ## Required Environment Variables
 
-Supabase proxy handlers (`films`, `developers`, `combinations`, `stats`):
+Supabase proxy handlers (`films`, `developers`, `combinations`, `stats`),
+and `og.tsx`'s catalogue lookups (which fall back to the public API without
+them, rather than failing):
 
 - `SUPABASE_MASTER_API_KEY` - Supabase secret API key (`sb_secret_...`) used as the `Bearer` token when calling Edge Functions
 - `SUPABASE_ENDPOINT` - Project URL, e.g. `https://<ref>.supabase.co`
@@ -238,6 +279,60 @@ Operational note:
   runtime fails closed (500) if a namespace is missing and the key lacks
   `create_namespace`, so bootstrap both before deploying.
 - This command uses `UNKEY_ROOT_KEY` (runtime key), not `UNKEY_ADMIN_ROOT_KEY`.
+
+### Global anonymous upstream budget
+
+The per-IP limit bounds one caller, not the total, so anonymous
+`dorkroom.art/api/*` requests to the Supabase proxies **with a query string**
+also draw on two global buckets in the anonymous namespace (#598):
+`api-upstream`, a burst cap of 60 req/min (`ANONYMOUS_UPSTREAM_RATE_LIMIT`),
+then `api-upstream-day`, a cap of 2000 req/day
+(`ANONYMOUS_UPSTREAM_DAILY_LIMIT`). Each charged request costs 1. The sizing
+arithmetic against the Supabase Free plan quota sits beside the constants in
+`utils/rateLimitPolicy.ts`; check real origin call counts in Vercel
+observability before changing them.
+
+`og.tsx`'s catalogue lookups are off this path: it calls the Supabase Edge
+Functions directly (`utils/internalDataSource.ts`, #443), under its own OG
+budget. Only its fallback, used when the Supabase env vars are missing (local
+dev, a preview without them), requests filtered `/api/films`,
+`/api/developers` or `/api/combinations` URLs and is charged here.
+
+- Canonical paths first (`HandlerConfig.canonicalPath`, `/api/<name>`): on
+  the website host, a raw `req.url` path that is not byte for byte the
+  canonical one (case, percent-encoding, trailing slash, `.ts`) gets a `308`
+  to it, query passed through untouched, with
+  `public, max-age=0, s-maxage=86400`. It runs before the per-IP limiter: no
+  Unkey or Supabase call, a cheap invocation, and the CDN caches it per
+  variant. The query is never rewritten or redirected on: Vercel normalises
+  query encoding before `req.url` and the cache key, so rewriting it looped
+  (`?query=tri%20x` to `+` to itself). The app's own bare requests are
+  already canonical; keyed `api.dorkroom.art` traffic is never redirected
+- Then every request the CDN cannot absorb is charged: any query string
+  (raw `req.url`, so `?junk=<x>`, which the proxy drops, still counts), or an
+  `Authorization` or `Range` header (Vercel's CDN never caches those). A bare
+  canonical URL without them is one CDN cache key per resource, so the CDN
+  bounds it, and it is what the app itself fetches: exhausting the budget can
+  never take the site's own data down
+- Opt-in per handler (`HandlerConfig.upstreamBudget`): `createSupabaseProxy`
+  sets it; `filmdev.ts` (no Supabase call) does not
+- Checked after the per-IP limit, so a request that limit rejects is never
+  charged and one noisy IP cannot spend the shared budget
+- Keyed `api.dorkroom.art` traffic is never charged, so anonymous abuse cannot
+  starve API-key holders
+- Over budget: `503` with `Retry-After` and `Cache-Control: no-store`, and no
+  `X-RateLimit-*`: the per-IP check passed (and sends none on success) and
+  the global buckets are never exposed. Filtered requests stay refused until the
+  bucket frees up, which for the daily one can take hours
+- Fails open on any Unkey failure, like the OG limiter
+- A passing anonymous response carries no `X-RateLimit-*` (it is CDN-cached
+  and shared, so the headers would show later visitors the first caller's
+  budget); anonymous 429s and keyed responses (no-store) keep them
+- Fails open on any Unkey failure, like the OG limiter, and is not checked at
+  all when the per-IP check before it was skipped
+- Proxy responses carry `stale-if-error=86400`, so the CDN keeps serving the
+  last good copy for a day if the origin fails (Vercel documents it for 500s,
+  network and DNS errors; whether a 502 or 503 qualifies is unconfirmed)
 
 ## Testing
 
