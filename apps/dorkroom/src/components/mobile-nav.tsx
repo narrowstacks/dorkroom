@@ -42,7 +42,7 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
 
   // Focus returns to the toggle on close even when the tap that opened the
   // menu never focused it (iOS Safari does not focus tapped buttons). Layout
-  // effect so focus leaves the close button before its nav turns aria-hidden.
+  // effect so focus leaves the close button before its nav turns inert.
   useLayoutEffect(() => {
     if (wasOpenRef.current && !isMobileMenuOpen) {
       toggleButtonRef.current?.focus();
@@ -155,7 +155,9 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
             // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a native <dialog> is display:none when closed and breaks the slide transition; role="dialog" is required so aria-modal is valid here
             // eslint-disable-next-line react-doctor/prefer-html-dialog, react-doctor/prefer-tag-over-role -- native <dialog> is display:none when closed, which breaks the slide-in transition; this is an intentional custom modal
             role="dialog"
-            aria-hidden={!isMobileMenuOpen}
+            // inert (not just aria-hidden) while it slides out: the links leave
+            // the tab order and the a11y tree at once, and it implies hidden (#603).
+            inert={!isMobileMenuOpen}
             aria-modal={isMobileMenuOpen || undefined}
             aria-label="Navigation menu"
           >
