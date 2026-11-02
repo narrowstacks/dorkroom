@@ -30,6 +30,7 @@
       ],
       "outputs": ["dist/**"],
       "env": [
+        "VERCEL",
         "SUPABASE_MASTER_API_KEY",
         "SUPABASE_ENDPOINT",
         "UNKEY_ROOT_KEY",
@@ -47,7 +48,8 @@
     "dev": {
       "cache": false,
       "persistent": true,
-      "env": ["PORT"]
+      "env": ["PORT"],
+      "passThroughEnv": ["MFE_APP_PORT", "MFE_DEBUG"]
     },
     "test": {
       "dependsOn": ["^build"]
@@ -100,6 +102,7 @@
         "tools/__tests__/**",
         "vitest.config.ts",
         "PRIVACY.md",
+        "vercel.json",
         "utils/routeMetadata.ts",
         "apps/dorkroom/src/app/lib/analytics/tracked-events.ts",
         "apps/dorkroom/src/app/pages/privacy-page.tsx",

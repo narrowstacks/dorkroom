@@ -12,7 +12,7 @@ import { useMemo } from 'react';
 import type { FieldApi } from '../../forms/utils/form-api-types';
 import { CalculatorCard } from '../calculator/calculator-card';
 import { LabeledSliderInput } from '../labeled-slider-input';
-import { StatusAlert } from '../status-alert';
+import { LiveStatusAlert } from '../status-alert';
 import { ToggleSwitch } from '../toggle-switch';
 import { useBorderCalculator } from './border-calculator-context';
 
@@ -109,7 +109,7 @@ export function BordersOffsetsSection() {
 
         {enableOffset && (
           <div
-            className="space-y-3 rounded-xl p-3 border"
+            className="flex flex-col gap-3 rounded-xl p-3 border"
             style={{
               borderColor: 'var(--color-border-secondary)',
               backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
@@ -178,9 +178,7 @@ export function BordersOffsetsSection() {
               </form.Field>
             </div>
 
-            {offsetWarning && (
-              <StatusAlert message={offsetWarning} action="warning" />
-            )}
+            <LiveStatusAlert message={offsetWarning} action="warning" />
           </div>
         )}
       </div>

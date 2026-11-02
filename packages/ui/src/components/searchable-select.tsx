@@ -1,5 +1,5 @@
 import type { SelectItem } from '@dorkroom/logic';
-import { ChevronDown, X } from 'lucide-react';
+import { Check, ChevronDown, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { cn } from '../lib/cn';
 import { cssVars } from '../lib/dom';
@@ -12,6 +12,60 @@ interface SearchableSelectProps {
   placeholder?: string;
   className?: string;
   allowClear?: boolean;
+}
+
+interface SearchableSelectOptionProps {
+  id: string;
+  item: SelectItem;
+  isFocused: boolean;
+  isSelected: boolean;
+  /** Called with the pointer type of the press that led to the click ('' if none). */
+  onSelect: (pointerType: string) => void;
+  lastPointerType: React.RefObject<string>;
+}
+
+function SearchableSelectOption({
+  id,
+  item,
+  isFocused,
+  isSelected,
+  onSelect,
+  lastPointerType,
+}: SearchableSelectOptionProps) {
+  return (
+    // oxlint-disable-next-line jsx-a11y/click-events-have-key-events -- keyboard selection happens on the combobox input (Enter)
+    <div
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- combobox option pattern; native <option> cannot host custom filtered markup
+      // eslint-disable-next-line react-doctor/prefer-tag-over-role -- combobox option pattern; native <option> cannot host custom filtered markup
+      role="option"
+      id={id}
+      aria-selected={isSelected}
+      onClick={() => {
+        const pointerType = lastPointerType.current;
+        lastPointerType.current = '';
+        onSelect(pointerType);
+      }}
+      // Options are driven by the input via aria-activedescendant, never
+      // focused, so there is no key handler to add.
+      tabIndex={-1}
+      className={cn(
+        'flex cursor-pointer items-center justify-between gap-2 px-3 py-2 text-sm transition-colors',
+        // Hover, focus and selection share one surface pair. The monochrome
+        // themes collapse the border and text tokens to one value (darkroom:
+        // surface and hover-surface are both black), so colour alone can't
+        // mark a row. Focus is an inset ring and selection is a check icon,
+        // both drawn from theme tokens (guarded by hover-contrast.test.ts).
+        isFocused || isSelected
+          ? 'bg-hover-surface text-on-hover-surface'
+          : 'text-secondary hover:bg-hover-surface hover:text-on-hover-surface',
+        isFocused && 'shadow-[inset_0_0_0_2px_var(--color-on-hover-surface)]',
+        isSelected ? 'font-medium' : 'font-normal'
+      )}
+    >
+      <span>{item.label}</span>
+      {isSelected && <Check className="size-4 shrink-0" aria-hidden="true" />}
+    </div>
+  );
 }
 
 export function SearchableSelect({
@@ -28,8 +82,11 @@ export function SearchableSelect({
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [focused, setFocused] = useState(false);
   const id = useId();
+  const listboxId = `${id}-listbox`;
+  const optionId = (index: number) => `${id}-option-${index}`;
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const lastPointerType = useRef('');
 
   // Find the selected item to display its label
   const selectedItem = items.find((item) => item.value === selectedValue);
@@ -125,7 +182,6 @@ export function SearchableSelect({
         setIsOpen(false);
         setSearchTerm('');
         setFocusedIndex(-1);
-        inputRef.current?.blur();
         break;
     }
   };
@@ -139,7 +195,7 @@ export function SearchableSelect({
     const focusedElement = listRef.current?.children[focusedIndex];
     // eslint-disable-next-line react-doctor/no-event-handler -- the focused option element only exists after the listbox mounts (post-commit), so scrollIntoView can't run in the keydown handler that sets focusedIndex
     if (focusedIndex >= 0 && focusedElement instanceof HTMLElement) {
-      focusedElement.scrollIntoView({ block: 'start' });
+      focusedElement.scrollIntoView({ block: 'nearest' });
     }
   }, [focusedIndex]);
 
@@ -160,6 +216,20 @@ export function SearchableSelect({
           id={id}
           ref={inputRef}
           type="text"
+          // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- WAI-ARIA combobox pattern: a filterable text input that owns a listbox; <datalist> cannot style or announce options
+          // eslint-disable-next-line react-doctor/prefer-tag-over-role -- WAI-ARIA combobox pattern: a filterable text input that owns a listbox; <datalist> cannot style or announce options
+          role="combobox"
+          aria-expanded={isOpen && filteredItems.length > 0}
+          aria-controls={
+            isOpen && filteredItems.length > 0 ? listboxId : undefined
+          }
+          aria-haspopup="listbox"
+          aria-autocomplete="list"
+          aria-activedescendant={
+            isOpen && focusedIndex >= 0 && focusedIndex < filteredItems.length
+              ? optionId(focusedIndex)
+              : undefined
+          }
           value={isOpen ? searchTerm : displayValue}
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={(_e) => {
@@ -171,6 +241,11 @@ export function SearchableSelect({
             handleInputBlur();
           }}
           onKeyDown={handleKeyDown}
+          // The input keeps focus after a selection, so a click on it has to
+          // reopen the list; focus alone no longer does.
+          onClick={() => {
+            if (!isOpen) openAndFocusSelected();
+          }}
           placeholder={selectedValue ? displayValue : placeholder}
           aria-label={label ?? placeholder}
           className="w-full rounded-lg border px-3 py-2 pr-16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
@@ -203,9 +278,38 @@ export function SearchableSelect({
           />
         </div>
 
-        {isOpen && (
+        {/* Always mounted so the text change is announced; a live region
+            inserted together with its content is often skipped. */}
+        <output aria-live="polite" aria-atomic="true" className="sr-only">
+          {isOpen && filteredItems.length === 0 ? 'No results found' : ''}
+        </output>
+
+        {isOpen && filteredItems.length === 0 && (
+          <div
+            aria-hidden="true"
+            className="absolute left-0 top-full z-[100] mt-1 block w-full rounded-lg border px-3 py-2 text-sm backdrop-blur-sm"
+            style={{
+              borderColor: 'var(--color-border-secondary)',
+              backgroundColor: 'var(--color-surface)',
+              color: 'var(--color-text-muted)',
+            }}
+          >
+            No results found
+          </div>
+        )}
+
+        {isOpen && filteredItems.length > 0 && (
           <div
             ref={listRef}
+            id={listboxId}
+            // Not a tab stop; oxlint requires a focusable listbox role.
+            tabIndex={-1}
+            // Keep DOM focus on the input while the pointer is on the list
+            // (scrollbar drags, option clicks); the options are never focused.
+            onMouseDown={(e) => e.preventDefault()}
+            onPointerDown={(e) => {
+              lastPointerType.current = e.pointerType;
+            }}
             // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- combobox listbox pattern; a native <select>/<datalist> cannot provide the type-to-filter UX
             // eslint-disable-next-line react-doctor/prefer-tag-over-role -- combobox listbox pattern; <datalist> cannot provide the type-to-filter UX or custom option markup
             role="listbox"
@@ -216,46 +320,24 @@ export function SearchableSelect({
               backgroundColor: 'var(--color-surface)',
             }}
           >
-            {filteredItems.length === 0 ? (
-              <div
-                className="px-3 py-2 text-sm"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
-                No results found
-              </div>
-            ) : (
-              filteredItems.map((item, index) => (
-                <div
-                  key={item.value}
-                  // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- combobox option pattern; native <option> cannot host custom filtered markup
-                  // eslint-disable-next-line react-doctor/prefer-tag-over-role -- combobox option pattern; native <option> cannot host custom filtered markup
-                  role="option"
-                  aria-selected={item.value === selectedValue}
-                  onClick={() => handleSelectItem(item)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleSelectItem(item);
-                    }
-                  }}
-                  tabIndex={index === focusedIndex ? 0 : -1}
-                  className={cn(
-                    'cursor-pointer px-3 py-2 text-sm transition-colors',
-                    // Hover, focus and selection share one surface pair. The
-                    // monochrome themes collapse the border and text tokens to
-                    // one value, so these per-theme tokens (guarded by
-                    // hover-contrast.test.ts) keep the label readable. Colour
-                    // lives in classes, not inline style, so `hover:` can win.
-                    index === focusedIndex || item.value === selectedValue
-                      ? 'bg-hover-surface text-on-hover-surface'
-                      : 'text-secondary hover:bg-hover-surface hover:text-on-hover-surface',
-                    item.value === selectedValue ? 'font-medium' : 'font-normal'
-                  )}
-                >
-                  {item.label}
-                </div>
-              ))
-            )}
+            {filteredItems.map((item, index) => (
+              <SearchableSelectOption
+                key={item.value}
+                id={optionId(index)}
+                item={item}
+                isFocused={index === focusedIndex}
+                isSelected={item.value === selectedValue}
+                onSelect={(pointerType) => {
+                  handleSelectItem(item);
+                  // Touch and pen users get the keyboard dismissed after a
+                  // pick; mouse and keyboard keep focus on the input (APG).
+                  if (pointerType !== '' && pointerType !== 'mouse') {
+                    inputRef.current?.blur();
+                  }
+                }}
+                lastPointerType={lastPointerType}
+              />
+            ))}
           </div>
         )}
       </div>

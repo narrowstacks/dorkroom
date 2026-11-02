@@ -8,7 +8,7 @@ import {
   Tooltip,
 } from '@dorkroom/ui';
 import {
-  createRootRoute,
+  createRootRouteWithContext,
   HeadContent,
   Link,
   Outlet,
@@ -19,6 +19,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Beaker, GitBranch, Home, Newspaper, Settings } from 'lucide-react';
 import { useEffect } from 'react';
 import { usePreferenceAnalytics } from '../app/lib/analytics/use-preference-analytics';
+import type { RouterContext } from '../app/lib/router-context';
 import { MobileNav } from '../components/mobile-nav';
 import { NavSearchButton, useNavSearch } from '../components/search/nav-search';
 
@@ -227,6 +228,6 @@ function RootComponent() {
   );
 }
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootComponent,
 });
