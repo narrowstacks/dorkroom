@@ -1,6 +1,6 @@
 import type { Film } from '@dorkroom/api';
 import type { UseFilmDatabaseReturn } from '@dorkroom/logic';
-import { isLegacyBrowser, type VirtualListFocusHandle } from '@dorkroom/ui';
+import { isEInkDevice, type VirtualListFocusHandle } from '@dorkroom/ui';
 import { VirtualizedErrorBoundary } from '@dorkroom/ui/development-recipes';
 import {
   FilmDetailPanel,
@@ -8,7 +8,7 @@ import {
   FilmFiltersMobile,
   FilmFiltersPanel,
   FilmImageLoaderContext,
-  FilmImagesEnabledContext,
+  FilmImageModeContext,
   FilmResultsVirtualized,
 } from '@dorkroom/ui/films';
 import { useRef } from 'react';
@@ -23,11 +23,11 @@ import { useShareLink } from '../../lib/use-share-link';
 const filmImageLoader = __VERCEL__ ? vercelFilmImageLoader : null;
 
 /**
- * No film photos on low-memory legacy browsers such as the Kindle (#636):
- * thumbnails were most of this page's transfer and decoded-image memory
- * there. Cards and the detail panel show the film icon instead.
+ * On e-ink devices such as the Kindle Scribe (#636), cards show the film icon
+ * instead of a thumbnail: each one costs memory and a slow e-ink refresh. The
+ * photo of a film the user opens still loads, to identify the packaging.
  */
-const filmImagesEnabled = !isLegacyBrowser();
+const filmImageMode = isEInkDevice() ? 'detail-only' : 'all';
 
 interface FilmsPageBodyProps {
   db: UseFilmDatabaseReturn;
@@ -101,7 +101,7 @@ export function FilmsPageBody({
   return (
     // Resized thumbnails for every FilmImage below (cards and detail panel).
     <FilmImageLoaderContext value={filmImageLoader}>
-      <FilmImagesEnabledContext value={filmImagesEnabled}>
+      <FilmImageModeContext value={filmImageMode}>
         <div className={isMobile ? 'space-y-4' : 'mt-6 flex gap-6'}>
           {isMobile ? (
             <FilmFiltersMobile
@@ -154,7 +154,7 @@ export function FilmsPageBody({
           )}
           {manualCopyDialog}
         </div>
-      </FilmImagesEnabledContext>
+      </FilmImageModeContext>
     </FilmImageLoaderContext>
   );
 }

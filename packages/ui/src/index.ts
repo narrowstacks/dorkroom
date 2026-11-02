@@ -160,4 +160,4 @@ export {
 } from './lib/navigation';
 export { optionChangeHandler } from './lib/select-options';
 export type { Theme } from './lib/themes';
-export { resolveTheme } from './lib/themes';
+export { isEInkDevice, resolveTheme } from './lib/themes';

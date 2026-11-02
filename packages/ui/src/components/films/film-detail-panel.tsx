@@ -5,7 +5,7 @@ import { DetailPanel } from '../detail-panel/detail-panel';
 import { Tag } from '../ui/tag';
 import { FilmImage } from './film-image';
 import { FilmImageCredit } from './film-image-credit';
-import { FilmImagesEnabledContext } from './film-images-enabled-context';
+import { FilmImageModeContext } from './film-image-mode-context';
 import { FilmRebrandInfo } from './film-rebrand-info';
 
 /**
@@ -82,8 +82,11 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
   onShare,
   returnFocus,
 }) => {
-  // No image, so no credit for it, on low-memory legacy browsers (#636).
-  const imagesEnabled = use(FilmImagesEnabledContext);
+  // The opened film's photo loads unless photos are off entirely (#636).
+  const photoUrl =
+    use(FilmImageModeContext) === 'none'
+      ? null
+      : (film?.staticImageUrl ?? null);
   if (!film) {
     return null;
   }
@@ -125,14 +128,14 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
             viewport the moment the panel opens, so lazy-loading it would
             only delay a paint the user is about to see anyway. */}
         <FilmImage
-          src={film.staticImageUrl}
+          src={photoUrl}
           alt={`${film.brand} ${film.name}`}
           size="lg"
           loading="eager"
           renderedSize={224}
           className="!w-48 !h-48 md:!w-56 md:!h-56"
         />
-        {imagesEnabled && film.staticImageUrl && (
+        {photoUrl && (
           <FilmImageCredit
             credit={film.imageCredit}
             sourceUrl={film.imageSourceUrl}
@@ -315,7 +318,8 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
   developmentRecipesUrl,
   shareButton,
 }) => {
-  const imagesEnabled = use(FilmImagesEnabledContext);
+  const photoUrl =
+    use(FilmImageModeContext) === 'none' ? null : film.staticImageUrl;
   return (
     <div className="space-y-6">
       {/* Film image */}
@@ -324,14 +328,14 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
             the panel opens (not virtualized, not off-screen), so lazy would
             just delay a paint the user is about to see anyway. */}
         <FilmImage
-          src={film.staticImageUrl}
+          src={photoUrl}
           alt={`${film.brand} ${film.name}`}
           size="lg"
           loading="eager"
           renderedSize={128}
           className="!w-32 !h-32"
         />
-        {imagesEnabled && film.staticImageUrl && (
+        {photoUrl && (
           <FilmImageCredit
             credit={film.imageCredit}
             sourceUrl={film.imageSourceUrl}
