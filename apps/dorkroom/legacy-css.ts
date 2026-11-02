@@ -218,7 +218,8 @@ export function gateModernAssets(
   }
   // Walk the block of tags from the entry on, one known tag at a time.
   const tags: string[] = [];
-  const hrefs: { sheet?: string; preloads: number } = { preloads: 0 };
+  let sheet: string | undefined;
+  let preloads = 0;
   let pos = start;
   let end = start;
   for (;;) {
@@ -232,20 +233,20 @@ export function gateModernAssets(
     const closeAt = html.indexOf(close, pos + open.length);
     const url = closeAt < 0 ? '' : html.slice(pos + open.length, closeAt);
     if (!url || url.includes('"') || url.includes('>')) break;
-    if (open === SHEET_OPEN) hrefs.sheet = url;
-    if (open === PRELOAD_OPEN) hrefs.preloads++;
+    if (open === SHEET_OPEN) sheet = url;
+    if (open === PRELOAD_OPEN) preloads++;
     pos = closeAt + close.length;
     end = pos;
     tags.push(html.slice(tagStart, end));
   }
   const preloadCount = occurrences(html, 'rel="modulepreload"');
-  if (hrefs.sheet === undefined || hrefs.preloads !== preloadCount) {
+  if (sheet === undefined || preloads !== preloadCount) {
     throw new Error(
       `the modern tags are not contiguous; between them: ` +
         html.slice(pos, pos + 80).trim()
     );
   }
-  if (hrefs.sheet !== cssHref) {
+  if (sheet !== cssHref) {
     throw new Error(`the stylesheet is not ${cssHref}`);
   }
   return (
