@@ -1,9 +1,10 @@
 import type { Film } from '@dorkroom/api';
-import { type FC, memo } from 'react';
+import { type FC, memo, use } from 'react';
 import { cn } from '../../lib/cn';
 import { cssVars } from '../../lib/dom';
 import { Tag } from '../ui/tag';
 import { FilmImage } from './film-image';
+import { FilmImageModeContext } from './film-image-mode-context';
 
 interface FilmCardProps {
   film: Film;
@@ -21,6 +22,8 @@ const FilmCardComponent: FC<FilmCardProps> = ({
   className,
   itemKey,
 }) => {
+  // Only `'all'` loads card thumbnails; otherwise the film icon shows (#636).
+  const showPhoto = use(FilmImageModeContext) === 'all';
   const tagsContent = (
     <>
       <Tag>{film.colorType}</Tag>
@@ -66,7 +69,7 @@ const FilmCardComponent: FC<FilmCardProps> = ({
       <div className="relative z-10">
         <div className="flex gap-3 items-start">
           <FilmImage
-            src={film.staticImageUrl}
+            src={showPhoto ? film.staticImageUrl : null}
             alt={`${film.brand} ${film.name}`}
             size="md"
           />
