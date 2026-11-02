@@ -196,3 +196,36 @@ describe('SearchableSelect ARIA wiring', () => {
     expect(input).toHaveFocus();
   });
 });
+
+describe('SearchableSelect open-list marker (#629)', () => {
+  beforeAll(() => {
+    Element.prototype.scrollIntoView = vi.fn();
+  });
+
+  it('marks <html> while the list is open and clears it on close', async () => {
+    const user = userEvent.setup();
+    const { input } = setup();
+    expect(document.documentElement).not.toHaveAttribute('data-listbox-open');
+    await user.click(input);
+    expect(document.documentElement).toHaveAttribute('data-listbox-open');
+    await user.keyboard('{Escape}');
+    expect(document.documentElement).not.toHaveAttribute('data-listbox-open');
+  });
+
+  it('clears the marker when unmounted while open', async () => {
+    const user = userEvent.setup();
+    const onValueChange = vi.fn();
+    const { unmount } = render(
+      <SearchableSelect
+        label="Film"
+        selectedValue="b"
+        onValueChange={onValueChange}
+        items={items}
+      />
+    );
+    await user.click(screen.getByRole('combobox'));
+    expect(document.documentElement).toHaveAttribute('data-listbox-open');
+    unmount();
+    expect(document.documentElement).not.toHaveAttribute('data-listbox-open');
+  });
+});
