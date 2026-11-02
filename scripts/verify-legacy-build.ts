@@ -35,6 +35,7 @@ import {
   classicInlineScripts,
   es5SyntaxProblem,
 } from '../apps/dorkroom/es5-syntax';
+import { legacyCssProblem } from '../apps/dorkroom/legacy-css';
 import { CaptureView } from './webview-capture';
 
 const root = join(dirname(import.meta.url), '..');
@@ -264,8 +265,40 @@ async function checkLegacyOutputIsEs5(): Promise<void> {
   );
 }
 
+/**
+ * The Chromium 80 fallback stylesheet (Kindle Silk) must exist, be free of
+ * `@layer` and `color-mix()`, and be wired into index.html through the classic
+ * inline script that swaps it in. The build's `legacy-css` plugin enforces the
+ * same; this checks the files on disk.
+ */
+async function checkLegacyCss(): Promise<void> {
+  const assetsDir = join(distDir, 'assets');
+  const files = (await readdir(assetsDir)).filter((f) =>
+    /-legacy-[^/]*\.css$/.test(f)
+  );
+  check(
+    'legacy css: one fallback stylesheet',
+    files.length === 1,
+    files.join(', ')
+  );
+  const [file] = files;
+  if (!file) return;
+  const problem = legacyCssProblem(
+    await readFile(join(assetsDir, file), 'utf8')
+  );
+  check('legacy css: no @layer or color-mix()', !problem, problem ?? 'clean');
+  const html = await readFile(join(distDir, 'index.html'), 'utf8');
+  check(
+    'legacy css: index.html swaps it in from a classic inline script',
+    classicInlineScripts(html).some(
+      (body) => body.includes('CSSLayerBlockRule') && body.includes(file)
+    )
+  );
+}
+
 async function run(): Promise<void> {
   await checkLegacyOutputIsEs5();
+  await checkLegacyCss();
   await checkLegacyChunksHaveNoPropertyEscapes();
 
   // ---- 1. MODERN PATH ------------------------------------------------------
@@ -296,6 +329,12 @@ async function run(): Promise<void> {
         anyLegacy.length
           ? anyLegacy.map((u) => u.split('/').pop()).join(', ')
           : 'none'
+      );
+      const legacyCss = requests.filter((u) => /-legacy-[^/]*\.css$/.test(u));
+      check(
+        'modern: does NOT request the legacy stylesheet',
+        legacyCss.length === 0,
+        legacyCss.join(', ') || 'none'
       );
       const missing = notFound.filter((u) => !u.startsWith('/_vercel/'));
       check('modern: no 404s', missing.length === 0, missing.join(', '));

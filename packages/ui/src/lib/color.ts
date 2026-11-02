@@ -17,7 +17,10 @@ export const supportsColorMix: boolean = detectColorMix();
  * - baseVar: a CSS color or variable e.g. 'var(--color-semantic-info)'
  * - percentage: number 0..100 indicating the first color weight
  * - other: second color (defaults to 'transparent')
- * - fallback: color to use when color-mix isn't supported (defaults to baseVar)
+ * - fallback: color to use when color-mix isn't supported (defaults to baseVar).
+ *   For a faint tint over transparent, pass 'transparent': the muted border
+ *   token is solid black in the high-contrast theme, which Kindle Silk
+ *   (Chromium 80, no color-mix) uses by default (issue #49).
  */
 export function colorMixOr(
   baseVar: string,

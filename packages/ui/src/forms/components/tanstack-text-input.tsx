@@ -106,7 +106,7 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
               'var(--color-semantic-error)',
               10,
               'transparent',
-              'var(--color-border-muted)'
+              'transparent'
             ),
             color: colorMixOr(
               'var(--color-semantic-error)',

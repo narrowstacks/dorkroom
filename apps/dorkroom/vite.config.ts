@@ -10,6 +10,12 @@ import legacy from '@vitejs/plugin-legacy';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
 import { classicInlineScripts, es5SyntaxProblem } from './es5-syntax';
+import {
+  buildLegacyCss,
+  legacyCssFileName,
+  legacyCssLoader,
+  legacyCssProblem,
+} from './legacy-css';
 
 /** Single source of truth for the `legacy()` plugin and `lowerToEs5`. */
 const LEGACY_TARGETS = ['ie >= 11', 'safari >= 5'];
@@ -127,6 +133,83 @@ function legacyEs5Plugin(): Plugin {
               `issue #49) cannot parse them:\n  ${problems.join('\n  ')}`
           );
         }
+      },
+    },
+  };
+}
+
+/** Emits a Chromium 80 copy of the app stylesheet and the inline script that
+ *  swaps it in for browsers without cascade layers (issue #49). Kindle Silk
+ *  (Chromium 80) runs the legacy JS bundle, but Tailwind 4's CSS needs
+ *  Chrome 111+: `@layer` blocks are dropped before Chrome 99, and
+ *  `color-mix()` needs 111, so the page renders mostly unstyled. See
+ *  legacy-css.ts for the rewrite. Fails the build if the copy still has
+ *  `@layer` or `color-mix()`.
+ *
+ *  Modern browsers download nothing new: the script is a ~200-byte check of
+ *  `window.CSSLayerBlockRule` in index.html. It sits right after the
+ *  stylesheet `<link>`, so it waits for that sheet, but nothing that runs
+ *  later is held up: module scripts already wait for pending stylesheets. */
+function legacyCssPlugin(): Plugin {
+  return {
+    name: 'legacy-css',
+    apply: 'build',
+    generateBundle: {
+      order: 'post',
+      async handler(_options, bundle) {
+        const html = Object.values(bundle).find(
+          (output) =>
+            output.type === 'asset' && output.fileName === 'index.html'
+        );
+        if (html?.type !== 'asset') return;
+        const css = Object.values(bundle).filter(
+          (output) =>
+            output.type === 'asset' && output.fileName.endsWith('.css')
+        );
+        // One stylesheet today. A split one (lazy CSS chunks) would load
+        // through JS and skip the swap, so stop rather than ship it half done.
+        if (css.length !== 1 || css[0]?.type !== 'asset') {
+          this.error(
+            `legacy-css expects exactly one CSS asset, found ` +
+              `${css.length}: ${css.map((c) => c.fileName).join(', ')}`
+          );
+        }
+        const modern = css[0];
+        const source = String(modern.source);
+        const { css: legacyCss, report } = await buildLegacyCss(source);
+        const problem = legacyCssProblem(legacyCss);
+        if (problem) {
+          this.error(
+            `The legacy stylesheet ${problem}, so Chromium 80 (Kindle Silk, ` +
+              `issue #49) would drop those rules.`
+          );
+        }
+        for (const dropped of report.dropped) {
+          this.info(`legacy-css: dropped non-static color-mix(): ${dropped}`);
+        }
+        const fileName = legacyCssFileName(modern.fileName, legacyCss);
+        this.emitFile({ type: 'asset', fileName, source: legacyCss });
+
+        let page = String(html.source);
+        const link = page
+          .match(/<link\b[^>]*>/g)
+          ?.find(
+            (tag) =>
+              /\brel="?stylesheet\b/.test(tag) &&
+              tag.includes(`${modern.fileName}"`)
+          );
+        const href = link && /\bhref="([^"]*)"/.exec(link)?.[1];
+        if (!link || !href) {
+          this.error(
+            `legacy-css: no <link> to ${modern.fileName} in index.html`
+          );
+        }
+        const legacyHref = href.replace(modern.fileName, fileName);
+        page = page.replace(
+          link,
+          `${link}\n    <script>${legacyCssLoader(href, legacyHref)}</script>`
+        );
+        html.source = page;
       },
     },
   };
@@ -307,6 +390,7 @@ export default defineConfig(() => ({
       // before app code runs (the usage scan covers the rest).
       additionalLegacyPolyfills: ['regenerator-runtime/runtime'],
     }),
+    legacyCssPlugin(),
     legacyEs5Plugin(),
     fontPreloadPlugin(),
     initialChunkGuardPlugin(),

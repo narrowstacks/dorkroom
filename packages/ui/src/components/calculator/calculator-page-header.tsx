@@ -66,7 +66,9 @@ export function CalculatorPageHeader({
           'var(--color-surface)',
           80,
           'transparent',
-          'var(--color-border-muted)'
+          // Engines without colour mixing (Kindle Silk, issue #49) get the
+          // plain surface colour, the nearest match in every theme.
+          'var(--color-surface)'
         ),
       }}
     >

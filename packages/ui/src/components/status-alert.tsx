@@ -56,13 +56,13 @@ export function StatusAlert({
                 'var(--color-semantic-error)',
                 10,
                 'transparent',
-                'var(--color-border-muted)'
+                'transparent'
               )
             : colorMixOr(
                 'var(--color-semantic-warning)',
                 10,
                 'transparent',
-                'var(--color-border-muted)'
+                'transparent'
               ),
         color:
           action === 'error'

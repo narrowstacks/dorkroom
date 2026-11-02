@@ -26,7 +26,8 @@
         "../../packages/logic/src/**",
         "../../packages/ui/src/**",
         "../../packages/api/src/**",
-        "es5-syntax.ts"
+        "es5-syntax.ts",
+        "legacy-css.ts"
       ],
       "outputs": ["dist/**"],
       "env": [
@@ -118,6 +119,7 @@
         "utils/**",
         "scripts/**",
         "apps/dorkroom/es5-syntax.ts",
+        "apps/dorkroom/legacy-css.ts",
         "README.md",
         "docs/API.md",
         "packages/api/CLAUDE.md",
