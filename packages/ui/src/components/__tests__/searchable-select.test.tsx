@@ -368,14 +368,26 @@ describe('SearchableSelect outside press (#633)', () => {
     expect(onTargetClick).toHaveBeenCalledTimes(1);
   });
 
-  it('does not swallow the click after a scroll gesture (pointercancel)', async () => {
+  it('keeps the list open through a scroll gesture (pointercancel) and swallows nothing', async () => {
     const user = userEvent.setup();
     const { input, card, onTargetClick } = setupWithTarget();
     await user.click(input);
     down(card, 'touch');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
     fireEvent.pointerCancel(card, { pointerType: 'touch' });
+    expect(input).toHaveAttribute('aria-expanded', 'true');
     fireEvent.click(card, { detail: 1 });
     expect(onTargetClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes the list on pointerup, not pointerdown', async () => {
+    const user = userEvent.setup();
+    const { input, card } = setupWithTarget();
+    await user.click(input);
+    down(card, 'touch');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    up(card, 'touch');
+    expect(input).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('ignores non-primary pointers', async () => {
@@ -437,14 +449,28 @@ describe('SearchableSelect outside press (#633)', () => {
       expect(onTargetClick).toHaveBeenCalledTimes(1);
     });
 
-    it('disarms 1.5 s after pointerdown even if pointerup is lost', async () => {
+    it('still swallows after a press held over 1.5 s', async () => {
       const user = userEvent.setup();
       const { input, card, onTargetClick } = setupWithTarget();
       await user.click(input);
       vi.useFakeTimers();
       down(card, 'touch');
       act(() => {
-        vi.advanceTimersByTime(1501);
+        vi.advanceTimersByTime(2000);
+      });
+      up(card, 'touch');
+      expect(fireEvent.click(card, { detail: 1 })).toBe(false);
+      expect(onTargetClick).not.toHaveBeenCalled();
+    });
+
+    it('does not leave a swallow behind when pointerup is lost', async () => {
+      const user = userEvent.setup();
+      const { input, card, onTargetClick } = setupWithTarget();
+      await user.click(input);
+      vi.useFakeTimers();
+      down(card, 'touch');
+      act(() => {
+        vi.advanceTimersByTime(5000);
       });
       fireEvent.click(card, { detail: 1 });
       expect(onTargetClick).toHaveBeenCalledTimes(1);

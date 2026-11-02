@@ -2,21 +2,19 @@ import { type RefObject, useEffect, useRef } from 'react';
 
 /** How long after the releasing pointerup an outside press may still swallow its click. */
 const OUTSIDE_CLICK_WINDOW_MS = 400;
-/** Upper bound on an arm's life, in case pointerup and pointercancel are both lost. */
-const MAX_ARM_MS = 1500;
 
 /**
  * A press outside an open popup closes it (its input blurs), and the click
  * that press produces must not also land on whatever is underneath: on a
  * phone that opened the film or recipe card behind a filter list (#633).
  *
- * While `isOpen`, a primary touch or pen pointerdown outside `rootRef` arms a
- * one-shot swallow of the click that follows, intercepted in the capture phase
- * before React or a dialog backdrop sees it, and calls `onOutsidePress` so the
- * caller can close the popup itself instead of relying on the platform to blur
- * (iOS Safari sometimes does not). It disarms on pointercancel (a scroll or
- * drag never produces a click), on the click itself, on a short timer after
- * pointerup, and at a hard cap after pointerdown. Keyboard and programmatic
+ * While `isOpen`, a primary touch or pen press outside `rootRef` that ends in
+ * pointerup calls `onOutsidePress` (so the caller closes the popup itself
+ * instead of relying on the platform to blur, which iOS Safari sometimes does
+ * not) and swallows the click that follows, intercepted in the capture phase
+ * before React or a dialog backdrop sees it. A scroll or drag ends in
+ * pointercancel instead: nothing closes and nothing is swallowed. The swallow
+ * lasts until that click or 400ms after pointerup. Keyboard and programmatic
  * clicks (`detail === 0`) are never swallowed. Mouse clicks pass through, as in
  * other non-modal comboboxes (APG, React Aria, Headless UI).
  * Focus is not prevented, so pressing another field still focuses it.
@@ -34,26 +32,33 @@ export function useSwallowOutsideClick(
   }, [isOpen, onOutsidePress]);
 
   useEffect(() => {
+    // `pressed`: an outside touch or pen press is in progress. `armed`: its
+    // pointerup has happened, so the click that follows is swallowed until the
+    // timer expires. Arming at pointerup means a lost pointerup can never leave
+    // a stuck swallow, however long the press was held.
+    let pressed = false;
     let armed = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
-    let capTimer: ReturnType<typeof setTimeout> | undefined;
     const isOutside = (e: Event) =>
       !(e.target instanceof Node && rootRef.current?.contains(e.target));
     const disarm = () => {
+      pressed = false;
       armed = false;
       clearTimeout(timer);
-      clearTimeout(capTimer);
     };
     const onDown = (e: PointerEvent) => {
       disarm();
       if (!isOpenRef.current || !isOutside(e)) return;
       if (e.pointerType === 'mouse' || !e.isPrimary || e.button !== 0) return;
-      armed = true;
-      capTimer = setTimeout(disarm, MAX_ARM_MS);
-      onOutsidePressRef.current?.();
+      pressed = true;
     };
     const onUp = () => {
-      if (!armed) return;
+      if (!pressed) return;
+      pressed = false;
+      armed = true;
+      // A scroll ends in pointercancel instead, so the list and keyboard stay
+      // open through a page scroll.
+      onOutsidePressRef.current?.();
       clearTimeout(timer);
       timer = setTimeout(disarm, OUTSIDE_CLICK_WINDOW_MS);
     };
