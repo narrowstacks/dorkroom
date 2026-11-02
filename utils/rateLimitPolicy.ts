@@ -125,6 +125,13 @@ export function normalizeResetMs(reset: number, now = Date.now()): number {
  *  - Free plan: about 500k Edge Function invocations a month, about 16.1k a
  *    day over a 31-day month.
  *  - The OG budget (PR #595) reserves up to 10k a day, 310k a month at most.
+ *    These numbers assume #595 has landed (merge it first): it moves the
+ *    `api/og.tsx` film, developer and combination lookups off
+ *    `dorkroom.art/api/*` to direct Supabase calls, so OG cards are not
+ *    charged here. Only its fallback, used when the Supabase env vars are
+ *    missing (local dev, a preview without them), sends filtered `/api/*`
+ *    requests and is charged. Before #595, those lookups are filtered
+ *    `/api/*` calls and would draw on this budget.
  *  - Query-string traffic: no first-party client sends any, so whatever
  *    arrives is third-party or abuse. 2k a day caps it at 62k a month.
  *  - That leaves about 128k a month (about 4.1k a day) for what these

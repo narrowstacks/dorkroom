@@ -251,6 +251,13 @@ arithmetic against the Supabase Free plan quota sits beside the constants in
 `utils/rateLimitPolicy.ts`; check real origin call counts in Vercel
 observability before changing them.
 
+`og.tsx`'s catalogue lookups are off this path once PR #595 (#443) lands: it
+calls the Supabase Edge Functions directly (`utils/internalDataSource.ts`),
+under its own OG budget. Only its fallback, used when the Supabase env vars
+are missing (local dev, a preview without them), requests filtered
+`/api/films`, `/api/developers` or `/api/combinations` URLs and is charged
+here. This budget assumes #595 merges first.
+
 - Canonical paths first (`HandlerConfig.canonicalPath`, `/api/<name>`): on
   the website host, a raw `req.url` path that is not byte for byte the
   canonical one (case, percent-encoding, trailing slash, `.ts`) gets a `308`
