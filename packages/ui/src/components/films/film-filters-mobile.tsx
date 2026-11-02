@@ -6,6 +6,7 @@ import { cssVars } from '../../lib/dom';
 import { optionChangeHandler } from '../../lib/select-options';
 import { SearchableSelect } from '../searchable-select';
 import { Select } from '../select';
+import { countActiveFilmFilters } from './count-active-film-filters';
 
 /** Static filter options - defined outside component to prevent recreation on each render */
 const FILM_TYPE_OPTIONS: SelectItem[] = [
@@ -70,17 +71,25 @@ export const FilmFiltersMobile: FC<FilmFiltersMobileProps> = ({
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(true);
 
-  // Count active filters
-  const activeFilterCount = [
+  const activeFilterCount = countActiveFilmFilters({
+    searchQuery,
     colorTypeFilter,
     isoSpeedFilter,
     brandFilter,
-    discontinuedFilter !== 'all' ? discontinuedFilter : '',
-  ].filter(Boolean).length;
+    discontinuedFilter,
+  });
 
   return (
+    // z-10, not z-0: the virtualized results grid that follows is made of
+    // absolutely positioned, transformed rows, and each one is its own
+    // stacking context. At z-0 this card shares their layer and loses to them
+    // on DOM order, so an open SearchableSelect list (z-[100], but trapped in
+    // this card's context) rendered behind the film cards (#596).
     <div
-      className={cn('relative z-0 rounded-2xl border shadow-subtle', className)}
+      className={cn(
+        'relative z-10 rounded-2xl border shadow-subtle',
+        className
+      )}
       style={{
         borderColor: 'var(--color-border-secondary)',
         backgroundColor: 'rgba(var(--color-background-rgb), 0.25)',

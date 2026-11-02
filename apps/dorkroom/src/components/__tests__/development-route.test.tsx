@@ -53,6 +53,8 @@ const HP5: Film = {
   reciprocityFailure: null,
   discontinued: false,
   staticImageUrl: null,
+  imageCredit: null,
+  imageSourceUrl: null,
   aliases: [],
   baseFilmSlug: null,
   dateAdded: TIMESTAMP,
@@ -73,6 +75,8 @@ const DDX: Developer = {
   mixingInstructions: null,
   storageRequirements: null,
   safetyNotes: null,
+  imageCredit: null,
+  imageSourceUrl: null,
   notes: null,
   createdAt: TIMESTAMP,
   updatedAt: TIMESTAMP,
@@ -175,7 +179,8 @@ beforeEach(() => {
   localStorage.clear();
   // Desktop width: the detail panel is a region beside the table.
   vi.stubGlobal('matchMedia', (query: string) => ({
-    matches: false,
+    // Desktop: min-width breakpoints hold, the mobile max-width query does not.
+    matches: /\(min-width:\s*\d+px\)/.test(query),
     media: query,
     onchange: null,
     addEventListener: () => undefined,

@@ -6,6 +6,7 @@ import {
   fetchStatsForQuery,
   PUBLIC_API_BASE_URL,
 } from '../../dorkroom/client';
+import { buildQueryString } from '../../dorkroom/query-string';
 import type {
   RawCombination,
   RawDeveloper,
@@ -181,6 +182,8 @@ describe('DorkroomApiClient', () => {
           reciprocity_failure: null,
           discontinued: false,
           static_image_url: null,
+          image_credit: null,
+          image_source_url: null,
           aliases: [],
           base_film_slug: null,
           date_added: '2023-01-01',
@@ -212,6 +215,47 @@ describe('DorkroomApiClient', () => {
         grainStructure: 'fine',
         description: 'Test description',
         discontinued: false,
+      });
+    });
+
+    it('keeps a film with a null description and maps it to an empty string', async () => {
+      // Shape of a row created by the admin batch import (2026-11-02).
+      const importedFilm: RawFilm = {
+        id: 187,
+        uuid: '3b397204-02e6-41d9-9acd-a289c51a258a',
+        slug: 'fuji-neopan-400',
+        brand: 'Fuji',
+        name: 'Neopan 400',
+        color_type: 'bw',
+        iso_speed: 400,
+        grain_structure: null,
+        description: null,
+        manufacturer_notes: null,
+        reciprocity_failure: null,
+        discontinued: true,
+        static_image_url: null,
+        image_credit: null,
+        image_source_url: null,
+        aliases: [],
+        base_film_slug: null,
+        date_added: '2026-11-02T03:20:01.356106',
+        created_at: '2026-11-02T03:20:01.356106',
+        updated_at: '2026-11-02T03:20:01.356106',
+      };
+      const onInvalidRows = vi.fn();
+      client.configure({ onInvalidRows });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [importedFilm] }),
+      });
+
+      const result = await client.fetchFilms();
+
+      expect(onInvalidRows).not.toHaveBeenCalled();
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        slug: 'fuji-neopan-400',
+        description: '',
       });
     });
 
@@ -252,6 +296,54 @@ describe('DorkroomApiClient', () => {
 
       await expect(client.fetchFilms()).rejects.toThrow('Network error');
     });
+
+    it('maps the photo credit and source, and defaults them to null when absent', async () => {
+      const base = {
+        id: 1,
+        uuid: 'u',
+        slug: 'ilford-pan-100',
+        brand: 'Ilford',
+        name: 'Pan 100',
+        color_type: 'bw',
+        iso_speed: 100,
+        grain_structure: null,
+        description: 'd',
+        manufacturer_notes: null,
+        reciprocity_failure: null,
+        discontinued: false,
+        static_image_url: 'https://example.com/pan-100.jpeg',
+        aliases: [],
+        base_film_slug: null,
+        date_added: '2026-11-02',
+        created_at: '2026-11-02',
+        updated_at: '2026-11-02',
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              ...base,
+              image_credit: 'El Grafo, CC BY-SA 4.0 via Wikimedia Commons',
+              image_source_url: 'https://commons.wikimedia.org/wiki/File:X.jpg',
+            },
+            // A response from before the columns existed omits them.
+            { ...base, id: 2, slug: 'older-row' },
+          ],
+        }),
+      });
+
+      const [withCredit, without] = await client.fetchFilms();
+
+      expect(withCredit).toMatchObject({
+        imageCredit: 'El Grafo, CC BY-SA 4.0 via Wikimedia Commons',
+        imageSourceUrl: 'https://commons.wikimedia.org/wiki/File:X.jpg',
+      });
+      expect(without).toMatchObject({
+        imageCredit: null,
+        imageSourceUrl: null,
+      });
+    });
   });
 
   describe('fetchDevelopers', () => {
@@ -273,6 +365,8 @@ describe('DorkroomApiClient', () => {
           mixing_instructions: 'Mix 1 part with 9 parts water',
           storage_requirements: 'Store in cool place',
           safety_notes: 'Wear gloves',
+          image_credit: null,
+          image_source_url: null,
           created_at: '2023-01-01T00:00:00Z',
           updated_at: '2023-01-01T00:00:00Z',
         },
@@ -306,6 +400,44 @@ describe('DorkroomApiClient', () => {
           { id: '2', name: '1+4', dilution: '1+4' },
         ],
         notes: null, // Should be set to null
+      });
+    });
+
+    it('keeps a developer with a null description and maps it to an empty string', async () => {
+      // Shape of a row created by the admin batch import (2026-11-02).
+      const importedDeveloper: RawDeveloper = {
+        id: 30,
+        uuid: '9c8ee08d-96dd-46d6-b2ed-6fa94c1d251d',
+        slug: 'agfa-studional',
+        name: 'Studional',
+        manufacturer: 'Agfa',
+        type: 'concentrate',
+        description: null,
+        film_or_paper: true,
+        dilutions: [{ id: '1', name: '1+15', ratio: '1+15' }],
+        mixing_instructions: null,
+        storage_requirements: null,
+        safety_notes: null,
+        image_credit: null,
+        image_source_url: null,
+        created_at: '2026-11-02T03:33:54.174109',
+        updated_at: '2026-11-02T03:33:54.174109',
+      };
+      const onInvalidRows = vi.fn();
+      client.configure({ onInvalidRows });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [importedDeveloper] }),
+      });
+
+      const result = await client.fetchDevelopers();
+
+      expect(onInvalidRows).not.toHaveBeenCalled();
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        slug: 'agfa-studional',
+        description: '',
+        dilutions: [{ id: '1', name: '1+15', dilution: '1+15' }],
       });
     });
   });
@@ -715,6 +847,8 @@ describe('Data Transformation', () => {
       mixing_instructions: null,
       storage_requirements: null,
       safety_notes: null,
+      image_credit: null,
+      image_source_url: null,
       created_at: '2023-01-01T00:00:00Z',
       updated_at: '2023-01-01T00:00:00Z',
     };
@@ -743,6 +877,8 @@ describe('Data Transformation', () => {
       mixing_instructions: null,
       storage_requirements: null,
       safety_notes: null,
+      image_credit: null,
+      image_source_url: null,
       created_at: '2023-01-01T00:00:00Z',
       updated_at: '2023-01-01T00:00:00Z',
     };
@@ -775,6 +911,8 @@ describe('Data Transformation', () => {
       mixing_instructions: null,
       storage_requirements: null,
       safety_notes: null,
+      image_credit: null,
+      image_source_url: null,
       created_at: '2023-01-01T00:00:00Z',
       updated_at: '2023-01-01T00:00:00Z',
     };
@@ -830,6 +968,8 @@ describe('Film manufacturer_notes parsing', () => {
     reciprocity_failure: null,
     discontinued: false,
     static_image_url: null,
+    image_credit: null,
+    image_source_url: null,
     aliases: [],
     base_film_slug: null,
     date_added: '2023-01-01',
@@ -1065,6 +1205,8 @@ describe('DorkroomApiError contract', () => {
         reciprocity_failure: null,
         discontinued: false,
         static_image_url: null,
+        image_credit: null,
+        image_source_url: null,
         aliases: [],
         base_film_slug: null,
         date_added: '2023-01-01',
@@ -1106,6 +1248,8 @@ describe('DorkroomApiError contract', () => {
         mixing_instructions: null,
         storage_requirements: null,
         safety_notes: null,
+        image_credit: null,
+        image_source_url: null,
         created_at: '2023-01-01T00:00:00Z',
         updated_at: '2023-01-01T00:00:00Z',
       };
@@ -1165,6 +1309,138 @@ describe('DorkroomApiError contract', () => {
       await c.fetchDevelopers();
       vi.mocked(console.warn).mockRestore();
       expect(onInvalidRows).toHaveBeenCalledOnce();
+    });
+  });
+});
+
+describe('query parameters', () => {
+  const client = new DorkroomApiClient({ baseUrl: 'https://test.api.com' });
+  const ok = () =>
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: [] }),
+    });
+  const urlOf = () => String(mockFetch.mock.calls.at(-1)?.[0]);
+
+  beforeEach(() => mockFetch.mockClear());
+
+  describe('buildQueryString', () => {
+    it('returns an empty string when nothing is set', () => {
+      expect(buildQueryString(undefined, ['query'])).toBe('');
+      expect(buildQueryString({}, ['query'])).toBe('');
+      expect(buildQueryString({ query: undefined }, ['query'])).toBe('');
+    });
+
+    it('encodes reserved characters and spaces', () => {
+      const qs = buildQueryString({ query: 'tri-x & hc-110 / 100%' }, [
+        'query',
+      ]);
+      expect(qs).toBe('?query=tri-x+%26+hc-110+%2F+100%25');
+      expect(new URLSearchParams(qs).get('query')).toBe(
+        'tri-x & hc-110 / 100%'
+      );
+    });
+
+    it('stringifies numbers and booleans, including 0 and false', () => {
+      expect(
+        buildQueryString({ limit: 0, fuzzy: false }, ['limit', 'fuzzy'])
+      ).toBe('?limit=0&fuzzy=false');
+    });
+
+    it('ignores keys outside the allow-list (e.g. a TanStack context)', () => {
+      const context = { query: undefined, queryKey: ['films'], meta: {} };
+      const qs = buildQueryString(context, ['query']);
+      expect(qs).toBe('');
+    });
+  });
+
+  it('sends no query string for zero-arg and signal-only calls', async () => {
+    ok();
+    await client.fetchFilms();
+    expect(urlOf()).toBe('https://test.api.com/films');
+    ok();
+    const { signal } = new AbortController();
+    await client.fetchDevelopers({ signal });
+    expect(urlOf()).toBe('https://test.api.com/developers');
+    expect(mockFetch.mock.calls.at(-1)?.[1]).toMatchObject({ signal });
+  });
+
+  it('sends film filters', async () => {
+    ok();
+    await client.fetchFilms({
+      slug: 'kodak-tri-x-400',
+      colorType: 'bw',
+      brand: 'Kodak',
+      limit: 5,
+    });
+    const params = new URL(urlOf()).searchParams;
+    expect(Object.fromEntries(params)).toEqual({
+      slug: 'kodak-tri-x-400',
+      colorType: 'bw',
+      brand: 'Kodak',
+      limit: '5',
+    });
+  });
+
+  it('sends developer filters', async () => {
+    ok();
+    await client.fetchDevelopers({ type: 'powder', manufacturer: 'Ilford' });
+    expect(Object.fromEntries(new URL(urlOf()).searchParams)).toEqual({
+      type: 'powder',
+      manufacturer: 'Ilford',
+    });
+  });
+
+  it('sends combination filters and pagination', async () => {
+    ok();
+    await client.fetchCombinations({
+      film: 'ilford-hp5-plus',
+      developer: 'kodak-d-76',
+      count: 50,
+      page: 2,
+    });
+    expect(Object.fromEntries(new URL(urlOf()).searchParams)).toEqual({
+      film: 'ilford-hp5-plus',
+      developer: 'kodak-d-76',
+      count: '50',
+      page: '2',
+    });
+  });
+
+  it('only sends fuzzy when explicitly set', async () => {
+    ok();
+    await client.fetchFilms({ query: 'tri-x' });
+    expect(new URL(urlOf()).searchParams.has('fuzzy')).toBe(false);
+    ok();
+    await client.fetchFilms({ query: 'tri-x', fuzzy: true });
+    expect(new URL(urlOf()).searchParams.get('fuzzy')).toBe('true');
+  });
+
+  it('does not leak a TanStack Query context into the URL', async () => {
+    ok();
+    const context = {
+      queryKey: ['films'],
+      signal: new AbortController().signal,
+      meta: undefined,
+    };
+    await fetchFilmsLike(context);
+    expect(urlOf()).toBe('https://test.api.com/films');
+
+    function fetchFilmsLike(ctx: typeof context) {
+      return client.fetchFilms(ctx);
+    }
+  });
+
+  it('puts the full query URL in DorkroomApiError.endpoint', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 404,
+      statusText: 'Not Found',
+    });
+    await expect(client.fetchFilms({ slug: 'nope' })).rejects.toMatchObject({
+      name: 'DorkroomApiError',
+      statusCode: 404,
+      endpoint: 'https://test.api.com/films?slug=nope',
     });
   });
 });

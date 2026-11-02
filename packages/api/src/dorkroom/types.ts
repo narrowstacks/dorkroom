@@ -31,6 +31,10 @@ export interface Film {
   reciprocityFailure: string | null;
   discontinued: boolean;
   staticImageUrl: string | null;
+  /** Who took the packaging photo, and its licence. */
+  imageCredit: string | null;
+  /** Page the packaging photo came from. Not validated: check the scheme before using it as a link. */
+  imageSourceUrl: string | null;
   aliases: FilmAlias[];
   baseFilmSlug: string | null;
   dateAdded: string;
@@ -63,6 +67,10 @@ export interface Developer {
   mixingInstructions: string | null;
   storageRequirements: string | null;
   safetyNotes: string | null;
+  /** Who took the packaging photo, and its licence. */
+  imageCredit: string | null;
+  /** Page the packaging photo came from. Not validated: check the scheme before using it as a link. */
+  imageSourceUrl: string | null;
   notes: string | null;
   createdAt: string;
   updatedAt: string;

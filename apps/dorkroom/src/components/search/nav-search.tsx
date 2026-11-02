@@ -6,9 +6,11 @@ import {
   type ReactNode,
   Suspense,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 import { MOBILE_FAB, MOBILE_FAB_SECOND } from '../mobile-fab';
+import { clearHeldText, holdKeyboard } from './keyboard-hold';
 import {
   isSearchShortcut,
   PAGE_SEARCH_ID,
@@ -62,6 +64,9 @@ export interface NavSearch {
  */
 export function useNavSearch(pathname: string, pageSearch: boolean): NavSearch {
   const [openedAt, setOpenedAt] = useState<string | null>(null);
+  // The button that opened the dialog, where focus goes back on close. Null
+  // when the shortcut opened it: focus goes back to whatever had it then.
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
   // Forget a dialog left behind by a navigation, so coming back to that
   // page does not reopen it.
   if (openedAt !== null && openedAt !== pathname) setOpenedAt(null);
@@ -72,6 +77,8 @@ export function useNavSearch(pathname: string, pageSearch: boolean): NavSearch {
     const onKeyDown = (event: KeyboardEvent) => {
       if (!isSearchShortcut(event)) return;
       event.preventDefault();
+      triggerRef.current = null;
+      clearHeldText();
       setOpenedAt(pathname);
     };
     document.addEventListener('keydown', onKeyDown);
@@ -85,14 +92,19 @@ export function useNavSearch(pathname: string, pageSearch: boolean): NavSearch {
         focusPageSearch();
         return;
       }
-      // Safari does not focus a clicked button; focus it so the dialog hands
-      // focus back to it on close.
-      event.currentTarget.focus();
+      // Focus goes to the stand-in field while the dialog loads, so the
+      // dialog is told where to hand it back (Safari would not have focused
+      // the clicked button anyway).
+      triggerRef.current = event.currentTarget;
+      holdKeyboard();
       setOpenedAt(pathname);
     },
     dialog: open ? (
       <Suspense fallback={null}>
-        <SearchDialog onClose={() => setOpenedAt(null)} />
+        <SearchDialog
+          onClose={() => setOpenedAt(null)}
+          returnFocus={triggerRef}
+        />
       </Suspense>
     ) : null,
   };

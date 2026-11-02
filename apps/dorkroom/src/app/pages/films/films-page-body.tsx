@@ -1,14 +1,33 @@
 import type { Film } from '@dorkroom/api';
 import type { UseFilmDatabaseReturn } from '@dorkroom/logic';
+import { isEInkDevice, type VirtualListFocusHandle } from '@dorkroom/ui';
 import { VirtualizedErrorBoundary } from '@dorkroom/ui/development-recipes';
 import {
   FilmDetailPanel,
   FilmDetailPanelSkeleton,
   FilmFiltersMobile,
   FilmFiltersPanel,
+  FilmImageLoaderContext,
+  FilmImageModeContext,
   FilmResultsVirtualized,
 } from '@dorkroom/ui/films';
+import { useRef } from 'react';
+import { vercelFilmImageLoader } from '../../lib/film-image-loader';
 import { useShareLink } from '../../lib/use-share-link';
+
+/**
+ * Resized thumbnails only in a Vercel build, the one place `/_vercel/image`
+ * exists. The dev server and builds served elsewhere (`vite preview`, the
+ * Cloudflare static build) load originals directly.
+ */
+const filmImageLoader = __VERCEL__ ? vercelFilmImageLoader : null;
+
+/**
+ * On e-ink devices such as the Kindle Scribe (#636), cards show the film icon
+ * instead of a thumbnail: each one costs memory and a slow e-ink refresh. The
+ * photo of a film the user opens still loads, to identify the packaging.
+ */
+const filmImageMode = isEInkDevice() ? 'detail-only' : 'all';
 
 interface FilmsPageBodyProps {
   db: UseFilmDatabaseReturn;
@@ -40,6 +59,9 @@ export function FilmsPageBody({
   onCollapsedChange,
 }: FilmsPageBodyProps) {
   const { share, manualCopyDialog } = useShareLink('film');
+  // Closing the desktop sidebar from inside it puts focus back on the card
+  // that opened it (#604).
+  const resultsFocusRef = useRef<VirtualListFocusHandle>(null);
 
   // One props object for whichever filter module the breakpoint mounts.
   const filterProps = {
@@ -71,57 +93,68 @@ export function FilmsPageBody({
         isFiltersCollapsed={!isMobile && isFiltersCollapsed}
         onClearFilters={db.clearFilters}
         hasActiveFilters={db.hasActiveFilters}
+        focusHandleRef={resultsFocusRef}
       />
     </VirtualizedErrorBoundary>
   );
 
   return (
-    <div className={isMobile ? 'space-y-4' : 'mt-6 flex gap-6'}>
-      {isMobile ? (
-        <FilmFiltersMobile
-          {...filterProps}
-          resultCount={db.filteredFilms.length}
-        />
-      ) : (
-        <aside className="flex-shrink-0 transition-[width] duration-300">
-          <FilmFiltersPanel
-            {...filterProps}
-            onCollapsedChange={onCollapsedChange}
-          />
-        </aside>
-      )}
+    // Resized thumbnails for every FilmImage below (cards and detail panel).
+    <FilmImageLoaderContext value={filmImageLoader}>
+      <FilmImageModeContext value={filmImageMode}>
+        <div className={isMobile ? 'space-y-4' : 'mt-6 flex gap-6'}>
+          {isMobile ? (
+            <FilmFiltersMobile
+              {...filterProps}
+              resultCount={db.filteredFilms.length}
+            />
+          ) : (
+            <aside className="flex-shrink-0 transition-[width] duration-300">
+              <FilmFiltersPanel
+                {...filterProps}
+                onCollapsedChange={onCollapsedChange}
+              />
+            </aside>
+          )}
 
-      {isMobile ? (
-        results
-      ) : (
-        <main id="film-results" className="flex-1 min-w-0">
-          {results}
-        </main>
-      )}
+          {isMobile ? (
+            results
+          ) : (
+            <main id="film-results" className="flex-1 min-w-0">
+              {results}
+            </main>
+          )}
 
-      {/* Rendered unconditionally: the panel owns its own visibility. It
+          {/* Rendered unconditionally: the panel owns its own visibility. It
           renders nothing without a film, and its stateful inner DetailPanel
           only exists while one is selected, so closing still discards drag
           and expanded state, and there is no exit animation a conditional
           mount could cut short. Keyed by breakpoint so crossing it starts the
           panel fresh (an expanded desktop modal drops back to the mobile
           drawer). */}
-      {shouldShowDetailSkeleton ? (
-        <FilmDetailPanelSkeleton isMobile={isMobile} />
-      ) : (
-        <FilmDetailPanel
-          key={isMobile ? 'mobile' : 'desktop'}
-          film={selectedFilm}
-          baseFilm={baseFilm}
-          isOpen={!!selectedFilm}
-          onClose={onClosePanel}
-          isMobile={isMobile}
-          onShare={(film) =>
-            share({ film: film.slug }, `${film.brand} ${film.name}`)
-          }
-        />
-      )}
-      {manualCopyDialog}
-    </div>
+          {shouldShowDetailSkeleton ? (
+            <FilmDetailPanelSkeleton isMobile={isMobile} />
+          ) : (
+            <FilmDetailPanel
+              key={isMobile ? 'mobile' : 'desktop'}
+              film={selectedFilm}
+              baseFilm={baseFilm}
+              isOpen={!!selectedFilm}
+              onClose={onClosePanel}
+              returnFocus={() => {
+                if (selectedFilm) {
+                  resultsFocusRef.current?.focusItem(selectedFilm.uuid);
+                }
+              }}
+              isMobile={isMobile}
+              onShare={(film) =>
+                share({ film: film.slug }, `${film.brand} ${film.name}`)
+              }
+            />
+          )}
+          {manualCopyDialog}
+        </div>
+      </FilmImageModeContext>
+    </FilmImageLoaderContext>
   );
 }

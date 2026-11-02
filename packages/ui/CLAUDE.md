@@ -147,6 +147,12 @@ Don't reach for it in new code expecting a visible shadow.
   the ring stays at 3:1 or better against the surface in every theme. The
   dark/light border tokens are translucent and fail contrast for focus
   indicators.
+- Scroll containers that take focus use an outline (`focus-visible:outline-2
+  focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--color-focus-ring)]`),
+  not a ring: an inset ring is a box shadow painted under the content, so the
+  cards or rows hide most of it. Where a sticky header or full-bleed rows would
+  still cover the outline (the recipe table), draw it on the bordered wrapper
+  with a `has-[…:focus-visible]:outline-*` variant instead.
 
 ## Accessibility
 
@@ -165,7 +171,7 @@ Don't reach for it in new code expecting a visible shadow.
 - Dialog dismissal on Escape goes through the shared `useEscapeKey` hook
   (`hooks/use-escape-key.ts`). Don't add a component-local `document` keydown
   listener for it: the hook owns a single listener plus a LIFO stack so only
-  one layer is dismissed per keypress. Three pre-existing ad-hoc listeners
-  (`theme-toggle.tsx`, `navigation-dropdown.tsx`,
-  `apps/dorkroom/src/components/mobile-nav.tsx`) predate this and aren't
-  covered yet
+  one layer is dismissed per keypress. Every Escape-dismissed layer
+  (modals, drawers, the theme and navigation dropdowns, the phone menu) is on
+  the hook (nested controls such as SearchableSelect opt out via
+  `preventDefault`)

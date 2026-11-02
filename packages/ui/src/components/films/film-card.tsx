@@ -1,15 +1,18 @@
 import type { Film } from '@dorkroom/api';
-import { type FC, memo } from 'react';
+import { type FC, memo, use } from 'react';
 import { cn } from '../../lib/cn';
 import { cssVars } from '../../lib/dom';
 import { Tag } from '../ui/tag';
 import { FilmImage } from './film-image';
+import { FilmImageModeContext } from './film-image-mode-context';
 
 interface FilmCardProps {
   film: Film;
   isSelected?: boolean;
   onClick: (film: Film) => void;
   className?: string;
+  /** Identifies the card to its list's focus tracking (`data-list-item-key`). */
+  itemKey?: string;
 }
 
 const FilmCardComponent: FC<FilmCardProps> = ({
@@ -17,7 +20,10 @@ const FilmCardComponent: FC<FilmCardProps> = ({
   isSelected,
   onClick,
   className,
+  itemKey,
 }) => {
+  // Only `'all'` loads card thumbnails; otherwise the film icon shows (#636).
+  const showPhoto = use(FilmImageModeContext) === 'all';
   const tagsContent = (
     <>
       <Tag>{film.colorType}</Tag>
@@ -39,6 +45,7 @@ const FilmCardComponent: FC<FilmCardProps> = ({
   return (
     <button
       type="button"
+      data-list-item-key={itemKey}
       aria-pressed={isSelected}
       onClick={() => onClick(film)}
       className={cn(
@@ -62,7 +69,7 @@ const FilmCardComponent: FC<FilmCardProps> = ({
       <div className="relative z-10">
         <div className="flex gap-3 items-start">
           <FilmImage
-            src={film.staticImageUrl}
+            src={showPhoto ? film.staticImageUrl : null}
             alt={`${film.brand} ${film.name}`}
             size="md"
           />

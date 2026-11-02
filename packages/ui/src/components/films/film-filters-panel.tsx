@@ -7,6 +7,7 @@ import { FilterPanelHeader } from '../filters/filter-panel-header';
 import { FilterPanelSection } from '../filters/filter-panel-section';
 import { SearchableSelect } from '../searchable-select';
 import { Select } from '../select';
+import { countActiveFilmFilters } from './count-active-film-filters';
 
 /** Static filter options - defined outside component to prevent recreation on each render */
 const FILM_TYPE_OPTIONS: SelectItem[] = [
@@ -71,14 +72,13 @@ export const FilmFiltersPanel: FC<FilmFiltersPanelProps> = ({
   onCollapsedChange,
   defaultCollapsed = false,
 }) => {
-  // Count active filters (including search)
-  const activeFilterCount = [
+  const activeFilterCount = countActiveFilmFilters({
     searchQuery,
     colorTypeFilter,
     isoSpeedFilter,
     brandFilter,
-    discontinuedFilter !== 'all',
-  ].filter(Boolean).length;
+    discontinuedFilter,
+  });
 
   return (
     <FilterPanelContainer

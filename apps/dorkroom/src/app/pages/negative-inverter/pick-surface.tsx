@@ -3,6 +3,7 @@ import {
   type PixelSize,
   screenToImagePoint,
 } from '@dorkroom/logic';
+import { scrollBehavior } from '@dorkroom/ui';
 import {
   type KeyboardEvent,
   type MouseEvent,
@@ -168,7 +169,10 @@ export function PickSurface({
   useEffect(() => {
     if (!focusOnMount) return;
     buttonRef.current?.focus({ preventScroll: true });
-    frameRef.current?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+    frameRef.current?.scrollIntoView?.({
+      block: 'center',
+      behavior: scrollBehavior(),
+    });
   }, [focusOnMount, frameRef]);
 
   /** Where the loupe goes for a point at this height in the viewport. */
@@ -256,7 +260,7 @@ export function PickSurface({
         ref={buttonRef}
         type="button"
         aria-label={`${label}. Tap the photo, or move with the arrow keys and press Enter.`}
-        className="absolute inset-0 z-20 cursor-crosshair touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-focus-ring)]"
+        className="absolute inset-0 z-20 h-full w-full cursor-crosshair touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-focus-ring)]"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}

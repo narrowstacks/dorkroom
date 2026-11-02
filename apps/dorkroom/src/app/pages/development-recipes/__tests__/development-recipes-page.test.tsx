@@ -54,6 +54,8 @@ const HP5: Film = {
   reciprocityFailure: null,
   discontinued: false,
   staticImageUrl: null,
+  imageCredit: null,
+  imageSourceUrl: null,
   aliases: [],
   baseFilmSlug: null,
   dateAdded: TIMESTAMP,
@@ -84,6 +86,8 @@ const DDX: Developer = {
   mixingInstructions: null,
   storageRequirements: null,
   safetyNotes: null,
+  imageCredit: null,
+  imageSourceUrl: null,
   notes: null,
   createdAt: TIMESTAMP,
   updatedAt: TIMESTAMP,
@@ -133,18 +137,30 @@ const CUSTOM: CustomRecipe = {
 
 // --- viewport ---------------------------------------------------------------
 
-let viewportIsMobile = false;
+const DESKTOP_WIDTH = 1440;
+const TABLET_WIDTH = 820;
+const MOBILE_WIDTH = 600;
+let viewportWidth = DESKTOP_WIDTH;
+
+/** Evaluates `min-width` / `max-width` px queries; anything else is false. */
+function matchesViewport(query: string): boolean {
+  const min = /\(min-width:\s*(\d+)px\)/.exec(query);
+  if (min) return viewportWidth >= Number(min[1]);
+  const max = /\(max-width:\s*(\d+)px\)/.exec(query);
+  if (max) return viewportWidth <= Number(max[1]);
+  return false;
+}
 const mediaListeners = new Set<(event: { matches: boolean }) => void>();
 
 function setViewport(mobile: boolean) {
-  viewportIsMobile = mobile;
+  viewportWidth = mobile ? MOBILE_WIDTH : DESKTOP_WIDTH;
   for (const listener of mediaListeners) listener({ matches: mobile });
 }
 
 function stubMatchMedia() {
   vi.stubGlobal('matchMedia', (query: string) => ({
     get matches() {
-      return query.includes('max-width') ? viewportIsMobile : false;
+      return matchesViewport(query);
     },
     media: query,
     onchange: null,
@@ -180,14 +196,16 @@ const writeText = vi.fn<(text: string) => Promise<void>>();
 
 function renderPage({
   mobile,
+  tablet = false,
   search = '',
   customRecipes = [],
 }: {
   mobile: boolean;
+  tablet?: boolean;
   search?: string;
   customRecipes?: CustomRecipe[];
 }) {
-  viewportIsMobile = mobile;
+  viewportWidth = mobile ? MOBILE_WIDTH : tablet ? TABLET_WIDTH : DESKTOP_WIDTH;
   window.history.replaceState(null, '', `/development${search}`);
   if (customRecipes.length > 0) {
     localStorage.setItem(
@@ -365,7 +383,11 @@ describe.each([
     // happy-dom has no share sheet, so the shared flow lands on the clipboard.
     await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
     expect(writeText.mock.calls[0]?.[0]).toContain(API_ID);
-    expect(await screen.findByText('Link copied to clipboard!')).toBeVisible();
+    expect(
+      within(await screen.findByTestId('toast')).getByText(
+        'Link copied to clipboard!'
+      )
+    ).toBeVisible();
   });
 
   it('copies the share link of a custom recipe from the panel', async () => {
@@ -378,7 +400,11 @@ describe.each([
 
     await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
     expect(writeText.mock.calls[0]?.[0]).toContain('/development?');
-    expect(await screen.findByText('Link copied to clipboard!')).toBeVisible();
+    expect(
+      within(await screen.findByTestId('toast')).getByText(
+        'Link copied to clipboard!'
+      )
+    ).toBeVisible();
   });
 
   it('toggles the favorite from the panel', async () => {
@@ -418,6 +444,32 @@ describe.each([
     ).toBeVisible();
   });
 
+  it('puts focus on the results after a confirmed delete, and back on Delete after cancel (#604)', async () => {
+    renderPage({ mobile, customRecipes: [CUSTOM] });
+    await openRecipe(mobile, CUSTOM_RECIPE);
+    const deleteButton = within(getDetailPanel(mobile)).getByRole('button', {
+      name: 'Delete',
+    });
+
+    deleteButton.focus();
+    fireEvent.click(deleteButton);
+    fireEvent.click(await screen.findByRole('button', { name: 'Cancel' }));
+    expect(document.activeElement).toBe(deleteButton);
+
+    deleteButton.focus();
+    fireEvent.click(deleteButton);
+    const confirm = await screen.findByRole('dialog', {
+      name: 'Delete Recipe',
+    });
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Delete' }));
+
+    await waitFor(() => expect(queryDetailPanel()).toBeNull());
+    const focused = document.activeElement;
+    expect(focused).not.toBe(document.body);
+    expect(focused?.getAttribute('tabindex')).toBe('-1');
+    expect(focused?.querySelector('[data-list-item-key]')).not.toBeNull();
+  });
+
   it('closes with the close button, Escape and the backdrop where there is one', async () => {
     renderPage({ mobile });
 
@@ -429,6 +481,20 @@ describe.each([
     );
     expect(queryDetailPanel()).toBeNull();
     expect(document.body.style.overflow).not.toBe('hidden');
+
+    // Closing the desktop sidebar from inside puts focus back on the recipe
+    // (#604). The mobile sheet returns it to its opener itself.
+    if (!mobile) {
+      await openRecipe(mobile, API_RECIPE);
+      const close = within(getDetailPanel(mobile)).getByRole('button', {
+        name: 'Close panel',
+      });
+      close.focus();
+      fireEvent.click(close);
+      expect(
+        document.activeElement?.closest('[data-list-item-key]')
+      ).not.toBeNull();
+    }
 
     await openRecipe(mobile, API_RECIPE);
     fireEvent.keyDown(document, { key: 'Escape' });
@@ -583,5 +649,24 @@ describe('DevelopmentRecipesPage editing from the mobile drawer', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(queryDetailPanel()).toBeNull();
     expect(document.body.style.overflow).toBe('');
+  });
+});
+
+describe('DevelopmentRecipesPage at tablet width', () => {
+  it('starts with the filters sidebar collapsed so the Time column fits', async () => {
+    renderPage({ mobile: false, tablet: true });
+    expect(
+      await screen.findByRole('button', { name: 'Expand filters' })
+    ).toBeVisible();
+    expect(
+      screen.queryByRole('button', { name: 'Collapse filters' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('starts with the filters sidebar expanded at desktop width', async () => {
+    renderPage({ mobile: false });
+    expect(
+      await screen.findByRole('button', { name: 'Collapse filters' })
+    ).toBeVisible();
   });
 });

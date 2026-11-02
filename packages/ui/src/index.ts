@@ -69,10 +69,14 @@ export { Select } from './components/select';
 export type { SensorSizeVisualizationProps } from './components/sensor-size-visualization';
 export { SensorSizeVisualization } from './components/sensor-size-visualization';
 export { SettingsButton } from './components/settings-button';
+export {
+  SettingsRadioGroup,
+  type SettingsRadioGroupProps,
+} from './components/settings-radio-group';
 // Sharing Components
 export { ShareButton, type ShareResult } from './components/share-button';
 export { ShareModal } from './components/share-modal';
-export { StatusAlert } from './components/status-alert';
+export { LiveStatusAlert, StatusAlert } from './components/status-alert';
 export { TemperatureAlert } from './components/temperature-alert';
 export { TextInput } from './components/text-input';
 export type { ThemeToggleProps } from './components/theme-toggle';
@@ -110,6 +114,7 @@ export {
 // Theme
 export { useTheme } from './contexts/theme-context';
 export { ThemeProvider } from './contexts/theme-provider';
+export { isLegacyBrowser, scrollBehavior } from './lib/motion';
 // Volume
 export { useVolume, VolumeProvider } from './contexts/volume-context';
 // Forms (utilities only — components and schemas via @dorkroom/ui/forms)
@@ -118,6 +123,11 @@ export type { FieldApi, FormInstance } from './forms/utils/form-api-types';
 // Hooks
 export { useBodyScrollLock } from './hooks/use-body-scroll-lock';
 export { useEscapeKey } from './hooks/use-escape-key';
+export type { VirtualListFocusHandle } from './hooks/use-virtual-list-focus';
+export {
+  type UseModalLayerOptions,
+  useModalLayer,
+} from './hooks/use-modal-layer';
 export {
   useMeasurementConverter,
   useMeasurementFormatter,
@@ -154,4 +164,4 @@ export {
 } from './lib/navigation';
 export { optionChangeHandler } from './lib/select-options';
 export type { Theme } from './lib/themes';
-export { resolveTheme } from './lib/themes';
+export { isEInkDevice, resolveTheme } from './lib/themes';

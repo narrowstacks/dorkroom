@@ -1,5 +1,6 @@
 import { ChevronDown } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useEscapeKey } from '../hooks/use-escape-key';
 import { cn } from '../lib/cn';
 
 export interface NavigationItem {
@@ -37,6 +38,13 @@ export function NavigationDropdown({
   // Check if any item in this dropdown is currently active
   const isActive = items.some((item) => item.to === currentPath);
 
+  // Escape goes through the shared LIFO stack, so a dropdown over the phone
+  // menu closes alone (#617).
+  useEscapeKey(isOpen, () => {
+    setIsOpen(false);
+    buttonRef.current?.focus();
+  });
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -48,19 +56,10 @@ export function NavigationDropdown({
       }
     };
 
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsOpen(false);
-        buttonRef.current?.focus();
-      }
-    };
-
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleEscape);
       return () => {
         document.removeEventListener('mousedown', handleClickOutside);
-        document.removeEventListener('keydown', handleEscape);
       };
     }
 

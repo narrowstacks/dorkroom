@@ -4,8 +4,10 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '../lib/cn';
 import { hasGlobal } from '../lib/dom';
 import { ToastContext, type ToastType } from './toast-context';
@@ -99,20 +101,23 @@ export function Toast({
   };
 
   return (
-    <output
+    <div
       className={cn(
         'fixed top-4 right-4 z-[9999] flex max-w-[calc(100vw-2rem)] items-center gap-2 break-words rounded-lg px-4 py-3 text-sm font-medium shadow-lg transition-all duration-200',
         'border border-solid',
         isAnimating ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       )}
-      aria-live="polite"
+      data-testid="toast"
+      aria-hidden="true"
       style={getStyles()}
     >
       {getIcon()}
       <span>{message}</span>
-    </output>
+    </div>
   );
 }
+
+const ANNOUNCE_DELAY_MS = 50;
 
 export interface ToastProviderProps {
   children: ReactNode;
@@ -125,8 +130,32 @@ export function ToastProvider({ children }: ToastProviderProps) {
     id: string;
   } | null>(null);
 
+  // Announcements live in regions that stay mounted for the provider's whole
+  // lifetime: a live region that mounts with its text is not reliably read.
+  const [announcement, setAnnouncement] = useState<{
+    message: string;
+    assertive: boolean;
+  }>({ message: '', assertive: false });
+  const announceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (announceTimer.current) clearTimeout(announceTimer.current);
+    },
+    []
+  );
+
   const showToast = useCallback(
     (message: string, type: ToastProps['type'] = 'success') => {
+      // Clear, then set on a later tick, so the same message twice in a row
+      // is still a change the screen reader announces.
+      if (announceTimer.current) clearTimeout(announceTimer.current);
+      setAnnouncement({ message: '', assertive: type === 'error' });
+      announceTimer.current = setTimeout(() => {
+        setAnnouncement({ message, assertive: type === 'error' });
+        announceTimer.current = null;
+      }, ANNOUNCE_DELAY_MS);
+
       // Use crypto.randomUUID() if available, otherwise fall back to a timestamp-based ID
       const id =
         hasGlobal('crypto') && crypto.randomUUID
@@ -138,24 +167,53 @@ export function ToastProvider({ children }: ToastProviderProps) {
     []
   );
 
-  const hideToast = () => {
+  const hideToast = useCallback(() => {
     setToast(null);
-  };
+    // Drop the stale text so it is not left behind for the virtual cursor.
+    setAnnouncement((current) => ({ ...current, message: '' }));
+  }, []);
 
   const contextValue = useMemo(() => ({ showToast }), [showToast]);
 
   return (
     <ToastContext value={contextValue}>
       {children}
-      {toast && (
-        <Toast
-          key={toast.id}
-          message={toast.message}
-          type={toast.type}
-          onClose={hideToast}
-          isVisible={!!toast}
-        />
-      )}
+      {/* Portalled to the body so an open modal, which makes the rest of the
+          page inert (see useModalLayer), leaves the toast announced. */}
+      {hasGlobal('document') &&
+        createPortal(
+          <>
+            {/* Direct body children matching [aria-live], so useModalLayer
+                never makes them inert. The visible toast carries no live
+                role, so nothing is read twice. */}
+            <div
+              data-toast-live-region="polite"
+              className="sr-only"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              {announcement.assertive ? '' : announcement.message}
+            </div>
+            <div
+              data-toast-live-region="assertive"
+              className="sr-only"
+              aria-live="assertive"
+              aria-atomic="true"
+            >
+              {announcement.assertive ? announcement.message : ''}
+            </div>
+            {toast && (
+              <Toast
+                key={toast.id}
+                message={toast.message}
+                type={toast.type}
+                onClose={hideToast}
+                isVisible={!!toast}
+              />
+            )}
+          </>,
+          document.body
+        )}
     </ToastContext>
   );
 }

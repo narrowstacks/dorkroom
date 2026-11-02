@@ -1,9 +1,20 @@
 import { GripVertical, Maximize2, Minimize2, X } from 'lucide-react';
-import { type FC, type ReactNode, useEffect, useRef, useState } from 'react';
+import {
+  type FC,
+  type ReactNode,
+  type Ref,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '../../hooks/use-body-scroll-lock';
 import { useEscapeKey } from '../../hooks/use-escape-key';
 import { hasGlobal } from '../../lib/dom';
+import {
+  useDetailPanelLayers,
+  useSidebarClose,
+} from './use-detail-panel-layers';
 
 /** Props for the reusable CloseButton component */
 interface CloseButtonProps {
@@ -31,6 +42,7 @@ interface ExpandButtonProps {
   isExpanded: boolean;
   onClick: () => void;
   className?: string;
+  ref?: Ref<HTMLButtonElement>;
 }
 
 /** Reusable expand/collapse button with hover styling */
@@ -39,8 +51,10 @@ export const DetailPanelExpandButton: FC<ExpandButtonProps> = ({
   isExpanded,
   onClick,
   className = '',
+  ref,
 }) => (
   <button
+    ref={ref}
     type="button"
     onClick={onClick}
     className={`rounded-full p-2 text-muted transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] hoverable-icon-btn ${className}`}
@@ -79,6 +93,16 @@ export interface DetailPanelProps {
   headerButtons?: ReactNode;
   /** Max height for the desktop sidebar (constrains to sibling content height) */
   maxHeight?: number;
+  /**
+   * Called when the desktop sidebar closes while it has focus (or focus is
+   * already lost), just before `onClose`, to move focus back to whatever
+   * opened it. The sidebar is not modal, so it has no opener of its own to
+   * return to, and closing it would otherwise drop focus to the page (#604).
+   * The mobile sheet and the expanded view are modal and return focus to
+   * their opener themselves; they call this only when that opener is gone,
+   * such as a card remounted into another row while the sheet was open.
+   */
+  returnFocus?: () => void;
 }
 
 /**
@@ -101,6 +125,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
   showExpandButton = true,
   headerButtons,
   maxHeight,
+  returnFocus,
 }) => {
   const isDraggingRef = useRef(false);
   const dragStartYRef = useRef(0);
@@ -127,6 +152,8 @@ export const DetailPanel: FC<DetailPanelProps> = ({
   // Body scroll lock when panel is open (mobile or expanded)
   useBodyScrollLock(isOpen && (isMobile || isExpanded));
 
+  const { sidebarRef, handleClose } = useSidebarClose(onClose, returnFocus);
+
   // Escape collapses an expanded panel first, then closes it. Routed through
   // the shared dismiss stack so a dialog opened above the panel takes the
   // keypress instead of both layers closing at once.
@@ -134,9 +161,17 @@ export const DetailPanel: FC<DetailPanelProps> = ({
     if (isExpanded) {
       setIsExpanded(false);
     } else {
-      onClose();
+      handleClose();
     }
   });
+
+  const {
+    expandedBackdropRef,
+    expandedDialogRef,
+    mobileBackdropRef,
+    mobileDialogRef,
+    expandButtonRef,
+  } = useDetailPanelLayers(isOpen, isMobile, isExpanded, returnFocus);
 
   // Mobile drag handlers
   const handleDragStart = (clientY: number) => {
@@ -215,17 +250,20 @@ export const DetailPanel: FC<DetailPanelProps> = ({
       >
         {/* Backdrop: a real button so click-to-collapse is keyboard-accessible */}
         <button
+          ref={expandedBackdropRef}
           type="button"
           aria-label="Collapse to panel"
           tabIndex={-1}
-          className="absolute inset-0 cursor-default"
+          className="absolute inset-0 h-full w-full cursor-default"
           style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
           onClick={handleCollapseModal}
         />
         <dialog
+          ref={expandedDialogRef}
           open
           aria-modal="true"
           aria-label={ariaLabel}
+          tabIndex={-1}
           className="relative z-10 m-0 max-h-none w-full max-w-4xl rounded-2xl border shadow-xl animate-scale-fade-in"
           style={{
             borderColor: 'var(--color-border-secondary)',
@@ -265,17 +303,20 @@ export const DetailPanel: FC<DetailPanelProps> = ({
       >
         {/* Backdrop: a real button so click-to-close is keyboard-accessible */}
         <button
+          ref={mobileBackdropRef}
           type="button"
           aria-label="Close"
           tabIndex={-1}
-          className="absolute inset-0 cursor-default"
+          className="absolute inset-0 h-full w-full cursor-default"
           style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
           onClick={onClose}
         />
         <dialog
+          ref={mobileDialogRef}
           open
           aria-modal="true"
           aria-label={ariaLabel}
+          tabIndex={-1}
           className="relative z-10 m-0 max-h-none w-full rounded-t-3xl border border-b-0 shadow-xl transition-transform duration-300 ease-out"
           style={{
             borderColor: 'var(--color-border-secondary)',
@@ -285,11 +326,16 @@ export const DetailPanel: FC<DetailPanelProps> = ({
             transform: `translateY(${dragOffset}px)`,
           }}
         >
-          {/* Drag handle (carries drag-to-dismiss interactions) */}
+          {/* Drag handle (carries drag-to-dismiss interactions). Pointer
+              only: it does nothing on Enter or Space, so it is out of the Tab
+              order and hidden from assistive tech, and the sheet opens on its
+              Close button instead. */}
           <div className="flex justify-center pt-3 pb-2">
             <button
               type="button"
-              aria-label="Drag handle — swipe down to dismiss"
+              tabIndex={-1}
+              aria-hidden="true"
+              aria-label="Drag handle, swipe down to dismiss"
               className="flex cursor-grab justify-center active:cursor-grabbing"
               onTouchStart={(e) => handleDragStart(e.touches[0].clientY)}
               onTouchMove={(e) => handleDragMove(e.touches[0].clientY)}
@@ -324,6 +370,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
   // Desktop sidebar
   return (
     <section
+      ref={sidebarRef}
       className="sticky top-3 self-start flex-shrink-0 rounded-2xl border shadow-xl transition-transform duration-300 ease-out animate-slide-fade-right"
       style={{
         borderColor: 'var(--color-border-secondary)',
@@ -339,11 +386,12 @@ export const DetailPanel: FC<DetailPanelProps> = ({
         {headerButtons}
         {showExpandButton && (
           <DetailPanelExpandButton
+            ref={expandButtonRef}
             isExpanded={isExpanded}
             onClick={() => setIsExpanded(!isExpanded)}
           />
         )}
-        <DetailPanelCloseButton onClick={onClose} />
+        <DetailPanelCloseButton onClick={handleClose} />
       </div>
 
       {/* Content */}

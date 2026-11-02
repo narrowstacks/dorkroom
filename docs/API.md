@@ -37,7 +37,10 @@ busy install can still exhaust the key-wide limit for the others. Omitting the
 header keeps key-only limiting; a malformed value is treated as absent rather
 than rejected.
 
-Every response includes rate limit headers:
+Responses to requests with an API key include rate limit headers, and so does
+any `429`. Anonymous responses from `dorkroom.art/api` omit them except `429`s: the CDN
+caches and shares those responses, so a per-IP count would describe someone
+else's budget.
 
 | Header | Description |
 | --- | --- |
@@ -52,7 +55,7 @@ All error responses include a `requestId` for debugging.
 
 | Status | Error | Cause |
 | --- | --- | --- |
-| `400` | e.g. `Invalid query parameter` | A parameter was rejected, for example a `query`, `slug`, `brand`, or `film` value that is empty once sanitized. The `error` text comes from the data service. |
+| `400` | e.g. `Invalid query parameter` | A parameter was rejected: `query` with no letter or digit in it (including spaces only), or a `slug`, `film`, or `developer` value with no letter, digit, or hyphen left once sanitized. An empty `query=` and a blank `brand` or `manufacturer` are ignored, not rejected. The `error` text comes from the data service. |
 | `401` | `Unauthorized` | Missing or invalid API key |
 | `404` | `Not found` | Path is not an endpoint (returned without an API key) |
 | `405` | `Method Not Allowed` | Non-GET request |
@@ -86,8 +89,8 @@ All parameters are optional.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `query` | string | Exact search term (max 200 chars) |
-| `fuzzy` | string | Fuzzy search term (max 200 chars) |
+| `query` | string | Search term (max 200 chars). Case-insensitive partial match (substring), not an exact match. Accents are significant; any run of punctuation or symbols matches any characters (`HP5+` finds `HP5 Plus`). A term with no letter or digit returns 400 |
+| `fuzzy` | string | Deprecated, ignored. Accepts `true` or `false` for backward compatibility; matching is never fuzzy |
 | `limit` | integer | Max results to return (1-1000) |
 | `colorType` | string | Filter by type: `bw`, `color`, or `slide` |
 | `brand` | string | Filter by brand name (max 200 chars) |
@@ -120,6 +123,8 @@ curl -H "X-API-Key: dk_..." \
       "reciprocity_failure": "1.3",
       "discontinued": false,
       "static_image_url": "https://...",
+      "image_credit": "Jane Doe, CC BY-SA 4.0 via Wikimedia Commons",
+      "image_source_url": "https://...",
       "aliases": [{ "slug": "kodak-portra-160-alt", "name": "Portra 160 (alt)" }],
       "base_film_slug": null,
       "date_added": "2024-01-15",
@@ -146,7 +151,9 @@ curl -H "X-API-Key: dk_..." \
 | `manufacturer_notes` | string \| null | PostgreSQL array string of notes |
 | `reciprocity_failure` | string \| null | Reciprocity correction exponent |
 | `discontinued` | boolean | Whether the film is discontinued |
-| `static_image_url` | string \| null | Sample image URL |
+| `static_image_url` | string \| null | Photo of the film's packaging (box or canister) |
+| `image_credit` | string \| null | Who took the packaging photo, and its licence |
+| `image_source_url` | string \| null | Page the packaging photo came from |
 | `aliases` | array | Alternate `{ slug, name }` pairs this film is also known by; `[]` when none |
 | `base_film_slug` | string \| null | Slug of the base film this is a rebrand/variant of, or `null` |
 | `date_added` | string | Date added (YYYY-MM-DD) |
@@ -165,8 +172,8 @@ All parameters are optional.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `query` | string | Exact search term (max 200 chars) |
-| `fuzzy` | string | Fuzzy search term (max 200 chars) |
+| `query` | string | Search term (max 200 chars). Case-insensitive partial match (substring), not an exact match. Accents are significant; any run of punctuation or symbols matches any characters (`HP5+` finds `HP5 Plus`). A term with no letter or digit returns 400 |
+| `fuzzy` | string | Deprecated, ignored. Accepts `true` or `false` for backward compatibility; matching is never fuzzy |
 | `limit` | integer | Max results to return (1-1000) |
 | `type` | string | Filter by developer type (max 200 chars) |
 | `manufacturer` | string | Filter by manufacturer (max 200 chars) |
@@ -201,6 +208,8 @@ curl -H "X-API-Key: dk_..." \
       "mixing_instructions": null,
       "storage_requirements": null,
       "safety_notes": null,
+      "image_credit": null,
+      "image_source_url": null,
       "created_at": "2024-01-15T00:00:00Z",
       "updated_at": "2024-06-01T00:00:00Z"
     }
@@ -224,6 +233,8 @@ curl -H "X-API-Key: dk_..." \
 | `mixing_instructions` | string \| null | Mixing instructions |
 | `storage_requirements` | string \| null | Storage guidance |
 | `safety_notes` | string \| null | Safety information |
+| `image_credit` | string \| null | Who took the packaging photo, and its licence |
+| `image_source_url` | string \| null | Page the packaging photo came from |
 | `created_at` | string | ISO 8601 timestamp |
 | `updated_at` | string | ISO 8601 timestamp |
 
@@ -250,8 +261,8 @@ All parameters are optional. Use `film` and `developer` (slug values) to find re
 | --- | --- | --- |
 | `film` | string | Film slug (max 200 chars) |
 | `developer` | string | Developer slug (max 200 chars) |
-| `query` | string | Exact search term (max 200 chars) |
-| `fuzzy` | string | Fuzzy search term (max 200 chars) |
+| `query` | string | Search term (max 200 chars). Case-insensitive partial match (substring), not an exact match. Accents are significant; any run of punctuation or symbols matches any characters (`HP5+` finds `HP5 Plus`). A term with no letter or digit returns 400 |
+| `fuzzy` | string | Deprecated, ignored. Accepts `true` or `false` for backward compatibility; matching is never fuzzy |
 | `limit` | integer | Max results to return (1-1000) |
 | `count` | integer | Page size (1-1000). Use with `page`; unlike `limit`, this enables offset pagination |
 | `page` | integer | Page number (>= 1). Only applied together with `count`; ignored with `limit` |

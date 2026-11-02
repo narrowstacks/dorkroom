@@ -2,7 +2,11 @@ import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import type { Cell, Header, HeaderGroup, Table } from '@tanstack/react-table';
 import { flexRender } from '@tanstack/react-table';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
-import { type FC, useMemo, useRef } from 'react';
+import { type FC, type Ref, useMemo, useRef } from 'react';
+import {
+  useVirtualListFocus,
+  type VirtualListFocusHandle,
+} from '../../hooks/use-virtual-list-focus';
 import { cn } from '../../lib/cn';
 import { cssVars } from '../../lib/dom';
 import { SkeletonTableRow } from '../ui/skeleton';
@@ -26,6 +30,11 @@ interface DevelopmentResultsTableVirtualizedProps {
   scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
   /** ID of the currently selected recipe to highlight in the table */
   selectedRecipeId?: string | null;
+  /**
+   * Receives a handle that puts focus back on a recipe (by combination uuid
+   * or id), such as when the detail sidebar closes with focus inside it.
+   */
+  focusHandleRef?: Ref<VirtualListFocusHandle>;
 }
 
 export const DevelopmentResultsTableVirtualized: FC<
@@ -37,6 +46,7 @@ export const DevelopmentResultsTableVirtualized: FC<
   height = DEFAULT_CONTAINER_HEIGHT,
   scrollContainerRef,
   selectedRecipeId,
+  focusHandleRef,
 }) => {
   const rows = table.getRowModel().rows;
   const headerGroups = table.getHeaderGroups();
@@ -60,6 +70,19 @@ export const DevelopmentResultsTableVirtualized: FC<
   });
 
   const virtualRows = rowVirtualizer.getVirtualItems();
+  const recipeKeys = useMemo(
+    () =>
+      rows.map(({ original: { combination } }) =>
+        String(combination.uuid || combination.id)
+      ),
+    [rows]
+  );
+  const listFocus = useVirtualListFocus({
+    containerRef: parentRef,
+    keys: recipeKeys,
+    scrollToIndex: (index) => rowVirtualizer.scrollToIndex(index),
+    handleRef: focusHandleRef,
+  });
   const totalSize = rowVirtualizer.getTotalSize();
 
   const paddingTop = virtualRows.length > 0 ? virtualRows[0]?.start || 0 : 0;
@@ -72,7 +95,10 @@ export const DevelopmentResultsTableVirtualized: FC<
 
   return (
     <div
-      className="overflow-visible rounded-2xl border shadow-subtle"
+      // The scroll container's focus indicator is drawn here, outside the
+      // border: inside it, the sticky header and the row backgrounds paint
+      // over an outline (#604).
+      className="overflow-visible rounded-2xl border shadow-subtle has-[[data-results-scroll]:focus-visible]:outline-2 has-[[data-results-scroll]:focus-visible]:outline-offset-2 has-[[data-results-scroll]:focus-visible]:outline-[color:var(--color-focus-ring)]"
       style={{
         borderColor: 'var(--color-border-secondary)',
         backgroundColor: 'rgba(var(--color-surface-muted-rgb), 0.2)',
@@ -81,11 +107,17 @@ export const DevelopmentResultsTableVirtualized: FC<
       <div className="overflow-hidden rounded-2xl">
         <div
           ref={parentRef}
+          // Focus lands here when the row it was meant for is gone (#604).
+          tabIndex={-1}
+          {...listFocus.containerProps}
+          data-results-scroll
           style={{
             height,
             minHeight: MIN_CONTAINER_HEIGHT,
             maxHeight: MAX_CONTAINER_HEIGHT,
             overflow: 'auto',
+            // The bordered wrapper draws this container's focus indicator.
+            outline: 'none',
           }}
         >
           <table
@@ -215,6 +247,7 @@ export const DevelopmentResultsTableVirtualized: FC<
                   return (
                     <tr
                       key={row.id}
+                      data-list-item-key={id}
                       tabIndex={0}
                       aria-selected={isSelected}
                       onClick={() => onSelectCombination?.(rowData)}

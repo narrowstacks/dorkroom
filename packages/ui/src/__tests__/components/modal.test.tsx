@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { createRef } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Modal } from '../../components/modal';
 
@@ -25,6 +26,13 @@ describe('Modal', () => {
     render(<Modal {...defaultProps} />);
 
     expect(screen.getByText('Modal content')).toBeInTheDocument();
+  });
+
+  it('sizes the backdrop button explicitly (Chromium 80 does not stretch it)', () => {
+    render(<Modal {...defaultProps} />);
+
+    const backdrop = screen.getByTestId('modal-backdrop');
+    expect(backdrop).toHaveClass('inset-0', 'w-full', 'h-full');
   });
 
   it('does not render when isOpen is false', () => {
@@ -190,6 +198,37 @@ describe('Modal', () => {
       </>
     );
 
+    it('moves focus into the dialog on open', () => {
+      render(<Modal {...defaultProps}>{body}</Modal>);
+      expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();
+    });
+
+    it('focuses the dialog itself when it has nothing tabbable', () => {
+      render(<Modal {...defaultProps} hideCloseButton title="Notice" />);
+      expect(screen.getByRole('dialog', { name: 'Notice' })).toHaveFocus();
+    });
+
+    it('makes the page behind inert but keeps its own backdrop clickable', () => {
+      const page = document.createElement('main');
+      page.append(document.createElement('button'));
+      document.body.prepend(page);
+      const onClose = vi.fn();
+
+      const { unmount } = render(
+        <Modal {...defaultProps} onClose={onClose}>
+          {body}
+        </Modal>
+      );
+      expect(page).toHaveAttribute('inert');
+      const backdrop = screen.getByTestId('modal-backdrop');
+      expect(backdrop.closest('[inert]')).toBeNull();
+      expect(screen.getByRole('dialog').closest('[inert]')).toBeNull();
+
+      unmount();
+      expect(page).not.toHaveAttribute('inert');
+      page.remove();
+    });
+
     it('keeps Tab inside the dialog, wrapping at both ends', () => {
       render(
         <Modal {...defaultProps} hideCloseButton>
@@ -233,6 +272,30 @@ describe('Modal', () => {
       unmount();
       expect(opener).toHaveFocus();
       opener.remove();
+    });
+
+    it('opens on `initialFocus` and closes back to `returnFocus` when given', () => {
+      // A stand-in held focus at open; the real opener is elsewhere.
+      const standIn = document.createElement('input');
+      const trigger = document.createElement('button');
+      document.body.append(standIn, trigger);
+      standIn.focus();
+      const field = createRef<HTMLInputElement>();
+      const returnFocus = { current: trigger };
+
+      const { unmount } = render(
+        <Modal {...defaultProps} initialFocus={field} returnFocus={returnFocus}>
+          <input ref={field} aria-label="Search query" />
+        </Modal>
+      );
+      expect(
+        screen.getByRole('textbox', { name: 'Search query' })
+      ).toHaveFocus();
+
+      unmount();
+      expect(trigger).toHaveFocus();
+      standIn.remove();
+      trigger.remove();
     });
   });
 });

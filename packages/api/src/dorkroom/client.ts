@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { buildQueryString } from './query-string';
 import {
   rawCombinationSchema,
   rawDeveloperSchema,
@@ -81,6 +82,94 @@ export interface InvalidRowsInfo {
   /** Number of rows in the response, before dropping. */
   total: number;
 }
+
+/** Request options shared by every fetcher. */
+export interface FetchOptions {
+  signal?: AbortSignal;
+}
+
+/** Query parameters shared by `/films` and `/developers`. */
+interface SearchParams {
+  /** Free-text search over names and metadata (max 200 chars). */
+  query?: string;
+  /**
+   * @deprecated The API ignores `fuzzy`. Never sent unless you set it.
+   */
+  fuzzy?: boolean;
+  /** Maximum number of records to return (1 to 1000). */
+  limit?: number;
+  /** Return only the record with this exact slug. */
+  slug?: string;
+}
+
+/** Query parameters for `/films`. */
+export interface FilmQueryParams extends SearchParams {
+  /** Filter by color type (e.g. "bw", "color", "slide"). */
+  colorType?: string;
+  /** Filter by manufacturer brand. */
+  brand?: string;
+}
+
+/** Query parameters for `/developers`. */
+export interface DeveloperQueryParams extends SearchParams {
+  /** Filter by developer type (e.g. "concentrate", "powder"). */
+  type?: string;
+  /** Filter by manufacturer. */
+  manufacturer?: string;
+}
+
+/** Query parameters for `/combinations`. */
+export interface CombinationQueryParams {
+  /** Filter by film stock slug. */
+  film?: string;
+  /** Filter by developer slug. */
+  developer?: string;
+  /** Return only the combination with this id. */
+  id?: string;
+  /** Page size (1 to 1000). */
+  count?: number;
+  /** Page number (1-based). */
+  page?: number;
+  /** Free-text search term (max 200 chars). */
+  query?: string;
+  /**
+   * @deprecated The API ignores `fuzzy`. Never sent unless you set it.
+   */
+  fuzzy?: boolean;
+  /** Maximum number of records to return (1 to 1000). */
+  limit?: number;
+}
+
+export type FetchFilmsOptions = FetchOptions & FilmQueryParams;
+export type FetchDevelopersOptions = FetchOptions & DeveloperQueryParams;
+export type FetchCombinationsOptions = FetchOptions & CombinationQueryParams;
+
+const FILM_PARAM_KEYS = [
+  'query',
+  'fuzzy',
+  'limit',
+  'slug',
+  'colorType',
+  'brand',
+] as const;
+const DEVELOPER_PARAM_KEYS = [
+  'query',
+  'fuzzy',
+  'limit',
+  'slug',
+  'type',
+  'manufacturer',
+] as const;
+const COMBINATION_PARAM_KEYS = [
+  'film',
+  'developer',
+  'id',
+  'count',
+  'page',
+  'query',
+  'fuzzy',
+  'limit',
+] as const;
 
 const isAbortError = (error: Error, signal?: AbortSignal): boolean =>
   signal?.aborted === true || error.name === 'AbortError';
@@ -216,10 +305,11 @@ export class DorkroomApiClient {
     resource: CollectionResource,
     schema: z.ZodType<Raw>,
     transform: (raw: Raw) => Out,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    queryString = ''
   ): Promise<Out[]> {
     const envelope = await this.getValidated(
-      `/${resource}`,
+      `/${resource}${queryString}`,
       resource,
       envelopeSchema,
       signal
@@ -259,44 +349,50 @@ export class DorkroomApiClient {
   /**
    * Fetch films from the API with runtime validation.
    * Invalid individual items are filtered out rather than failing the entire request.
+   * Optional filter params are sent as a URL-encoded query string.
    * @throws DorkroomApiError on HTTP, network, JSON, or envelope failure.
    */
-  fetchFilms(options?: { signal?: AbortSignal }): Promise<Film[]> {
+  fetchFilms(options?: FetchFilmsOptions): Promise<Film[]> {
     return this.fetchCollection(
       'films',
       rawFilmSchema,
       this.transformFilm.bind(this),
-      options?.signal
+      options?.signal,
+      buildQueryString(options, FILM_PARAM_KEYS)
     );
   }
 
   /**
    * Fetch developers from the API with runtime validation.
    * Invalid individual items are filtered out rather than failing the entire request.
+   * Optional filter params are sent as a URL-encoded query string.
    * @throws DorkroomApiError on HTTP, network, JSON, or envelope failure.
    */
-  fetchDevelopers(options?: { signal?: AbortSignal }): Promise<Developer[]> {
+  fetchDevelopers(options?: FetchDevelopersOptions): Promise<Developer[]> {
     return this.fetchCollection(
       'developers',
       rawDeveloperSchema,
       this.transformDeveloper.bind(this),
-      options?.signal
+      options?.signal,
+      buildQueryString(options, DEVELOPER_PARAM_KEYS)
     );
   }
 
   /**
    * Fetch combinations from the API with runtime validation.
    * Invalid individual items are filtered out rather than failing the entire request.
+   * Optional filter params are sent as a URL-encoded query string.
    * @throws DorkroomApiError on HTTP, network, JSON, or envelope failure.
    */
-  fetchCombinations(options?: {
-    signal?: AbortSignal;
-  }): Promise<Combination[]> {
+  fetchCombinations(
+    options?: FetchCombinationsOptions
+  ): Promise<Combination[]> {
     return this.fetchCollection(
       'combinations',
       rawCombinationSchema,
       this.transformCombination.bind(this),
-      options?.signal
+      options?.signal,
+      buildQueryString(options, COMBINATION_PARAM_KEYS)
     );
   }
 
@@ -339,11 +435,13 @@ export class DorkroomApiClient {
       colorType: raw.color_type,
       isoSpeed: raw.iso_speed,
       grainStructure: raw.grain_structure,
-      description: raw.description,
+      description: raw.description ?? '',
       manufacturerNotes,
       reciprocityFailure: raw.reciprocity_failure,
       discontinued: raw.discontinued,
       staticImageUrl: raw.static_image_url,
+      imageCredit: raw.image_credit,
+      imageSourceUrl: raw.image_source_url,
       aliases: raw.aliases,
       baseFilmSlug: raw.base_film_slug,
       dateAdded: raw.date_added,
@@ -363,7 +461,7 @@ export class DorkroomApiClient {
       name: raw.name,
       manufacturer: raw.manufacturer,
       type: raw.type,
-      description: raw.description,
+      description: raw.description ?? '',
       filmOrPaper: raw.film_or_paper,
       dilutions:
         raw.dilutions
@@ -382,6 +480,8 @@ export class DorkroomApiClient {
       mixingInstructions: raw.mixing_instructions,
       storageRequirements: raw.storage_requirements,
       safetyNotes: raw.safety_notes,
+      imageCredit: raw.image_credit,
+      imageSourceUrl: raw.image_source_url,
       notes: null, // Not provided by API
       createdAt: raw.created_at,
       updatedAt: raw.updated_at,
@@ -443,13 +543,13 @@ export const configureApiClient = (config: DorkroomApiClientConfig): void =>
   apiClient.configure(config);
 
 // Export convenience functions for external use
-export const fetchFilms = (options?: { signal?: AbortSignal }) =>
+export const fetchFilms = (options?: FetchFilmsOptions) =>
   apiClient.fetchFilms(options);
 
-export const fetchDevelopers = (options?: { signal?: AbortSignal }) =>
+export const fetchDevelopers = (options?: FetchDevelopersOptions) =>
   apiClient.fetchDevelopers(options);
 
-export const fetchCombinations = (options?: { signal?: AbortSignal }) =>
+export const fetchCombinations = (options?: FetchCombinationsOptions) =>
   apiClient.fetchCombinations(options);
 
 export const fetchStatsForQuery = (context?: { signal?: AbortSignal }) =>

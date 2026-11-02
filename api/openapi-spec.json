@@ -627,7 +627,7 @@
       "Query": {
         "name": "query",
         "in": "query",
-        "description": "Free-text search term matched against names and metadata.",
+        "description": "Free-text search term. Matched case-insensitively as a partial match (substring) against names and metadata, not an exact match. Accents are significant, and any run of punctuation or symbols acts as a wildcard matching any characters. A term with no letter or digit is rejected with 400.",
         "required": false,
         "schema": {
           "type": "string",
@@ -637,7 +637,8 @@
       "Fuzzy": {
         "name": "fuzzy",
         "in": "query",
-        "description": "Enable fuzzy matching for `query` (\"true\" or \"false\").",
+        "description": "Deprecated and ignored. There is no fuzzy matching: `query` is always a case-insensitive partial match. Still accepted (\"true\" or \"false\") so existing clients keep working.",
+        "deprecated": true,
         "required": false,
         "schema": {
           "type": "string",
@@ -711,7 +712,10 @@
             ]
           },
           "description": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "manufacturer_notes": {
             "type": [
@@ -729,6 +733,20 @@
             "type": "boolean"
           },
           "static_image_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "image_credit": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "image_source_url": {
+            "default": null,
             "type": [
               "string",
               "null"
@@ -784,6 +802,8 @@
           "reciprocity_failure",
           "discontinued",
           "static_image_url",
+          "image_credit",
+          "image_source_url",
           "aliases",
           "base_film_slug",
           "date_added",
@@ -814,7 +834,10 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "film_or_paper": {
             "type": "boolean"
@@ -864,6 +887,20 @@
               "null"
             ]
           },
+          "image_credit": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "image_source_url": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "created_at": {
             "type": "string"
           },
@@ -884,6 +921,8 @@
           "mixing_instructions",
           "storage_requirements",
           "safety_notes",
+          "image_credit",
+          "image_source_url",
           "created_at",
           "updated_at"
         ],

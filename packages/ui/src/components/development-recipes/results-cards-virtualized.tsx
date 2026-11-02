@@ -5,7 +5,11 @@ import {
   getCombinationDilution,
 } from '@dorkroom/logic';
 import type { Row, Table } from '@tanstack/react-table';
-import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
+import {
+  defaultRangeExtractor,
+  useVirtualizer,
+  type VirtualItem,
+} from '@tanstack/react-virtual';
 import {
   ArrowDown,
   ArrowUp,
@@ -16,9 +20,14 @@ import {
   Star,
   Trash2,
 } from 'lucide-react';
-import { type FC, useMemo, useRef, useState } from 'react';
+import { type FC, type Ref, useMemo, useRef, useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { useColumnCount } from '../../hooks/use-column-count';
+import {
+  keepFocusedInRange,
+  useVirtualListFocus,
+  type VirtualListFocusHandle,
+} from '../../hooks/use-virtual-list-focus';
 import { cn } from '../../lib/cn';
 import { hasGlobal } from '../../lib/dom';
 import type { ShareResult } from '../share-button';
@@ -60,6 +69,11 @@ interface DevelopmentResultsCardsVirtualizedProps {
   scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
   /** ID of the currently selected recipe to highlight in the grid */
   selectedRecipeId?: string | null;
+  /**
+   * Receives a handle that puts focus back on a recipe (by combination uuid
+   * or id), such as when the detail sidebar closes with focus inside it.
+   */
+  focusHandleRef?: Ref<VirtualListFocusHandle>;
 }
 
 /** A recipe's tags split into official badges and other display tags. */
@@ -159,6 +173,8 @@ function TempStat({
 
 interface RecipeCardProps {
   rowData: DevelopmentCombinationView;
+  /** Identifies the card to its list's focus tracking. */
+  itemKey: string;
   unit: ReturnType<typeof useTemperature>['unit'];
   isSelected: boolean;
   isMobile: boolean;
@@ -182,6 +198,7 @@ interface RecipeCardProps {
 // eslint-disable-next-line react-doctor/no-many-boolean-props -- internal card row; its boolean inputs are independent display states, not a variant axis
 function RecipeCard({
   rowData,
+  itemKey,
   unit,
   isSelected,
   isMobile,
@@ -207,6 +224,7 @@ function RecipeCard({
 
   return (
     <div
+      data-list-item-key={itemKey}
       className={cn(
         'relative cursor-pointer rounded-2xl border p-3 shadow-subtle transition-all duration-200 hover:scale-[1.02]',
         'animate-slide-fade-bottom',
@@ -415,6 +433,7 @@ export const DevelopmentResultsCardsVirtualized: FC<
   height = DEFAULT_CONTAINER_HEIGHT,
   scrollContainerRef,
   selectedRecipeId,
+  focusHandleRef,
 }) => {
   const { unit } = useTemperature();
   const [hoveredFavoriteId, setHoveredFavoriteId] = useState<string | null>(
@@ -428,6 +447,26 @@ export const DevelopmentResultsCardsVirtualized: FC<
   // Calculate number of columns based on container width (responsive)
   const columnCount = useColumnCount(parentRef, isMobile);
 
+  // A column count change (the detail sidebar narrowing the grid) moves every
+  // card into another row container and remounts it. This keeps focus on the
+  // card (#604), and the virtualizer keeps the focused card's row rendered so
+  // it survives the move and scrolling past it.
+  const recipeKeys = useMemo(
+    () =>
+      rows.map(({ original: { combination } }) =>
+        String(combination.uuid || combination.id)
+      ),
+    [rows]
+  );
+  const listFocus = useVirtualListFocus({
+    containerRef: parentRef,
+    keys: recipeKeys,
+    // Called from focusItem only, after render, when rowVirtualizer exists.
+    scrollToIndex: (index) =>
+      rowVirtualizer.scrollToIndex(Math.floor(index / columnCount)),
+    handleRef: focusHandleRef,
+  });
+
   // Memoize the debounced observer to prevent recreation on every render
   const debouncedObserveElementRect = useMemo(
     () => createDebouncedObserveElementRect(),
@@ -439,6 +478,11 @@ export const DevelopmentResultsCardsVirtualized: FC<
     getScrollElement: () => parentRef.current,
     estimateSize: () => CARD_ROW_ESTIMATED_HEIGHT,
     overscan: CARD_OVERSCAN,
+    rangeExtractor: (range) =>
+      keepFocusedInRange(
+        defaultRangeExtractor(range),
+        Math.floor(listFocus.focusedIndex() / columnCount)
+      ),
     // Use debounced resize observation to prevent browser lockups during rapid resizing
     observeElementRect: debouncedObserveElementRect,
     // Enable dynamic measurement for rows with varying heights (e.g., custom recipes with extra buttons)
@@ -455,9 +499,12 @@ export const DevelopmentResultsCardsVirtualized: FC<
   return (
     <div
       ref={parentRef}
+      // Focus lands here when the card it was meant for is gone (#604).
+      tabIndex={-1}
+      {...listFocus.containerProps}
       // p-2 (8px) adds padding so the card hover scale effect isn't clipped
       // at the scroll container edges; overflow-auto enables virtualized scroll.
-      className="overflow-auto p-2"
+      className="overflow-auto p-2 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--color-focus-ring)]"
       style={{
         height,
         minHeight: MIN_CONTAINER_HEIGHT,
@@ -522,6 +569,7 @@ export const DevelopmentResultsCardsVirtualized: FC<
                   return (
                     <RecipeCard
                       key={combination.uuid || combination.id}
+                      itemKey={id}
                       rowData={rowData}
                       unit={unit}
                       isSelected={isSelected}

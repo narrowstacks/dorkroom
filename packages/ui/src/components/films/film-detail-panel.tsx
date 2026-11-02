@@ -1,9 +1,11 @@
 import type { Film } from '@dorkroom/api';
 import { ExternalLink, Share2 } from 'lucide-react';
-import type { FC, ReactNode } from 'react';
+import { type FC, type ReactNode, use } from 'react';
 import { DetailPanel } from '../detail-panel/detail-panel';
 import { Tag } from '../ui/tag';
 import { FilmImage } from './film-image';
+import { FilmImageCredit } from './film-image-credit';
+import { FilmImageModeContext } from './film-image-mode-context';
 import { FilmRebrandInfo } from './film-rebrand-info';
 
 /**
@@ -29,6 +31,11 @@ interface FilmDetailPanelProps {
   isMobile: boolean;
   /** Share a link to this film. When provided, the panel shows a Share button. */
   onShare?: (film: Film) => void;
+  /**
+   * Called when the desktop sidebar closes with focus inside it, to put focus
+   * back on whatever opened it (see `DetailPanel`).
+   */
+  returnFocus?: () => void;
 }
 
 /**
@@ -73,7 +80,13 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
   onClose,
   isMobile,
   onShare,
+  returnFocus,
 }) => {
+  // The opened film's photo loads unless photos are off entirely (#636).
+  const photoUrl =
+    use(FilmImageModeContext) === 'none'
+      ? null
+      : (film?.staticImageUrl ?? null);
   if (!film) {
     return null;
   }
@@ -110,17 +123,25 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
   const expandedContent = (
     <div className="grid gap-8 md:grid-cols-[auto_1fr]">
       {/* Left column: Image */}
-      <div className="flex justify-center md:justify-start">
+      <div className="flex flex-col items-center gap-3 md:items-start">
         {/* Eager: this is the expanded panel's hero image, already in the
             viewport the moment the panel opens, so lazy-loading it would
             only delay a paint the user is about to see anyway. */}
         <FilmImage
-          src={film.staticImageUrl}
+          src={photoUrl}
           alt={`${film.brand} ${film.name}`}
           size="lg"
           loading="eager"
+          renderedSize={224}
           className="!w-48 !h-48 md:!w-56 md:!h-56"
         />
+        {photoUrl && (
+          <FilmImageCredit
+            credit={film.imageCredit}
+            sourceUrl={film.imageSourceUrl}
+            className="max-w-48 md:max-w-56"
+          />
+        )}
       </div>
 
       {/* Right column: Details */}
@@ -268,6 +289,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
     <DetailPanel
       isOpen={isOpen}
       onClose={onClose}
+      returnFocus={returnFocus}
       isMobile={isMobile}
       ariaLabel={ariaLabel}
       expandedContent={expandedContent}
@@ -296,20 +318,29 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
   developmentRecipesUrl,
   shareButton,
 }) => {
+  const photoUrl =
+    use(FilmImageModeContext) === 'none' ? null : film.staticImageUrl;
   return (
     <div className="space-y-6">
       {/* Film image */}
-      <div className="flex justify-center">
+      <div className="flex flex-col items-center gap-3">
         {/* Eager: the sidebar/drawer's own hero image, visible as soon as
             the panel opens (not virtualized, not off-screen), so lazy would
             just delay a paint the user is about to see anyway. */}
         <FilmImage
-          src={film.staticImageUrl}
+          src={photoUrl}
           alt={`${film.brand} ${film.name}`}
           size="lg"
           loading="eager"
+          renderedSize={128}
           className="!w-32 !h-32"
         />
+        {photoUrl && (
+          <FilmImageCredit
+            credit={film.imageCredit}
+            sourceUrl={film.imageSourceUrl}
+          />
+        )}
       </div>
 
       {/* Title */}

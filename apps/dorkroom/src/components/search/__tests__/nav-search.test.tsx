@@ -204,6 +204,80 @@ describe('nav search', () => {
     ).toBeInTheDocument();
   });
 
+  it('focuses a text field within the tap, so a phone shows its keyboard, then hands focus to the box', async () => {
+    await renderApp('/border');
+    // The phone's floating button, outside the header.
+    const fab = screen
+      .getAllByRole('button', { name: 'Search' })
+      .find((button) => !button.closest('header'));
+    if (!fab) throw new Error('no floating search button');
+    const focused: Element[] = [];
+    const onFocusIn = (event: FocusEvent) => {
+      if (event.target instanceof Element) focused.push(event.target);
+    };
+    document.addEventListener('focusin', onFocusIn);
+
+    // Read as the click finishes dispatching, inside the gesture and before
+    // React renders the dialog (whose code may not even have loaded yet).
+    let held: Element | null = null;
+    let dialogDuringClick: Element | null = null;
+    let inertOnBlur: boolean | null = null;
+    document.addEventListener(
+      'click',
+      () => {
+        held = document.activeElement;
+        dialogDuringClick = document.querySelector('[role="dialog"], dialog');
+        if (!(held instanceof HTMLInputElement)) return;
+        // Typing begins before the dialog is there; none of it is lost.
+        held.value = 'hp5';
+        held.addEventListener('blur', (event) => {
+          if (event.target instanceof Element) {
+            inertOnBlur = event.target.closest('[inert]') !== null;
+          }
+        });
+      },
+      { once: true }
+    );
+    // More typing lands in the stand-in after the dialog has rendered, up to
+    // the moment focus moves to the box.
+    const focus = HTMLElement.prototype.focus;
+    const lateTyping = vi
+      .spyOn(HTMLElement.prototype, 'focus')
+      .mockImplementation(function (this: HTMLElement, options) {
+        if (
+          this.getAttribute('role') === 'combobox' &&
+          held instanceof HTMLInputElement &&
+          held.isConnected
+        ) {
+          held.value += ' dd-x';
+        }
+        focus.call(this, options);
+      });
+    fireEvent.click(fab);
+    expect(dialogDuringClick).toBeNull();
+    expect(held).toBeInstanceOf(HTMLInputElement);
+    expect(held).toHaveAttribute('aria-hidden', 'true');
+    expect(held).toHaveAttribute('tabindex', '-1');
+    expect(held).toHaveAttribute('inputmode', 'search');
+
+    await findDialog();
+    await waitFor(() => expect(box()).toHaveFocus());
+    document.removeEventListener('focusin', onFocusIn);
+    // Straight from the stand-in to the box: never the Close button between,
+    // and the stand-in still focusable (not inert) when it hands over.
+    expect(focused).toEqual([held, box()]);
+    expect(inertOnBlur).toBe(false);
+    // What was typed meanwhile is in the box, with the caret after it.
+    lateTyping.mockRestore();
+    expect(box()).toHaveValue('hp5 dd-x');
+    expect(box()).toHaveProperty('selectionStart', 8);
+    expect(document.querySelector('[data-search-keyboard-proxy]')).toBeNull();
+
+    fireEvent.keyDown(box(), { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(fab).toHaveFocus();
+  });
+
   it('opens the top result with Enter, and closes', async () => {
     const router = await renderApp('/border');
     fireEvent.click(headerSearchButton());

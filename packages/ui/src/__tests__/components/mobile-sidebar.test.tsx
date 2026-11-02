@@ -16,6 +16,7 @@ const themeContext: ThemeContextValue = {
   resolvedTheme: 'dark',
   setTheme: vi.fn(),
   animationsEnabled: true,
+  themeLocked: false,
   setAnimationsEnabled: vi.fn(),
 };
 

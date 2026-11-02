@@ -36,11 +36,16 @@ export const rawFilmSchema = z.object({
   color_type: z.string(),
   iso_speed: z.number(),
   grain_structure: z.string().nullable(),
-  description: z.string(),
+  // Null on rows created by the admin batch import; the client maps it to ''.
+  description: z.string().nullable(),
   manufacturer_notes: z.string().nullable(), // PostgreSQL array format string
   reciprocity_failure: z.string().nullable(),
   discontinued: z.boolean(),
   static_image_url: z.string().nullable(),
+  /** Who took the packaging photo, and its licence. Null when unknown. */
+  image_credit: z.string().nullable().default(null),
+  /** Page (or file) the packaging photo came from. Null when unknown. */
+  image_source_url: z.string().nullable().default(null),
   aliases: z.array(filmAliasSchema).default([]),
   base_film_slug: z.string().nullable(),
   date_added: z.string(),
@@ -58,12 +63,17 @@ export const rawDeveloperSchema = z.object({
   name: z.string(),
   manufacturer: z.string(),
   type: z.string(),
-  description: z.string(),
+  // Null on rows created by the admin batch import; the client maps it to ''.
+  description: z.string().nullable(),
   film_or_paper: z.boolean(),
   dilutions: z.array(rawDilutionSchema),
   mixing_instructions: z.string().nullable(),
   storage_requirements: z.string().nullable(),
   safety_notes: z.string().nullable(),
+  /** Who took the packaging photo, and its licence. Null when unknown. */
+  image_credit: z.string().nullable().default(null),
+  /** Page (or file) the packaging photo came from. Null when unknown. */
+  image_source_url: z.string().nullable().default(null),
   created_at: z.string(),
   updated_at: z.string(),
 });

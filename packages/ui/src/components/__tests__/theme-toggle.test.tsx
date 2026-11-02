@@ -11,6 +11,7 @@ import {
   ThemeContext,
   type ThemeContextValue,
 } from '../../contexts/theme-context';
+import { useEscapeKey } from '../../hooks/use-escape-key';
 import type { Theme } from '../../lib/themes';
 import { ThemeToggle } from '../theme-toggle';
 
@@ -20,6 +21,7 @@ const themeContext: ThemeContextValue = {
   theme: 'dark',
   resolvedTheme: 'dark',
   setTheme: mockSetTheme,
+  themeLocked: false,
   animationsEnabled: true,
   setAnimationsEnabled: vi.fn(),
 };
@@ -515,4 +517,43 @@ describe('ThemeToggle', () => {
       });
     });
   });
+});
+
+describe('ThemeToggle Escape stacking (#617)', () => {
+  it('closes only itself when a layer below it also listens for Escape', async () => {
+    const outer = vi.fn();
+    function Outer() {
+      useEscapeKey(true, outer);
+      return <ThemeToggle />;
+    }
+    render(<Outer />);
+    const button = screen.getByRole('button', { name: 'Theme' });
+    await userEvent.click(button);
+    expect(button).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+    expect(button).toHaveFocus();
+    expect(outer).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(outer).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('ThemeToggle on e-ink', () => {
+  it.each(['icon', 'grid', 'sidebar', 'button'] as const)(
+    'renders nothing for the %s variant',
+    (variant) => {
+      const { container } = renderBare(<ThemeToggle variant={variant} />, {
+        wrapper: ({ children }) => (
+          <ThemeContext value={{ ...themeContext, themeLocked: true }}>
+            {children}
+          </ThemeContext>
+        ),
+      });
+      expect(container).toBeEmptyDOMElement();
+    }
+  );
 });

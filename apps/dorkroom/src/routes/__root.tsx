@@ -1,14 +1,16 @@
 import {
   allNavItems,
   cn,
+  isLegacyBrowser,
   navigationCategories,
   NavigationDropdown,
   ROUTE_TITLES,
   ThemeToggle,
   Tooltip,
+  useTheme,
 } from '@dorkroom/ui';
 import {
-  createRootRoute,
+  createRootRouteWithContext,
   HeadContent,
   Link,
   Outlet,
@@ -19,10 +21,15 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Beaker, GitBranch, Home, Newspaper, Settings } from 'lucide-react';
 import { useEffect } from 'react';
 import { usePreferenceAnalytics } from '../app/lib/analytics/use-preference-analytics';
+import type { RouterContext } from '../app/lib/router-context';
 import { MobileNav } from '../components/mobile-nav';
 import { NavSearchButton, useNavSearch } from '../components/search/nav-search';
 
+// Read once: the browser does not change while the page is open.
+const speedInsightsDisabled = isLegacyBrowser();
+
 function RootComponent() {
+  const { themeLocked } = useTheme();
   const router = useRouter();
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
@@ -54,7 +61,9 @@ function RootComponent() {
 
   return (
     <>
-      <SpeedInsights route={routePattern} />
+      {/* Not on low-memory legacy browsers (#636): one more script and its
+          performance observers on an interpreter-only engine. */}
+      {!speedInsightsDisabled && <SpeedInsights route={routePattern} />}
       <HeadContent />
       <div
         className="isolate h-dvh"
@@ -184,9 +193,11 @@ function RootComponent() {
                     <Newspaper className="size-4" />
                   </a>
                 </Tooltip>
-                <Tooltip label="Themes">
-                  <ThemeToggle variant="icon" />
-                </Tooltip>
+                {!themeLocked && (
+                  <Tooltip label="Themes">
+                    <ThemeToggle variant="icon" />
+                  </Tooltip>
+                )}
                 <Tooltip label="Settings">
                   <Link
                     to="/settings"
@@ -227,6 +238,6 @@ function RootComponent() {
   );
 }
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootComponent,
 });

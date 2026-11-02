@@ -227,12 +227,7 @@ describe('CustomBadge', () => {
 
       const badge = screen.getByLabelText('Custom Recipe');
       expect(badge.style.backgroundColor).toBe(
-        colorMixOr(
-          'var(--color-accent)',
-          15,
-          'transparent',
-          'var(--color-border-muted)'
-        )
+        colorMixOr('var(--color-accent)', 15, 'transparent', 'transparent')
       );
       expect(badge.style.borderColor).toBe(
         colorMixOr(

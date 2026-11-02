@@ -19,7 +19,7 @@ import {
   colorMixOr,
   getRouteAccent,
   getRouteIcon,
-  StatusAlert,
+  LiveStatusAlert,
   useMeasurement,
   useMeasurementConverter,
 } from '@dorkroom/ui';
@@ -64,7 +64,7 @@ function ModeToggle({ isEnlargerHeightMode, onModeChange }: ModeToggleProps) {
           'var(--color-surface)',
           80,
           'transparent',
-          'var(--color-border-muted)'
+          'transparent'
         ),
       }}
     >
@@ -194,7 +194,7 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
                 'var(--color-surface)',
                 80,
                 'transparent',
-                'var(--color-border-muted)'
+                'transparent'
               ),
               color: 'var(--color-text-primary)',
             }}
@@ -543,19 +543,21 @@ function ResizeInputs({
         hidden={!formValues.isEnlargerHeightMode}
       />
 
-      {!formValues.isEnlargerHeightMode &&
-        !matchesAspectRatio({
-          isEnlargerHeightMode: false,
-          originalWidth: formValues.originalWidth,
-          originalLength: formValues.originalLength,
-          newWidth: formValues.newWidth,
-          newLength: formValues.newLength,
-        }) && (
-          <StatusAlert
-            message="The aspect ratios of the original and target prints do not match. Try to match the aspect ratio of the original print to the target print as close as possible."
-            action="warning"
-          />
-        )}
+      <LiveStatusAlert
+        message={
+          !formValues.isEnlargerHeightMode &&
+          !matchesAspectRatio({
+            isEnlargerHeightMode: false,
+            originalWidth: formValues.originalWidth,
+            originalLength: formValues.originalLength,
+            newWidth: formValues.newWidth,
+            newLength: formValues.newLength,
+          })
+            ? 'The aspect ratios of the original and target prints do not match. Try to match the aspect ratio of the original print to the target print as close as possible.'
+            : null
+        }
+        action="warning"
+      />
 
       <div className="space-y-3">
         <h3

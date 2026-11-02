@@ -3,6 +3,7 @@ import {
   type ShareResult,
   SkeletonCard,
   SkeletonTableRow,
+  type VirtualListFocusHandle,
 } from '@dorkroom/ui';
 import {
   type DevelopmentCombinationView,
@@ -12,7 +13,7 @@ import {
 } from '@dorkroom/ui/development-recipes';
 import type { Table } from '@tanstack/react-table';
 import { Loader2 } from 'lucide-react';
-import type { FC } from 'react';
+import type { FC, Ref } from 'react';
 
 export interface RecipeResultsSectionProps {
   isLoading: boolean;
@@ -24,6 +25,8 @@ export interface RecipeResultsSectionProps {
   resultsContainerRef: React.RefObject<HTMLDivElement | null>;
   /** Ref to the virtualized scroll container, used to scroll to top on page change */
   virtualScrollContainerRef: React.RefObject<HTMLDivElement | null>;
+  /** Receives the results list's handle for putting focus back on a recipe */
+  resultsFocusRef?: Ref<VirtualListFocusHandle>;
   favoriteTransitions: Map<string, 'adding' | 'removing'>;
   onSelectCombination: (view: DevelopmentCombinationView) => void;
   onToggleFavorite: (view: DevelopmentCombinationView) => void;
@@ -48,6 +51,7 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
     table,
     resultsContainerRef,
     virtualScrollContainerRef,
+    resultsFocusRef,
     favoriteTransitions,
     onSelectCombination,
     onToggleFavorite,
@@ -169,6 +173,7 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
                 favoriteTransitions={favoriteTransitions}
                 scrollContainerRef={virtualScrollContainerRef}
                 selectedRecipeId={selectedRecipeId}
+                focusHandleRef={resultsFocusRef}
               />
             ) : (
               <DevelopmentResultsTableVirtualized
@@ -177,6 +182,7 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
                 favoriteTransitions={favoriteTransitions}
                 scrollContainerRef={virtualScrollContainerRef}
                 selectedRecipeId={selectedRecipeId}
+                focusHandleRef={resultsFocusRef}
               />
             )}
           </VirtualizedErrorBoundary>

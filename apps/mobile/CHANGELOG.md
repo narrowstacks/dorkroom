@@ -21,6 +21,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - **Mat measurements read the way you write them.** `3-1/2`, `3 1/2"` (including the curly quote the keyboard types), `3 1/2 in`, `3½` and `3 ½` are now 3.5 instead of being cut down to 3. A border or reveal with anything else left over, such as `3abc`, now shows the "Check inputs" message instead of quietly using the leading number or no reveal. (fixes #340)
 - **A third of a stop is exact in the Stops tool.** A third of a stop was worked out as 0.33, so 12s +1/3 gave 15.08s instead of 15.12s. Thirds and two-thirds are now exact, whether stepped or typed, three +1/3 steps add exactly one stop, and the multiplier reads ×1.260. (fixes #551)
 - **Timer preset seconds step down past a whole minute.** In the preset editor, pressing − on the seconds at 2:00 now gives 1:55 instead of staying at 2:00.
+- **Newly added films and developers show up.** Films and developers added without a description were silently left out of every list and picker, which hid 61 films and 81 developers. They now appear.
 
 ## [2026.10.30]
 

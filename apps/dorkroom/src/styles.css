@@ -6,3 +6,7 @@
 @import "./styles/utilities.css";
 
 @source "../../../**/*.{js,ts,jsx,tsx}";
+/* The legacy stylesheet builder names CSS features (e.g. container queries)
+   that would otherwise be read as utility classes. */
+@source not "../legacy-css.ts";
+@source not "../../../scripts/__tests__/legacy-css.test.ts";

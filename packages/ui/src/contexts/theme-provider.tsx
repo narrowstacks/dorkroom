@@ -1,7 +1,14 @@
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
-import { hasGlobal } from '../lib/dom';
+import {
+  type ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { hasGlobal, matchMediaQuery } from '../lib/dom';
+import { isLegacyBrowser } from '../lib/motion';
 import type { Theme } from '../lib/themes';
-import { resolveTheme } from '../lib/themes';
+import { isEInkDevice, resolveTheme } from '../lib/themes';
 import { ThemeContext, type ThemeContextValue } from './theme-context';
 
 interface ThemeProviderProps {
@@ -14,6 +21,11 @@ const ANIMATIONS_STORAGE_KEY = 'dorkroom-animations-enabled';
 // Read the persisted theme on first render. On the server (no localStorage) or
 // for a first-time visitor, default to 'system' and persist that default.
 function getInitialTheme(): Theme {
+  // E-ink is locked to high contrast over any stored choice. Nothing is read
+  // or written, so the stored theme still applies on the user's other devices.
+  if (isEInkDevice()) {
+    return 'high-contrast';
+  }
   if (!hasGlobal('localStorage')) {
     return 'system';
   }
@@ -43,8 +55,13 @@ function prefersReducedMotion(): boolean {
 
 // Read the persisted animations preference on first render. With nothing
 // stored, seed from the OS reduce-motion setting and do not persist: only an
-// explicit user toggle is written.
+// explicit user toggle is written. A legacy (e-ink) browser is always off, even
+// over a stored "true": its stylesheet already stops all motion, so an "on"
+// switch would only lie. The stored value is left alone.
 function getInitialAnimationsEnabled(): boolean {
+  if (isLegacyBrowser()) {
+    return false;
+  }
   if (hasGlobal('localStorage')) {
     const savedAnimations = localStorage.getItem(ANIMATIONS_STORAGE_KEY);
     if (savedAnimations === 'true' || savedAnimations === 'false') {
@@ -55,6 +72,7 @@ function getInitialAnimationsEnabled(): boolean {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
+  const [themeLocked] = useState(isEInkDevice);
   const [theme, setThemeState] = useState<Theme>(getInitialTheme);
   const [resolvedTheme, setResolvedTheme] = useState<
     'light' | 'dark' | 'darkroom' | 'high-contrast'
@@ -62,6 +80,14 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const [animationsEnabled, setAnimationsEnabledState] = useState(
     getInitialAnimationsEnabled
   );
+
+  // Paint the right theme on React's first frame, before the effect below
+  // (which also handles the system listener) runs after paint.
+  useLayoutEffect(() => {
+    if (hasGlobal('document')) {
+      document.documentElement.setAttribute('data-theme', resolveTheme(theme));
+    }
+  }, [theme]);
 
   // Update resolved theme when theme changes or system preference changes
   useEffect(() => {
@@ -109,9 +135,14 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
     // Listen for system theme changes when using 'system'
     if (theme === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const mediaQuery = matchMediaQuery('(prefers-color-scheme: dark)');
       const handleChange = () => updateResolvedTheme();
 
+      // Safari <14 and the legacy bundle's WebKit only have `addListener`.
+      if (mediaQuery.addEventListener === undefined) {
+        mediaQuery.addListener(handleChange);
+        return () => mediaQuery.removeListener(handleChange);
+      }
       mediaQuery.addEventListener('change', handleChange);
       return () => mediaQuery.removeEventListener('change', handleChange);
     }
@@ -121,6 +152,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
   const contextValue = useMemo<ThemeContextValue>(() => {
     const setTheme = (newTheme: Theme) => {
+      if (themeLocked) return;
       setThemeState(newTheme);
       localStorage.setItem(STORAGE_KEY, newTheme);
     };
@@ -134,10 +166,11 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       theme,
       resolvedTheme,
       setTheme,
+      themeLocked,
       animationsEnabled,
       setAnimationsEnabled,
     };
-  }, [theme, resolvedTheme, animationsEnabled]);
+  }, [theme, resolvedTheme, themeLocked, animationsEnabled]);
 
   return <ThemeContext value={contextValue}>{children}</ThemeContext>;
 }

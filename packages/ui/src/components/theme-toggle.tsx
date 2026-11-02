@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTheme } from '../contexts/theme-context';
+import { useEscapeKey } from '../hooks/use-escape-key';
 import { cn } from '../lib/cn';
 import type { Theme } from '../lib/themes';
 
@@ -126,7 +127,7 @@ export function ThemeToggle({
   className,
   onSelect,
 }: ThemeToggleProps) {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, themeLocked } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   // Tracks the active menu item index. It only ever drives imperative focus
   // (never the rendered output), so a ref avoids needless re-renders.
@@ -151,6 +152,13 @@ export function ThemeToggle({
     });
   };
 
+  // Escape goes through the shared LIFO stack, so a dropdown over the phone
+  // menu closes alone (#617).
+  useEscapeKey(isOpen, () => {
+    setIsOpen(false);
+    buttonRef.current?.focus();
+  });
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -162,19 +170,10 @@ export function ThemeToggle({
       }
     };
 
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsOpen(false);
-        buttonRef.current?.focus();
-      }
-    };
-
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleEscape);
       return () => {
         document.removeEventListener('mousedown', handleClickOutside);
-        document.removeEventListener('keydown', handleEscape);
       };
     }
 
@@ -243,6 +242,11 @@ export function ThemeToggle({
     setIsOpen(false);
     onSelect?.();
   };
+
+  // Nothing to choose on e-ink, and an empty menu would be a dead tab stop.
+  if (themeLocked) {
+    return null;
+  }
 
   if (variant === 'grid') {
     return (

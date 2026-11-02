@@ -96,12 +96,7 @@ const COLOR_TAGS = ['color', 'colour'];
 
 function styleFromVar(cssVar: string): TagThemeStyle {
   return {
-    backgroundColor: colorMixOr(
-      cssVar,
-      20,
-      'transparent',
-      'var(--color-border-muted)'
-    ),
+    backgroundColor: colorMixOr(cssVar, 20, 'transparent', 'transparent'),
     color: colorMixOr(
       cssVar,
       80,

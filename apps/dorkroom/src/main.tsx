@@ -26,12 +26,14 @@ import '@fontsource-variable/fraunces/index.css';
 import './styles.css';
 import {
   ErrorBoundary,
+  isLegacyBrowser,
   MeasurementProvider,
   ThemeProvider,
   ToastProvider,
   VolumeProvider,
 } from '@dorkroom/ui';
 import { routeFallbackOptions } from './app/lib/route-fallback-options';
+import { routerPreloadOptionsFor } from './app/lib/router-preload-options';
 import { routeTree } from './routeTree.gen';
 
 // Lazy load devtools only in development
@@ -60,7 +62,7 @@ const router = createRouter({
   context: {
     queryClient,
   },
-  defaultPreloadDelay: 50,
+  ...routerPreloadOptionsFor(isLegacyBrowser()),
   // Keep search params as plain strings instead of JSON-parsing them; see
   // ./routes/search-params for why.
   parseSearch,
