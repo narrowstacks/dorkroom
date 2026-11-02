@@ -32,7 +32,6 @@ describe('SearchableSelect ARIA wiring', () => {
     const { input } = setup();
     expect(input).toHaveAttribute('aria-expanded', 'false');
     expect(input).not.toHaveAttribute('aria-controls');
-    expect(input).toHaveAttribute('aria-expanded', 'false');
     expect(input).not.toHaveAttribute('aria-activedescendant');
   });
 
