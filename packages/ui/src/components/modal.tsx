@@ -127,7 +127,7 @@ export function Modal({
         aria-hidden="true"
         tabIndex={-1}
         data-testid="modal-backdrop"
-        className="absolute inset-0 cursor-default backdrop-blur"
+        className="absolute inset-0 h-full w-full cursor-default backdrop-blur"
         style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
         onClick={onClose}
       />
