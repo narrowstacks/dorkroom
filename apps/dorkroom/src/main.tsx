@@ -32,6 +32,7 @@ import {
   VolumeProvider,
 } from '@dorkroom/ui';
 import { routeFallbackOptions } from './app/lib/route-fallback-options';
+import { routerPreloadOptions } from './app/lib/router-preload-options';
 import { routeTree } from './routeTree.gen';
 
 // Lazy load devtools only in development
@@ -60,17 +61,7 @@ const router = createRouter({
   context: {
     queryClient,
   },
-  // Preload a route when a link to it is hovered or focused (after 50 ms) or
-  // touched: that runs its loader, which starts the page chunk and, for
-  // /development and /films, the page's data. Without `defaultPreload` the
-  // router never preloads, and the delay did nothing.
-  defaultPreload: 'intent',
-  defaultPreloadDelay: 50,
-  // The loaders only start work and keep nothing themselves (TanStack Query
-  // holds the data), so let every preload and navigation call them and leave
-  // freshness to the query cache. This is the router docs' setting for an
-  // external cache.
-  defaultPreloadStaleTime: 0,
+  ...routerPreloadOptions,
   // Keep search params as plain strings instead of JSON-parsing them; see
   // ./routes/search-params for why.
   parseSearch,

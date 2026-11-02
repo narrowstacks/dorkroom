@@ -1,4 +1,3 @@
-import { filmsQueryOptions } from '@dorkroom/logic';
 import { ROUTE_DESCRIPTIONS, ROUTE_TITLES } from '@dorkroom/ui';
 import { createFileRoute } from '@tanstack/react-router';
 import { Suspense } from 'react';
@@ -21,15 +20,15 @@ export const Route = createFileRoute('/films')({
       },
     ],
   }),
-  // Starts the page chunk and the films list together, on intent and on
-  // navigation, without holding the navigation for either: see lazyPage.
-  // prefetchQuery shares the page's query (same key) and never throws; fresh
-  // cached data is not refetched. Not cancellable: leaving the home page
-  // unmounts its search box's watcher of this list, which would otherwise
-  // abort the prefetch mid-request.
-  loader: ({ context: { queryClient } }) => {
-    FilmsPage.preload();
-    void queryClient.prefetchQuery(filmsQueryOptions({ cancellable: false }));
+  // Starts the page chunk on intent and at navigation, and the films list at
+  // navigation only (a touch-scroll over a link counts as intent), without
+  // holding the navigation for either: see lazyPage and catalogue-prefetch.
+  loader: ({ context: { queryClient }, preload }) => {
+    FilmsPage.preload(preload);
+    if (preload) return;
+    import('../app/lib/catalogue-prefetch')
+      .then(({ prefetchFilmsPageData }) => prefetchFilmsPageData(queryClient))
+      .catch(() => undefined); // Unreachable: the page fetches its own.
   },
   component: () => (
     <Suspense fallback={<LoadingSpinner />}>

@@ -16,7 +16,7 @@ export const Route = createFileRoute('/$')({
       },
     ],
   }),
-  loader: () => NotFoundPage.preload(),
+  loader: ({ preload }) => NotFoundPage.preload(preload),
   component: () => (
     <Suspense fallback={<LoadingSpinner />}>
       <NotFoundPage />

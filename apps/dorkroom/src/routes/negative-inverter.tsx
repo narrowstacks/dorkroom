@@ -23,7 +23,7 @@ export const Route = createFileRoute('/negative-inverter')({
       },
     ],
   }),
-  loader: () => NegativeInverterPage.preload(),
+  loader: ({ preload }) => NegativeInverterPage.preload(preload),
   component: () => (
     <Suspense fallback={<LoadingSpinner />}>
       <NegativeInverterPage />

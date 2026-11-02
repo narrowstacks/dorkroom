@@ -163,7 +163,7 @@ export function calculatorRoute<const M extends CalculatorLinkParamMap>(
     // Starts the page chunk on intent and at navigation without holding the
     // navigation for it, when the page is a `lazyPage` (a route's always is):
     // see lazyPage.
-    loader: () => preloadPage(page),
+    loader: ({ preload }: { preload: boolean }) => preloadPage(page, preload),
     component: () => (
       <CalculatorRoute tool={tool} params={params} page={page} />
     ),

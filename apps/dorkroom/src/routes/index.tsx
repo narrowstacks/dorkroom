@@ -15,7 +15,7 @@ export const Route = createFileRoute('/')({
       { property: 'og:description', content: ROUTE_DESCRIPTIONS['/'] },
     ],
   }),
-  loader: () => HomePage.preload(),
+  loader: ({ preload }) => HomePage.preload(preload),
   component: () => (
     <Suspense fallback={<LoadingSpinner />}>
       <HomePage />

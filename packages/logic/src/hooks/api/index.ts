@@ -5,7 +5,6 @@
  */
 
 export {
-  type CatalogueQueryOptions,
   combinationsQueryOptions,
   developersQueryOptions,
   filmsQueryOptions,

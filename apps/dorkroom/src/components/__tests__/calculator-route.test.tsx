@@ -210,13 +210,16 @@ describe('calculatorRoute', () => {
       lazyPage(load)
     );
 
-    expect(route.loader()).toBeUndefined();
+    expect(route.loader({ preload: true })).toBeUndefined();
     expect(load).toHaveBeenCalledOnce();
     // A plain page has no chunk: the loader does nothing.
     expect(
-      calculatorRoute('lenses', LENS_CALCULATOR_LINK_PARAMS, LensCalculatorPage)
-        .loader
-    ).not.toThrow();
+      calculatorRoute(
+        'lenses',
+        LENS_CALCULATOR_LINK_PARAMS,
+        LensCalculatorPage
+      ).loader({ preload: false })
+    ).toBeUndefined();
   });
 
   it('only accepts a page that reads its own link params', () => {

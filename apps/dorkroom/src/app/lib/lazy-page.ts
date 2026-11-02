@@ -18,12 +18,31 @@ export type LazyPage<P extends object> = LazyExoticComponent<
   /**
    * Starts loading the page's chunk and returns at once. Safe to call any
    * number of times: the import is shared with the lazy component, so the
-   * chunk downloads once.
+   * chunk downloads once. Pass `speculative` (the loader's `preload` flag)
+   * when nobody has asked for the page yet: see
+   * {@link isSpeculativeImportInFlight}.
    */
-  preload: () => void;
+  preload: (speculative?: boolean) => void;
 };
 
-const preloaders = new WeakMap<WeakKey, () => void>();
+/**
+ * Page imports in flight that only a speculative preload (hover, focus,
+ * touch) asked for. A render or a real navigation joining the import takes
+ * it off the count, and every import leaves it when it settles.
+ */
+let speculativeImports = 0;
+
+/**
+ * Whether a page chunk is loading only because a link was hovered, focused
+ * or touched. The stale-chunk recovery reads this to skip its reload: a
+ * hover must not reload the page. A click afterwards imports the chunk
+ * again, non-speculatively, and that failure reloads as before.
+ */
+export function isSpeculativeImportInFlight(): boolean {
+  return speculativeImports > 0;
+}
+
+const preloaders = new WeakMap<WeakKey, (speculative?: boolean) => void>();
 
 /**
  * `React.lazy` plus a fire-and-forget `preload`, for a route's `loader`.
@@ -37,28 +56,48 @@ const preloaders = new WeakMap<WeakKey, () => void>();
  * renders straight away and the page's own `<Suspense>` spinner covers the
  * wait.
  *
- * A failed preload is dropped and retried by the next call (or by the lazy
- * component's render, which surfaces the failure to the route's error
- * boundary as before).
+ * A failed import is dropped, so the next call (or the lazy component's
+ * render, which surfaces the failure to the route's error boundary as
+ * before) tries again.
  */
 export function lazyPage<P extends object>(
   load: () => Promise<{ default: ComponentType<P> }>
 ): LazyPage<P> {
   let pending: Promise<{ default: ComponentType<P> }> | undefined;
-  const loadOnce = () => {
-    if (pending) return pending;
+  let pendingIsSpeculative = false;
+  const leaveSpeculative = () => {
+    if (!pendingIsSpeculative) return;
+    pendingIsSpeculative = false;
+    speculativeImports -= 1;
+  };
+  const begin = (speculative: boolean) => {
+    if (pending) {
+      if (!speculative) leaveSpeculative();
+      return pending;
+    }
     const attempt = load();
     pending = attempt;
-    // A failed import is not cached, so the next call tries again.
-    attempt.catch(() => {
-      if (pending === attempt) pending = undefined;
-    });
+    pendingIsSpeculative = speculative;
+    if (speculative) speculativeImports += 1;
+    attempt.then(
+      () => {
+        if (pending === attempt) leaveSpeculative();
+      },
+      () => {
+        if (pending !== attempt) return;
+        leaveSpeculative();
+        pending = undefined;
+      }
+    );
     return attempt;
   };
-  const preload = () => {
-    loadOnce().catch(() => undefined);
+  const preload = (speculative = false) => {
+    begin(speculative).catch(() => undefined);
   };
-  const page = Object.assign(lazy(loadOnce), { preload });
+  const page = Object.assign(
+    lazy(() => begin(false)),
+    { preload }
+  );
   preloaders.set(page, preload);
   return page;
 }
@@ -69,6 +108,9 @@ export function lazyPage<P extends object>(
  * a plain component type: requiring a `LazyPage` there would weaken the
  * check that a route hands a page its own link params.
  */
-export function preloadPage<P>(component: ComponentType<P>): void {
-  preloaders.get(component)?.();
+export function preloadPage<P>(
+  component: ComponentType<P>,
+  speculative = false
+): void {
+  preloaders.get(component)?.(speculative);
 }

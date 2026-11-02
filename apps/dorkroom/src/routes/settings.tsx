@@ -15,7 +15,7 @@ export const Route = createFileRoute('/settings')({
       { property: 'og:description', content: ROUTE_DESCRIPTIONS['/settings'] },
     ],
   }),
-  loader: () => SettingsPage.preload(),
+  loader: ({ preload }) => SettingsPage.preload(preload),
   component: () => (
     <Suspense fallback={<LoadingSpinner />}>
       <SettingsPage />

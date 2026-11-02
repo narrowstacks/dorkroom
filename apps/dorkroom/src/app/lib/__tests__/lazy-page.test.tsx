@@ -25,7 +25,7 @@ describe('lazyPage', () => {
     expect(load).toHaveBeenCalledTimes(1);
   });
 
-  it('swallows a failed preload and retries on the next call', async () => {
+  it('drops a failed import and retries on the next call', async () => {
     const load = vi
       .fn<() => Promise<{ default: typeof Page }>>()
       .mockRejectedValueOnce(new Error('offline'))

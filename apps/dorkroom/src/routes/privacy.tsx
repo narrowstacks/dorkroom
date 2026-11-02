@@ -15,7 +15,7 @@ export const Route = createFileRoute('/privacy')({
       { property: 'og:description', content: ROUTE_DESCRIPTIONS['/privacy'] },
     ],
   }),
-  loader: () => PrivacyPage.preload(),
+  loader: ({ preload }) => PrivacyPage.preload(preload),
   component: () => (
     <Suspense fallback={<LoadingSpinner />}>
       <PrivacyPage />
