@@ -722,6 +722,8 @@ async function applyAnonymousUpstreamBudget(
         RATE_LIMIT_REQUEST_OPTIONS
       );
     } catch (error) {
+      // Safe to fail open on anything: the per-IP check against this same
+      // namespace runs first and already stops 429 and permission errors.
       serverlessWarn('Upstream budget skipped (Unkey request failed)', {
         requestId,
         namespace,
