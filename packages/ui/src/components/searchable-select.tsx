@@ -1,6 +1,7 @@
 import type { SelectItem } from '@dorkroom/logic';
 import { Check, ChevronDown, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
+import { useSwallowOutsideClick } from '../hooks/use-swallow-outside-click';
 import { cn } from '../lib/cn';
 import { cssVars } from '../lib/dom';
 
@@ -96,6 +97,7 @@ export function SearchableSelect({
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const lastPointerType = useRef('');
+  const rootRef = useRef<HTMLDivElement>(null);
 
   // Find the selected item to display its label
   const selectedItem = items.find((item) => item.value === selectedValue);
@@ -117,6 +119,8 @@ export function SearchableSelect({
       if (openListCount === 0) root.removeAttribute(LISTBOX_OPEN_ATTRIBUTE);
     };
   }, [isListShown]);
+
+  useSwallowOutsideClick(rootRef, isOpen);
 
   // Open the dropdown with a cleared search term and focus the selected item.
   // Opening always clears the search term, so the relevant list is the full
@@ -221,7 +225,7 @@ export function SearchableSelect({
   }, [focusedIndex]);
 
   return (
-    <div className={cn('relative space-y-2', className)}>
+    <div ref={rootRef} className={cn('relative space-y-2', className)}>
       {label && (
         <label
           htmlFor={id}

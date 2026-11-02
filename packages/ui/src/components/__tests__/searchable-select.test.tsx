@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { StrictMode } from 'react';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
@@ -283,5 +283,104 @@ describe('SearchableSelect open-list marker (#629)', () => {
     expect(document.documentElement).toHaveAttribute('data-listbox-open');
     await user.keyboard('{Escape}');
     expect(document.documentElement).not.toHaveAttribute('data-listbox-open');
+  });
+});
+
+describe('SearchableSelect outside press (#633)', () => {
+  beforeAll(() => {
+    Element.prototype.scrollIntoView = vi.fn();
+  });
+
+  function setupWithTarget() {
+    const onTargetClick = vi.fn();
+    const onValueChange = vi.fn();
+    render(
+      <div>
+        <SearchableSelect
+          label="Film"
+          selectedValue="b"
+          onValueChange={onValueChange}
+          items={items}
+        />
+        <button type="button" onClick={onTargetClick}>
+          Card
+        </button>
+      </div>
+    );
+    return {
+      onTargetClick,
+      onValueChange,
+      input: screen.getByRole('combobox'),
+      card: screen.getByRole('button', { name: 'Card' }),
+    };
+  }
+
+  function tap(el: Element, pointerType: string) {
+    fireEvent.pointerDown(el, { pointerType });
+    fireEvent.pointerUp(el, { pointerType });
+    return fireEvent.click(el);
+  }
+
+  it.each(['mouse', 'touch'])(
+    'swallows the %s click that closes the list, then lets the next one through',
+    async (pointerType) => {
+      const user = userEvent.setup();
+      const { input, card, onTargetClick } = setupWithTarget();
+      await user.click(input);
+      expect(input).toHaveAttribute('aria-expanded', 'true');
+
+      expect(tap(card, pointerType)).toBe(false);
+      expect(onTargetClick).not.toHaveBeenCalled();
+      // The blur is what closes the list; jsdom taps do not move focus.
+      input.blur();
+      await vi.waitFor(() =>
+        expect(input).toHaveAttribute('aria-expanded', 'false')
+      );
+      await act(async () => {}); // flush the effect cleanup
+
+      tap(card, pointerType);
+      expect(onTargetClick).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it('still swallows the click when the list closes between press and release', async () => {
+    const user = userEvent.setup();
+    const { input, card, onTargetClick } = setupWithTarget();
+    await user.click(input);
+    fireEvent.pointerDown(card, { pointerType: 'mouse' });
+    input.blur();
+    await vi.waitFor(() =>
+      expect(input).toHaveAttribute('aria-expanded', 'false')
+    );
+    await act(async () => {}); // flush the effect cleanup
+    fireEvent.pointerUp(card, { pointerType: 'mouse' });
+    fireEvent.click(card);
+    expect(onTargetClick).not.toHaveBeenCalled();
+  });
+
+  it('does not swallow the click after a scroll gesture (pointercancel)', async () => {
+    const user = userEvent.setup();
+    const { input, card, onTargetClick } = setupWithTarget();
+    await user.click(input);
+    fireEvent.pointerDown(card, { pointerType: 'touch' });
+    fireEvent.pointerCancel(card, { pointerType: 'touch' });
+    fireEvent.click(card);
+    expect(onTargetClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not interfere with picking an option or pressing the input', async () => {
+    const user = userEvent.setup();
+    const { input, onValueChange } = setupWithTarget();
+    await user.click(input);
+    await user.click(screen.getByRole('option', { name: 'Alpha' }));
+    expect(onValueChange).toHaveBeenCalledWith('a');
+    await user.click(input);
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('leaves clicks alone while the list is closed', () => {
+    const { card, onTargetClick } = setupWithTarget();
+    tap(card, 'touch');
+    expect(onTargetClick).toHaveBeenCalledTimes(1);
   });
 });
