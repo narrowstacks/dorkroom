@@ -9,6 +9,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Added
 
+- **API client filters.** `fetchFilms`, `fetchDevelopers` and `fetchCombinations` in `@dorkroom/api` accept typed, optional query params (slug, brand, colour type, film, developer, page and so on) matching the API reference. Calls without params behave as before, and failures already throw `DorkroomApiError`. (fixes #254)
 - **Film photos credit their source.** A film's detail panel now shows who took the packaging photo and its licence, linked to where it came from.
 
 ### Changed
@@ -22,15 +23,22 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 ### Fixed
 
 - **Warnings are announced to screen readers.** Calculator warnings and errors (blade readings, minimum border, offsets, aspect ratio mismatch, a failed shared recipe link) used to appear together with their own alert role, which many screen readers do not announce. They now appear inside an alert area that is already on the page. Nothing changes visually. (fixes #585)
+- **The dev server port can be pinned again.** `MFE_APP_PORT=4200 bun run dev` was ignored (turbo filtered the variable out), so the dev server always started on port 4503, which broke the Docker setup that publishes port 4200. The variable now reaches the dev server. (fixes #592)
+- **Development time is visible on tablets.** On the development recipes table, the filters sidebar now starts collapsed below 1280px wide, such as on tablets (an iPad in portrait) and narrow windows, so the Time column fits without scrolling sideways. Expand the sidebar any time with its toggle. (#586)
+- **Searches with commas work, and names match themselves.** A `query` containing a comma used to fail on `/developers` with a 502. In film, developer and recipe searches, accents now count and any run of punctuation or symbols (apostrophes, `+`, `/`, commas) matches any characters, so `Photographers' Formulary`, `Spürsinn`, `ADX A+B` and `Rodinal/Adonal` find themselves instead of having those characters stripped, and `HP5+` still finds `HP5 Plus`. A search with no letter or digit returns a 400 on all three. (fixes #333)
+- **The API docs no longer promise fuzzy search.** `query` is a case-insensitive partial match, not an exact one, and `fuzzy` never did anything. It is now marked deprecated and ignored (still accepted, so existing clients keep working). (fixes #333)
 - **Mat measurements read the way you write them.** On /mat, `3-1/2`, `3 1/2"`, `3 1/2 in`, `3½` and `3 ½` are now 3.5 instead of being cut down to 3, a comma decimal with an inch mark (`20,5 in`) keeps its decimals, and metric fields accept a trailing `cm`. A border or reveal with anything else left over, such as `3abc`, now shows the "Check inputs" message instead of quietly using the leading number or no reveal. (fixes #340)
 - **A third of a stop is exact on the Stops page.** The page worked a third of a stop out as 0.33, so 12s +1/3 gave 15.08s while the home search said 15.12s. Thirds and two-thirds are now exact, from the +1/3 buttons, a typed 0.33, or a link, including older shared links, and three +1/3 presses add exactly one stop. The multiplier reads ×1.260. (fixes #551)
+- **Pages start faster.** Every page used to download the form library and the full validation library before it appeared, about 39 KB (compressed) that only the calculators and the recipe page use. They now load with those pages, cutting the JavaScript the home page needs before it shows by about 22%. (fixes #352)
 
+- **The filters sidebar keeps keyboard focus.** On /development and /films, collapsing or expanding the filters now moves focus to the other toggle instead of dropping it, and both toggles tell screen readers whether the filters are open. (fixes #591)
 - **Screen readers hear art and reveal changes on /mat.** Changing the art size or reveal now announces whether the window still matches the reveal, with the overlap or gap on each side, and announces again when it matches. Borders that leave no window are announced too. (fixes #431)
 - **Newly added films and developers show up.** Films and developers added without a description were silently left out of every list and picker, which hid 61 films and 81 developers. They now appear.
 - **filmdev.org imports pick the right film and developer.** Importing a recipe used to match only films and developers that already had a recipe on Dorkroom, so Fomapan 100 came in as Kentmere Pan 100 and several Adox developers came in as ADOTECH IV. Imports now search the whole catalogue and need a real name match, and anything Dorkroom doesn't list comes in as a custom film or developer instead of the nearest lookalike.
 - **The custom recipe form lists every film and developer**, including ones that don't have a recipe yet.
 - **filmdev.org recipes shot at box speed import at box speed.** Recipes that don't say what speed the film was shot at came in as ISO 400, so a recipe for a 100-speed film showed as "pushed 2 stops". They now use the film's own speed.
 - **Pages no longer scroll sideways on tablets and narrow windows.** Between 640 and about 1090 px wide the top bar was wider than the window, cutting off its right end. Windows narrower than 1024 px now get the menu and search buttons at the bottom right, as on phones, and the full top bar fits from 1024 px up. (fixes #548)
+- **Film thumbnails on /films are a fraction of the download.** Each card used to download the full-size packaging photo (up to 400 KB, about 9 MB for the whole list) to show it at 60 px. Thumbnails are now resized to the size they are shown at, served as WebP, and cached, and the larger photo in the detail panel gets its own sharper size. (part of #353)
 
 ## [2026.10.30]
 
