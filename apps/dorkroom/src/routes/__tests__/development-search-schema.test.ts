@@ -101,6 +101,16 @@ describe('developmentSearchSchema', () => {
     expect(Object.hasOwn(parsed, 'view')).toBe(true);
     expect(parsed.view).toBeUndefined();
   });
+
+  it('recovers a non-string value from untyped code to undefined', () => {
+    // JSON.parse is untyped, standing in for a caller outside the type system.
+    const parsed = developmentSearchSchema.parse(
+      JSON.parse('{"iso":400,"utm_source":true,"film":"hp5"}')
+    );
+    expect(parsed).toEqual({ film: 'hp5' });
+    expect(parsed.iso).toBeUndefined();
+    expect(parsed.utm_source).toBeUndefined();
+  });
 });
 
 describe('filmsSearchSchema', () => {

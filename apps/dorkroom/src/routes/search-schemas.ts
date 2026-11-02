@@ -46,8 +46,20 @@ export interface SearchSchema<T> {
   parse: (input: RawSearch) => T;
 }
 
-/** A string param. */
-export const stringParam: ParamParser<string> = (value) => value;
+/**
+ * True for a string. A type guard, so the `typeof` check and the `unknown`
+ * input are allowed by the anti-slop lint (`allowInTypeGuards`), which rejects
+ * both in an ordinary function.
+ */
+const isString = (value: unknown): value is string => typeof value === 'string';
+
+/**
+ * A string param. `RawSearch` types values as strings, but the check holds at
+ * runtime too: a value from untyped code (a number, say) becomes undefined
+ * rather than reaching code typed as string, as zod's `z.string()` did.
+ */
+export const stringParam: ParamParser<string> = (value) =>
+  isString(value) ? value : undefined;
 
 /** One of a closed set of strings. */
 const oneOf =
