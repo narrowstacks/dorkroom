@@ -240,6 +240,125 @@ describe('findBestFilmMatch', () => {
   });
 });
 
+describe('findBestFilmMatch against the real catalogue (filmdev.org names)', () => {
+  // A slice of the live B&W catalogue, chosen to include the near
+  // neighbours that used to steal matches (Kentmere Pan vs Fomapan, etc.).
+  let nextId = 1;
+  const film = (
+    slug: string,
+    brand: string,
+    name: string,
+    isoSpeed: number,
+    aliases: Film['aliases'] = []
+  ) =>
+    createMockFilm({
+      id: nextId++,
+      uuid: slug,
+      slug,
+      brand,
+      name,
+      isoSpeed,
+      aliases,
+    });
+  const catalogue: Film[] = [
+    film('kentmere-pan-100', 'Kentmere', 'Pan 100', 100),
+    film('kentmere-pan-200', 'Kentmere', 'Pan 200', 200),
+    film('kentmere-pan-400', 'Kentmere', 'Pan 400', 400),
+    film('silberra-pan-100', 'Silberra', 'Pan 100', 100),
+    film('foma-fomapan-100-classic', 'Foma', 'Fomapan 100 Classic', 100),
+    film('foma-fomapan-200-creative', 'Foma', 'Fomapan 200 Creative', 200),
+    film('foma-fomapan-400-action', 'Foma', 'Fomapan 400 Action', 400),
+    film('foma-fomapan-retro-100', 'Foma', 'Fomapan Retro 100', 100),
+    film('foma-fomapan-r100', 'Foma', 'Fomapan R100', 100),
+    film('foma-retropan-320-soft', 'Foma', 'Retropan 320 Soft', 320),
+    film('agfaphoto-apx-100', 'AgfaPhoto', 'APX 100', 100, [
+      { name: 'Agfa APX 100', slug: 'agfa-apx-100' },
+    ]),
+    film('rollei-superpan-200', 'Rollei', 'Superpan 200', 200),
+    film('rollei-retro-80s', 'Rollei', 'Retro 80S', 80),
+    film('rollei-retro-400s', 'Rollei', 'Retro 400S', 400),
+    film('rollei-rpx-400', 'Rollei', 'Rpx 400', 400),
+    film('bergger-pancro-400', 'Bergger', 'Pancro 400', 400),
+    film('adox-chs-100-ii', 'Adox', 'CHS 100 II', 100),
+    film('efke-100', 'Efke', '100', 100),
+    film('fuji-neopan-100-acros-ii', 'Fuji', 'Neopan 100 Acros II', 100),
+    film('lucky-shd-100', 'Lucky', 'SHD 100', 100),
+    film('legacy-pro-100', 'Legacy Pro', '100', 100),
+    film('lomography-earl-grey-100', 'Lomography', 'Earl Grey 100', 100),
+    film('eastman-double-x-5222', 'Eastman', 'Double-X 5222', 250),
+    film('fpp-eastman-double-x', 'FPP', 'Eastman Double-X', 200),
+    film('cinestill-bwxx-double-x', 'CineStill', 'BwXX Double-X', 250),
+    film('kodak-ektapan-p3200', 'Kodak', 'T-MAX/Ektapan P3200', 3200, [
+      { name: 'Kodak T-MAX P3200', slug: 'kodak-t-max-p3200' },
+    ]),
+    film('kodak-ektapan-400', 'Kodak', 'T-MAX/Ektapan 400', 400, [
+      { name: 'Kodak T-MAX 400', slug: 'kodak-t-max-400' },
+    ]),
+    film('kodak-tri-x-400', 'Kodak', 'Tri-X 400', 400),
+    film('ilford-hp5-plus', 'Ilford', 'HP5 Plus', 400),
+    film('ilford-fp4-plus', 'Ilford', 'FP4 Plus', 125),
+    film('ilford-pan-f-plus', 'Ilford', 'Pan F Plus', 50),
+    film('ilford-ortho-plus', 'Ilford', 'Ortho Plus', 80),
+    film('catlabs-x-film-80', 'CatLABS', 'X Film 80', 80),
+    film('rollei-infrared-400', 'Rollei', 'Infrared 400', 400),
+    film('bergger-brf-400', 'Bergger', 'BRF 400', 400),
+    film('washi-s', 'Washi', 'S', 50),
+    film('bergger-brf-400-plus', 'Bergger', 'BRF 400 Plus', 400),
+  ];
+
+  it.each([
+    // Recipe 13387: the reported bug
+    ['Foma Fomapan 100', 'foma-fomapan-100-classic'],
+    ['Fomapan 100', 'foma-fomapan-100-classic'],
+    ['Foma Fomapan 200', 'foma-fomapan-200-creative'],
+    ['Foma Fomapan 400', 'foma-fomapan-400-action'],
+    ['Foma Retropan 320 soft', 'foma-retropan-320-soft'],
+    ['Kentmere Photographic Kentmere 400', 'kentmere-pan-400'],
+    ['Kentmere PAN 400', 'kentmere-pan-400'],
+    ['Kentmere 200', 'kentmere-pan-200'],
+    ['Kentmere Pan-100', 'kentmere-pan-100'],
+    ['Agfa Agfapan APX 100', 'agfaphoto-apx-100'],
+    ['Rollei Superpan 200', 'rollei-superpan-200'],
+    ['Rollei Retro 80S', 'rollei-retro-80s'],
+    ['Rollei Rpx 400', 'rollei-rpx-400'],
+    ['Bergger Pancro 400', 'bergger-pancro-400'],
+    ['Adox/Efke CHS 100 II', 'adox-chs-100-ii'],
+    ['Fuji Neopan Acros 100', 'fuji-neopan-100-acros-ii'],
+    ['Lucky SHD 100', 'lucky-shd-100'],
+    ['Kodak Double-X 5222', 'eastman-double-x-5222'],
+    ['Cinestill BW Double-XX', 'cinestill-bwxx-double-x'],
+    ['Kodak T-Max 400', 'kodak-ektapan-400'],
+    ['Ilford HP5+ 400', 'ilford-hp5-plus'],
+    ['Ilford FP4+ 125', 'ilford-fp4-plus'],
+    ['Ilford Pan F+ 50', 'ilford-pan-f-plus'],
+    ['Ilford Pan F', 'ilford-pan-f-plus'],
+    ['Rollei Infrared IR 400', 'rollei-infrared-400'],
+    ['Lomography Earl Grey 100', 'lomography-earl-grey-100'],
+    ['Bergger BRF-400', 'bergger-brf-400'],
+    ['Bergger BRF-400+', 'bergger-brf-400-plus'],
+  ])('matches "%s" to %s', (query, slug) => {
+    expect(findBestFilmMatch(query, catalogue)?.slug).toBe(slug);
+  });
+
+  it.each([
+    // Brand or speed alone is not a match
+    'Kodak Imagelink HQ',
+    'Kodak 2238',
+    'Fuji Neopan 400',
+    'ORWO NP20 80',
+    'ORWO NP22 125',
+    'Santacolor 100',
+    'Lomo Orca 100 - 110',
+    // A different product in a known line
+    'Foma Fomapan Ortho 400',
+    'Ilford Pan 100',
+    // A lone letter needs the brand behind it
+    'Shanghai 100B/S',
+  ])('creates a custom film for "%s"', (query) => {
+    expect(findBestFilmMatch(query, catalogue)).toBeNull();
+  });
+});
+
 // Helper to create mock FilmdevRecipe
 const createMockFilmdevRecipe = (
   overrides: Partial<FilmdevRecipe>
@@ -278,7 +397,7 @@ describe('mapFilmdevRecipeToFormData', () => {
       expect(result.shootingIso).toBe(800);
     });
 
-    it('should default to 400 when developed_at is null', () => {
+    it('should default to 400 when developed_at is null and the speed is unknown', () => {
       const recipe = createMockFilmdevRecipe({
         film: 'Test Film',
         developed_at: null,
@@ -287,6 +406,49 @@ describe('mapFilmdevRecipeToFormData', () => {
       const result = mapFilmdevRecipeToFormData(recipe, null, null);
 
       expect(result.shootingIso).toBe(400);
+      expect(result.pushPull).toBe(0);
+    });
+
+    it('treats a missing developed_at as box speed of the matched film (recipe 13387)', () => {
+      const recipe = createMockFilmdevRecipe({
+        film: 'Foma Fomapan 100',
+        developed_at: null,
+      });
+      const fomapan = createMockFilm({
+        brand: 'Foma',
+        name: 'Fomapan 100 Classic',
+        isoSpeed: 100,
+      });
+
+      const result = mapFilmdevRecipeToFormData(recipe, fomapan, null);
+
+      expect(result.shootingIso).toBe(100);
+      expect(result.pushPull).toBe(0);
+    });
+
+    it('reads the box speed from a hyphenated film name', () => {
+      const recipe = createMockFilmdevRecipe({
+        film: 'Unknown Pan-100',
+        developed_at: null,
+      });
+
+      const result = mapFilmdevRecipeToFormData(recipe, null, null);
+
+      expect(result.shootingIso).toBe(100);
+      expect(result.customFilm?.isoSpeed).toBe(100);
+    });
+
+    it('treats a missing developed_at as the box speed in the film name for a custom film', () => {
+      const recipe = createMockFilmdevRecipe({
+        film: 'ORWO NP20 80',
+        developed_at: null,
+      });
+
+      const result = mapFilmdevRecipeToFormData(recipe, null, null);
+
+      expect(result.shootingIso).toBe(80);
+      expect(result.pushPull).toBe(0);
+      expect(result.customFilm?.isoSpeed).toBe(80);
     });
   });
 
@@ -477,6 +639,72 @@ describe('findBestDeveloperMatch', () => {
 
   it('returns null when nothing matches', () => {
     expect(findBestDeveloperMatch('Pyrocat HD', developers)).toBeNull();
+  });
+
+  describe('against the real catalogue (filmdev.org names)', () => {
+    const catalogue: Developer[] = [
+      createMockDeveloper(
+        'kodak-t-max-rs-developer',
+        'Kodak',
+        'T-MAX RS Developer'
+      ),
+      createMockDeveloper('kodak-t-max-developer', 'Kodak', 'T-MAX Developer'),
+      createMockDeveloper('adox-adotech-iv', 'Adox', 'ADOTECH IV'),
+      createMockDeveloper('adox-atomal-49', 'Adox', 'Atomal 49'),
+      createMockDeveloper('adox-fx-39-ii', 'Adox', 'FX-39 II'),
+      createMockDeveloper('adox-xt-3', 'Adox', 'XT-3'),
+      createMockDeveloper('acufine', 'Acufine Inc.', 'Acufine'),
+      createMockDeveloper('agfa-rodinal-adonal', 'Agfa', 'Rodinal/Adonal'),
+      createMockDeveloper('calbe-r09', 'Calbe', 'R09'),
+      createMockDeveloper('foma-fomadon-r09', 'Foma', 'Fomadon R09'),
+      createMockDeveloper('kodak-xtol', 'Kodak', 'XTOL'),
+      createMockDeveloper('kodak-hc-110', 'Kodak', 'HC-110'),
+      createMockDeveloper('kodak-d-76', 'Kodak', 'D-76'),
+      createMockDeveloper('ilford-ilfotec-hc', 'Ilford', 'Ilfotec HC'),
+      createMockDeveloper('ilford-ilfosol-3', 'Ilford', 'ILFOSOL 3'),
+      createMockDeveloper('ilford-ilfotec-lc29', 'Ilford', 'Ilfotec LC29'),
+      createMockDeveloper('tetenal-ultrafin-plus', 'Tetenal', 'Ultrafin Plus'),
+      createMockDeveloper('tetenal-ultrafin-sf', 'Tetenal', 'Ultrafin SF'),
+    ];
+
+    it.each([
+      ['Adox Atomal 49', 'adox-atomal-49'],
+      ['Adox XT-3', 'adox-xt-3'],
+      ['Adox Adonal', 'agfa-rodinal-adonal'],
+      ['Agfa Rodinal', 'agfa-rodinal-adonal'],
+      ['Rodinal (Adox R09)', 'agfa-rodinal-adonal'],
+      ['Rodinal', 'agfa-rodinal-adonal'],
+      ['Foma Fomadon R09', 'foma-fomadon-r09'],
+      ['Calbe R09', 'calbe-r09'],
+      ['Agfa R09 One Shot', 'agfa-rodinal-adonal'],
+      ['Ars Imago R9 (Rodinal)', 'agfa-rodinal-adonal'],
+      ['Adox FX-39 Type II', 'adox-fx-39-ii'],
+      ['Adox HC-110 pro', 'kodak-hc-110'],
+      ['Kodak T-MAX', 'kodak-t-max-developer'],
+      ['Ilford Ilfosol 3', 'ilford-ilfosol-3'],
+      ['Ilford LC29', 'ilford-ilfotec-lc29'],
+      ['Ilford LC 29', 'ilford-ilfotec-lc29'],
+      ['Tetenal Ultrafin', 'tetenal-ultrafin-plus'],
+      ['Tetenal Ultrafin+', 'tetenal-ultrafin-plus'],
+      ['Tetenal Ultrafin+ Developer', 'tetenal-ultrafin-plus'],
+      ['Tetenal Ultrafin+ Liquid', 'tetenal-ultrafin-plus'],
+    ])('matches "%s" to %s', (query, uuid) => {
+      expect(findBestDeveloperMatch(query, catalogue)?.uuid).toBe(uuid);
+    });
+
+    it.each([
+      // Manufacturer alone is not a match
+      'Kodak D-96',
+      'Bellini Euro HC',
+      'Acufine Diafine',
+      'Foma Fomadon Excel',
+      'Caffenol-C-L',
+      // Blends are not any single developer
+      'Kodak XTOL + Rodinal',
+      'Foma Fomadon R09 + Kodak HC-110',
+    ])('creates a custom developer for "%s"', (query) => {
+      expect(findBestDeveloperMatch(query, catalogue)).toBeNull();
+    });
   });
 
   it('returns null for blank input or an empty developer list', () => {

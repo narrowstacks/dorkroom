@@ -7,122 +7,343 @@ import type {
 } from '../types/custom-recipes';
 import { roundTemperature, toFahrenheit } from './temperature';
 
+const STANDARD_ISOS = new Set([
+  6, 12, 20, 25, 32, 50, 64, 80, 100, 125, 160, 200, 250, 320, 400, 800, 1600,
+  3200, 6400, 12800, 25600,
+]);
+
 /**
- * Extracts ISO speed from a film name string.
- * Looks for common ISO patterns (100, 400, 3200, etc.)
+ * Extracts a standard ISO speed from a film name string. Splits on every
+ * separator, hyphens included, so "Pan-100" still yields 100 even though
+ * name matching joins it into "pan100".
  */
 function extractIsoFromString(str: string): number | null {
-  // Match common ISO values - look for standalone numbers that are valid ISOs
-  const isoPattern =
-    /\b(25|50|64|80|100|125|160|200|320|400|800|1600|3200|6400|12800|25600)\b/;
-  const match = str.match(isoPattern);
-  return match ? parseInt(match[1], 10) : null;
+  for (const token of str.toLowerCase().split(/[^a-z0-9]+/)) {
+    if (/^\d+$/.test(token) && STANDARD_ISOS.has(Number(token))) {
+      return Number(token);
+    }
+  }
+  return null;
 }
 
 /**
- * Returns true when either word contains the other as a substring.
+ * Words that carry no identity on their own: marketing suffixes, format
+ * labels and filler that filmdev.org and our catalogue disagree on.
+ * "Kentmere Photographic Kentmere 400" is our "Kentmere Pan 400", and
+ * "Foma Fomapan 100" is our "Fomapan 100 Classic".
  */
-function wordsOverlap(a: string, b: string): boolean {
-  return a.includes(b) || b.includes(a);
+const GENERIC_WORDS = new Set([
+  'bw',
+  'concentrate',
+  'dev',
+  'developer',
+  'film',
+  'films',
+  'inc',
+  'iso',
+  'liquid',
+  'mf',
+  'pan',
+  'photographic',
+  'plus',
+  'powder',
+  'pro',
+  'professional',
+  'stock',
+  'type',
+]);
+
+/**
+ * Product-line suffixes ("Fomapan 100 Classic") that filmdev.org usually
+ * leaves off. Missing from a query they cost nothing, but they still count
+ * as a difference when the query has a word of its own ("Fomapan Ortho
+ * 400" is not "Fomapan 400 Action").
+ */
+const SUFFIX_WORDS = new Set(['action', 'classic', 'creative']);
+
+/**
+ * filmdev.org spellings that also name another product. Applied to the
+ * filmdev.org text only, never to catalogue names, so "Agfa R09" can find
+ * Rodinal while a bare "Rodinal" still prefers Rodinal over "Calbe R09".
+ */
+const TOKEN_SYNONYMS = new Map([['r09', 'rodinal']]);
+
+/**
+ * Lowercases and splits a name into comparable tokens. Hyphens and dots
+ * join ("T-Max" -> "tmax", "HC-110" -> "hc110") and "+" reads as "plus"
+ * ("HP5+" -> "hp5 plus").
+ */
+function tokenize(str: string): string[] {
+  return str
+    .toLowerCase()
+    .replace(/\+/g, ' plus ')
+    .replace(/[-.']/g, '')
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean);
 }
 
 /**
- * Scores how well a film matches a search string.
- * Higher score = better match.
+ * Expands "A/B rest" into "A rest" and "B rest", so "Rodinal/Adonal" can be
+ * matched by either name and "T-MAX/Ektapan 400" by "T-Max 400".
  */
-function scoreFilmMatch(film: Film, searchString: string): number {
-  const fullName = `${film.brand} ${film.name}`.toLowerCase();
-  const filmNameLower = film.name.toLowerCase();
-  const brandLower = film.brand.toLowerCase();
+function expandAlternatives(name: string): string[] {
+  // Word-level split rather than a regex: catalogue names are library input,
+  // and a backtracking pattern over them is a ReDoS risk (CodeQL).
+  const words = name.split(' ');
+  const index = words.findIndex((word) => word.includes('/'));
+  if (index === -1) return [name];
+  const [first, ...rest] = words[index].split('/');
+  return [first, rest.join('/')].map((alt) =>
+    [...words.slice(0, index), alt, ...words.slice(index + 1)].join(' ')
+  );
+}
 
-  let score = 0;
+interface ParsedQuery {
+  tokens: string[];
+  tokenSet: Set<string>;
+  /** Tokens plus adjacent pairs joined, so "HC 110" can meet "hc110". */
+  matchable: string[];
+  normalized: string;
+  iso: number | null;
+}
 
-  // Exact full name match - highest priority
-  if (fullName === searchString) return 1000;
-  if (filmNameLower === searchString) return 900;
+function parseQuery(str: string): ParsedQuery {
+  const tokens = tokenize(str);
+  const pairs = tokens.slice(1).map((token, i) => tokens[i] + token);
+  const synonyms = tokens.flatMap((token) => TOKEN_SYNONYMS.get(token) ?? []);
+  return {
+    tokens,
+    tokenSet: new Set(tokens),
+    matchable: [...tokens, ...pairs, ...synonyms],
+    normalized: tokens.join(' '),
+    iso: extractIsoFromString(str),
+  };
+}
 
-  // Check if search string contains the full name or vice versa
-  if (searchString.includes(fullName)) score += 100;
-  if (fullName.includes(searchString)) score += 90;
+/**
+ * One token stands for another when equal, or when a long token is a prefix
+ * of the other ("doublex" / "doublexx"). Short prefixes are ignored so that
+ * "pan" never matches "fomapan".
+ */
+function tokensMatch(a: string, b: string): boolean {
+  if (a === b) return true;
+  const [shorter, longer] = a.length <= b.length ? [a, b] : [b, a];
+  return shorter.length >= 5 && longer.startsWith(shorter);
+}
 
-  // Brand match
-  if (searchString.includes(brandLower)) score += 30;
+/** Brands get a looser prefix rule: "Agfa" names "AgfaPhoto", "Foma" "Fomapan". */
+function brandTokenMatches(brandToken: string, queryToken: string): boolean {
+  if (tokensMatch(brandToken, queryToken)) return true;
+  const [shorter, longer] =
+    brandToken.length <= queryToken.length
+      ? [brandToken, queryToken]
+      : [queryToken, brandToken];
+  return shorter.length >= 4 && longer.startsWith(shorter);
+}
 
-  // Name match (without brand)
-  if (searchString.includes(filmNameLower)) score += 40;
+const isNumeric = (token: string) => /^\d+$/.test(token);
 
-  // ISO matching - critical for disambiguation
-  const searchIso = extractIsoFromString(searchString);
-  if (searchIso !== null) {
-    // Strong bonus if ISO matches exactly
-    if (film.isoSpeed === searchIso) {
-      score += 50;
+const EXACT_FULL_NAME_SCORE = 1000;
+const EXACT_NAME_SCORE = 900;
+
+/**
+ * Scores one catalogue entry against a filmdev.org string, or returns null
+ * when it is not a plausible match. A plausible match needs real evidence:
+ * a distinctive word of the product name, or (for names that are only
+ * generic words and a speed, like "Pan 400" or "Legacy Pro 100") the brand
+ * together with the ISO. A brand or speed alone is never enough.
+ *
+ * @param query - Parsed filmdev.org string
+ * @param brand - Catalogue brand or manufacturer
+ * @param name - Catalogue product name, without the brand
+ * @param iso - Box speed, for films; omitted for developers
+ */
+function scoreCandidate(
+  query: ParsedQuery,
+  brand: string,
+  name: string,
+  iso?: number
+): number | null {
+  const brandTokens = tokenize(brand);
+  const brandSet = new Set(brandTokens);
+  const fullName = [...brandTokens, ...tokenize(name)].join(' ');
+  if (query.normalized === fullName) return EXACT_FULL_NAME_SCORE;
+  if (query.normalized === tokenize(name).join(' ')) return EXACT_NAME_SCORE;
+
+  let best: number | null = null;
+  for (const variant of expandAlternatives(name)) {
+    const nameTokens = tokenize(variant);
+    const nameSet = new Set(nameTokens);
+
+    // A speed in the query that the film doesn't have rules it out.
+    if (
+      iso !== undefined &&
+      query.iso !== null &&
+      query.iso !== iso &&
+      !nameTokens.includes(String(query.iso))
+    ) {
+      continue;
+    }
+
+    const isIsoToken = (token: string) =>
+      iso !== undefined && token === String(iso);
+    const distinctive = nameTokens.filter(
+      (token) =>
+        !GENERIC_WORDS.has(token) &&
+        !SUFFIX_WORDS.has(token) &&
+        !isIsoToken(token)
+    );
+    // Adjacent name tokens joined, so "BRF 400" can meet "BRF-400".
+    const namePairs = new Set(
+      nameTokens.slice(1).map((token, i) => nameTokens[i] + token)
+    );
+    const pairedTokens = new Set(
+      nameTokens.flatMap((token, i) =>
+        query.tokenSet.has(token + (nameTokens[i + 1] ?? '')) ||
+        query.tokenSet.has((nameTokens[i - 1] ?? '') + token)
+          ? [token]
+          : []
+      )
+    );
+    const matched = distinctive.filter(
+      (token) =>
+        pairedTokens.has(token) ||
+        query.matchable.some((q) => tokensMatch(token, q))
+    );
+    const unmatchedCount = distinctive.length - matched.length;
+    const brandMatched = brandTokens.some(
+      (b) =>
+        !GENERIC_WORDS.has(b) &&
+        query.tokens.some((q) => brandTokenMatches(b, q))
+    );
+    const isoMatched = iso !== undefined && query.iso === iso;
+
+    // Query words this entry can't account for, like "Ortho" in
+    // "Fomapan Ortho 400" or "Diafine" in "Acufine Diafine".
+    // Query words used up by a joined pair ("LC 29" read as "lc29").
+    const consumedByPair = new Set(
+      query.tokens.flatMap((q, i) => {
+        const next = query.tokens[i + 1];
+        // Exact only: a prefix match would let "Fomapan Ortho" swallow
+        // "ortho" as part of "fomapanortho".
+        return next !== undefined && nameSet.has(q + next) ? [q, next] : [];
+      })
+    );
+    const unexplained = query.tokens.filter(
+      (q) =>
+        !consumedByPair.has(q) &&
+        !isNumeric(q) &&
+        q.length > 1 &&
+        !GENERIC_WORDS.has(q) &&
+        !nameTokens.some(
+          (t) => tokensMatch(t, q) || t === TOKEN_SYNONYMS.get(q)
+        ) &&
+        !namePairs.has(q) &&
+        !brandTokens.some((b) => brandTokenMatches(b, q))
+    );
+
+    let score: number;
+    if (distinctive.length === 0) {
+      if (!brandMatched || (iso !== undefined && !isoMatched)) continue;
+      if (unexplained.length > 0) continue;
+      score = 70;
     } else {
-      // Penalty if search has ISO but film's ISO doesn't match
-      score -= 30;
-    }
-  }
-
-  // Word-based partial matching (for brand/product names, not numbers)
-  const searchWords = searchString
-    .split(/[\s-]+/)
-    .filter((w) => w.length > 1 && !/^\d+$/.test(w));
-  const filmWords = fullName.split(/[\s-]+/).filter((w) => w.length > 1);
-  for (const searchWord of searchWords) {
-    for (const filmWord of filmWords) {
-      if (wordsOverlap(filmWord, searchWord)) {
-        score += 10;
+      if (matched.length === 0) continue;
+      // A partial name match must be backed by the brand.
+      if (unmatchedCount > 0 && !brandMatched) continue;
+      // So must one that rests only on single letters ("Pan F", "Washi S").
+      if (!brandMatched && matched.every((t) => t.length === 1)) continue;
+      if (unexplained.length > 0) {
+        // An unexplained word plus a missing one means a different product.
+        const suffixMissing = nameTokens.some(
+          (t) => SUFFIX_WORDS.has(t) && !query.tokenSet.has(t)
+        );
+        if (unmatchedCount > 0 || suffixMissing) continue;
+        // The match must rest on more than the brand repeated as the name
+        // ("Acufine Inc. Acufine" vs "Acufine Diafine").
+        if (matched.every((t) => brandSet.has(t))) continue;
       }
+      score =
+        50 * matched.length +
+        (unmatchedCount === 0 ? 60 : 0) -
+        10 * unmatchedCount;
+    }
+
+    score += (brandMatched ? 30 : 0) + (isoMatched ? 40 : 0);
+    score -= 5 * unexplained.length;
+    // Tie-break between near twins ("BRF 400" vs "BRF 400 Plus"): prefer the
+    // entry whose words line up with the query's, generic ones included.
+    score -= nameTokens.filter(
+      (t) => !query.tokenSet.has(t) && !pairedTokens.has(t) && !isIsoToken(t)
+    ).length;
+    score -= query.tokens.filter(
+      (q) => GENERIC_WORDS.has(q) && !nameSet.has(q) && !brandSet.has(q)
+    ).length;
+    // Last resort for an exact tie: the entry named by the earlier word
+    // wins ("Rodinal (Adox R09)" is Rodinal before it is any R09).
+    const firstHit = query.tokens.findIndex((q) =>
+      matched.some((t) => tokensMatch(t, q) || t === TOKEN_SYNONYMS.get(q))
+    );
+    if (firstHit > 0) score -= firstHit / 100;
+    if (best === null || score > best) best = score;
+  }
+  return best;
+}
+
+function pickBest<T>(
+  candidates: T[],
+  score: (candidate: T) => number | null
+): T | null {
+  let bestCandidate: T | null = null;
+  let bestScore = -Infinity;
+  for (const candidate of candidates) {
+    const s = score(candidate);
+    if (s !== null && s > bestScore) {
+      bestScore = s;
+      bestCandidate = candidate;
     }
   }
-
-  return score;
+  return bestCandidate;
 }
 
 /**
- * Finds the best matching local film for a filmdev.org film string.
- * Uses a scoring system to find the most accurate match, prioritizing:
- * 1. Exact matches
- * 2. ISO speed matching (critical for "Pan 400" vs "Pan 100")
- * 3. Brand + name containment
- * 4. Word-based partial matches
+ * Finds the local film a filmdev.org film string names, or null when none
+ * plausibly does (the importer then creates a custom film). Known aliases
+ * (e.g. "Kodak T-MAX 400" for "T-MAX/Ektapan 400") are matched too.
+ *
+ * Pass the whole catalogue, not a filtered view: a film missing from the
+ * list will be "matched" to its nearest wrong neighbour instead.
  *
  * @param filmdevFilmString - Film name provided by filmdev.org
  * @param availableFilms - Collection of locally known films to search
- * @returns The matching `Film` if a reasonable match is found, `null` otherwise
+ * @returns The matching `Film`, or `null` when no plausible match exists
  */
 export function findBestFilmMatch(
   filmdevFilmString: string,
   availableFilms: Film[]
 ): Film | null {
   if (!filmdevFilmString.trim() || !availableFilms.length) return null;
+  const query = parseQuery(filmdevFilmString);
 
-  const filmString = filmdevFilmString.trim().toLowerCase();
-
-  // Score all films and find the best match
-  let bestFilm: Film | null = null;
-  let bestScore = 0;
-
-  for (const film of availableFilms) {
-    const score = scoreFilmMatch(film, filmString);
-    if (score > bestScore) {
-      bestScore = score;
-      bestFilm = film;
-    }
-  }
-
-  // Only return a match if the score is above a minimum threshold
-  // This prevents very weak matches from being returned
-  const MIN_SCORE = 30;
-  return bestScore >= MIN_SCORE ? bestFilm : null;
+  return pickBest(availableFilms, (film) => {
+    const scores = [
+      scoreCandidate(query, film.brand, film.name, film.isoSpeed),
+      ...(film.aliases ?? []).map((alias) =>
+        scoreCandidate(query, '', alias.name, film.isoSpeed)
+      ),
+    ].filter((s): s is number => s !== null);
+    return scores.length ? Math.max(...scores) : null;
+  });
 }
 
 /**
- * Attempt to find the best matching developer from the local database using a filmdev.org string.
+ * Finds the local developer a filmdev.org developer string names, or null
+ * when none plausibly does. Blends such as "Kodak XTOL + Rodinal" never
+ * match a single developer.
  *
  * @param filmdevDeveloperString - Developer name provided by filmdev.org
  * @param availableDevelopers - Collection of locally known developers to search
- * @returns Matching developer entity or null when no reasonable match is detected
+ * @returns Matching developer, or null when no plausible match exists
  */
 export function findBestDeveloperMatch(
   filmdevDeveloperString: string,
@@ -130,55 +351,17 @@ export function findBestDeveloperMatch(
 ): Developer | null {
   if (!filmdevDeveloperString.trim() || !availableDevelopers.length)
     return null;
+  // "XTOL + Rodinal" is a blend: a spaced "+" before another product's name.
+  // "Ultrafin+ Developer" is a product's own "+" (read as "plus") before a
+  // generic word, and "1+2" is a dilution; both stay.
+  const collapsed = filmdevDeveloperString.replace(/\s+/g, ' ');
+  const blend = /[a-z0-9] \+ ([a-z][a-z0-9]*)/i.exec(collapsed);
+  if (blend && !GENERIC_WORDS.has(blend[1].toLowerCase())) return null;
+  const query = parseQuery(filmdevDeveloperString);
 
-  const devString = filmdevDeveloperString.trim().toLowerCase();
-
-  // Try exact name match first
-  let bestMatch = availableDevelopers.find(
-    (dev) =>
-      dev.name.toLowerCase() === devString ||
-      `${dev.manufacturer} ${dev.name}`.toLowerCase() === devString
+  return pickBest(availableDevelopers, (developer) =>
+    scoreCandidate(query, developer.manufacturer, developer.name)
   );
-
-  if (bestMatch) return bestMatch;
-
-  // Try partial matches with manufacturer and name
-  bestMatch = availableDevelopers.find((dev) => {
-    const fullName = `${dev.manufacturer} ${dev.name}`.toLowerCase();
-    const devNameLower = dev.name.toLowerCase();
-    const manufacturerLower = dev.manufacturer.toLowerCase();
-
-    return (
-      fullName.includes(devString) ||
-      devString.includes(fullName) ||
-      devString.includes(devNameLower) ||
-      devString.includes(manufacturerLower)
-    );
-  });
-
-  if (bestMatch) return bestMatch;
-
-  // Try word-based matching (e.g., "D-76" matches "Kodak D-76")
-  const devWords = devString.split(/[\s-]+/).filter((w) => w.length > 1);
-  bestMatch = availableDevelopers.find((dev) => {
-    const devText = `${dev.manufacturer} ${dev.name}`.toLowerCase();
-    return devWords.some((word) => devText.includes(word));
-  });
-
-  if (bestMatch) return bestMatch;
-
-  // Try matching just the key part (remove common words)
-  const cleanDevString = devString
-    .replace(/\b(developer|chemistry|film|paper)\b/g, '')
-    .trim();
-  if (cleanDevString && cleanDevString !== devString) {
-    bestMatch = availableDevelopers.find((dev) => {
-      const devText = `${dev.manufacturer} ${dev.name}`.toLowerCase();
-      return devText.includes(cleanDevString);
-    });
-  }
-
-  return bestMatch || null;
 }
 
 /**
@@ -218,7 +401,8 @@ export function createCustomFilmFromFilmdev(
   return {
     brand,
     name,
-    isoSpeed: 400, // Default ISO, user can adjust
+    // Box speed from the name ("Kodak Tri-X 400"), else 400; user can adjust
+    isoSpeed: extractIsoFromString(filmString) ?? 400,
     colorType: 'bw', // Default to B&W, user can adjust
     description: `Imported from filmdev.org: ${filmString}`,
   };
@@ -363,18 +547,18 @@ export function mapFilmdevRecipeToFormData(
       recipe.dilution_ratio ? ` (${recipe.dilution_ratio})` : ''
     }`;
 
-  // Determine shooting ISO from developed_at field
-  // This is the ISO at which the film was actually shot (may differ from box speed)
-  const shootingIso = recipe.developed_at || 400;
-
-  // Determine box speed ISO from the matched film or by extracting from film name
+  // Box speed from the matched film, else from the film name
   const boxSpeedIso =
-    matchedFilm?.isoSpeed || extractIsoFromString(recipe.film) || shootingIso;
+    matchedFilm?.isoSpeed || extractIsoFromString(recipe.film) || null;
+
+  // developed_at is the ISO the film was shot at. filmdev.org leaves it
+  // empty for box-speed recipes, so an empty one means box speed, not a push.
+  const shootingIso = recipe.developed_at || boxSpeedIso || 400;
 
   // Calculate push/pull stops: log2(shootingIso / boxSpeedIso)
   // Positive = push (shot at higher ISO), Negative = pull (shot at lower ISO)
   const pushPull =
-    shootingIso !== boxSpeedIso
+    boxSpeedIso && shootingIso !== boxSpeedIso
       ? Math.round(Math.log2(shootingIso / boxSpeedIso))
       : 0;
 
