@@ -13,7 +13,7 @@ export const MAX_LIMIT = 1000;
 // Numeric parameters that need special validation
 const NUMERIC_PARAMS = new Set(['limit', 'count', 'page']);
 
-// `fuzzy` is documented as a two-value enum (see
+// `fuzzy` is deprecated and ignored upstream, but still accepted as a two-value enum (see
 // packages/api/src/dorkroom/openapi.ts); only these
 // exact values are forwarded upstream.
 const FUZZY_VALUES = new Set(['true', 'false']);

@@ -1,7 +1,8 @@
 import { serve } from 'https://deno.land/std@0.203.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { requireProxySecret } from '../_shared/auth.ts';
-import { sanitizeQuery, sanitizeSlug } from '../_shared/sanitize.ts';
+import { sanitizeSlug } from '../_shared/sanitize.ts';
+import { cleanSearchTerm, ilikeCondition } from '../_shared/search.ts';
 
 /**
  * Explicit ceiling for unpaginated combination fetches. PostgREST's default
@@ -169,7 +170,7 @@ serve(async (req) => {
 
     // Apply search
     if (query) {
-      const safeQuery = sanitizeQuery(query);
+      const safeQuery = cleanSearchTerm(query);
       if (!safeQuery) {
         return new Response(
           JSON.stringify({ error: 'Invalid query parameter' }),
@@ -183,7 +184,11 @@ serve(async (req) => {
         );
       }
       dbQuery = dbQuery.or(
-        `name.ilike.%${safeQuery}%,film_stock.ilike.%${safeQuery}%,developer.ilike.%${safeQuery}%`
+        [
+          ilikeCondition('name', safeQuery),
+          ilikeCondition('film_stock', safeQuery),
+          ilikeCondition('developer', safeQuery),
+        ].join(',')
       );
     }
 
