@@ -280,7 +280,7 @@ export default withEnvelope(
         <p>
           Response headers: <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code>,
           <code>X-RateLimit-Reset</code> (on every API-key response and on any <code>429</code>; anonymous
-          <code>200</code> responses are CDN-cached and shared, so they omit them), and
+          responses omit them except <code>429</code>s, because the CDN caches and shares them), and
           <code>Retry-After</code> on <code>429</code>.
         </p>
       </section>

@@ -38,7 +38,7 @@ header keeps key-only limiting; a malformed value is treated as absent rather
 than rejected.
 
 Responses to requests with an API key include rate limit headers, and so does
-any `429`. Anonymous `200` responses from `dorkroom.art/api` omit them: the CDN
+any `429`. Anonymous responses from `dorkroom.art/api` omit them except `429`s: the CDN
 caches and shares those responses, so a per-IP count would describe someone
 else's budget.
 

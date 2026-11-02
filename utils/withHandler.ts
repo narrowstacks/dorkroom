@@ -572,9 +572,9 @@ function bypassesCdn(req: VercelRequest): boolean {
  * budget. Buckets are checked in order (burst, then day), each at cost 1.
  *
  * Over budget: 503 with `Retry-After` and `no-store`. It is not the caller's
- * fault, so not a 429, and the bucket's limit and remaining count stay out of
- * the response: `X-RateLimit-*` keeps describing the caller's own per-IP
- * budget, set by the check before this one.
+ * fault, so not a 429. The 503 carries no `X-RateLimit-*`: the per-IP check
+ * passed (and sends none on success) and the global buckets are never
+ * exposed.
  *
  * Fails OPEN on any Unkey failure (logged), like the OG limiter: a misconfig
  * would already have failed the per-IP check against the same namespace, and
