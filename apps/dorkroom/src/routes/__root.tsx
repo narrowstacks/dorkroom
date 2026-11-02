@@ -6,6 +6,7 @@ import {
   ROUTE_TITLES,
   ThemeToggle,
   Tooltip,
+  useTheme,
 } from '@dorkroom/ui';
 import {
   createRootRouteWithContext,
@@ -24,6 +25,7 @@ import { MobileNav } from '../components/mobile-nav';
 import { NavSearchButton, useNavSearch } from '../components/search/nav-search';
 
 function RootComponent() {
+  const { themeLocked } = useTheme();
   const router = useRouter();
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
@@ -185,9 +187,11 @@ function RootComponent() {
                     <Newspaper className="size-4" />
                   </a>
                 </Tooltip>
-                <Tooltip label="Themes">
-                  <ThemeToggle variant="icon" />
-                </Tooltip>
+                {!themeLocked && (
+                  <Tooltip label="Themes">
+                    <ThemeToggle variant="icon" />
+                  </Tooltip>
+                )}
                 <Tooltip label="Settings">
                   <Link
                     to="/settings"

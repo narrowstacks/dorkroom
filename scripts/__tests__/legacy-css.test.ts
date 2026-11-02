@@ -5,10 +5,13 @@ import { es5SyntaxProblem } from '../../apps/dorkroom/es5-syntax';
 import {
   BREAKPOINTS,
   buildLegacyCss,
+  KINDLE_UA_SOURCE,
+  LEGACY_BROWSER_ATTR,
   legacyCssFileName,
   legacyCssLeftovers,
   legacyCssLoader,
   legacyCssProblem,
+  NO_MOTION_CSS,
 } from '../../apps/dorkroom/legacy-css';
 
 async function legacy(css: string): Promise<string> {
@@ -200,6 +203,33 @@ describe('buildLegacyCss', () => {
   });
 });
 
+describe('no-motion override (issue #637)', () => {
+  it('is the last thing in the legacy stylesheet', async () => {
+    const { css } = await buildLegacyCss('a{color:red}');
+    expect(css.endsWith(NO_MOTION_CSS)).toBe(true);
+  });
+
+  it('finishes animations instantly and drops transitions and smooth scroll', () => {
+    expect(NO_MOTION_CSS).toMatch(/^\*,\*::before,\*::after\{/);
+    for (const decl of [
+      'animation-duration:0s!important',
+      'animation-delay:0s!important',
+      'animation-iteration-count:1!important',
+      'transition:none!important',
+      'scroll-behavior:auto!important',
+    ]) {
+      expect(NO_MOTION_CSS).toContain(decl);
+    }
+    // `animation: none` would leave fill-mode end states and animationend out.
+    expect(NO_MOTION_CSS).not.toMatch(/animation:\s*none/);
+  });
+
+  it('is not in the legacy output only by accident of the forbidden checks', async () => {
+    const { css } = await buildLegacyCss('a{color:red}');
+    expect(legacyCssProblem(css)).toBeUndefined();
+  });
+});
+
 describe('legacyCssProblem', () => {
   it('flags @layer and color-mix()', () => {
     expect(legacyCssProblem('@layer x{a{b:c}}')).toContain('@layer');
@@ -236,6 +266,40 @@ describe('legacyCssLoader', () => {
     expect(legacyCssLoader('/a.css', '/b.css')).toContain(
       'setAttribute("data-lc-nogap","")'
     );
+  });
+});
+
+describe('legacy browser marker', () => {
+  it('is set by the loader, in the legacy branch only', () => {
+    const script = legacyCssLoader('/a.css', '/b.css');
+    expect(script).toContain('setAttribute("data-lc-legacy","")');
+    expect(script.indexOf('data-lc-legacy')).toBeGreaterThan(
+      script.indexOf('CSSLayerBlockRule||')
+    );
+  });
+
+  it('themes a Kindle high contrast before first paint, in ES5', () => {
+    const script = legacyCssLoader('/a.css', '/b.css');
+    expect(es5SyntaxProblem(script)).toBeUndefined();
+    expect(script).toContain(
+      `${KINDLE_UA_SOURCE}.test(navigator.userAgent)&&e.setAttribute("data-theme","high-contrast")`
+    );
+  });
+
+  it('uses the Kindle pattern isEInkDevice uses', () => {
+    const source = readFileSync(
+      join(__dirname, '../../packages/ui/src/lib/themes.ts'),
+      'utf8'
+    );
+    expect(source).toContain(KINDLE_UA_SOURCE.slice(1, -1));
+  });
+
+  it('matches the attribute the UI package reads', () => {
+    const source = readFileSync(
+      join(__dirname, '../../packages/ui/src/lib/motion.ts'),
+      'utf8'
+    );
+    expect(source).toContain(`'${LEGACY_BROWSER_ATTR}'`);
   });
 });
 

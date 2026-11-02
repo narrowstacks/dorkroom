@@ -1,3 +1,4 @@
+import { scrollBehavior } from '@dorkroom/ui';
 import {
   type Dispatch,
   type RefObject,
@@ -36,7 +37,7 @@ export function useResultsPagination(props: UseResultsPaginationProps): void {
       if (virtualScrollContainerRef.current) {
         virtualScrollContainerRef.current.scrollTo({
           top: 0,
-          behavior: 'smooth',
+          behavior: scrollBehavior(),
         });
       }
 
@@ -50,7 +51,7 @@ export function useResultsPagination(props: UseResultsPaginationProps): void {
 
         window.scrollTo({
           top: targetPosition,
-          behavior: 'smooth',
+          behavior: scrollBehavior(),
         });
       }
     }

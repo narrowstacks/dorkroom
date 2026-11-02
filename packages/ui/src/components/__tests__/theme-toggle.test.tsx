@@ -21,6 +21,7 @@ const themeContext: ThemeContextValue = {
   theme: 'dark',
   resolvedTheme: 'dark',
   setTheme: mockSetTheme,
+  themeLocked: false,
   animationsEnabled: true,
   setAnimationsEnabled: vi.fn(),
 };
@@ -539,4 +540,20 @@ describe('ThemeToggle Escape stacking (#617)', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(outer).toHaveBeenCalledTimes(1);
   });
+});
+
+describe('ThemeToggle on e-ink', () => {
+  it.each(['icon', 'grid', 'sidebar', 'button'] as const)(
+    'renders nothing for the %s variant',
+    (variant) => {
+      const { container } = renderBare(<ThemeToggle variant={variant} />, {
+        wrapper: ({ children }) => (
+          <ThemeContext value={{ ...themeContext, themeLocked: true }}>
+            {children}
+          </ThemeContext>
+        ),
+      });
+      expect(container).toBeEmptyDOMElement();
+    }
+  );
 });

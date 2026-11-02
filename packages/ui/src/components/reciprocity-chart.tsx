@@ -1,5 +1,6 @@
 import { formatSeconds } from '@dorkroom/logic';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { scrollBehavior } from '../lib/motion';
 import {
   CHART_CONFIG,
   type ChartData,
@@ -461,7 +462,7 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
 
       if (layoutModeChanged) {
         chartContainerRef.current?.scrollIntoView({
-          behavior: 'smooth',
+          behavior: scrollBehavior(),
           block: 'center',
         });
       }

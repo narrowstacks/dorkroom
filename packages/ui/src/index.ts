@@ -69,6 +69,10 @@ export { Select } from './components/select';
 export type { SensorSizeVisualizationProps } from './components/sensor-size-visualization';
 export { SensorSizeVisualization } from './components/sensor-size-visualization';
 export { SettingsButton } from './components/settings-button';
+export {
+  SettingsRadioGroup,
+  type SettingsRadioGroupProps,
+} from './components/settings-radio-group';
 // Sharing Components
 export { ShareButton, type ShareResult } from './components/share-button';
 export { ShareModal } from './components/share-modal';
@@ -110,6 +114,7 @@ export {
 // Theme
 export { useTheme } from './contexts/theme-context';
 export { ThemeProvider } from './contexts/theme-provider';
+export { isLegacyBrowser, scrollBehavior } from './lib/motion';
 // Volume
 export { useVolume, VolumeProvider } from './contexts/volume-context';
 // Forms (utilities only — components and schemas via @dorkroom/ui/forms)
