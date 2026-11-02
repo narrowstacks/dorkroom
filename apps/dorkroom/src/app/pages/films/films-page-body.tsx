@@ -9,8 +9,15 @@ import {
   FilmImageLoaderContext,
   FilmResultsVirtualized,
 } from '@dorkroom/ui/films';
-import { filmImageLoader } from '../../lib/film-image-loader';
+import { vercelFilmImageLoader } from '../../lib/film-image-loader';
 import { useShareLink } from '../../lib/use-share-link';
+
+/**
+ * Resized thumbnails only in a Vercel build, the one place `/_vercel/image`
+ * exists. The dev server and builds served elsewhere (`vite preview`, the
+ * Cloudflare static build) load originals directly.
+ */
+const filmImageLoader = __VERCEL__ ? vercelFilmImageLoader : null;
 
 interface FilmsPageBodyProps {
   db: UseFilmDatabaseReturn;

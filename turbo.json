@@ -29,6 +29,7 @@
       ],
       "outputs": ["dist/**"],
       "env": [
+        "VERCEL",
         "SUPABASE_MASTER_API_KEY",
         "SUPABASE_ENDPOINT",
         "UNKEY_ROOT_KEY",

@@ -15,6 +15,12 @@ export const FILM_IMAGE_QUALITY = 75;
 /**
  * Resized film thumbnails through Vercel's `/_vercel/image` endpoint. The
  * width is always one of `FILM_IMAGE_WIDTHS`, which `images.sizes` allows.
+ *
+ * Only use it in a Vercel build (`__VERCEL__`): the endpoint exists nowhere
+ * else. Resized images are cached for `images.minimumCacheTTL` (30 days), so
+ * after replacing a film photo at the same storage path, purge its cached
+ * thumbnails (Vercel: invalidate by source image) or the old one keeps being
+ * served until it expires.
  */
 export const vercelFilmImageLoader: FilmImageLoader = (src, width) => {
   if (!src.startsWith(FILM_IMAGE_SOURCE_PREFIX)) return null;
@@ -25,12 +31,3 @@ export const vercelFilmImageLoader: FilmImageLoader = (src, width) => {
   });
   return `/_vercel/image?${params.toString()}`;
 };
-
-/**
- * The loader for this build. `/_vercel/image` only exists on a Vercel
- * deployment, so the dev server loads originals. A production build served
- * elsewhere (`vite preview`, the Cloudflare static build) still tries the
- * optimizer, and `FilmImage` falls back to the original URL when that fails.
- */
-export const filmImageLoader: FilmImageLoader | null =
-  process.env.NODE_ENV === 'production' ? vercelFilmImageLoader : null;
