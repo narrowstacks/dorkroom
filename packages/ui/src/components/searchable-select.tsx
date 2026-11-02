@@ -182,7 +182,6 @@ export function SearchableSelect({
         setIsOpen(false);
         setSearchTerm('');
         setFocusedIndex(-1);
-        inputRef.current?.blur();
         break;
     }
   };

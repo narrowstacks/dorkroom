@@ -144,6 +144,8 @@ describe('SearchableSelect ARIA wiring', () => {
     expect(input).toHaveAttribute('aria-expanded', 'true');
     await user.keyboard('{Escape}');
     expect(input).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(input).toHaveFocus();
   });
 
   it('selects on mouse click', async () => {
