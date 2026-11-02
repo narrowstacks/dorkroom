@@ -176,6 +176,31 @@ describe('MobileNav Escape layering (#613)', () => {
   });
 });
 
+describe('MobileNav theme dropdown Escape (#617)', () => {
+  it('closes only the theme dropdown, then the menu, focus staying on the trigger', () => {
+    render346(<MobileNav pathname="/" onNavigate={vi.fn()} />);
+    const toggle = screen.getByRole('button', { name: 'Open navigation' });
+    fireEvent.click(toggle);
+    const drawer = screen.getByRole('dialog', { name: 'Navigation menu' });
+    const themeButton = within(drawer).getByRole('button', {
+      name: 'Change theme',
+    });
+    fireEvent.click(themeButton);
+    expect(themeButton).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(themeButton).toHaveAttribute('aria-expanded', 'false');
+    expect(themeButton).toHaveFocus();
+    expect(drawer).not.toHaveAttribute('inert');
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(drawer).toHaveAttribute('inert');
+    expect(toggle).toHaveFocus();
+  });
+});
+
 /**
  * #457: the close rule goes through the shared `useBreakpoint`
  * instead of a hand-written `(min-width: ...)` listener. #548 moved the
