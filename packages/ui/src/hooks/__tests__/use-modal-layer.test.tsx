@@ -67,6 +67,25 @@ describe('useModalLayer', () => {
       ).toHaveFocus();
     });
 
+    it('moves focus in before the page turns inert', () => {
+      // A field outside the layer holds focus (and a phone's keyboard) at open.
+      const holder = document.createElement('input');
+      document.body.append(holder);
+      holder.focus();
+      let holderInertOnBlur: boolean | null = null;
+      holder.addEventListener('blur', () => {
+        holderInertOnBlur = holder.hasAttribute('inert');
+      });
+
+      render(<Layer isOpen label="Dialog" focusSecond />);
+      expect(
+        screen.getByRole('button', { name: 'Dialog second' })
+      ).toHaveFocus();
+      expect(holderInertOnBlur).toBe(false);
+      expect(holder).toHaveAttribute('inert');
+      holder.remove();
+    });
+
     it('falls back to the layer itself when nothing inside is tabbable', () => {
       function Empty() {
         const ref = useModalLayer<HTMLDialogElement>(true);

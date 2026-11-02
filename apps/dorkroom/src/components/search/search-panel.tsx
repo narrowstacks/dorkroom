@@ -106,6 +106,8 @@ interface SearchPanelProps {
    * owns initial focus, so the box takes it in the same commit).
    */
   inputRef?: RefObject<HTMLInputElement | null>;
+  /** What the box starts with (text typed while the dialog loaded). */
+  initialQuery?: string;
   /** Called when an answer's or a match's link is clicked. */
   onNavigate?: MouseEventHandler<HTMLAnchorElement>;
 }
@@ -131,9 +133,11 @@ function SearchPanelBody({
   variant,
   onNavigate,
   inputRef: givenInputRef,
+  initialQuery = '',
 }: SearchPanelProps) {
   const inDialog = variant === 'dialog';
-  const [query, setQuery] = useState('');
+  // A new input given a value has its caret at the end, ready to type on.
+  const [query, setQuery] = useState(initialQuery);
   // The option the arrow keys moved to; null means the top one.
   const [chosen, setChosen] = useState<string | null>(null);
   // The active option is marked only while the box has focus, so it never

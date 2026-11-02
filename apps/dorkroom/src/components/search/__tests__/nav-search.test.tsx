@@ -221,11 +221,20 @@ describe('nav search', () => {
     // React renders the dialog (whose code may not even have loaded yet).
     let held: Element | null = null;
     let dialogDuringClick: Element | null = null;
+    let inertOnBlur: boolean | null = null;
     document.addEventListener(
       'click',
       () => {
         held = document.activeElement;
         dialogDuringClick = document.querySelector('[role="dialog"], dialog');
+        if (!(held instanceof HTMLInputElement)) return;
+        // Typing begins before the dialog is there; none of it is lost.
+        held.value = 'hp5';
+        held.addEventListener('blur', (event) => {
+          if (event.target instanceof Element) {
+            inertOnBlur = event.target.closest('[inert]') !== null;
+          }
+        });
       },
       { once: true }
     );
@@ -239,8 +248,13 @@ describe('nav search', () => {
     await findDialog();
     await waitFor(() => expect(box()).toHaveFocus());
     document.removeEventListener('focusin', onFocusIn);
-    // Straight from the stand-in to the box: never the Close button between.
+    // Straight from the stand-in to the box: never the Close button between,
+    // and the stand-in still focusable (not inert) when it hands over.
     expect(focused).toEqual([held, box()]);
+    expect(inertOnBlur).toBe(false);
+    // What was typed meanwhile is in the box, with the caret after it.
+    expect(box()).toHaveValue('hp5');
+    expect(box()).toHaveProperty('selectionStart', 3);
     expect(document.querySelector('[data-search-keyboard-proxy]')).toBeNull();
 
     fireEvent.keyDown(box(), { key: 'Escape' });
