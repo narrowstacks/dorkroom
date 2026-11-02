@@ -99,6 +99,56 @@ describe('buildLegacyCss', () => {
     );
   });
 
+  describe('composes lowered transforms with Tailwind utilities', () => {
+    const utilities = [
+      '.transform{transform:var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)}',
+      '.translate-x-4{--tw-translate-x:1rem;translate:var(--tw-translate-x) var(--tw-translate-y)}',
+      '.translate-x-6{--tw-translate-x:1.5rem;translate:var(--tw-translate-x) var(--tw-translate-y)}',
+      '.-translate-x-1\\/2{--tw-translate-x:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}',
+      '.-translate-y-1\\/2{--tw-translate-y:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}',
+      '.rotate-45{rotate:45deg}',
+    ].join('');
+    // Layer flattening adds :not(#\#) boosts; they are not what is tested.
+    const unboosted = (css: string) => css.replaceAll(':not(#\\#)', '');
+    const COMPOSED = 'var(--lc-translate) var(--lc-rotate) var(--lc-scale)';
+
+    it('keeps translate when .transform comes later (transform translate-x-6)', async () => {
+      const out = unboosted(await legacy(utilities));
+      expect(out).toContain(
+        `.transform{transform:${COMPOSED} var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)}`
+      );
+      expect(out).toMatch(
+        /\.translate-x-6\{[^}]*--lc-translate:translate\(var\(--tw-translate-x\),var\(--tw-translate-y\)\)/
+      );
+    });
+
+    it('combines both negative halves through the shared variables', async () => {
+      const out = unboosted(await legacy(utilities));
+      // Each axis sets its own --tw-translate-*, and both rules write the same
+      // translate(x, y), so -translate-x-1/2 -translate-y-1/2 centre together.
+      expect(out).toMatch(
+        /\.-translate-x-1\\\/2\{--tw-translate-x:[^;]+;--lc-translate:translate\(var\(--tw-translate-x\),var\(--tw-translate-y\)\);transform:var\(--lc-translate\)/
+      );
+      expect(out).toMatch(
+        /\.-translate-y-1\\\/2\{--tw-translate-y:[^;]+;--lc-translate:translate\(var\(--tw-translate-x\),var\(--tw-translate-y\)\)/
+      );
+    });
+
+    it('keeps translate and rotate apart (translate-x-4 rotate-45)', async () => {
+      const out = unboosted(await legacy(utilities));
+      expect(out).toContain(
+        `.rotate-45{--lc-rotate:rotate(45deg);transform:${COMPOSED}}`
+      );
+      expect(out).toMatch(/\.translate-x-4\{[^}]*--lc-translate:translate\(/);
+      expect(out).toContain('--lc-rotate:rotate(0)');
+    });
+
+    it('leaves a standalone transform alone', async () => {
+      const out = await legacy('.skip{transform:translateY(-150%)}');
+      expect(out).toContain('.skip{transform:translateY(-150%)}');
+    });
+  });
+
   it('lowers dynamic viewport units and logical properties with var()', async () => {
     const out = await legacy(
       '.h{min-height:100dvh}.p{padding-inline:var(--s)}.i{inset:var(--s) 0}'

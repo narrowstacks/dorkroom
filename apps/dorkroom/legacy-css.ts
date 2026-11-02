@@ -518,6 +518,20 @@ function lowerProperties(): Plugin {
           return;
         }
         if (lowerLogical(decl)) return;
+        // Tailwind's `.transform` (and any composite that reads its rotate
+        // or skew variables) comes after the translate/scale/rotate
+        // utilities, so on its own it would replace their lowered transform.
+        // Prefixing it with the same parts keeps them composed, in the order
+        // CSS applies the individual properties: translate, rotate, scale,
+        // then transform.
+        if (
+          decl.prop === 'transform' &&
+          /var\(--tw-(?:rotate|skew)-/.test(decl.value)
+        ) {
+          usesTransforms = true;
+          decl.value = `${TRANSFORM} ${decl.value}`;
+          return;
+        }
         let fn: string | undefined;
         let args: string[] = splitSpaces(decl.value);
         if (decl.prop === 'translate') {
