@@ -515,6 +515,11 @@ async function applyNamespaceRateLimit(
   });
 
   if (exceeded) {
+    // A 429 must never be CDN-cached. The api host already pins
+    // `private, no-store`; on the website host nothing else sets one.
+    if (res.getHeader('Cache-Control') === undefined) {
+      res.setHeader('Cache-Control', 'no-store');
+    }
     res.status(429).json({
       error: 'Rate limit exceeded',
       message: 'Too many requests. Please try again later.',
@@ -539,7 +544,7 @@ async function applyAnonymousRateLimit(
     durationMs: ANONYMOUS_RATE_WINDOW_MS,
     // A passing response is CDN-cached (public s-maxage) and shared, so
     // per-IP X-RateLimit-* would show every later visitor the first caller's
-    // budget. A 429 is no-store, so it keeps them.
+    // budget. The 429 branch sets no-store itself, so it keeps them.
     setHeadersOnSuccess: false,
   });
 }
@@ -668,8 +673,10 @@ export function withApiKey(
       setVaryHeader(res, 'X-Client-Id');
     }
 
-    // Before any limiter: a redirect costs no Unkey or Supabase call, and a
-    // cached 308 must not carry one caller's X-RateLimit-* headers.
+    // Before any limiter: the redirect is a cheap invocation with no Unkey or
+    // Supabase call, and the CDN caches it per variant. It is deliberately not
+    // metered per IP (like the JSON 404 handler), so `/api/films/?x=<random>`
+    // costs one function invocation each and nothing else.
     if (!ctx.isPublicApi && options.canonicalPath) {
       const rawUrl = req.url ?? '';
       const queryStart = rawUrl.indexOf('?');

@@ -517,6 +517,7 @@ describe('withHandler', () => {
       expect(res._headers['x-ratelimit-limit']).toBe('60');
       expect(res._headers['x-ratelimit-remaining']).toBe('0');
       expect(res._headers['x-ratelimit-reset']).toBe('1767225660');
+      expect(res._headers['cache-control']).toBe('private, no-store');
     });
 
     it('IP guard exceeded (client-id fine): 429; headers reflect the IP result', async () => {
@@ -773,6 +774,17 @@ describe('withHandler', () => {
       expect(res._headers['x-ratelimit-remaining']).toBe('0');
       expect(res._headers['x-ratelimit-reset']).toBe('1767225660');
       expect(ran).not.toHaveBeenCalled();
+    });
+
+    it('marks the anonymous 429 no-store so the CDN never caches it', async () => {
+      ratelimitLimitMock.mockResolvedValueOnce(exceededLimit(30));
+      const { handler } = await anonymousHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest({ 'x-real-ip': '203.0.113.5' }), res);
+
+      expect(res._status).toBe(429);
+      expect(res._headers['cache-control']).toBe('no-store');
     });
 
     it('fails open outside production when the create_namespace permission is missing', async () => {
