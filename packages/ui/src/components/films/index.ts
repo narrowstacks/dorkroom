@@ -6,6 +6,7 @@ export { FilmFiltersMobile } from './film-filters-mobile';
 export { FilmFiltersPanel } from './film-filters-panel';
 export { FilmImage } from './film-image';
 export { FilmImageLoaderContext } from './film-image-loader-context';
+export { FilmImagesEnabledContext } from './film-images-enabled-context';
 export type { FilmImageLoader, FilmImageWidth } from './film-image-sources';
 export { FILM_IMAGE_WIDTHS } from './film-image-sources';
 export { FilmRebrandInfo } from './film-rebrand-info';

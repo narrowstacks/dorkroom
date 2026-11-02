@@ -10,6 +10,7 @@ import {
 import { cn } from '../../lib/cn';
 import { FilmImageLoaderContext } from './film-image-loader-context';
 import { resolveFilmImageSources } from './film-image-sources';
+import { FilmImagesEnabledContext } from './film-images-enabled-context';
 
 interface FilmImageProps {
   src: string | null;
@@ -70,7 +71,7 @@ function getInitialState(src: string | null): ImageState {
 }
 
 export const FilmImage: FC<FilmImageProps> = ({
-  src,
+  src: srcProp,
   alt,
   size = 'md',
   className,
@@ -78,6 +79,9 @@ export const FilmImage: FC<FilmImageProps> = ({
   renderedSize,
 }) => {
   const loader = use(FilmImageLoaderContext);
+  // Off on low-memory legacy browsers (#636): treat the image as absent, so
+  // the placeholder icon shows and no <img> is fetched or decoded.
+  const src = use(FilmImagesEnabledContext) ? srcProp : null;
   // Single consolidated state so the per-src reset is one update.
   const [state, setState] = useState<ImageState>(() => getInitialState(src));
   const imgRef = useRef<HTMLImageElement>(null);

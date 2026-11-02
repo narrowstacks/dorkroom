@@ -1,10 +1,11 @@
 import type { Film } from '@dorkroom/api';
 import { ExternalLink, Share2 } from 'lucide-react';
-import type { FC, ReactNode } from 'react';
+import { type FC, type ReactNode, use } from 'react';
 import { DetailPanel } from '../detail-panel/detail-panel';
 import { Tag } from '../ui/tag';
 import { FilmImage } from './film-image';
 import { FilmImageCredit } from './film-image-credit';
+import { FilmImagesEnabledContext } from './film-images-enabled-context';
 import { FilmRebrandInfo } from './film-rebrand-info';
 
 /**
@@ -81,6 +82,8 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
   onShare,
   returnFocus,
 }) => {
+  // No image, so no credit for it, on low-memory legacy browsers (#636).
+  const imagesEnabled = use(FilmImagesEnabledContext);
   if (!film) {
     return null;
   }
@@ -129,7 +132,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
           renderedSize={224}
           className="!w-48 !h-48 md:!w-56 md:!h-56"
         />
-        {film.staticImageUrl && (
+        {imagesEnabled && film.staticImageUrl && (
           <FilmImageCredit
             credit={film.imageCredit}
             sourceUrl={film.imageSourceUrl}
@@ -312,6 +315,7 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
   developmentRecipesUrl,
   shareButton,
 }) => {
+  const imagesEnabled = use(FilmImagesEnabledContext);
   return (
     <div className="space-y-6">
       {/* Film image */}
@@ -327,7 +331,7 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
           renderedSize={128}
           className="!w-32 !h-32"
         />
-        {film.staticImageUrl && (
+        {imagesEnabled && film.staticImageUrl && (
           <FilmImageCredit
             credit={film.imageCredit}
             sourceUrl={film.imageSourceUrl}

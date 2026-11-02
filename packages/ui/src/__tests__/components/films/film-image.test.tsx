@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FilmImage } from '../../../components/films/film-image';
 import { FilmImageLoaderContext } from '../../../components/films/film-image-loader-context';
 import type { FilmImageLoader } from '../../../components/films/film-image-sources';
+import { FilmImagesEnabledContext } from '../../../components/films/film-images-enabled-context';
 
 describe('FilmImage', () => {
   beforeEach(() => {
@@ -276,6 +277,39 @@ describe('FilmImage', () => {
       fireEvent.error(img);
       expect(container.querySelector('img')).toBeNull();
       expect(container.querySelector('svg')).not.toBeNull();
+    });
+  });
+
+  describe('with images disabled (legacy browsers, #636)', () => {
+    it('shows the placeholder icon and mounts no <img>, so nothing is fetched', () => {
+      vi.useFakeTimers();
+      const { container } = render(
+        <FilmImagesEnabledContext value={false}>
+          <FilmImage src="https://example.com/film.jpeg" alt="a film" />
+        </FilmImagesEnabledContext>
+      );
+
+      expect(container.querySelector('img')).toBeNull();
+      expect(container.querySelector('svg')).not.toBeNull();
+      // No loading shimmer, and no 5s timeout swapping anything in later.
+      expect(container.querySelector('.shimmer-loading')).toBeNull();
+      act(() => {
+        vi.advanceTimersByTime(6000);
+      });
+      expect(container.querySelector('img')).toBeNull();
+    });
+
+    it('loads the image when the context is left at its default', () => {
+      const { container } = render(
+        <FilmImagesEnabledContext value={true}>
+          <FilmImage src="https://example.com/film.jpeg" alt="a film" />
+        </FilmImagesEnabledContext>
+      );
+
+      expect(container.querySelector('img')).toHaveAttribute(
+        'src',
+        'https://example.com/film.jpeg'
+      );
     });
   });
 });

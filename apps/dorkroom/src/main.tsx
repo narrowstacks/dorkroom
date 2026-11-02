@@ -26,6 +26,7 @@ import '@fontsource-variable/fraunces/index.css';
 import './styles.css';
 import {
   ErrorBoundary,
+  isLegacyBrowser,
   MeasurementProvider,
   ThemeProvider,
   ToastProvider,
@@ -62,6 +63,11 @@ const router = createRouter({
     queryClient,
   },
   ...routerPreloadOptions,
+  // No intent preloading on low-memory legacy browsers (#636): a touch-scroll
+  // over links there pulled in route chunks the user never opened.
+  defaultPreload: isLegacyBrowser()
+    ? false
+    : routerPreloadOptions.defaultPreload,
   // Keep search params as plain strings instead of JSON-parsing them; see
   // ./routes/search-params for why.
   parseSearch,

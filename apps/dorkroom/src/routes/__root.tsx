@@ -1,6 +1,7 @@
 import {
   allNavItems,
   cn,
+  isLegacyBrowser,
   navigationCategories,
   NavigationDropdown,
   ROUTE_TITLES,
@@ -23,6 +24,9 @@ import { usePreferenceAnalytics } from '../app/lib/analytics/use-preference-anal
 import type { RouterContext } from '../app/lib/router-context';
 import { MobileNav } from '../components/mobile-nav';
 import { NavSearchButton, useNavSearch } from '../components/search/nav-search';
+
+// Read once: the browser does not change while the page is open.
+const speedInsightsDisabled = isLegacyBrowser();
 
 function RootComponent() {
   const { themeLocked } = useTheme();
@@ -57,7 +61,9 @@ function RootComponent() {
 
   return (
     <>
-      <SpeedInsights route={routePattern} />
+      {/* Not on low-memory legacy browsers (#636): one more script and its
+          performance observers on an interpreter-only engine. */}
+      {!speedInsightsDisabled && <SpeedInsights route={routePattern} />}
       <HeadContent />
       <div
         className="isolate h-dvh"
