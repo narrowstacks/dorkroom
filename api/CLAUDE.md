@@ -251,18 +251,22 @@ arithmetic against the Supabase Free plan quota sits beside the constants in
 `utils/rateLimitPolicy.ts`; check real origin call counts in Vercel
 observability before changing them.
 
-- Canonical URLs first (`HandlerConfig.canonicalUrl`, built by
-  `canonicalProxyUrl` in `utils/createSupabaseProxy.ts`): on the website host,
-  a raw `req.url` that is not byte for byte `/api/<name>` plus the sorted,
-  sanitized query (`validateAndSanitizeQuery`, standard form encoding) gets a
-  cacheable `308` to that URL, before any Unkey or Supabase call. Case,
-  percent-encoding, trailing-slash, `.ts`, junk-param, repeat and order
-  variants all collapse onto one CDN cache key. The app's own bare requests
-  are already canonical; keyed `api.dorkroom.art` traffic is never redirected
-- Then only a canonical URL **with a query string** is charged. A canonical
-  bare URL is one CDN cache key per resource, so the CDN bounds it, and it is
-  what the app itself fetches: exhausting the budget can never take the
-  site's own data down
+- Canonical paths first (`HandlerConfig.canonicalPath`, `/api/<name>`): on
+  the website host, a raw `req.url` path that is not byte for byte the
+  canonical one (case, percent-encoding, trailing slash, `.ts`) gets a `308`
+  to it, query passed through untouched, with
+  `public, max-age=0, s-maxage=86400`. It runs before the per-IP limiter: no
+  Unkey or Supabase call, a cheap invocation, and the CDN caches it per
+  variant. The query is never rewritten or redirected on: Vercel normalises
+  query encoding before `req.url` and the cache key, so rewriting it looped
+  (`?query=tri%20x` to `+` to itself). The app's own bare requests are
+  already canonical; keyed `api.dorkroom.art` traffic is never redirected
+- Then every request the CDN cannot absorb is charged: any query string
+  (raw `req.url`, so `?junk=<x>`, which the proxy drops, still counts), or an
+  `Authorization` or `Range` header (Vercel's CDN never caches those). A bare
+  canonical URL without them is one CDN cache key per resource, so the CDN
+  bounds it, and it is what the app itself fetches: exhausting the budget can
+  never take the site's own data down
 - Opt-in per handler (`HandlerConfig.upstreamBudget`): `createSupabaseProxy`
   sets it; `filmdev.ts` (no Supabase call) does not
 - Checked after the per-IP limit, so a request that limit rejects is never

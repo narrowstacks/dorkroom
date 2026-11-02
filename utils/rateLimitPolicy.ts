@@ -107,13 +107,16 @@ export function normalizeResetMs(reset: number, now = Date.now()): number {
  * project's monthly quota. These two buckets cap the total of those requests,
  * cost 1 each.
  *
- * Only requests whose raw URL carries a query string are charged (any `?`,
- * including params the proxy later drops, since `?junk=<random>` misses the
- * CDN just as well). Bare URLs are never charged: the CDN bounds them, and
- * they are what the app itself fetches (`INTERNAL_API_BASE_URL` plus the
- * resource, no query), so a flood of filtered requests can never take the
- * site's own data down. Keyed `api.dorkroom.art` traffic is never charged:
- * it does not take the anonymous path.
+ * Only requests the CDN cannot absorb are charged (`withHandler.ts`): any
+ * query string in the raw URL (including params the proxy later drops, since
+ * `?junk=<random>` misses the CDN just as well), or an `Authorization` or
+ * `Range` header, which Vercel's CDN never caches. Path variants
+ * (`/API/films`, `/api/%66ilms`, `/api/films/`) are first redirected to the
+ * canonical path, uncharged. A bare canonical URL is never charged: the CDN
+ * bounds it, and it is what the app itself fetches (`INTERNAL_API_BASE_URL`
+ * plus the resource, no query), so a flood of filtered requests can never
+ * take the site's own data down. Keyed `api.dorkroom.art` traffic is never
+ * charged: it does not take the anonymous path.
  *
  * Sizing, for the maintainer to confirm (plan from the Supabase org settings).
  * Before changing either number, check the real origin call counts for

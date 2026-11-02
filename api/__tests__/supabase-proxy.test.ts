@@ -5,7 +5,6 @@ import {
   type MockVercelResponse,
 } from '../../utils/__tests__/mock-vercel';
 import {
-  canonicalProxyUrl,
   createSupabaseProxyHandler,
   supabaseProxyHandlerConfig,
 } from '../../utils/createSupabaseProxy';
@@ -448,24 +447,18 @@ describe('supabaseProxyHandlerConfig', () => {
   });
 });
 
-describe('canonicalProxyUrl', () => {
+describe('canonical paths', () => {
   // The app fetches `INTERNAL_API_BASE_URL` ('/api') plus `/<resource>`,
-  // with no query (packages/api/src/dorkroom/client.ts); those URLs must
-  // already be canonical, or every page load would pay a redirect.
+  // with no query (packages/api/src/dorkroom/client.ts); that must be the
+  // canonical path, or every page load would pay a redirect.
   it.each([
     filmsProxyConfig,
     developersProxyConfig,
     combinationsProxyConfig,
     statsProxyConfig,
-  ])("leaves the app's own request for $name alone", (proxyConfig) => {
-    const appUrl = `/api/${proxyConfig.name}`;
-    expect(canonicalProxyUrl(proxyConfig, appUrl)).toBe(appUrl);
-  });
-
-  it('wires every proxy to its own canonical URL', () => {
-    const config = supabaseProxyHandlerConfig(filmsProxyConfig);
-    expect(config.canonicalUrl?.('/API/films?junk=1&query=x')).toBe(
-      '/api/films?query=x'
+  ])("is the app's own request path for $name", (proxyConfig) => {
+    expect(supabaseProxyHandlerConfig(proxyConfig).canonicalPath).toBe(
+      `/api/${proxyConfig.name}`
     );
   });
 });
