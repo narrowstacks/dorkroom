@@ -514,3 +514,106 @@ describe('SearchableSelect outside press (#633)', () => {
     expect(onTargetClick).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('SearchableSelect closes when focus leaves by keyboard (#635)', () => {
+  beforeAll(() => {
+    Element.prototype.scrollIntoView = vi.fn();
+  });
+
+  function setupTwo() {
+    render(
+      <>
+        <SearchableSelect
+          label="ISO"
+          selectedValue=""
+          onValueChange={vi.fn()}
+          items={items}
+        />
+        <SearchableSelect
+          label="Brand"
+          selectedValue=""
+          onValueChange={vi.fn()}
+          items={items}
+        />
+        <button type="button">Card</button>
+      </>
+    );
+    return {
+      iso: screen.getByRole('combobox', { name: 'ISO' }),
+      brand: screen.getByRole('combobox', { name: 'Brand' }),
+    };
+  }
+
+  // No waiting after the Tab: a list that lingers for the old 150 ms blur
+  // delay is what stacked over the next field's list.
+  it('closes at once on Tab out of a field the user typed in', async () => {
+    const user = userEvent.setup();
+    const { iso } = setupTwo();
+    await user.tab();
+    await user.keyboard('a');
+    expect(iso).toHaveAttribute('aria-expanded', 'true');
+    await user.tab();
+    expect(iso).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('closes at once on Shift+Tab out', async () => {
+    const user = userEvent.setup();
+    const { brand } = setupTwo();
+    await user.click(brand);
+    await user.keyboard('a');
+    await user.tab({ shift: true });
+    expect(brand).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('shows one list at a time while tabbing through two fields onto a button', async () => {
+    const user = userEvent.setup();
+    const { iso, brand } = setupTwo();
+    await user.tab();
+    await user.keyboard('a');
+    await user.tab();
+    expect(iso).toHaveAttribute('aria-expanded', 'false');
+    expect(brand).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getAllByRole('listbox')).toHaveLength(1);
+    await user.keyboard('a');
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Card' })).toHaveFocus();
+    expect(screen.queryByRole('listbox')).toBeNull();
+  });
+
+  it('does not let a stale blur timer close a list that was refocused', async () => {
+    const user = userEvent.setup();
+    const { iso } = setupTwo();
+    act(() => iso.focus());
+    // Blur with no destination (a click on blank page) schedules the delayed close.
+    act(() => iso.blur());
+    act(() => iso.focus());
+    await act(() => new Promise((r) => setTimeout(r, 300)));
+    expect(iso).toHaveAttribute('aria-expanded', 'true');
+    await user.keyboard('{Escape}');
+  });
+
+  it('shows one list at a time when tabbing past fields that have a value', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <SearchableSelect
+          label="ISO"
+          selectedValue="a"
+          onValueChange={vi.fn()}
+          items={items}
+        />
+        <SearchableSelect
+          label="Brand"
+          selectedValue="b"
+          onValueChange={vi.fn()}
+          items={items}
+        />
+      </>
+    );
+    await user.click(screen.getByRole('combobox', { name: 'ISO' }));
+    await user.tab(); // Clear selection button
+    await user.tab(); // Brand
+    expect(screen.getAllByRole('listbox')).toHaveLength(1);
+    expect(screen.getByRole('combobox', { name: 'Brand' })).toHaveFocus();
+  });
+});
