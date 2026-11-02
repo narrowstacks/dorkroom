@@ -12,6 +12,7 @@ import {
 import {
   ConfirmModal,
   TemperatureProvider,
+  useBreakpoint,
   useIsMobile,
   useTheme,
   useToast,
@@ -123,6 +124,7 @@ export default function DevelopmentRecipesPage({
 
   const { isFavorite, toggleFavorite, addFavorite } = useFavorites();
   const isMobile = useIsMobile();
+  const isXlUp = useBreakpoint('xl');
   const { viewMode, setViewMode } = useViewPreference();
   const { showToast } = useToast();
 
@@ -171,8 +173,12 @@ export default function DevelopmentRecipesPage({
     { id: 'film', desc: false },
   ]);
   const [pageIndex, setPageIndex] = useState(0);
-  const [isFiltersSidebarCollapsed, setIsFiltersSidebarCollapsed] =
-    useState(false);
+  // Below xl the open 304px sidebar squeezes the table until Time scrolls out
+  // of view, so start collapsed there. Only the initial value: once the user
+  // toggles the sidebar their choice stands, whatever the viewport does.
+  const [isFiltersSidebarCollapsed, setIsFiltersSidebarCollapsed] = useState(
+    () => !isXlUp
+  );
   const resultsContainerRef = useRef<HTMLDivElement>(null);
   const virtualScrollContainerRef = useRef<HTMLDivElement>(null);
   // Closing the desktop sidebar from inside it puts focus back on the row or
@@ -635,7 +641,7 @@ export default function DevelopmentRecipesPage({
   return (
     <TemperatureProvider>
       {/* Max-width of 1920px accommodates wider displays while maintaining content readability */}
-      <div className="mx-auto max-w-[1920px] space-y-3 py-3 px-4 pb-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-[1920px] flex-col gap-3 py-3 px-4 pb-4 sm:px-6 lg:px-8">
         {error && (
           <div className="rounded-2xl border border-secondary bg-border-muted px-4 py-3 text-sm text-primary">
             {error}

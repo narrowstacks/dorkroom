@@ -11,6 +11,7 @@ import {
   ThemeContext,
   type ThemeContextValue,
 } from '../../contexts/theme-context';
+import { useEscapeKey } from '../../hooks/use-escape-key';
 import type { Theme } from '../../lib/themes';
 import { ThemeToggle } from '../theme-toggle';
 
@@ -514,5 +515,28 @@ describe('ThemeToggle', () => {
         expect(button).toHaveAttribute('aria-expanded', 'false');
       });
     });
+  });
+});
+
+describe('ThemeToggle Escape stacking (#617)', () => {
+  it('closes only itself when a layer below it also listens for Escape', async () => {
+    const outer = vi.fn();
+    function Outer() {
+      useEscapeKey(true, outer);
+      return <ThemeToggle />;
+    }
+    render(<Outer />);
+    const button = screen.getByRole('button', { name: 'Theme' });
+    await userEvent.click(button);
+    expect(button).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+    expect(button).toHaveFocus();
+    expect(outer).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(outer).toHaveBeenCalledTimes(1);
   });
 });

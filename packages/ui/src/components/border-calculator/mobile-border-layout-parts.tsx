@@ -14,7 +14,7 @@ import { Drawer, DrawerBody, DrawerContent } from '../../components/drawer';
 import { SaveBeforeShareModal } from '../../components/save-before-share-modal';
 import { SettingsButton } from '../../components/settings-button';
 import { ShareModal } from '../../components/share-modal';
-import { StatusAlert } from '../../components/status-alert';
+import { LiveStatusAlert } from '../../components/status-alert';
 import { cssVars } from '../../lib/dom';
 import { AnimatedPreview } from './animated-preview';
 import type { BorderCalculatorContextValue } from './border-calculator-context';
@@ -94,28 +94,37 @@ export function MobileWarningsCard({
   paperSizeWarning,
   offsetWarning,
 }: WarningsCardProps) {
+  const hasWarnings = Boolean(
+    bladeWarning || minBorderWarning || paperSizeWarning || offsetWarning
+  );
+  // This card is the single announcer for these warnings: it is mounted for
+  // the whole page, and the drawer sections show the same text without a live
+  // role. The alert regions below stay mounted even with no warnings, so the first
+  // warning is announced; only the card's box is taken out of flow then.
   return (
     <div
-      className="rounded-3xl border p-5 space-y-2"
-      style={{
-        borderColor: 'var(--color-border-secondary)',
-        backgroundColor: 'var(--color-surface-muted)',
-        background: 'var(--gradient-card-warning)',
-        boxShadow: isHighContrast
-          ? 'none'
-          : '0 25px 80px -45px var(--color-visualization-overlay)',
-      }}
+      className={
+        hasWarnings
+          ? 'flex flex-col gap-2 rounded-3xl border p-5'
+          : 'absolute flex flex-col'
+      }
+      style={
+        hasWarnings
+          ? {
+              borderColor: 'var(--color-border-secondary)',
+              backgroundColor: 'var(--color-surface-muted)',
+              background: 'var(--gradient-card-warning)',
+              boxShadow: isHighContrast
+                ? 'none'
+                : '0 25px 80px -45px var(--color-visualization-overlay)',
+            }
+          : undefined
+      }
     >
-      {bladeWarning && <StatusAlert message={bladeWarning} action="error" />}
-      {minBorderWarning && (
-        <StatusAlert message={minBorderWarning} action="error" />
-      )}
-      {paperSizeWarning && (
-        <StatusAlert message={paperSizeWarning} action="warning" />
-      )}
-      {offsetWarning && (
-        <StatusAlert message={offsetWarning} action="warning" />
-      )}
+      <LiveStatusAlert message={bladeWarning} action="error" />
+      <LiveStatusAlert message={minBorderWarning} action="error" />
+      <LiveStatusAlert message={paperSizeWarning} action="warning" />
+      <LiveStatusAlert message={offsetWarning} action="warning" />
     </div>
   );
 }

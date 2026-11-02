@@ -1,7 +1,8 @@
 import { serve } from 'https://deno.land/std@0.203.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { requireProxySecret } from '../_shared/auth.ts';
-import { sanitizeQuery, sanitizeSlug } from '../_shared/sanitize.ts';
+import { sanitizeSlug } from '../_shared/sanitize.ts';
+import { cleanSearchTerm, ilikeCondition } from '../_shared/search.ts';
 
 /**
  * Edge Function: /films
@@ -110,26 +111,15 @@ serve(async (req) => {
   if (colorType) {
     dbQuery = dbQuery.eq('color_type', colorType);
   }
-  if (brand) {
-    const safeBrand = sanitizeQuery(brand);
-    if (!safeBrand) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid brand parameter' }),
-        {
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-          },
-        }
-      );
-    }
-    dbQuery = dbQuery.ilike('brand', `%${safeBrand}%`);
+  const brandTerm = brand?.trim();
+  if (brandTerm) {
+    // .ilike() takes a plain value, not a filter list, so no escaping needed
+    dbQuery = dbQuery.ilike('brand', `%${brandTerm}%`);
   }
 
   // Apply search
   if (query) {
-    const safeQuery = sanitizeQuery(query);
+    const safeQuery = cleanSearchTerm(query);
     if (!safeQuery) {
       return new Response(
         JSON.stringify({ error: 'Invalid query parameter' }),
@@ -142,9 +132,17 @@ serve(async (req) => {
         }
       );
     }
-    dbQuery = dbQuery.or(
-      `name.ilike.%${safeQuery}%,brand.ilike.%${safeQuery}%,aliases.cs.[{"slug":"${safeQuery}"}]`
-    );
+    // The alias clause only makes sense for a slug-shaped term
+    const rawTerm = query.trim();
+    const aliasSlug = sanitizeSlug(rawTerm);
+    const conditions = [
+      ilikeCondition('name', safeQuery),
+      ilikeCondition('brand', safeQuery),
+    ];
+    if (aliasSlug === rawTerm) {
+      conditions.push(`aliases.cs.[{"slug":"${aliasSlug}"}]`);
+    }
+    dbQuery = dbQuery.or(conditions.join(','));
   }
 
   // Apply limit

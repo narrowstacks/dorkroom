@@ -6,9 +6,15 @@ import {
 import { validateAndSanitizeQuery } from './queryValidation';
 import { type HandlerConfig, withHandler } from './withHandler';
 
-/** Website responses: short browser cache, longer CDN cache. */
+/**
+ * Website responses: short browser cache, longer CDN cache. `stale-if-error`
+ * lets the Vercel CDN keep serving the last good copy for a day when the
+ * origin fails (Vercel documents it for 500s, network and DNS errors; it does
+ * not say whether a 503 or 502 qualifies), so an upstream outage does not
+ * blank the site's data straight away.
+ */
 const ANONYMOUS_CACHE_CONTROL =
-  'public, max-age=60, s-maxage=300, stale-while-revalidate=600';
+  'public, max-age=60, s-maxage=300, stale-while-revalidate=600, stale-if-error=86400';
 const MAX_UPSTREAM_ERROR_LENGTH = 200;
 
 /**
@@ -141,8 +147,11 @@ export function createSupabaseProxyHandler({
   };
 }
 
-export function createSupabaseProxy(config: SupabaseProxyConfig) {
-  return withHandler({
+/** The `withHandler` config for a proxy route; exported for tests. */
+export function supabaseProxyHandlerConfig(
+  config: SupabaseProxyConfig
+): HandlerConfig {
+  return {
     name: config.name,
     requiredEnv: [
       'SUPABASE_MASTER_API_KEY',
@@ -150,5 +159,16 @@ export function createSupabaseProxy(config: SupabaseProxyConfig) {
       'SUPABASE_PROXY_SECRET',
     ],
     handler: createSupabaseProxyHandler(config),
-  });
+    // Every request that gets this far invokes a Supabase Edge Function.
+    // `withApiKey` first redirects non-canonical paths, then charges every
+    // request the CDN cannot absorb (a query string, `Authorization`,
+    // `Range`): a bare canonical URL is one CDN cache key, so the CDN bounds
+    // it.
+    upstreamBudget: true,
+    canonicalPath: `/api/${config.name}`,
+  };
+}
+
+export function createSupabaseProxy(config: SupabaseProxyConfig) {
+  return withHandler(supabaseProxyHandlerConfig(config));
 }

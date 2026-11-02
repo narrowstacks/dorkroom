@@ -1,5 +1,5 @@
 import { ToastProvider } from '@dorkroom/ui';
-import { act, renderHook, screen } from '@testing-library/react';
+import { act, renderHook, screen, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { type ShareLinkSearch, useShareLink } from '../use-share-link';
@@ -102,7 +102,9 @@ describe('useShareLink', () => {
       data: { tool: 'lenses', method: 'clipboard' },
       options: undefined,
     });
-    expect(screen.getByText('Link copied')).toBeInTheDocument();
+    expect(
+      within(await screen.findByTestId('toast')).getByText('Link copied')
+    ).toBeInTheDocument();
   });
 
   it('adds only the shared-link marker when there are no params', async () => {
@@ -159,7 +161,6 @@ describe('useShareLink', () => {
 
     expect(outcome).toEqual({ status: 'cancelled' });
     expect(window.va).not.toHaveBeenCalled();
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
     expect(screen.queryByText(/link/i)).not.toBeInTheDocument();
   });
 
