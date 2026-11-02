@@ -926,4 +926,20 @@ describe('SearchableSelect keeps focus after Clear selection (#639)', () => {
     editFrom(input, [0, 4], 'Adoxes');
     expect(input).toHaveValue('Adoxes');
   });
+
+  it('pasting over the last two characters keeps all of the pasted text', () => {
+    const input = setupIso();
+    input.focus();
+    fireEvent.keyDown(input, { key: 'Escape' });
+    act(() => input.setSelectionRange(1, 3));
+    fireEvent.paste(input);
+    fireEvent.change(input, { target: { value: '1200' } });
+    expect(input).toHaveValue('200');
+  });
+
+  it('pasting over the first character keeps the pasted text', () => {
+    const input = setupAdox();
+    editFrom(input, [0, 1], '9dox');
+    expect(input).toHaveValue('9');
+  });
 });
