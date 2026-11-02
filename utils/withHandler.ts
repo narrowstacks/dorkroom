@@ -81,12 +81,31 @@ export interface HandlerConfig {
    * handlers that do not call Supabase. Never applies to keyed traffic.
    */
   upstreamBudget?: boolean;
+  /**
+   * The one URL (path plus canonical query) that anonymous requests for this
+   * resource should use, computed from the raw `req.url`. When the raw URL
+   * differs byte for byte, `withApiKey` answers a cacheable 308 to it before
+   * any Unkey or upstream call, so case, encoding, trailing-slash, extension,
+   * junk-param and param-order variants all collapse onto one CDN cache key
+   * instead of each reaching Supabase. Website host only: keyed
+   * `api.dorkroom.art` callers are never redirected.
+   */
+  canonicalUrl?: (rawUrl: string) => string;
 }
 
 export interface ApiKeyOptions {
   /** See `HandlerConfig.upstreamBudget`. */
   upstreamBudget?: boolean;
+  /** See `HandlerConfig.canonicalUrl`. */
+  canonicalUrl?: (rawUrl: string) => string;
 }
+
+/**
+ * Cache-Control for the canonicalising 308: the target never changes for a
+ * given variant, so the CDN may keep it a day and answer repeats itself.
+ */
+const CANONICAL_REDIRECT_CACHE_CONTROL =
+  'public, max-age=86400, s-maxage=86400';
 
 // Accepts `generateId()` output (timestamp+random, base36) and any future
 // UUID-shaped identity. Anything else is treated as an absent header rather
@@ -520,10 +539,11 @@ async function applyAnonymousRateLimit(
 }
 
 /**
- * Whether the raw request URL carries a query string. Checked on `req.url`,
- * never the sanitized query: the proxy drops unknown params, so `?junk=<x>`
- * misses the CDN yet reaches Supabase as a bare call, and must still be
- * charged. A bare URL is bounded by the CDN and is what the app fetches.
+ * Whether the raw request URL carries a query string. For a handler with
+ * `canonicalUrl` this runs only on a URL already proven canonical, so a
+ * variant (`?junk=<x>`, `/API/films`, `/api/%66ilms`) never gets here: it was
+ * redirected. Without `canonicalUrl`, any `?` counts, since the proxy drops
+ * unknown params and `?junk=<x>` would reach Supabase as a bare call.
  */
 function hasQueryString(req: VercelRequest): boolean {
   return (req.url ?? '').includes('?');
@@ -633,6 +653,23 @@ export function withApiKey(
       setVaryHeader(res, 'X-Client-Id');
     }
 
+    // Before any limiter: a redirect costs no Unkey or Supabase call, and a
+    // cached 308 must not carry one caller's X-RateLimit-* headers.
+    if (!ctx.isPublicApi && options.canonicalUrl) {
+      const rawUrl = req.url ?? '';
+      const canonical = options.canonicalUrl(rawUrl);
+      if (rawUrl !== canonical) {
+        res.setHeader('Cache-Control', CANONICAL_REDIRECT_CACHE_CONTROL);
+        res.setHeader('Location', canonical);
+        res.status(308).json({
+          error: 'Permanent redirect',
+          location: canonical,
+          requestId: ctx.requestId,
+        });
+        return;
+      }
+    }
+
     const passedChecks = ctx.isPublicApi
       ? await applyPublicApiKeyAuth(req, res, ctx.requestId, createUnkeyClient)
       : await applyAnonymousRateLimit(
@@ -675,6 +712,7 @@ export function withHandler(config: HandlerConfig): VercelApiHandler {
     },
     withApiKey(config.handler, config.createUnkeyClient, {
       upstreamBudget: config.upstreamBudget,
+      canonicalUrl: config.canonicalUrl,
     })
   );
 }

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { canonicalProxyUrl } from '../createSupabaseProxy';
 import {
   ANONYMOUS_RATE_LIMIT,
   ANONYMOUS_RATE_WINDOW_MS,
@@ -1013,6 +1014,130 @@ describe('withHandler', () => {
         expect(identifiers().sort()).toEqual([...expectedIdentifiers].sort());
       }
     );
+  });
+
+  describe('canonical URLs (dorkroom.art Supabase proxies)', () => {
+    const BURST = 'api-upstream';
+    const DAY = 'api-upstream-day';
+    const films = {
+      name: 'films',
+      allowedParams: ['query', 'fuzzy', 'limit', 'colorType', 'brand', 'slug'],
+    };
+    const stats = { name: 'stats', allowedParams: [] };
+
+    beforeEach(() => {
+      process.env.UNKEY_ROOT_KEY = 'root-key';
+      process.env.UNKEY_API_ID = 'test-api';
+      process.env.UNKEY_API_KEY_PERMISSION = 'read';
+      // Both global buckets exhausted: anything charged would 503
+      ratelimitLimitMock.mockImplementation(async (opts) =>
+        opts.identifier === BURST || opts.identifier === DAY
+          ? exceededLimit(opts.limit)
+          : passingLimit(opts.limit)
+      );
+    });
+
+    async function proxyHandler(config: typeof films) {
+      const ran = vi.fn();
+      const handler = await buildHandler({
+        name: config.name,
+        upstreamBudget: true,
+        canonicalUrl: (rawUrl) => canonicalProxyUrl(config, rawUrl),
+        handler: async (_req, res) => {
+          ran();
+          res.status(200).json({ ok: true });
+        },
+      });
+      return { handler, ran };
+    }
+
+    function request(url: string, host = 'dorkroom.art') {
+      return createMockRequest({
+        url,
+        headers: { host, 'x-real-ip': '203.0.113.5', 'x-api-key': 'k' },
+      });
+    }
+
+    async function expectRedirect(
+      config: typeof films,
+      url: string,
+      location: string
+    ) {
+      const { handler, ran } = await proxyHandler(config);
+      const res = createMockResponse();
+      await handler(request(url), res);
+
+      expect(res._status).toBe(308);
+      expect(res._headers.location).toBe(location);
+      expect(res._headers['cache-control']).toContain('s-maxage=');
+      expect(res._headers['x-ratelimit-limit']).toBeUndefined();
+      // Never charged, never limited, never upstream
+      expect(ratelimitLimitMock).not.toHaveBeenCalled();
+      expect(ran).not.toHaveBeenCalled();
+    }
+
+    it.each([
+      '/api/stats/',
+      '/api/stats.ts',
+      '/api/%73tats',
+      '/api/st%61ts',
+      '/API/stats',
+      '/Api/stats',
+      '/%61pi/stats',
+      '/api/stats?',
+    ])('redirects the path variant %s to /api/stats', async (url) => {
+      await expectRedirect(stats, url, '/api/stats');
+    });
+
+    it.each([
+      ['/api/films?junk=1', '/api/films'],
+      ['/api/films?query=x&junk=1', '/api/films?query=x'],
+      ['/api/films?query=x&limit=5', '/api/films?limit=5&query=x'],
+      ['/api/films?query=tri%20x', '/api/films?query=tri+x'],
+      ['/api/films?%71uery=x', '/api/films?query=x'],
+      ['/api/films?query=a&query=b', '/api/films?query=a'],
+      ['/api/films?query=%20x%20', '/api/films?query=x'],
+      ['/api/films?limit=010', '/api/films?limit=10'],
+      ['/API/films?Query=x&query=y', '/api/films?query=y'],
+      // A path that parses as another origin still lands on our own path
+      ['//evil.example/api/films', '/api/films'],
+    ])('redirects %s to %s', async (url, location) => {
+      await expectRedirect(films, url, location);
+    });
+
+    it('serves a canonical bare URL uncharged, even with both buckets exhausted', async () => {
+      const { handler, ran } = await proxyHandler(films);
+      const res = createMockResponse();
+      await handler(request('/api/films'), res);
+
+      expect(res._status).toBe(200);
+      expect(ran).toHaveBeenCalledOnce();
+      expect(
+        ratelimitLimitMock.mock.calls.map(([opts]) => opts.identifier)
+      ).toEqual(['203.0.113.5']);
+    });
+
+    it('charges a canonical query', async () => {
+      const { handler, ran } = await proxyHandler(films);
+      const res = createMockResponse();
+      await handler(request('/api/films?limit=5&query=x'), res);
+
+      expect(res._status).toBe(503);
+      expect(ran).not.toHaveBeenCalled();
+      expect(
+        ratelimitLimitMock.mock.calls.map(([opts]) => opts.identifier)
+      ).toEqual(['203.0.113.5', BURST]);
+    });
+
+    it('never redirects keyed api.dorkroom.art traffic', async () => {
+      verifyKeyMock.mockResolvedValueOnce(validVerification());
+      const { handler, ran } = await proxyHandler(films);
+      const res = createMockResponse();
+      await handler(request('/films/?junk=1', 'api.dorkroom.art'), res);
+
+      expect(res._status).toBe(200);
+      expect(ran).toHaveBeenCalledOnce();
+    });
   });
 
   describe('error handling', () => {

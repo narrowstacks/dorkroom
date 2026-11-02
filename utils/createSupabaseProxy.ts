@@ -147,6 +147,29 @@ export function createSupabaseProxyHandler({
   };
 }
 
+/**
+ * The canonical website URL for a proxy request: `/api/<name>`, plus the
+ * sanitized params (`validateAndSanitizeQuery`: allowlisted, one value each,
+ * trimmed, validated) sorted by key in standard form encoding, or no query at
+ * all when none survive. Read from the raw URL, never `req.query`, so the
+ * comparison in `withApiKey` sees exactly what the CDN keyed on. The result
+ * is always this route's own path, so the redirect cannot point off-site.
+ */
+export function canonicalProxyUrl(
+  { name, allowedParams }: SupabaseProxyConfig,
+  rawUrl: string
+): string {
+  const { searchParams } = new URL(rawUrl, 'http://canonical.invalid');
+  const query: Record<string, string[]> = {};
+  for (const key of new Set(searchParams.keys())) {
+    query[key] = searchParams.getAll(key);
+  }
+  const params = validateAndSanitizeQuery(query, allowedParams);
+  params.sort();
+  const queryString = params.toString();
+  return queryString ? `/api/${name}?${queryString}` : `/api/${name}`;
+}
+
 /** The `withHandler` config for a proxy route; exported for tests. */
 export function supabaseProxyHandlerConfig(
   config: SupabaseProxyConfig
@@ -159,9 +182,12 @@ export function supabaseProxyHandlerConfig(
       'SUPABASE_PROXY_SECRET',
     ],
     handler: createSupabaseProxyHandler(config),
-    // Every request that gets this far invokes a Supabase Edge Function;
-    // `withApiKey` charges only the ones with a query string.
+    // Every request that gets this far invokes a Supabase Edge Function.
+    // `withApiKey` first redirects non-canonical URLs, then charges only the
+    // canonical ones with a query string: a canonical bare URL is a single
+    // CDN cache key, so the CDN bounds it.
     upstreamBudget: true,
+    canonicalUrl: (rawUrl) => canonicalProxyUrl(config, rawUrl),
   };
 }
 

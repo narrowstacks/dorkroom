@@ -251,11 +251,18 @@ arithmetic against the Supabase Free plan quota sits beside the constants in
 `utils/rateLimitPolicy.ts`; check real origin call counts in Vercel
 observability before changing them.
 
-- Charged only when the **raw** `req.url` contains `?`, never judged from the
-  sanitized query: the proxy drops unknown params, so `?junk=<random>` misses
-  the CDN yet reaches Supabase as a bare call. Bare URLs, which the app itself
-  fetches and the CDN bounds, are never charged, so exhausting the budget can
-  never take the site's own data down
+- Canonical URLs first (`HandlerConfig.canonicalUrl`, built by
+  `canonicalProxyUrl` in `utils/createSupabaseProxy.ts`): on the website host,
+  a raw `req.url` that is not byte for byte `/api/<name>` plus the sorted,
+  sanitized query (`validateAndSanitizeQuery`, standard form encoding) gets a
+  cacheable `308` to that URL, before any Unkey or Supabase call. Case,
+  percent-encoding, trailing-slash, `.ts`, junk-param, repeat and order
+  variants all collapse onto one CDN cache key. The app's own bare requests
+  are already canonical; keyed `api.dorkroom.art` traffic is never redirected
+- Then only a canonical URL **with a query string** is charged. A canonical
+  bare URL is one CDN cache key per resource, so the CDN bounds it, and it is
+  what the app itself fetches: exhausting the budget can never take the
+  site's own data down
 - Opt-in per handler (`HandlerConfig.upstreamBudget`): `createSupabaseProxy`
   sets it; `filmdev.ts` (no Supabase call) does not
 - Checked after the per-IP limit, so a request that limit rejects is never
