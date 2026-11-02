@@ -390,6 +390,48 @@ async function applyClientIdentityRateLimit(
 }
 
 /**
+ * Error names that mean Unkey could not be reached or did not answer in
+ * time. The SDK wraps transport failures in `HTTPClientError` subclasses
+ * (`ConnectionError`, `RequestTimeoutError`, `RequestAbortedError`); the
+ * native names cover a `fetch` abort or `AbortSignal.timeout` that reaches us
+ * unwrapped. Matched by `name`, not `instanceof`: the SDK's error classes
+ * live at `@unkey/api/models/errors`, a subpath export that `api/tsconfig.json`
+ * (`moduleResolution: node`, held for `@vercel/node`) cannot resolve.
+ */
+const UNKEY_UNAVAILABLE_ERROR_NAMES = new Set([
+  'ConnectionError',
+  'RequestTimeoutError',
+  'RequestAbortedError',
+  'AbortError',
+  'TimeoutError',
+]);
+
+/**
+ * The HTTP status an SDK `UnkeyError` carries as `statusCode`, or NaN for an
+ * error without one.
+ */
+function unkeyStatusCode(error: Error): number {
+  return 'statusCode' in error ? Number(error.statusCode) : Number.NaN;
+}
+
+/**
+ * Whether an Unkey call failed because Unkey is down or unreachable, as
+ * opposed to answering with a refusal: a transport error (above), a raw
+ * fetch `TypeError`, or a 5xx answer. Permission and validation refusals are
+ * 4xx and stay out, so a misconfiguration still fails closed.
+ */
+function isUnkeyUnavailable(error: Error): boolean {
+  if (UNKEY_UNAVAILABLE_ERROR_NAMES.has(error.name)) {
+    return true;
+  }
+  if (error instanceof TypeError && error.message.includes('fetch failed')) {
+    return true;
+  }
+  const status = unkeyStatusCode(error);
+  return status >= 500 && status <= 599;
+}
+
+/**
  * Shared Unkey namespace rate-limit check, extracted so the anonymous
  * (per-IP) limiter and the keyed per-client limiter can reuse identical
  * error semantics instead of duplicating them:
@@ -397,7 +439,17 @@ async function applyClientIdentityRateLimit(
  *  - `create_namespace` permission error -> fail OPEN outside production
  *    (with a warning), fail CLOSED (500) in production.
  *  - Any other insufficient-permissions error -> always fail CLOSED (500).
- *  - Otherwise rethrow.
+ *  - Unkey unreachable, timed out, or answering 5xx (`isUnkeyUnavailable`)
+ *    -> warn and fail OPEN, like an unconfigured Unkey, the OG limiter and
+ *    the global upstream budget: a limiter outage must not take uncached
+ *    site data down with it.
+ *  - Otherwise rethrow (the envelope answers 500): an error nobody
+ *    classified is treated as a possible misconfiguration, not an outage.
+ *
+ * The keyed per-client checks share this path, so they fail open on an
+ * outage too. That is safe because they only run after `verifyKey` has
+ * authenticated the key and applied its own tier limit; `verifyKey` itself
+ * still fails closed, so an outage never lets an unverified key through.
  *
  * `setHeadersOnSuccess` (default true) lets a caller run more than one check
  * for a single request (see `applyClientIdentityRateLimit`) without a
@@ -491,6 +543,18 @@ async function applyNamespaceRateLimit(
         requestId,
       });
       return false;
+    }
+
+    if (error instanceof Error && isUnkeyUnavailable(error)) {
+      // Name and status only: an UnkeyError message embeds up to 10 KB of
+      // the response body, and the identifier is a caller's IP.
+      serverlessWarn('Rate limiting skipped (Unkey unavailable)', {
+        requestId,
+        namespace: opts.namespace,
+        errorName: error.name,
+        statusCode: unkeyStatusCode(error) || undefined,
+      });
+      return true;
     }
 
     throw error;
