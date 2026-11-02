@@ -292,11 +292,30 @@ describe.each(DRAWER_CASES)(
     it('uses the shared drawer header instead of a centred modal', () => {
       renderDialog(c.render(vi.fn(), true));
 
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
       expect(screen.queryByTestId('modal-backdrop')).not.toBeInTheDocument();
       expect(
         screen.getByRole('heading', { level: 2, name: c.label })
       ).toBeInTheDocument();
+    });
+
+    it('is a modal dialog named by its header (#286)', () => {
+      const page = document.createElement('main');
+      page.append(document.createElement('button'));
+      document.body.prepend(page);
+
+      const { unmount } = renderDialog(c.render(vi.fn(), true));
+      const drawer = screen.getByRole('dialog', { name: c.label });
+      expect(drawer).toHaveAttribute('aria-modal', 'true');
+      expect(drawer.contains(document.activeElement)).toBe(true);
+      expect(page).toHaveAttribute('inert');
+      // The backdrop still closes it.
+      expect(
+        document.querySelector('[role="presentation"]')?.closest('[inert]')
+      ).toBeNull();
+
+      unmount();
+      expect(page).not.toHaveAttribute('inert');
+      page.remove();
     });
 
     it('closes from the header close button', () => {

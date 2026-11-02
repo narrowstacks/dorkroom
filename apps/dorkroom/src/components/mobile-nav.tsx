@@ -3,6 +3,7 @@ import {
   MobileSidebar,
   useBodyScrollLock,
   useBreakpoint,
+  useModalLayer,
 } from '@dorkroom/ui';
 import { Menu, X } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -28,21 +29,26 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const wasOpenRef = useRef(isMobileMenuOpen);
 
-  // The drawer's own close button is the primary focusable close control (the
-  // floating toggle sits above the open drawer only as a pointer target), so
-  // move focus there on open and back to the toggle on close. Layout effect so
-  // focus leaves the close button before its nav turns aria-hidden. Not a
-  // focus trap; see #286.
-  useLayoutEffect(() => {
-    if (mounted && isMobileMenuOpen) {
-      closeButtonRef.current?.focus();
-    }
+  const backdropRef = useRef<HTMLDivElement>(null);
 
+  // Modal while open: focus moves to the drawer's own close button (the
+  // primary focusable close control), Tab stays inside, and the page behind
+  // is inert. The floating toggle sits above the open drawer as a pointer
+  // target and the backdrop closes on tap, so both stay interactive.
+  const navRef = useModalLayer<HTMLElement>(mounted && isMobileMenuOpen, {
+    initialFocus: closeButtonRef,
+    keepInteractive: [toggleButtonRef, backdropRef],
+  });
+
+  // Focus returns to the toggle on close even when the tap that opened the
+  // menu never focused it (iOS Safari does not focus tapped buttons). Layout
+  // effect so focus leaves the close button before its nav turns aria-hidden.
+  useLayoutEffect(() => {
     if (wasOpenRef.current && !isMobileMenuOpen) {
       toggleButtonRef.current?.focus();
     }
     wasOpenRef.current = isMobileMenuOpen;
-  }, [mounted, isMobileMenuOpen]);
+  }, [isMobileMenuOpen]);
 
   // Lock body scroll while the menu is open (the shared counted lock, so the
   // closed menu never clears a lock some other overlay holds).
@@ -117,6 +123,7 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
         <>
           {/* Backdrop */}
           <div
+            ref={backdropRef}
             className={cn(
               'fixed inset-0 z-40 backdrop-blur-sm transition-opacity duration-300 lg:hidden',
               visible
@@ -135,6 +142,7 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
               native <dialog> can't be used here: it would be display:none when
               closed, breaking the slide transition. */}
           <nav
+            ref={navRef}
             id="mobile-navigation"
             className={cn(
               'fixed right-0 top-0 z-50 h-dvh w-72 border-l pb-[calc(env(safe-area-inset-bottom)+5rem)] shadow-xl backdrop-blur transition-transform duration-300 ease-out lg:hidden',

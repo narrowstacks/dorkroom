@@ -6,6 +6,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '../lib/cn';
 import { hasGlobal } from '../lib/dom';
 import { ToastContext, type ToastType } from './toast-context';
@@ -147,15 +148,20 @@ export function ToastProvider({ children }: ToastProviderProps) {
   return (
     <ToastContext value={contextValue}>
       {children}
-      {toast && (
-        <Toast
-          key={toast.id}
-          message={toast.message}
-          type={toast.type}
-          onClose={hideToast}
-          isVisible={!!toast}
-        />
-      )}
+      {/* Portalled to the body so an open modal, which makes the rest of the
+          page inert (see useModalLayer), leaves the toast announced. */}
+      {toast &&
+        hasGlobal('document') &&
+        createPortal(
+          <Toast
+            key={toast.id}
+            message={toast.message}
+            type={toast.type}
+            onClose={hideToast}
+            isVisible={!!toast}
+          />,
+          document.body
+        )}
     </ToastContext>
   );
 }

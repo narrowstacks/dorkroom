@@ -1,5 +1,5 @@
 import { X } from 'lucide-react';
-import type { FC, ReactNode } from 'react';
+import { type FC, type ReactNode, useId } from 'react';
 import { useIsMobile } from '../hooks/use-breakpoint';
 import { cn } from '../lib/cn';
 import { Drawer, DrawerBody, DrawerContent } from './drawer';
@@ -98,6 +98,7 @@ export const ResponsiveModal: FC<ResponsiveModalProps> = ({
   const isMobile = isMobileProp ?? isMobileHook;
 
   const maxHeight = mobileMaxHeight ?? defaultMaxHeights[mobileSize];
+  const titleId = useId();
 
   if (isMobile) {
     return (
@@ -107,6 +108,8 @@ export const ResponsiveModal: FC<ResponsiveModalProps> = ({
         size={mobileSize}
         anchor="bottom"
         enableBackgroundBlur={true}
+        modal
+        ariaLabelledBy={titleId}
       >
         <DrawerContent
           className={cn(
@@ -119,7 +122,10 @@ export const ResponsiveModal: FC<ResponsiveModalProps> = ({
             className="flex items-center justify-between border-b px-4 py-3"
             style={{ borderColor: 'var(--color-border-secondary)' }}
           >
-            <h2 className="text-base font-semibold text-[color:var(--color-text-primary)]">
+            <h2
+              id={titleId}
+              className="text-base font-semibold text-[color:var(--color-text-primary)]"
+            >
               {title}
             </h2>
             {!hideCloseButton && (
