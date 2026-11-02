@@ -173,7 +173,7 @@ export default withEnvelope(
             <tr>
               <td><code>/developers</code></td>
               <td>Developer database search and filtering.</td>
-              <td><code>query</code>, <code>fuzzy</code>, <code>limit</code>, <code>type</code>, <code>manufacturer</code></td>
+              <td><code>query</code>, <code>limit</code>, <code>type</code>, <code>manufacturer</code></td>
             </tr>
             <tr>
               <td><code>/combinations</code></td>
