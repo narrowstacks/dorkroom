@@ -61,7 +61,11 @@ const GENERIC_WORDS = new Set([
  */
 const SUFFIX_WORDS = new Set(['action', 'classic', 'creative']);
 
-/** filmdev.org spellings that mean one of our catalogue entries. */
+/**
+ * filmdev.org spellings that also name another product. Applied to the
+ * filmdev.org text only, never to catalogue names, so "Agfa R09" can find
+ * Rodinal while a bare "Rodinal" still prefers Rodinal over "Calbe R09".
+ */
 const TOKEN_SYNONYMS = new Map([['r09', 'rodinal']]);
 
 /**
@@ -75,8 +79,7 @@ function tokenize(str: string): string[] {
     .replace(/\+/g, ' plus ')
     .replace(/[-.']/g, '')
     .split(/[^a-z0-9]+/)
-    .filter(Boolean)
-    .map((token) => TOKEN_SYNONYMS.get(token) ?? token);
+    .filter(Boolean);
 }
 
 /**
@@ -107,10 +110,11 @@ interface ParsedQuery {
 function parseQuery(str: string): ParsedQuery {
   const tokens = tokenize(str);
   const pairs = tokens.slice(1).map((token, i) => tokens[i] + token);
+  const synonyms = tokens.flatMap((token) => TOKEN_SYNONYMS.get(token) ?? []);
   return {
     tokens,
     tokenSet: new Set(tokens),
-    matchable: [...tokens, ...pairs],
+    matchable: [...tokens, ...pairs, ...synonyms],
     normalized: tokens.join(' '),
     iso: extractIsoFromString(str),
   };
@@ -220,7 +224,9 @@ function scoreCandidate(
         !isNumeric(q) &&
         q.length > 1 &&
         !GENERIC_WORDS.has(q) &&
-        !nameTokens.some((t) => tokensMatch(t, q)) &&
+        !nameTokens.some(
+          (t) => tokensMatch(t, q) || t === TOKEN_SYNONYMS.get(q)
+        ) &&
         !namePairs.has(q) &&
         !brandTokens.some((b) => brandTokenMatches(b, q))
     );
@@ -263,6 +269,12 @@ function scoreCandidate(
     score -= query.tokens.filter(
       (q) => GENERIC_WORDS.has(q) && !nameSet.has(q) && !brandSet.has(q)
     ).length;
+    // Last resort for an exact tie: the entry named by the earlier word
+    // wins ("Rodinal (Adox R09)" is Rodinal before it is any R09).
+    const firstHit = query.tokens.findIndex((q) =>
+      matched.some((t) => tokensMatch(t, q) || t === TOKEN_SYNONYMS.get(q))
+    );
+    if (firstHit > 0) score -= firstHit / 100;
     if (best === null || score > best) best = score;
   }
   return best;
