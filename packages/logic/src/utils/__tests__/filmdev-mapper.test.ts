@@ -301,6 +301,8 @@ describe('findBestFilmMatch against the real catalogue (filmdev.org names)', () 
     film('ilford-ortho-plus', 'Ilford', 'Ortho Plus', 80),
     film('catlabs-x-film-80', 'CatLABS', 'X Film 80', 80),
     film('rollei-infrared-400', 'Rollei', 'Infrared 400', 400),
+    film('bergger-brf-400', 'Bergger', 'BRF 400', 400),
+    film('bergger-brf-400-plus', 'Bergger', 'BRF 400 Plus', 400),
   ];
 
   it.each([
@@ -329,6 +331,8 @@ describe('findBestFilmMatch against the real catalogue (filmdev.org names)', () 
     ['Ilford Pan F+ 50', 'ilford-pan-f-plus'],
     ['Rollei Infrared IR 400', 'rollei-infrared-400'],
     ['Lomography Earl Grey 100', 'lomography-earl-grey-100'],
+    ['Bergger BRF-400', 'bergger-brf-400'],
+    ['Bergger BRF-400+', 'bergger-brf-400-plus'],
   ])('matches "%s" to %s', (query, slug) => {
     expect(findBestFilmMatch(query, catalogue)?.slug).toBe(slug);
   });

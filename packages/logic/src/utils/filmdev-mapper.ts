@@ -153,6 +153,7 @@ function scoreCandidate(
   iso?: number
 ): number | null {
   const brandTokens = tokenize(brand);
+  const brandSet = new Set(brandTokens);
   const fullName = [...brandTokens, ...tokenize(name)].join(' ');
   if (query.normalized === fullName) return EXACT_FULL_NAME_SCORE;
   if (query.normalized === tokenize(name).join(' ')) return EXACT_NAME_SCORE;
@@ -180,8 +181,22 @@ function scoreCandidate(
         token.length > 1 &&
         !isIsoToken(token)
     );
-    const matched = distinctive.filter((token) =>
-      query.matchable.some((q) => tokensMatch(token, q))
+    // Adjacent name tokens joined, so "BRF 400" can meet "BRF-400".
+    const namePairs = new Set(
+      nameTokens.slice(1).map((token, i) => nameTokens[i] + token)
+    );
+    const pairedTokens = new Set(
+      nameTokens.flatMap((token, i) =>
+        query.tokenSet.has(token + (nameTokens[i + 1] ?? '')) ||
+        query.tokenSet.has((nameTokens[i - 1] ?? '') + token)
+          ? [token]
+          : []
+      )
+    );
+    const matched = distinctive.filter(
+      (token) =>
+        pairedTokens.has(token) ||
+        query.matchable.some((q) => tokensMatch(token, q))
     );
     const unmatchedCount = distinctive.length - matched.length;
     const brandMatched = brandTokens.some(
@@ -199,6 +214,7 @@ function scoreCandidate(
         q.length > 1 &&
         !GENERIC_WORDS.has(q) &&
         !nameTokens.some((t) => tokensMatch(t, q)) &&
+        !namePairs.has(q) &&
         !brandTokens.some((b) => brandTokenMatches(b, q))
     );
 
@@ -219,7 +235,6 @@ function scoreCandidate(
         if (unmatchedCount > 0 || suffixMissing) continue;
         // The match must rest on more than the brand repeated as the name
         // ("Acufine Inc. Acufine" vs "Acufine Diafine").
-        const brandSet = new Set(brandTokens);
         if (matched.every((t) => brandSet.has(t))) continue;
       }
       score =
@@ -230,6 +245,15 @@ function scoreCandidate(
 
     score += (brandMatched ? 30 : 0) + (isoMatched ? 40 : 0);
     score -= 5 * unexplained.length;
+    // Tie-break between near twins ("BRF 400" vs "BRF 400 Plus"): prefer the
+    // entry whose words line up with the query's, generic ones included.
+    const nameSet = new Set(nameTokens);
+    score -= nameTokens.filter(
+      (t) => !query.tokenSet.has(t) && !pairedTokens.has(t) && !isIsoToken(t)
+    ).length;
+    score -= query.tokens.filter(
+      (q) => GENERIC_WORDS.has(q) && !nameSet.has(q) && !brandSet.has(q)
+    ).length;
     if (best === null || score > best) best = score;
   }
   return best;
