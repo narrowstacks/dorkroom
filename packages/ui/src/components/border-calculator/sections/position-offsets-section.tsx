@@ -6,7 +6,7 @@ import {
 } from '@dorkroom/logic';
 import { X } from 'lucide-react';
 import { LabeledSliderInput } from '../../../components/labeled-slider-input';
-import { StatusAlert } from '../../../components/status-alert';
+import { LiveStatusAlert } from '../../../components/status-alert';
 import { ToggleSwitch } from '../../../components/toggle-switch';
 import { useBorderCalculator } from '../border-calculator-context';
 
@@ -46,7 +46,7 @@ export function PositionOffsetsSection({
         />
 
         {enableOffset && (
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <ToggleSwitch
               label="Ignore Min Border"
               value={ignoreMinBorder}
@@ -97,9 +97,7 @@ export function PositionOffsetsSection({
               />
             </div>
 
-            {offsetWarning && (
-              <StatusAlert message={offsetWarning} action="warning" />
-            )}
+            <LiveStatusAlert message={offsetWarning} action="warning" />
           </div>
         )}
 

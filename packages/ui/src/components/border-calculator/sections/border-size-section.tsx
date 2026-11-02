@@ -7,7 +7,7 @@ import {
 import { X } from 'lucide-react';
 import { useMemo } from 'react';
 import { LabeledSliderInput } from '../../../components/labeled-slider-input';
-import { StatusAlert } from '../../../components/status-alert';
+import { LiveStatusAlert } from '../../../components/status-alert';
 import { useBorderCalculator } from '../border-calculator-context';
 
 interface BorderSizeSectionProps {
@@ -44,7 +44,7 @@ export function BorderSizeSection({ onClose }: BorderSizeSectionProps) {
         </button>
       </div>
 
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         <LabeledSliderInput
           label="Minimum Border (inches):"
           value={minBorder}
@@ -85,9 +85,7 @@ export function BorderSizeSection({ onClose }: BorderSizeSectionProps) {
           </p>
         </div>
 
-        {minBorderWarning && (
-          <StatusAlert message={minBorderWarning} action="error" />
-        )}
+        <LiveStatusAlert message={minBorderWarning} action="error" />
 
         <div className="rounded-lg border border-secondary bg-border-muted p-4">
           <h4 className="text-sm font-medium text-primary mb-2">

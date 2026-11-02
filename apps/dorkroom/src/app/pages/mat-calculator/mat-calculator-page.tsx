@@ -170,7 +170,8 @@ function spokenOverlap(fmt: MatCalculation['fmt'], overlap: number): string {
  * board and borders, so the reveal match is part of the message too: art and
  * reveal edits change the message, and the announcer speaks them. The page's
  * `StatusAlert`s mount together with their text, so they can't be relied on to
- * be announced (#431).
+ * be announced (#431). They use `omitRole` so they don't announce a second
+ * time alongside the announcer (#585).
  */
 function describeMatResult(
   calc: Pick<
@@ -509,6 +510,7 @@ function ArtworkBestFitCard({
       {!valid && (
         <StatusAlert
           action="warning"
+          omitRole
           message={
             revealValid
               ? 'Check inputs. The outer mat must be positive and the borders must leave a window larger than zero on both axes.'
@@ -519,6 +521,7 @@ function ArtworkBestFitCard({
       {hasRevealMismatch && (
         <StatusAlert
           action="warning"
+          omitRole
           message={`Window doesn’t match a ${fmt(revVal)} reveal. Actual overlap: ${formatSignedMatValue(fmt, overlapLeft)} L/R · ${formatSignedMatValue(fmt, overlapTop)} T/B.`}
         />
       )}
