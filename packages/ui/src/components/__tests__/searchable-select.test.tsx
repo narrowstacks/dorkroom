@@ -751,4 +751,41 @@ describe('SearchableSelect keeps focus after Clear selection (#639)', () => {
     expect(input).toHaveValue('Ga');
     expect(screen.getAllByRole('option')).toHaveLength(1);
   });
+
+  it('text that lands after the label without a keydown (paste) searches for just the new text', () => {
+    render(
+      <SearchableSelect
+        label="Brand"
+        selectedValue="b"
+        onValueChange={vi.fn()}
+        items={items}
+      />
+    );
+    const input = screen.getByRole('combobox');
+    fireEvent.change(input, { target: { value: 'BetaG' } });
+    expect(input).toHaveValue('G');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+  });
+
+  it('a keyCode 229 keydown (IME, Android keyboards) does not break typing', () => {
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    fireEvent.keyDown(input, { key: 'Unidentified', keyCode: 229 });
+    fireEvent.change(input, { target: { value: 'BetaG' } });
+    expect(input).toHaveValue('G');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('a touch tap on Clear with the list open dismisses the keyboard (blurs the input)', async () => {
+    const user = userEvent.setup();
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    const clear = screen.getByRole('button', { name: 'Clear selection' });
+    fireEvent.pointerDown(clear, { pointerType: 'touch' });
+    fireEvent.click(clear, { detail: 1 });
+    expect(input).not.toHaveFocus();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+  });
 });

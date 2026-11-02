@@ -116,7 +116,11 @@ function useBlurClose(
 function useClearRefocus(inputRef: RefObject<HTMLInputElement | null>) {
   const suppressOpenOnFocus = useRef(false);
   const refocusInput = (pointerType: string) => {
-    if (pointerType === 'touch' || pointerType === 'pen') return;
+    if (pointerType === 'touch' || pointerType === 'pen') {
+      // Dismiss a keyboard still raised by an open list, like a touch pick does.
+      inputRef.current?.blur();
+      return;
+    }
     suppressOpenOnFocus.current = true;
     inputRef.current?.focus();
     // focus() dispatches synchronously; if the input was already focused it
@@ -238,7 +242,13 @@ export function SearchableSelect({
   };
 
   // Handle input change
-  const handleInputChange = (value: string) => {
+  const handleInputChange = (raw: string) => {
+    // Closed, the input shows the label. Text that arrived without a usable
+    // keydown (paste, Android keyboards) lands after it: keep only the new part.
+    const value =
+      !isOpen && displayValue && raw.startsWith(displayValue)
+        ? raw.slice(displayValue.length)
+        : raw;
     setSearchTerm(value);
     setIsOpen(true);
     setFocusedIndex(-1);
@@ -267,11 +277,17 @@ export function SearchableSelect({
 
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // IME composition and Android keyboards (keyCode 229) report no usable key.
+    if (e.nativeEvent.isComposing || e.keyCode === 229) return;
     if (!isOpen) {
       // The closed input shows the selected label (or "All ..."), so typing
       // would append to it. Select it so the first keystroke replaces it.
       const edits =
-        (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) ||
+        (e.key.length === 1 &&
+          e.key !== ' ' &&
+          !e.ctrlKey &&
+          !e.metaKey &&
+          !e.altKey) ||
         e.key === 'Backspace' ||
         e.key === 'Delete';
       if (edits) inputRef.current?.select();
