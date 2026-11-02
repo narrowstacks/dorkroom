@@ -96,3 +96,61 @@ export function getRateLimitNamespace(
 export function normalizeResetMs(reset: number, now = Date.now()): number {
   return reset > 1_000_000_000_000 ? reset : now + reset;
 }
+
+/*
+ * Global upstream budget for anonymous `dorkroom.art/api/*` traffic (#598).
+ *
+ * The per-IP limit above bounds one caller, not the total: a query string
+ * that varies on every request misses the CDN, so each one reaches the
+ * function and costs one Supabase Edge Function invocation, and enough IPs
+ * (or one IPv6 host rotating addresses) at 30/min each can exhaust the
+ * project's monthly quota. These two buckets cap the total, cost 1 per
+ * request that reaches a Supabase proxy (`createSupabaseProxy`). CDN hits never
+ * reach the function, so they are never charged. Keyed `api.dorkroom.art`
+ * traffic is not charged either: it never takes the anonymous path, so
+ * anonymous abuse cannot starve API-key holders.
+ *
+ * Sizing, for the maintainer to confirm (plan from the Supabase org settings):
+ *  - Free plan: about 500k Edge Function invocations a month, which is
+ *    about 16.1k a day over a 31-day month.
+ *  - OG cards (#595, `OG_UPSTREAM_DAILY_LIMIT`) reserve up to 10k a day:
+ *    310k a month at most.
+ *  - This daily cap, 5k: 155k a month at most. With the OG ceiling that is
+ *    465k, leaving about 35k a month (about 1.1k a day) for keyed traffic
+ *    and headroom.
+ *  - The app's own traffic: it fetches four fixed URLs (`/api/films`,
+ *    `/api/developers`, `/api/combinations`, `/api/stats`), cached for
+ *    `s-maxage=300`, so one CDN region costs at most 4 x 288 = 1,152 origin
+ *    calls a day even under constant load, and far fewer at today's traffic.
+ *    5k a day covers four regions busy around the clock.
+ *  - Burst cap, 120 a minute: a cold cache across every region is
+ *    4 URLs x about 20 regions = 80 calls, so it fits with room to spare. It
+ *    keeps a flood from spending the whole day's budget in a few minutes
+ *    (at 120/min the day lasts at least 42 minutes, long enough to notice
+ *    and add a WAF rule).
+ *
+ * Revisit both numbers if the plan, the OG reservation, or the app's fetch
+ * pattern changes. Unkey allows a window of up to 30 days.
+ */
+export const ANONYMOUS_UPSTREAM_RATE_LIMIT = 120;
+export const ANONYMOUS_UPSTREAM_RATE_WINDOW_MS = RATE_WINDOW_MS;
+export const ANONYMOUS_UPSTREAM_DAILY_LIMIT = 5_000;
+export const ANONYMOUS_UPSTREAM_DAILY_WINDOW_MS = 24 * 60 * RATE_WINDOW_MS;
+
+/**
+ * The buckets in check order, in the anonymous namespace (their identifiers
+ * cannot collide with an IP or an `og:<ip>` identifier). Burst first, so a
+ * request the burst cap turns away is not charged to the day as well.
+ */
+export const ANONYMOUS_UPSTREAM_BUCKETS = [
+  {
+    identifier: 'api-upstream',
+    limit: ANONYMOUS_UPSTREAM_RATE_LIMIT,
+    durationMs: ANONYMOUS_UPSTREAM_RATE_WINDOW_MS,
+  },
+  {
+    identifier: 'api-upstream-day',
+    limit: ANONYMOUS_UPSTREAM_DAILY_LIMIT,
+    durationMs: ANONYMOUS_UPSTREAM_DAILY_WINDOW_MS,
+  },
+] as const;

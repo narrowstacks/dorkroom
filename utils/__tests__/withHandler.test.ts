@@ -2,6 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   ANONYMOUS_RATE_LIMIT,
   ANONYMOUS_RATE_WINDOW_MS,
+  ANONYMOUS_UPSTREAM_DAILY_LIMIT,
+  ANONYMOUS_UPSTREAM_DAILY_WINDOW_MS,
+  ANONYMOUS_UPSTREAM_RATE_LIMIT,
+  ANONYMOUS_UPSTREAM_RATE_WINDOW_MS,
 } from '../rateLimitPolicy';
 import type { HandlerConfig, UnkeyClient } from '../withHandler';
 import { createMockRequest, createMockResponse } from './mock-vercel';
@@ -746,6 +750,226 @@ describe('withHandler', () => {
       });
       expect(ran).not.toHaveBeenCalled();
     });
+  });
+
+  describe('anonymous upstream budget (dorkroom.art)', () => {
+    const BURST = 'api-upstream';
+    const DAY = 'api-upstream-day';
+
+    beforeEach(() => {
+      process.env.UNKEY_ROOT_KEY = 'root-key';
+      process.env.UNKEY_API_ID = 'test-api';
+      process.env.UNKEY_API_KEY_PERMISSION = 'read';
+    });
+
+    async function budgetedHandler(upstreamBudget = true) {
+      const ran = vi.fn();
+      const handler = await buildHandler({
+        name: 'test',
+        upstreamBudget,
+        handler: async (_req, res) => {
+          ran();
+          res.status(200).json({ ok: true });
+        },
+      });
+      return { handler, ran };
+    }
+
+    function anonymousRequest() {
+      return createMockRequest({
+        headers: { host: 'dorkroom.art', 'x-real-ip': '203.0.113.5' },
+      });
+    }
+
+    /** Answers each identifier from `exceeded`; everything else passes. */
+    function limitsBy(exceeded: ReadonlySet<string>) {
+      ratelimitLimitMock.mockImplementation(async (opts) =>
+        exceeded.has(opts.identifier)
+          ? exceededLimit(opts.limit)
+          : passingLimit(opts.limit)
+      );
+    }
+
+    const identifiers = () =>
+      ratelimitLimitMock.mock.calls.map(([opts]) => opts.identifier);
+
+    /** Nothing in the response may describe a global bucket. */
+    function expectNoGlobalState(res: ReturnType<typeof createMockResponse>) {
+      expect(res._headers['x-ratelimit-limit']).toBe(
+        String(ANONYMOUS_RATE_LIMIT)
+      );
+      expect(res._headers['x-ratelimit-remaining']).toBe(
+        String(ANONYMOUS_RATE_LIMIT - 1)
+      );
+      const body = JSON.stringify(res._json ?? null);
+      for (const value of [
+        ANONYMOUS_UPSTREAM_RATE_LIMIT,
+        ANONYMOUS_UPSTREAM_DAILY_LIMIT,
+        BURST,
+      ]) {
+        expect(body).not.toContain(String(value));
+      }
+    }
+
+    it('charges the burst and then the daily bucket, cost 1, after the per-IP limit passes', async () => {
+      limitsBy(new Set());
+      const { handler, ran } = await budgetedHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest(), res);
+
+      expect(res._status).toBe(200);
+      expect(ran).toHaveBeenCalledOnce();
+      expect(ratelimitLimitMock.mock.calls.map(([opts]) => opts)).toEqual([
+        {
+          namespace: 'test-api-anonymous',
+          identifier: '203.0.113.5',
+          limit: ANONYMOUS_RATE_LIMIT,
+          duration: ANONYMOUS_RATE_WINDOW_MS,
+        },
+        {
+          namespace: 'test-api-anonymous',
+          identifier: BURST,
+          limit: ANONYMOUS_UPSTREAM_RATE_LIMIT,
+          duration: ANONYMOUS_UPSTREAM_RATE_WINDOW_MS,
+          cost: 1,
+        },
+        {
+          namespace: 'test-api-anonymous',
+          identifier: DAY,
+          limit: ANONYMOUS_UPSTREAM_DAILY_LIMIT,
+          duration: ANONYMOUS_UPSTREAM_DAILY_WINDOW_MS,
+          cost: 1,
+        },
+      ]);
+      // A passing global check leaves the caller's own per-IP headers alone
+      expectNoGlobalState(res);
+    });
+
+    it('answers 503 with Retry-After when the burst bucket is exhausted, without charging the day', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
+      limitsBy(new Set([BURST]));
+      const { handler, ran } = await budgetedHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest(), res);
+
+      expect(res._status).toBe(503);
+      expect(res._json).toMatchObject({
+        error: 'Service temporarily unavailable',
+      });
+      expect(res._headers['retry-after']).toBe('60');
+      expect(res._headers['cache-control']).toBe('no-store');
+      expect(identifiers()).toEqual(['203.0.113.5', BURST]);
+      expect(ran).not.toHaveBeenCalled();
+      expectNoGlobalState(res);
+    });
+
+    it('answers 503 with Retry-After when the daily bucket is exhausted', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
+      limitsBy(new Set([DAY]));
+      const { handler, ran } = await budgetedHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest(), res);
+
+      expect(res._status).toBe(503);
+      expect(res._headers['retry-after']).toBe('60');
+      expect(res._headers['cache-control']).toBe('no-store');
+      expect(identifiers()).toEqual(['203.0.113.5', BURST, DAY]);
+      expect(ran).not.toHaveBeenCalled();
+      expectNoGlobalState(res);
+    });
+
+    it('never charges a request the per-IP limit already turned away', async () => {
+      limitsBy(new Set(['203.0.113.5']));
+      const { handler, ran } = await budgetedHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest(), res);
+
+      expect(res._status).toBe(429);
+      expect(identifiers()).toEqual(['203.0.113.5']);
+      expect(ran).not.toHaveBeenCalled();
+    });
+
+    it('leaves handlers that do not opt in (no Supabase call) uncharged', async () => {
+      limitsBy(new Set([BURST, DAY]));
+      const { handler, ran } = await budgetedHandler(false);
+
+      const res = createMockResponse();
+      await handler(anonymousRequest(), res);
+
+      expect(res._status).toBe(200);
+      expect(identifiers()).toEqual(['203.0.113.5']);
+      expect(ran).toHaveBeenCalledOnce();
+    });
+
+    it('fails open when Unkey errors on a budget check', async () => {
+      vi.stubEnv('NODE_ENV', 'production');
+      ratelimitLimitMock.mockImplementation(async (opts) => {
+        if (opts.identifier === BURST) {
+          throw new TypeError('fetch failed');
+        }
+        return passingLimit(opts.limit);
+      });
+      const { handler, ran } = await budgetedHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest(), res);
+
+      expect(res._status).toBe(200);
+      expect(ran).toHaveBeenCalledOnce();
+    });
+
+    it('fails open when Unkey is not configured', async () => {
+      delete process.env.UNKEY_ROOT_KEY;
+      const { handler, ran } = await budgetedHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest(), res);
+
+      expect(res._status).toBe(200);
+      expect(ran).toHaveBeenCalledOnce();
+      expect(ratelimitLimitMock).not.toHaveBeenCalled();
+    });
+
+    const keyedCases: [string, Record<string, string>, string[]][] = [
+      ['without X-Client-Id', {}, []],
+      [
+        'with X-Client-Id',
+        { 'x-client-id': 'install-12345678' },
+        ['client:install-12345678', 'ip:203.0.113.5'],
+      ],
+    ];
+
+    it.each(keyedCases)(
+      'keyed traffic %s is never charged, even with both buckets exhausted',
+      async (_label, extraHeaders, expectedIdentifiers) => {
+        verifyKeyMock.mockResolvedValueOnce(validVerification());
+        limitsBy(new Set([BURST, DAY]));
+        const { handler, ran } = await budgetedHandler();
+
+        const res = createMockResponse();
+        await handler(
+          createMockRequest({
+            headers: {
+              host: 'api.dorkroom.art',
+              'x-api-key': 'valid-key',
+              'x-real-ip': '203.0.113.5',
+              ...extraHeaders,
+            },
+          }),
+          res
+        );
+
+        expect(res._status).toBe(200);
+        expect(ran).toHaveBeenCalledOnce();
+        expect(identifiers().sort()).toEqual([...expectedIdentifiers].sort());
+      }
+    );
   });
 
   describe('error handling', () => {

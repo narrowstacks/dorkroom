@@ -4,7 +4,10 @@ import {
   createMockResponse,
   type MockVercelResponse,
 } from '../../utils/__tests__/mock-vercel';
-import { createSupabaseProxyHandler } from '../../utils/createSupabaseProxy';
+import {
+  createSupabaseProxyHandler,
+  supabaseProxyHandlerConfig,
+} from '../../utils/createSupabaseProxy';
 import type { HandlerContext } from '../../utils/withHandler';
 import { combinationsProxyConfig } from '../combinations';
 import { developersProxyConfig } from '../developers';
@@ -423,5 +426,16 @@ describe.each([
 
     const target = new URL(fetchMock.mock.calls[0][0]);
     expect(Object.fromEntries(target.searchParams)).toEqual(kept);
+  });
+});
+
+describe('supabaseProxyHandlerConfig', () => {
+  it.each([
+    filmsProxyConfig,
+    developersProxyConfig,
+    combinationsProxyConfig,
+    statsProxyConfig,
+  ])('$name is charged to the anonymous upstream budget', (proxyConfig) => {
+    expect(supabaseProxyHandlerConfig(proxyConfig).upstreamBudget).toBe(true);
   });
 });

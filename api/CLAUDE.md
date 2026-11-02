@@ -239,6 +239,29 @@ Operational note:
   `create_namespace`, so bootstrap both before deploying.
 - This command uses `UNKEY_ROOT_KEY` (runtime key), not `UNKEY_ADMIN_ROOT_KEY`.
 
+### Global anonymous upstream budget
+
+The per-IP limit bounds one caller, not the total, so anonymous
+`dorkroom.art/api/*` requests to the Supabase proxies also draw on two global
+buckets in the anonymous namespace (#598): `api-upstream`, a burst cap of
+120 req/min (`ANONYMOUS_UPSTREAM_RATE_LIMIT`), then `api-upstream-day`, a cap
+of 5000 req/day (`ANONYMOUS_UPSTREAM_DAILY_LIMIT`). Each request that reaches
+the handler costs 1 (CDN hits never get there). The sizing arithmetic against
+the Supabase Free plan quota sits beside the constants in
+`utils/rateLimitPolicy.ts`; revisit it if the plan or the OG reservation
+changes.
+
+- Opt-in per handler (`HandlerConfig.upstreamBudget`): `createSupabaseProxy`
+  sets it; `filmdev.ts` (no Supabase call) does not
+- Checked after the per-IP limit, so a request that limit rejects is never
+  charged and one noisy IP cannot spend the shared budget
+- Keyed `api.dorkroom.art` traffic is never charged, so anonymous abuse cannot
+  starve API-key holders
+- Over budget: `503` with `Retry-After` and `Cache-Control: no-store`, and no
+  `X-RateLimit-*` for the global buckets (those headers keep describing the
+  caller's own per-IP budget)
+- Fails open on any Unkey failure, like the OG limiter
+
 ## Testing
 
 `bun run test:serverless` runs the `serverless` vitest project, defined at the

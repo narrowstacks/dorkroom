@@ -141,8 +141,11 @@ export function createSupabaseProxyHandler({
   };
 }
 
-export function createSupabaseProxy(config: SupabaseProxyConfig) {
-  return withHandler({
+/** The `withHandler` config for a proxy route; exported for tests. */
+export function supabaseProxyHandlerConfig(
+  config: SupabaseProxyConfig
+): HandlerConfig {
+  return {
     name: config.name,
     requiredEnv: [
       'SUPABASE_MASTER_API_KEY',
@@ -150,5 +153,11 @@ export function createSupabaseProxy(config: SupabaseProxyConfig) {
       'SUPABASE_PROXY_SECRET',
     ],
     handler: createSupabaseProxyHandler(config),
-  });
+    // Every request that gets this far invokes a Supabase Edge Function.
+    upstreamBudget: true,
+  };
+}
+
+export function createSupabaseProxy(config: SupabaseProxyConfig) {
+  return withHandler(supabaseProxyHandlerConfig(config));
 }

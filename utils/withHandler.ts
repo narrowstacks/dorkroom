@@ -8,6 +8,7 @@ import type {
 import {
   ANONYMOUS_RATE_LIMIT,
   ANONYMOUS_RATE_WINDOW_MS,
+  ANONYMOUS_UPSTREAM_BUCKETS,
   CLIENT_IP_RATE_LIMIT,
   CLIENT_RATE_LIMIT,
   CLIENT_RATE_WINDOW_MS,
@@ -32,7 +33,8 @@ export type { HandlerContext } from './requestEnvelope';
  *
  *  - `api.dorkroom.art` (and unknown hosts): `X-API-Key` verified through
  *    Unkey, the key's own tier limit, plus optional per-client limits.
- *  - `dorkroom.art`: no key, anonymous per-IP limit.
+ *  - `dorkroom.art`: no key, anonymous per-IP limit, then (for handlers that
+ *    opt in with `upstreamBudget`) the global anonymous upstream budget.
  */
 
 interface VerifyRateLimit {
@@ -71,6 +73,18 @@ export interface HandlerConfig {
    * real SDK client; deployed handlers leave it unset, tests pass a stand-in.
    */
   createUnkeyClient?: CreateUnkeyClient;
+  /**
+   * Charge each anonymous request that reaches this handler to the global
+   * upstream budget (`ANONYMOUS_UPSTREAM_BUCKETS`). Set by the Supabase
+   * proxies, whose every request costs one Edge Function invocation; off for
+   * handlers that do not call Supabase. Never applies to keyed traffic.
+   */
+  upstreamBudget?: boolean;
+}
+
+export interface ApiKeyOptions {
+  /** See `HandlerConfig.upstreamBudget`. */
+  upstreamBudget?: boolean;
 }
 
 // Accepts `generateId()` output (timestamp+random, base36) and any future
@@ -504,6 +518,74 @@ async function applyAnonymousRateLimit(
   });
 }
 
+/**
+ * The global budget on anonymous upstream calls, checked after the per-IP
+ * limit has passed: a request that limit turns away never reaches Supabase,
+ * so it is never charged here, and one noisy IP cannot spend everyone's
+ * budget. Buckets are checked in order (burst, then day), each at cost 1.
+ *
+ * Over budget: 503 with `Retry-After` and `no-store`. It is not the caller's
+ * fault, so not a 429, and the bucket's limit and remaining count stay out of
+ * the response: `X-RateLimit-*` keeps describing the caller's own per-IP
+ * budget, set by the check before this one.
+ *
+ * Fails OPEN on any Unkey failure (logged), like the OG limiter: a misconfig
+ * would already have failed the per-IP check against the same namespace, and
+ * turning a limiter outage into a site-wide data outage is the worse failure.
+ */
+async function applyAnonymousUpstreamBudget(
+  res: VercelResponse,
+  requestId: string,
+  createUnkeyClient: CreateUnkeyClient
+): Promise<boolean> {
+  const unkey = getUnkeyClient(requestId, createUnkeyClient);
+  if (!unkey) {
+    return true;
+  }
+
+  const namespace = getRateLimitNamespace('anonymous');
+  for (const bucket of ANONYMOUS_UPSTREAM_BUCKETS) {
+    let result: Awaited<ReturnType<typeof unkey.ratelimit.limit>>;
+    try {
+      result = await unkey.ratelimit.limit({
+        namespace,
+        identifier: bucket.identifier,
+        limit: bucket.limit,
+        duration: bucket.durationMs,
+        cost: 1,
+      });
+    } catch (error) {
+      serverlessWarn('Upstream budget skipped (Unkey request failed)', {
+        requestId,
+        namespace,
+        bucket: bucket.identifier,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return true;
+    }
+
+    if (!result.data.success) {
+      serverlessWarn('Anonymous upstream budget exhausted', {
+        requestId,
+        bucket: bucket.identifier,
+      });
+      res.setHeader('Cache-Control', 'no-store');
+      res.setHeader(
+        'Retry-After',
+        retryAfterSeconds(normalizeResetMs(result.data.reset))
+      );
+      res.status(503).json({
+        error: 'Service temporarily unavailable',
+        message: 'The data service is busy. Please try again later.',
+        requestId,
+      });
+      return false;
+    }
+  }
+
+  return true;
+}
+
 function setVaryHeader(res: VercelResponse, value: string): void {
   const current = res.getHeader('Vary');
   const existing = Array.isArray(current)
@@ -523,11 +605,13 @@ function setVaryHeader(res: VercelResponse, value: string): void {
 
 /**
  * The API-key layer on its own: `Vary`, then Unkey auth (public host) or the
- * anonymous per-IP limit, then `handler`. Runs inside `withEnvelope`.
+ * anonymous per-IP limit plus, with `upstreamBudget`, the global anonymous
+ * upstream budget, then `handler`. Runs inside `withEnvelope`.
  */
 export function withApiKey(
   handler: HandlerConfig['handler'],
-  createUnkeyClient: CreateUnkeyClient = createRealUnkeyClient
+  createUnkeyClient: CreateUnkeyClient = createRealUnkeyClient,
+  options: ApiKeyOptions = {}
 ): EnvelopeHandler {
   return async (req, res, ctx) => {
     setVaryHeader(res, 'Host');
@@ -549,6 +633,18 @@ export function withApiKey(
       return;
     }
 
+    if (
+      !ctx.isPublicApi &&
+      options.upstreamBudget &&
+      !(await applyAnonymousUpstreamBudget(
+        res,
+        ctx.requestId,
+        createUnkeyClient
+      ))
+    ) {
+      return;
+    }
+
     await handler(req, res, ctx);
   };
 }
@@ -563,6 +659,8 @@ export function withHandler(config: HandlerConfig): VercelApiHandler {
       cache: { publicApi: PUBLIC_API_CACHE_CONTROL },
       requiredEnv: config.requiredEnv,
     },
-    withApiKey(config.handler, config.createUnkeyClient)
+    withApiKey(config.handler, config.createUnkeyClient, {
+      upstreamBudget: config.upstreamBudget,
+    })
   );
 }
