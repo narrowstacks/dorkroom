@@ -1,5 +1,7 @@
 /// <reference types='vitest' />
 
+import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tanstackRouter } from '@tanstack/router-vite-plugin';
@@ -7,6 +9,128 @@ import { microfrontends } from '@vercel/microfrontends/experimental/vite';
 import legacy from '@vitejs/plugin-legacy';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
+import { classicInlineScripts, es5SyntaxProblem } from './es5-syntax';
+
+/** Single source of truth for the `legacy()` plugin and `lowerToEs5`. */
+const LEGACY_TARGETS = ['ie >= 11', 'safari >= 5'];
+
+/** Babel down-levels `code` to the legacy targets, then terser re-minifies it
+ *  as ES5. Only the polyfill chunk needs this: plugin-legacy builds it in a
+ *  nested Vite build this config cannot reach, and that build leaves
+ *  rolldown's arrow-function runtime helpers and oxc's template literals in. */
+async function lowerToEs5(code: string): Promise<string> {
+  const { transformAsync } = await import('@babel/core');
+  const { minify } = await import('terser');
+  const lowered = await transformAsync(code, {
+    babelrc: false,
+    configFile: false,
+    sourceType: 'script',
+    compact: true,
+    presets: [
+      [
+        createRequire(import.meta.url).resolve('@babel/preset-env'),
+        {
+          targets: LEGACY_TARGETS,
+          modules: false,
+          // core-js advises against Babel's typeof-Symbol helper over its
+          // own Symbol polyfill, and the polyfill chunk is core-js.
+          exclude: ['transform-typeof-symbol'],
+        },
+      ],
+    ],
+  });
+  if (!lowered?.code) throw new Error('Babel returned no code');
+  const minified = await minify(lowered.code, { ecma: 5, safari10: true });
+  if (!minified.code) throw new Error('terser returned no code');
+  return minified.code;
+}
+
+/** Keeps every `*-legacy-*` chunk ES5 (issue #49), and fails the build if one
+ *  is not. Since Vite 8.1.4, plugin-legacy minifies legacy chunks with oxc at
+ *  an ES2015 floor, which turns strings into template literals, and its
+ *  polyfill chunk carries rolldown's arrow-function runtime. ES5-only engines
+ *  (the Kindle browser) cannot parse either, so the app never boots there.
+ *  1. Turning rolldown's minifier off for the legacy output hands those chunks
+ *     to Vite's terser path, which prints ES5. The modern output keeps oxc.
+ *  2. The polyfill chunk is lowered (`lowerToEs5`) and renamed with a hash of
+ *     its new content. Its old hash covered the pre-lowering code, and
+ *     `/assets/*` is cached immutably, so keeping the name would leave
+ *     browsers on the broken copy they already have.
+ *     The rename emits no sourcemap: `build.sourcemap` is off today, and
+ *     turning it on would need the polyfill map regenerated here too.
+ *  3. Every legacy chunk is then parsed as ES5.
+ *  This is hygiene, not full support for ES5-only engines: the app also needs
+ *  Proxy (TanStack Query), AbortController, fetch and CSS custom properties,
+ *  none of which core-js provides, so pre-5.16.4 Kindles (old WebKit) stay
+ *  unsupported. Newer Kindles run Chromium 80 (Silk), which parses ES2015+. */
+function legacyEs5Plugin(): Plugin {
+  const renamed = new Map<string, string>();
+  return {
+    name: 'legacy-es5',
+    apply: 'build',
+    outputOptions(options) {
+      // plugin-legacy's name for legacy entries when none is configured. If
+      // that ever changes, this stops matching and step 3 fails the build.
+      if (options.entryFileNames !== 'assets/[name]-legacy-[hash].js') {
+        return null;
+      }
+      return { ...options, minify: false };
+    },
+    generateBundle: {
+      order: 'post',
+      async handler(_options, bundle) {
+        const problems: string[] = [];
+        for (const output of Object.values(bundle)) {
+          if (output.type !== 'chunk' || !output.fileName.includes('-legacy')) {
+            continue;
+          }
+          let { code, fileName } = output;
+          if (output.name === 'polyfills' && es5SyntaxProblem(code)) {
+            code = await lowerToEs5(code);
+            const hash = createHash('sha256')
+              .update(code)
+              .digest('base64url')
+              .slice(0, 8);
+            fileName = fileName.replace(
+              /[^/]+$/,
+              `polyfills-legacy-${hash}.js`
+            );
+            renamed.set(output.fileName, fileName);
+            delete bundle[output.fileName];
+            this.emitFile({
+              type: 'prebuilt-chunk',
+              fileName,
+              code,
+              exports: [],
+            });
+          }
+          const problem = es5SyntaxProblem(code);
+          if (problem) problems.push(`${fileName}: ${problem}`);
+        }
+        // index.html lands in the modern output, after the legacy one. Its
+        // classic (non-module) inline scripts run in ES5 engines too.
+        for (const output of Object.values(bundle)) {
+          if (output.type !== 'asset' || !output.fileName.endsWith('.html')) {
+            continue;
+          }
+          let html = String(output.source);
+          for (const [from, to] of renamed) html = html.replaceAll(from, to);
+          output.source = html;
+          for (const script of classicInlineScripts(html)) {
+            const problem = es5SyntaxProblem(script);
+            if (problem) problems.push(`${output.fileName} script: ${problem}`);
+          }
+        }
+        if (problems.length > 0) {
+          this.error(
+            `Legacy chunks are not ES5, so ES5-only browsers (the Kindle, ` +
+              `issue #49) cannot parse them:\n  ${problems.join('\n  ')}`
+          );
+        }
+      },
+    },
+  };
+}
 
 /** Injects a <link rel="preload"> for the Latin Montserrat woff2 so the browser
  *  starts downloading it before CSS is parsed. Vite resolves the bare-module
@@ -178,11 +302,12 @@ export default defineConfig(() => ({
     // real-world target. Modern browsers never load this — it sits behind
     // `nomodule`, so there is zero impact on the modern ES-module bundle.
     legacy({
-      targets: ['ie >= 11', 'safari >= 5'],
+      targets: LEGACY_TARGETS,
       // Polyfill the bare globals the Kindle's ancient engine is missing even
       // before app code runs (the usage scan covers the rest).
       additionalLegacyPolyfills: ['regenerator-runtime/runtime'],
     }),
+    legacyEs5Plugin(),
     fontPreloadPlugin(),
     initialChunkGuardPlugin(),
   ],
@@ -226,9 +351,13 @@ export default defineConfig(() => ({
     },
     // A user-provided output.minify object overrides Vite 8's default, so the
     // full config is spelled out; compress.drop* replaces the removed esbuild.drop.
-    // The modern bundle keeps oxc minify (fast, unchanged from before); the
-    // legacy plugin minifies its separate legacy chunks with terser automatically.
+    // The modern bundle keeps oxc minify. The legacy chunks go to terser
+    // (legacyEs5Plugin), which reads only `terserOptions`; it drops console and
+    // debugger statements the same way.
     minify: 'oxc',
+    terserOptions: {
+      compress: { drop_console: true, drop_debugger: true },
+    },
     rollupOptions: {
       output: {
         minify: {
