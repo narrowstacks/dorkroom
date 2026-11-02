@@ -28,6 +28,13 @@ describe('Modal', () => {
     expect(screen.getByText('Modal content')).toBeInTheDocument();
   });
 
+  it('sizes the backdrop button explicitly (Chromium 80 does not stretch it)', () => {
+    render(<Modal {...defaultProps} />);
+
+    const backdrop = screen.getByTestId('modal-backdrop');
+    expect(backdrop).toHaveClass('inset-0', 'w-full', 'h-full');
+  });
+
   it('does not render when isOpen is false', () => {
     render(<Modal {...defaultProps} isOpen={false} />);
 
