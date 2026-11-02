@@ -177,7 +177,7 @@ const sharedParameters = {
     name: 'query',
     in: 'query',
     description:
-      'Free-text search term. Matched case-insensitively as a partial match (substring) against names and metadata, not an exact match. Punctuation and accents are matched literally. A term with no letter or digit is rejected with 400.',
+      'Free-text search term. Matched case-insensitively as a partial match (substring) against names and metadata, not an exact match. Accents are significant, and any run of punctuation or symbols acts as a wildcard matching any characters. A term with no letter or digit is rejected with 400.',
     required: false,
     schema: { type: 'string', maxLength: 200 },
   },

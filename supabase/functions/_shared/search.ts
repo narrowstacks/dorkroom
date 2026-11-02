@@ -14,12 +14,17 @@ export const quoteFilterValue = (v: string) =>
   `"${v.replace(/[\\"]/g, '\\$&')}"`;
 
 /**
- * Trim a search term. Returns null when it holds no letter or digit (`,`,
- * `()`): such a term is rejected with a 400 rather than matching everything.
+ * Turn a search term into the text between the outer `%`s of an `ilike`
+ * pattern. Each run of characters other than letters, digits, spaces and
+ * hyphens becomes one `%` wildcard, so `HP5+` matches `HP5 Plus` and
+ * `Photographers' Formulary` matches itself, while accents stay significant.
+ * Returns null when the term holds no letter or digit (`,`, `()`): such a term
+ * is rejected with a 400 rather than matching everything.
  */
 export function cleanSearchTerm(raw: string): string | null {
   const term = raw.trim();
-  return /[\p{L}\p{N}]/u.test(term) ? term : null;
+  if (!/[\p{L}\p{N}]/u.test(term)) return null;
+  return term.replace(/[^\p{L}\p{N} -]+/gu, '%');
 }
 
 /** An `ilike` condition for `.or()` matching `column` against `%term%`. */

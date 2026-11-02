@@ -9,7 +9,7 @@ import { buildDeveloperFilters } from '../_shared/developerFilters.ts';
  * Query Parameters:
  *   - slug: Exact match on developer slug
  *   - query: Case-insensitive partial match on developer name or manufacturer
- *     (commas, quotes and parentheses are fine)
+ *     (punctuation acts as a wildcard)
  *   - fuzzy: Deprecated and ignored; accepted so existing clients keep working
  *   - limit: Maximum number of results
  *   - type: Filter by developer type (concentrate/powder)

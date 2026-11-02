@@ -111,9 +111,10 @@ serve(async (req) => {
   if (colorType) {
     dbQuery = dbQuery.eq('color_type', colorType);
   }
-  if (brand) {
+  const brandTerm = brand?.trim();
+  if (brandTerm) {
     // .ilike() takes a plain value, not a filter list, so no escaping needed
-    dbQuery = dbQuery.ilike('brand', `%${brand.trim()}%`);
+    dbQuery = dbQuery.ilike('brand', `%${brandTerm}%`);
   }
 
   // Apply search
@@ -132,12 +133,13 @@ serve(async (req) => {
       );
     }
     // The alias clause only makes sense for a slug-shaped term
-    const aliasSlug = sanitizeSlug(safeQuery);
+    const rawTerm = query.trim();
+    const aliasSlug = sanitizeSlug(rawTerm);
     const conditions = [
       ilikeCondition('name', safeQuery),
       ilikeCondition('brand', safeQuery),
     ];
-    if (aliasSlug === safeQuery) {
+    if (aliasSlug === rawTerm) {
       conditions.push(`aliases.cs.[{"slug":"${aliasSlug}"}]`);
     }
     dbQuery = dbQuery.or(conditions.join(','));

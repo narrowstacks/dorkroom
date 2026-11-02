@@ -21,19 +21,18 @@ describe('buildDeveloperFilters', () => {
   });
 
   it.each([
-    "Photographers' Formulary",
-    'Spürsinn',
-    'ADX A+B',
-    'Rodinal/Adonal',
-  ])('keeps real name %s intact in the pattern', (name) => {
+    ["Photographers' Formulary", 'Photographers% Formulary'],
+    ['Spürsinn', 'Spürsinn'],
+    ['ADX A+B', 'ADX A%B'],
+    ['Rodinal/Adonal', 'Rodinal%Adonal'],
+    ['HP5+', 'HP5%'],
+    ['Delta 100,', 'Delta 100%'],
+    ['D-76, 1+1', 'D-76% 1%1'],
+    ['Rodinal, (R09)', 'Rodinal% %R09%'],
+  ])('turns %s into the pattern %s', (name, pattern) => {
+    expect(cleanSearchTerm(name)).toBe(pattern);
     expect(filter(name)).toBe(
-      `name.ilike."%${name}%",manufacturer.ilike."%${name}%"`
-    );
-  });
-
-  it('quotes commas and parentheses so they are not filter syntax', () => {
-    expect(filter('Rodinal, (R09)')).toBe(
-      'name.ilike."%Rodinal, (R09)%",manufacturer.ilike."%Rodinal, (R09)%"'
+      `name.ilike."%${pattern}%",manufacturer.ilike."%${pattern}%"`
     );
   });
 
@@ -47,6 +46,10 @@ describe('buildDeveloperFilters', () => {
       buildDeveloperFilters({ query: null, manufacturer: 'Kod,ak (x)' })
         .manufacturerPattern
     ).toBe('%Kod,ak (x)%');
+    expect(
+      buildDeveloperFilters({ query: null, manufacturer: '   ' })
+        .manufacturerPattern
+    ).toBeNull();
   });
 
   it('flags a query without letters or digits as invalid', () => {
