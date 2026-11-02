@@ -34,7 +34,8 @@ export type { HandlerContext } from './requestEnvelope';
  *  - `api.dorkroom.art` (and unknown hosts): `X-API-Key` verified through
  *    Unkey, the key's own tier limit, plus optional per-client limits.
  *  - `dorkroom.art`: no key, anonymous per-IP limit, then (for handlers that
- *    opt in with `upstreamBudget`) the global anonymous upstream budget.
+ *    opt in with `upstreamBudget`, and only for a URL with a query string)
+ *    the global anonymous upstream budget.
  */
 
 interface VerifyRateLimit {
@@ -74,8 +75,8 @@ export interface HandlerConfig {
    */
   createUnkeyClient?: CreateUnkeyClient;
   /**
-   * Charge each anonymous request that reaches this handler to the global
-   * upstream budget (`ANONYMOUS_UPSTREAM_BUCKETS`). Set by the Supabase
+   * Charge each anonymous request with a query string that reaches this
+   * handler to the global upstream budget (`ANONYMOUS_UPSTREAM_BUCKETS`). Set by the Supabase
    * proxies, whose every request costs one Edge Function invocation; off for
    * handlers that do not call Supabase. Never applies to keyed traffic.
    */
@@ -519,7 +520,18 @@ async function applyAnonymousRateLimit(
 }
 
 /**
- * The global budget on anonymous upstream calls, checked after the per-IP
+ * Whether the raw request URL carries a query string. Checked on `req.url`,
+ * never the sanitized query: the proxy drops unknown params, so `?junk=<x>`
+ * misses the CDN yet reaches Supabase as a bare call, and must still be
+ * charged. A bare URL is bounded by the CDN and is what the app fetches.
+ */
+function hasQueryString(req: VercelRequest): boolean {
+  return (req.url ?? '').includes('?');
+}
+
+/**
+ * The global budget on anonymous upstream calls, charged only to requests
+ * with a query string (`hasQueryString`) and checked after the per-IP
  * limit has passed: a request that limit turns away never reaches Supabase,
  * so it is never charged here, and one noisy IP cannot spend everyone's
  * budget. Buckets are checked in order (burst, then day), each at cost 1.
@@ -576,7 +588,8 @@ async function applyAnonymousUpstreamBudget(
       );
       res.status(503).json({
         error: 'Service temporarily unavailable',
-        message: 'The data service is busy. Please try again later.',
+        message:
+          'Too many filtered requests site-wide. Request without a query string, or retry after the time in Retry-After.',
         requestId,
       });
       return false;
@@ -605,8 +618,8 @@ function setVaryHeader(res: VercelResponse, value: string): void {
 
 /**
  * The API-key layer on its own: `Vary`, then Unkey auth (public host) or the
- * anonymous per-IP limit plus, with `upstreamBudget`, the global anonymous
- * upstream budget, then `handler`. Runs inside `withEnvelope`.
+ * anonymous per-IP limit plus, with `upstreamBudget` and a query string, the
+ * global anonymous upstream budget, then `handler`. Runs inside `withEnvelope`.
  */
 export function withApiKey(
   handler: HandlerConfig['handler'],
@@ -636,6 +649,7 @@ export function withApiKey(
     if (
       !ctx.isPublicApi &&
       options.upstreamBudget &&
+      hasQueryString(req) &&
       !(await applyAnonymousUpstreamBudget(
         res,
         ctx.requestId,

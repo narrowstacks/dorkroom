@@ -104,37 +104,43 @@ export function normalizeResetMs(reset: number, now = Date.now()): number {
  * that varies on every request misses the CDN, so each one reaches the
  * function and costs one Supabase Edge Function invocation, and enough IPs
  * (or one IPv6 host rotating addresses) at 30/min each can exhaust the
- * project's monthly quota. These two buckets cap the total, cost 1 per
- * request that reaches a Supabase proxy (`createSupabaseProxy`). CDN hits never
- * reach the function, so they are never charged. Keyed `api.dorkroom.art`
- * traffic is not charged either: it never takes the anonymous path, so
- * anonymous abuse cannot starve API-key holders.
+ * project's monthly quota. These two buckets cap the total of those requests,
+ * cost 1 each.
  *
- * Sizing, for the maintainer to confirm (plan from the Supabase org settings):
- *  - Free plan: about 500k Edge Function invocations a month, which is
- *    about 16.1k a day over a 31-day month.
- *  - OG cards (#595, `OG_UPSTREAM_DAILY_LIMIT`) reserve up to 10k a day:
- *    310k a month at most.
- *  - This daily cap, 5k: 155k a month at most. With the OG ceiling that is
- *    465k, leaving about 35k a month (about 1.1k a day) for keyed traffic
- *    and headroom.
- *  - The app's own traffic: it fetches four fixed URLs (`/api/films`,
- *    `/api/developers`, `/api/combinations`, `/api/stats`), cached for
- *    `s-maxage=300`, so one CDN region costs at most 4 x 288 = 1,152 origin
- *    calls a day even under constant load, and far fewer at today's traffic.
- *    5k a day covers four regions busy around the clock.
- *  - Burst cap, 120 a minute: a cold cache across every region is
- *    4 URLs x about 20 regions = 80 calls, so it fits with room to spare. It
- *    keeps a flood from spending the whole day's budget in a few minutes
- *    (at 120/min the day lasts at least 42 minutes, long enough to notice
- *    and add a WAF rule).
+ * Only requests whose raw URL carries a query string are charged (any `?`,
+ * including params the proxy later drops, since `?junk=<random>` misses the
+ * CDN just as well). Bare URLs are never charged: the CDN bounds them, and
+ * they are what the app itself fetches (`INTERNAL_API_BASE_URL` plus the
+ * resource, no query), so a flood of filtered requests can never take the
+ * site's own data down. Keyed `api.dorkroom.art` traffic is never charged:
+ * it does not take the anonymous path.
  *
- * Revisit both numbers if the plan, the OG reservation, or the app's fetch
- * pattern changes. Unkey allows a window of up to 30 days.
+ * Sizing, for the maintainer to confirm (plan from the Supabase org settings).
+ * Before changing either number, check the real origin call counts for
+ * `/api/films`, `/api/developers`, `/api/combinations` and `/api/stats`, with
+ * and without a query string, in Vercel observability:
+ *  - Free plan: about 500k Edge Function invocations a month, about 16.1k a
+ *    day over a 31-day month.
+ *  - The OG budget (PR #595) reserves up to 10k a day, 310k a month at most.
+ *  - Query-string traffic: no first-party client sends any, so whatever
+ *    arrives is third-party or abuse. 2k a day caps it at 62k a month.
+ *  - That leaves about 128k a month (about 4.1k a day) for what these
+ *    buckets do not cover: bare-URL CDN revalidations and keyed traffic. A
+ *    bare URL costs at most one origin call per CDN region per `s-maxage`
+ *    (300 s), so 4 URLs x 288 = 1,152 a day per region kept busy around the
+ *    clock; the headroom covers about three such regions.
+ *  - Burst cap, 60 a minute: no legitimate client needs one, and it keeps a
+ *    flood from spending the day's budget in under about half an hour, long
+ *    enough to notice and add a WAF rule.
+ *
+ * Exhausting a bucket refuses filtered requests until it frees up, which for
+ * the daily bucket can take hours. Revisit both numbers if the plan, the OG
+ * budget, or the app's fetch pattern changes. Unkey allows windows up to 30
+ * days.
  */
-export const ANONYMOUS_UPSTREAM_RATE_LIMIT = 120;
+export const ANONYMOUS_UPSTREAM_RATE_LIMIT = 60;
 export const ANONYMOUS_UPSTREAM_RATE_WINDOW_MS = RATE_WINDOW_MS;
-export const ANONYMOUS_UPSTREAM_DAILY_LIMIT = 5_000;
+export const ANONYMOUS_UPSTREAM_DAILY_LIMIT = 2_000;
 export const ANONYMOUS_UPSTREAM_DAILY_WINDOW_MS = 24 * 60 * RATE_WINDOW_MS;
 
 /**

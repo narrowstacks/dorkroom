@@ -775,8 +775,9 @@ describe('withHandler', () => {
       return { handler, ran };
     }
 
-    function anonymousRequest() {
+    function anonymousRequest(url = '/api/films?query=tri-x') {
       return createMockRequest({
+        url,
         headers: { host: 'dorkroom.art', 'x-real-ip': '203.0.113.5' },
       });
     }
@@ -801,7 +802,11 @@ describe('withHandler', () => {
       expect(res._headers['x-ratelimit-remaining']).toBe(
         String(ANONYMOUS_RATE_LIMIT - 1)
       );
-      const body = JSON.stringify(res._json ?? null);
+      // The random requestId could contain the digits by chance; drop it
+      const body = JSON.stringify(res._json ?? null).replace(
+        /[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/g,
+        ''
+      );
       for (const value of [
         ANONYMOUS_UPSTREAM_RATE_LIMIT,
         ANONYMOUS_UPSTREAM_DAILY_LIMIT,
@@ -883,6 +888,43 @@ describe('withHandler', () => {
       expectNoGlobalState(res);
     });
 
+    it.each([
+      '/api/films',
+      '/api/developers',
+      '/api/combinations',
+      '/api/stats',
+    ])(
+      'never charges the bare URL %s, even with both buckets exhausted',
+      async (url) => {
+        limitsBy(new Set([BURST, DAY]));
+        const { handler, ran } = await budgetedHandler();
+
+        const res = createMockResponse();
+        await handler(anonymousRequest(url), res);
+
+        expect(res._status).toBe(200);
+        expect(identifiers()).toEqual(['203.0.113.5']);
+        expect(ran).toHaveBeenCalledOnce();
+      }
+    );
+
+    it.each([
+      // Dropped by the proxy's allowlist, but it still misses the CDN
+      '/api/films?junk=x',
+      '/api/films?query=x',
+      '/api/films?',
+    ])('charges %s to the budget', async (url) => {
+      limitsBy(new Set([BURST]));
+      const { handler, ran } = await budgetedHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest(url), res);
+
+      expect(res._status).toBe(503);
+      expect(identifiers()).toEqual(['203.0.113.5', BURST]);
+      expect(ran).not.toHaveBeenCalled();
+    });
+
     it('never charges a request the per-IP limit already turned away', async () => {
       limitsBy(new Set(['203.0.113.5']));
       const { handler, ran } = await budgetedHandler();
@@ -955,6 +997,7 @@ describe('withHandler', () => {
         const res = createMockResponse();
         await handler(
           createMockRequest({
+            url: '/films?query=x',
             headers: {
               host: 'api.dorkroom.art',
               'x-api-key': 'valid-key',

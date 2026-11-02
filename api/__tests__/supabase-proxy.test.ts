@@ -311,6 +311,13 @@ describe('createSupabaseProxyHandler', () => {
       expect(res._headers['cache-control']).toContain('s-maxage=300');
     });
 
+    it('lets the CDN serve the last good copy for a day when the origin fails', async () => {
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext(res));
+
+      expect(res._headers['cache-control']).toContain('stale-if-error=86400');
+    });
+
     it('should leave the public API cache policy to the envelope instead of branching on host', async () => {
       // `private, no-store` on api.dorkroom.art is pinned by the envelope and
       // asserted in withHandler.test.ts; the proxy asks for the same value on
@@ -323,7 +330,7 @@ describe('createSupabaseProxyHandler', () => {
       });
 
       expect(setCacheControl).toHaveBeenCalledExactlyOnceWith(
-        'public, max-age=60, s-maxage=300, stale-while-revalidate=600'
+        'public, max-age=60, s-maxage=300, stale-while-revalidate=600, stale-if-error=86400'
       );
       expect(res._headers['cache-control']).toBeUndefined();
     });

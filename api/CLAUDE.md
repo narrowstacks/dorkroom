@@ -242,15 +242,20 @@ Operational note:
 ### Global anonymous upstream budget
 
 The per-IP limit bounds one caller, not the total, so anonymous
-`dorkroom.art/api/*` requests to the Supabase proxies also draw on two global
-buckets in the anonymous namespace (#598): `api-upstream`, a burst cap of
-120 req/min (`ANONYMOUS_UPSTREAM_RATE_LIMIT`), then `api-upstream-day`, a cap
-of 5000 req/day (`ANONYMOUS_UPSTREAM_DAILY_LIMIT`). Each request that reaches
-the handler costs 1 (CDN hits never get there). The sizing arithmetic against
-the Supabase Free plan quota sits beside the constants in
-`utils/rateLimitPolicy.ts`; revisit it if the plan or the OG reservation
-changes.
+`dorkroom.art/api/*` requests to the Supabase proxies **with a query string**
+also draw on two global buckets in the anonymous namespace (#598):
+`api-upstream`, a burst cap of 60 req/min (`ANONYMOUS_UPSTREAM_RATE_LIMIT`),
+then `api-upstream-day`, a cap of 2000 req/day
+(`ANONYMOUS_UPSTREAM_DAILY_LIMIT`). Each charged request costs 1. The sizing
+arithmetic against the Supabase Free plan quota sits beside the constants in
+`utils/rateLimitPolicy.ts`; check real origin call counts in Vercel
+observability before changing them.
 
+- Charged only when the **raw** `req.url` contains `?`, never judged from the
+  sanitized query: the proxy drops unknown params, so `?junk=<random>` misses
+  the CDN yet reaches Supabase as a bare call. Bare URLs, which the app itself
+  fetches and the CDN bounds, are never charged, so exhausting the budget can
+  never take the site's own data down
 - Opt-in per handler (`HandlerConfig.upstreamBudget`): `createSupabaseProxy`
   sets it; `filmdev.ts` (no Supabase call) does not
 - Checked after the per-IP limit, so a request that limit rejects is never
@@ -259,8 +264,12 @@ changes.
   starve API-key holders
 - Over budget: `503` with `Retry-After` and `Cache-Control: no-store`, and no
   `X-RateLimit-*` for the global buckets (those headers keep describing the
-  caller's own per-IP budget)
+  caller's own per-IP budget). Filtered requests stay refused until the
+  bucket frees up, which for the daily one can take hours
 - Fails open on any Unkey failure, like the OG limiter
+- Proxy responses carry `stale-if-error=86400`, so the CDN keeps serving the
+  last good copy for a day if the origin fails (Vercel documents it for 500s,
+  network and DNS errors; whether a 502 or 503 qualifies is unconfirmed)
 
 ## Testing
 

@@ -6,9 +6,15 @@ import {
 import { validateAndSanitizeQuery } from './queryValidation';
 import { type HandlerConfig, withHandler } from './withHandler';
 
-/** Website responses: short browser cache, longer CDN cache. */
+/**
+ * Website responses: short browser cache, longer CDN cache. `stale-if-error`
+ * lets the Vercel CDN keep serving the last good copy for a day when the
+ * origin fails (Vercel documents it for 500s, network and DNS errors; it does
+ * not say whether a 503 or 502 qualifies), so an upstream outage does not
+ * blank the site's data straight away.
+ */
 const ANONYMOUS_CACHE_CONTROL =
-  'public, max-age=60, s-maxage=300, stale-while-revalidate=600';
+  'public, max-age=60, s-maxage=300, stale-while-revalidate=600, stale-if-error=86400';
 const MAX_UPSTREAM_ERROR_LENGTH = 200;
 
 /**
@@ -153,7 +159,8 @@ export function supabaseProxyHandlerConfig(
       'SUPABASE_PROXY_SECRET',
     ],
     handler: createSupabaseProxyHandler(config),
-    // Every request that gets this far invokes a Supabase Edge Function.
+    // Every request that gets this far invokes a Supabase Edge Function;
+    // `withApiKey` charges only the ones with a query string.
     upstreamBudget: true,
   };
 }
