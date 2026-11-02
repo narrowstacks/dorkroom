@@ -6,6 +6,7 @@ import {
   holdKeyboard,
   KEYBOARD_HOLD_ATTRIBUTE,
   KEYBOARD_HOLD_MS,
+  takeHeldText,
 } from '../keyboard-hold';
 
 const standIns = () =>
@@ -39,6 +40,8 @@ describe('holdKeyboard', () => {
     document.body.append(box);
     box.focus();
     expect(field.isConnected).toBe(false);
+    // Kept for the box to take as it gains focus, then gone.
+    expect(takeHeldText()).toBe('tri-x');
     expect(heldText()).toBe('');
     box.remove();
   });
@@ -64,6 +67,20 @@ describe('holdKeyboard', () => {
 
     clearHeldText();
     expect(heldText()).toBe('');
+  });
+
+  it('hands over everything typed up to the moment focus leaves, once', () => {
+    holdKeyboard();
+    const field = document.activeElement;
+    if (!(field instanceof HTMLInputElement)) throw new Error('no stand-in');
+    field.value = 'h';
+    expect(heldText()).toBe('h');
+    field.value = 'hp5 dd-x';
+    field.blur();
+    // Gone, so later keystrokes cannot land in it.
+    expect(field.isConnected).toBe(false);
+    expect(takeHeldText()).toBe('hp5 dd-x');
+    expect(takeHeldText()).toBe('');
   });
 
   it('keeps one stand-in at a time', () => {

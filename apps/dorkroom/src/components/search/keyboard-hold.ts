@@ -15,11 +15,18 @@ export const KEYBOARD_HOLD_MS = 8000;
 
 /** The stand-in while it exists. One at a time: a new hold replaces it. */
 let held: HTMLInputElement | null = null;
-/** What a timed-out stand-in held, for a dialog that arrives late. */
-let orphaned = '';
+/**
+ * What the last stand-in held when it went: typing keeps landing in it until
+ * focus actually moves to the dialog's box, which takes this at that moment.
+ * Also kept after a timeout, for a dialog that arrives late.
+ */
+let left = '';
 
 function release(field: HTMLInputElement) {
-  if (held === field) held = null;
+  if (held === field) {
+    held = null;
+    left = field.value;
+  }
   field.remove();
 }
 
@@ -39,7 +46,7 @@ function release(field: HTMLInputElement) {
  */
 export function holdKeyboard(): void {
   if (held) release(held);
-  orphaned = '';
+  left = '';
   const field = document.createElement('input');
   field.type = 'text';
   field.tabIndex = -1;
@@ -65,9 +72,8 @@ export function holdKeyboard(): void {
     pointerEvents: 'none',
   });
   const timer = window.setTimeout(() => {
-    // Blurring dismisses the keyboard; the blur listener then removes it.
-    // Its text is kept, so a dialog that arrives later still starts with it.
-    orphaned = field.value;
+    // Blurring dismisses the keyboard; the blur listener then removes it,
+    // keeping its text for a dialog that arrives later.
     field.blur();
     release(field);
   }, KEYBOARD_HOLD_MS);
@@ -85,18 +91,28 @@ export function holdKeyboard(): void {
 }
 
 /**
- * What was typed into the stand-in while the dialog loaded, so the dialog's
- * box can start with it, also after the stand-in timed out. Empty when there
- * is nothing to carry over.
+ * What has been typed into the stand-in so far, so the dialog's box can show
+ * it on first paint. Empty when there is nothing to carry over.
  */
 export function heldText(): string {
-  return held?.value ?? orphaned;
+  return held?.value ?? left;
 }
 
 /**
- * Forget a timed-out stand-in's text: the dialog has taken it, or a shortcut
- * opens a fresh dialog that it does not belong to.
+ * Forget the stand-in's text: a shortcut opens a fresh dialog that it does
+ * not belong to.
  */
 export function clearHeldText(): void {
-  orphaned = '';
+  left = '';
+}
+
+/**
+ * Everything typed into the stand-in, taken once. Called as the dialog's box
+ * gains focus: the stand-in has just lost it (and removed itself), so nothing
+ * typed after this can land anywhere but the box.
+ */
+export function takeHeldText(): string {
+  const text = heldText();
+  left = '';
+  return text;
 }

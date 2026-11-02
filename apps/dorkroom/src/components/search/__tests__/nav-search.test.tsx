@@ -238,6 +238,21 @@ describe('nav search', () => {
       },
       { once: true }
     );
+    // More typing lands in the stand-in after the dialog has rendered, up to
+    // the moment focus moves to the box.
+    const focus = HTMLElement.prototype.focus;
+    const lateTyping = vi
+      .spyOn(HTMLElement.prototype, 'focus')
+      .mockImplementation(function (this: HTMLElement, options) {
+        if (
+          this.getAttribute('role') === 'combobox' &&
+          held instanceof HTMLInputElement &&
+          held.isConnected
+        ) {
+          held.value += ' dd-x';
+        }
+        focus.call(this, options);
+      });
     fireEvent.click(fab);
     expect(dialogDuringClick).toBeNull();
     expect(held).toBeInstanceOf(HTMLInputElement);
@@ -253,8 +268,9 @@ describe('nav search', () => {
     expect(focused).toEqual([held, box()]);
     expect(inertOnBlur).toBe(false);
     // What was typed meanwhile is in the box, with the caret after it.
-    expect(box()).toHaveValue('hp5');
-    expect(box()).toHaveProperty('selectionStart', 3);
+    lateTyping.mockRestore();
+    expect(box()).toHaveValue('hp5 dd-x');
+    expect(box()).toHaveProperty('selectionStart', 8);
     expect(document.querySelector('[data-search-keyboard-proxy]')).toBeNull();
 
     fireEvent.keyDown(box(), { key: 'Escape' });

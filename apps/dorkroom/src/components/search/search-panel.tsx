@@ -108,6 +108,11 @@ interface SearchPanelProps {
   inputRef?: RefObject<HTMLInputElement | null>;
   /** What the box starts with (text typed while the dialog loaded). */
   initialQuery?: string;
+  /**
+   * Called as the box gains focus, for text typed elsewhere until then (the
+   * nav trigger's stand-in field). Non-empty text replaces the query.
+   */
+  takeHeldText?: () => string;
   /** Called when an answer's or a match's link is clicked. */
   onNavigate?: MouseEventHandler<HTMLAnchorElement>;
 }
@@ -134,6 +139,7 @@ function SearchPanelBody({
   onNavigate,
   inputRef: givenInputRef,
   initialQuery = '',
+  takeHeldText,
 }: SearchPanelProps) {
   const inDialog = variant === 'dialog';
   // A new input given a value has its caret at the end, ready to type on.
@@ -215,6 +221,14 @@ function SearchPanelBody({
     setChosen(null);
   };
 
+  const onFocusedChange = (next: boolean) => {
+    setFocused(next);
+    if (!next || !takeHeldText) return;
+    // Setting a focused box's value leaves the caret at the end.
+    const held = takeHeldText();
+    if (held && held !== query) changeQuery(held);
+  };
+
   const fill = (next: string) => {
     load();
     changeQuery(next);
@@ -236,7 +250,7 @@ function SearchPanelBody({
         options={options}
         activeId={activeId}
         onActiveChange={choose}
-        onFocusedChange={setFocused}
+        onFocusedChange={onFocusedChange}
         placeholder="Ask: hp5 at 800 in dd-x"
         standalone={!inDialog}
       />
