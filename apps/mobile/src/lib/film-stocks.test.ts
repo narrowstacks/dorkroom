@@ -17,6 +17,8 @@ function makeFilm(overrides: Partial<Film> = {}): Film {
     reciprocityFailure: null,
     discontinued: false,
     staticImageUrl: null,
+    imageCredit: null,
+    imageSourceUrl: null,
     aliases: [],
     baseFilmSlug: null,
     dateAdded: '2024-01-01',

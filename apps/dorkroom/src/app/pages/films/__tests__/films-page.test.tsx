@@ -50,6 +50,8 @@ function rawFilm(fields: Partial<RawFilm> & Pick<RawFilm, 'id' | 'slug'>) {
     reciprocity_failure: null,
     discontinued: false,
     static_image_url: null,
+    image_credit: null,
+    image_source_url: null,
     aliases: [],
     base_film_slug: null,
     date_added: '2023-01-01',

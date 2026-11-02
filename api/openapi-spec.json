@@ -737,6 +737,20 @@
               "null"
             ]
           },
+          "image_credit": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "image_source_url": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "aliases": {
             "default": [],
             "type": "array",
@@ -787,6 +801,8 @@
           "reciprocity_failure",
           "discontinued",
           "static_image_url",
+          "image_credit",
+          "image_source_url",
           "aliases",
           "base_film_slug",
           "date_added",
@@ -870,6 +886,20 @@
               "null"
             ]
           },
+          "image_credit": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "image_source_url": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "created_at": {
             "type": "string"
           },
@@ -890,6 +920,8 @@
           "mixing_instructions",
           "storage_requirements",
           "safety_notes",
+          "image_credit",
+          "image_source_url",
           "created_at",
           "updated_at"
         ],

@@ -42,6 +42,10 @@ export const rawFilmSchema = z.object({
   reciprocity_failure: z.string().nullable(),
   discontinued: z.boolean(),
   static_image_url: z.string().nullable(),
+  /** Who took the packaging photo, and its licence. Null when unknown. */
+  image_credit: z.string().nullable().default(null),
+  /** Page (or file) the packaging photo came from. Null when unknown. */
+  image_source_url: z.string().nullable().default(null),
   aliases: z.array(filmAliasSchema).default([]),
   base_film_slug: z.string().nullable(),
   date_added: z.string(),
@@ -66,6 +70,10 @@ export const rawDeveloperSchema = z.object({
   mixing_instructions: z.string().nullable(),
   storage_requirements: z.string().nullable(),
   safety_notes: z.string().nullable(),
+  /** Who took the packaging photo, and its licence. Null when unknown. */
+  image_credit: z.string().nullable().default(null),
+  /** Page (or file) the packaging photo came from. Null when unknown. */
+  image_source_url: z.string().nullable().default(null),
   created_at: z.string(),
   updated_at: z.string(),
 });

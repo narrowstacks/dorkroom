@@ -7,6 +7,10 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ## [Unreleased]
 
+### Added
+
+- **Film photos credit their source.** A film's detail panel now shows who took the packaging photo and its licence, linked to where it came from.
+
 ### Changed
 
 - **The negative inverter prints like a darkroom print.** Converted negatives now go through a virtual paper curve, with a soft roll-off into paper white and a deep black, instead of a straight line. Contrast works like a paper grade, a dark frame is brightened a little (a bright one is never darkened), and warmth and tint act like enlarger filtration, so whites and blacks stay clean when you colour-correct. Default contrast and brightness stay close to before. (#527)
