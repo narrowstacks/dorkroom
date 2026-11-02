@@ -244,7 +244,7 @@ export default function ExposureCalculatorPage({
                 />
                 <ResultRow
                   label="Multiplier"
-                  value={`×${(2 ** calculation.stopsValue).toFixed(3)}`}
+                  value={`×${(calculation.newTimeValue / calculation.originalTimeValue).toFixed(3)}`}
                 />
               </div>
             </CalculatorCard>

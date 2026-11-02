@@ -1,15 +1,16 @@
-// MMKV-backed persistence for the film-log feature. Mirrors lib/tab-bar-settings.ts:
-// each collection is a JSON-stringified array under its own key, read back with a
-// schema safeParse so corrupt/legacy data falls back to [] instead of crashing.
+// MMKV-backed persistence for the film-log feature. Each collection is a
+// JSON-stringified array under its own key, read and written through
+// lib/stored-collection.ts: records that fail their schema are skipped on read
+// and moved to `<key>.quarantine` before a write replaces them (issue #532).
 import { createMMKV } from 'react-native-mmkv';
-import type { z } from 'zod';
 import { deletePhotoFile } from '@/lib/film-log-photos';
 import { generateId } from '@/lib/id';
+import { parseCollection, writeCollection } from '@/lib/stored-collection';
 import {
-  camerasSchema,
-  customFilmsSchema,
-  lensesSchema,
-  rollsSchema,
+  cameraSchema,
+  filmRollSchema,
+  filmStockSchema,
+  lensSchema,
 } from '@/schemas/film-log.schema';
 import type {
   Camera,
@@ -33,30 +34,17 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
-/** Pure: parse a stored JSON string through a schema, falling back to []. */
-function parseArray<T>(raw: string | undefined, schema: z.ZodType<T[]>): T[] {
-  if (!raw) return [];
-  let json: unknown;
-  try {
-    json = JSON.parse(raw);
-  } catch {
-    return [];
-  }
-  const result = schema.safeParse(json);
-  return result.success ? result.data : [];
-}
-
 // Pure parsers — exported so the reactive hooks can derive state directly from
 // the MMKV-subscribed raw string (keeps `raw` a real dependency, not just a
 // re-render trigger).
 export const parseRolls = (raw: string | undefined): FilmRoll[] =>
-  parseArray(raw, rollsSchema);
+  parseCollection(raw, filmRollSchema);
 export const parseCameras = (raw: string | undefined): Camera[] =>
-  parseArray(raw, camerasSchema);
+  parseCollection(raw, cameraSchema);
 export const parseLenses = (raw: string | undefined): Lens[] =>
-  parseArray(raw, lensesSchema);
+  parseCollection(raw, lensSchema);
 export const parseCustomFilms = (raw: string | undefined): FilmStock[] =>
-  parseArray(raw, customFilmsSchema);
+  parseCollection(raw, filmStockSchema);
 
 // --- Rolls -----------------------------------------------------------------
 
@@ -65,7 +53,7 @@ export function getRolls(): FilmRoll[] {
 }
 
 export function setRolls(rolls: FilmRoll[]): void {
-  storage.set(KEYS.rolls, JSON.stringify(rolls));
+  writeCollection(storage, KEYS.rolls, filmRollSchema, rolls);
 }
 
 export function addRoll(
@@ -178,7 +166,7 @@ export function getCameras(): Camera[] {
 }
 
 export function setCameras(cameras: Camera[]): void {
-  storage.set(KEYS.cameras, JSON.stringify(cameras));
+  writeCollection(storage, KEYS.cameras, cameraSchema, cameras);
 }
 
 export function addCamera(camera: Omit<Camera, 'id' | 'createdAt'>): Camera {
@@ -209,7 +197,7 @@ export function getLenses(): Lens[] {
 }
 
 export function setLenses(lenses: Lens[]): void {
-  storage.set(KEYS.lenses, JSON.stringify(lenses));
+  writeCollection(storage, KEYS.lenses, lensSchema, lenses);
 }
 
 export function addLens(lens: Omit<Lens, 'id' | 'createdAt'>): Lens {
@@ -241,7 +229,7 @@ export function getCustomFilms(): FilmStock[] {
 }
 
 export function setCustomFilms(films: FilmStock[]): void {
-  storage.set(KEYS.customFilms, JSON.stringify(films));
+  writeCollection(storage, KEYS.customFilms, filmStockSchema, films);
 }
 
 export function addCustomFilm(film: Omit<FilmStock, 'id'>): FilmStock {

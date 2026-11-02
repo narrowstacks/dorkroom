@@ -1,5 +1,7 @@
 import {
+  calculateMatLayout,
   convertDisplayToInches,
+  MAT_CALCULATOR_DEFAULTS,
   MAT_PRESETS,
   parseMatInput,
   useMatCalculator,
@@ -60,9 +62,9 @@ describe('matValueToDisplay', () => {
     expect(matValueToDisplay('3 1/2', 'metric')).toBe('8.89');
   });
 
-  it('blanks unparseable text in metric', () => {
+  it('shows unparseable metric text as typed', () => {
     expect(matValueToDisplay('', 'metric')).toBe('');
-    expect(matValueToDisplay('abc', 'metric')).toBe('');
+    expect(matValueToDisplay('abc', 'metric')).toBe('abc');
   });
 });
 
@@ -78,9 +80,36 @@ describe('matDisplayToValue', () => {
     expect(matDisplayToValue('30.', 'metric')).toBe('11.811');
   });
 
+  it.each(['50cm', '50 cm', '50CM', ' 50 cm '])(
+    'accepts a trailing cm in metric: %j',
+    (cm) => {
+      expect(matDisplayToValue(cm, 'metric')).toBe('19.685');
+    }
+  );
+
+  it('reads a comma decimal with a cm suffix', () => {
+    expect(matDisplayToValue('40,64 cm', 'metric')).toBe('16');
+  });
+
+  it('leaves a cm suffix to imperial fields as typed (invalid downstream)', () => {
+    expect(matDisplayToValue('20cm', 'imperial')).toBe('20cm');
+    expect(parseMatInput('20cm')).toBeNaN();
+  });
+
   it('commits an empty string when metric input is unparseable', () => {
     expect(matDisplayToValue('', 'metric')).toBe('');
-    expect(matDisplayToValue('abc', 'metric')).toBe('');
+    expect(matDisplayToValue('abc', 'metric')).toBe('abc');
+    // An inch mark in a metric field is not read as centimetres.
+    for (const typed of ['20 in', '20"', '20”']) {
+      expect(matDisplayToValue(typed, 'metric')).toBe(typed);
+    }
+    // Kept, not blanked, so a reveal typo is invalid rather than "no reveal".
+    expect(
+      calculateMatLayout({
+        ...MAT_CALCULATOR_DEFAULTS,
+        reveal: matDisplayToValue('1/8abc', 'metric'),
+      }).revealValid
+    ).toBe(false);
   });
 
   it('round-trips a centimetre entry back to the same display text', () => {
@@ -118,6 +147,11 @@ describe('stepMatDisplay', () => {
     expect(stepMatDisplay('40.64', 'metric', 1)).toBe('40.7');
     expect(stepMatDisplay('40.64', 'metric', -1)).toBe('40.5');
     expect(stepMatDisplay('20.3', 'metric', 1)).toBe('20.4');
+  });
+
+  it('keeps a metric value typed with a cm suffix', () => {
+    expect(stepMatDisplay('50cm', 'metric', 1)).toBe('50.1');
+    expect(stepMatDisplay('50 cm', 'metric', -1)).toBe('49.9');
   });
 
   it('treats unparseable text as zero and clamps at zero', () => {

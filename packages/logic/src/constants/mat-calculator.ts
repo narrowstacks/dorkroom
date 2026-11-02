@@ -50,25 +50,65 @@ export const MAT_CALCULATOR_DEFAULTS = {
 
 export type MatCalculatorState = typeof MAT_CALCULATOR_DEFAULTS;
 
+const VULGAR_FRACTIONS = new Map([
+  ['½', 1 / 2],
+  ['⅓', 1 / 3],
+  ['⅔', 2 / 3],
+  ['¼', 1 / 4],
+  ['¾', 3 / 4],
+  ['⅕', 1 / 5],
+  ['⅖', 2 / 5],
+  ['⅗', 3 / 5],
+  ['⅘', 4 / 5],
+  ['⅙', 1 / 6],
+  ['⅚', 5 / 6],
+  ['⅛', 1 / 8],
+  ['⅜', 3 / 8],
+  ['⅝', 5 / 8],
+  ['⅞', 7 / 8],
+]);
+
+const GLYPH_RE = new RegExp(
+  `^(\\d+)?\\s*([${[...VULGAR_FRACTIONS.keys()].join('')}])$`
+);
+
+/** Trailing marks that mean inches: `"`, `″`, iOS smart quotes, `′′`, `''`, `in`. */
+export const INCH_MARKS = ['"', '″', '“', '”', '′′', "''", 'in'];
+
+/**
+ * Trim `str` and drop one trailing unit mark from `marks` (case-insensitive),
+ * plus any space before it. Done without a `\s*...$` regex, which backtracks
+ * polynomially on long runs of spaces.
+ */
+export function stripMatSuffix(str: string, marks: readonly string[]): string {
+  const s = str.trim();
+  const lower = s.toLowerCase();
+  const mark = marks.find((m) => lower.endsWith(m));
+  return mark ? s.slice(0, -mark.length).trimEnd() : s;
+}
+
 /**
  * Parse a measurement string into inches. Accepts decimals ("1.5", or "1,5"
- * with a comma separator), simple fractions ("1/4") and mixed numbers
- * ("1 1/2"). Returns NaN for empty or unparseable input.
+ * with a comma separator), simple fractions ("1/4"), mixed numbers ("1 1/2",
+ * "1-1/2" or "1–1/2") and fraction glyphs ("3½", "3 ½"), each with an optional
+ * trailing inch mark (`"`, `″`, iOS smart quotes `”`/`“`, `′′`, `''` or
+ * `in`). Returns NaN for empty input, a zero
+ * denominator, or any text left over, so a typo never reads as a truncated
+ * number.
  */
 export function parseMatInput(str: string | number): number {
-  const s = String(str).trim();
+  const s = stripMatSuffix(String(str), INCH_MARKS);
   if (s === '') return NaN;
-  const mixed = s.match(/^(\d+(?:\.\d+)?)\s+(\d+)\/(\d+)$/);
-  if (mixed)
-    return parseFloat(mixed[1]) + parseInt(mixed[2]) / parseInt(mixed[3]);
+  const glyph = s.match(GLYPH_RE);
+  if (glyph)
+    return Number(glyph[1] ?? 0) + (VULGAR_FRACTIONS.get(glyph[2]) ?? NaN);
+  const ratio = (numer: string, denom: string) =>
+    Number(denom) === 0 ? NaN : Number(numer) / Number(denom);
+  const mixed = s.match(/^(\d+(?:\.\d+)?)(?:\s+|\s*[-–]\s*)(\d+)\/(\d+)$/);
+  if (mixed) return Number(mixed[1]) + ratio(mixed[2], mixed[3]);
   const fraction = s.match(/^(\d+)\/(\d+)$/);
-  if (fraction) return parseInt(fraction[1]) / parseInt(fraction[2]);
-  const decimal = parseDecimalInput(s);
-  if (!Number.isNaN(decimal)) return decimal;
-  // Anything else keeps parseFloat's read-the-leading-number leniency
-  // (e.g. a trailing inch mark, `11"`), with a lone comma taken as the
-  // decimal separator so `12,5"` is 12.5 rather than 12.
-  return parseFloat(s.includes('.') ? s : s.replace(',', '.'));
+  if (fraction) return ratio(fraction[1], fraction[2]);
+  return parseDecimalInput(s);
 }
 
 /**
@@ -147,6 +187,8 @@ export interface MatLayout {
   ah: number;
   /** Reveal, 0 when not given. */
   revVal: number;
+  /** False when a reveal was typed but does not parse. */
+  revealValid: boolean;
   /** Window (sight opening) width and height. */
   windowW: number;
   windowH: number;
@@ -182,6 +224,9 @@ export function calculateMatLayout(values: MatCalculatorState): MatLayout {
   const aw = parseMatInput(values.artW);
   const ah = parseMatInput(values.artH);
   const rev = parseMatInput(values.reveal);
+  // An empty reveal means none; a typed one that does not parse is invalid,
+  // not 0, so a typo never yields a window sized for no reveal.
+  const revealValid = String(values.reveal).trim() === '' || !isNaN(rev);
   const revVal = isNaN(rev) ? 0 : rev;
 
   const bordersValid =
@@ -196,7 +241,8 @@ export function calculateMatLayout(values: MatCalculatorState): MatLayout {
   const outerValid = !isNaN(ow) && !isNaN(oh) && ow > 0 && oh > 0;
   const windowW = ow - bl - br;
   const windowH = oh - bt - bb;
-  const valid = outerValid && bordersValid && windowW > 0 && windowH > 0;
+  const valid =
+    outerValid && bordersValid && revealValid && windowW > 0 && windowH > 0;
   const artValid = !isNaN(aw) && !isNaN(ah) && aw > 0 && ah > 0;
 
   return {
@@ -209,6 +255,7 @@ export function calculateMatLayout(values: MatCalculatorState): MatLayout {
     aw,
     ah,
     revVal,
+    revealValid,
     windowW,
     windowH,
     outerValid,

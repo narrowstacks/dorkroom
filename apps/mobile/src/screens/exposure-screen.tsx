@@ -28,6 +28,10 @@ export function ExposureScreen() {
   } = useExposureCalculator();
 
   const stopsValue = calculation?.stopsValue ?? (parseDecimalInput(stops) || 0);
+  // From the times, not 2^stopsValue, so a third reads ×1.260, not ×1.257.
+  const multiplier = calculation
+    ? calculation.newTimeValue / calculation.originalTimeValue
+    : 1;
 
   return (
     <Screen>
@@ -87,10 +91,7 @@ export function ExposureScreen() {
               label="Change"
               value={`${calculation.percentageIncrease.toFixed(0)}%`}
             />
-            <ResultRow
-              label="Multiplier"
-              value={`×${(2 ** calculation.stopsValue).toFixed(3)}`}
-            />
+            <ResultRow label="Multiplier" value={`×${multiplier.toFixed(3)}`} />
             <ResultRow
               label="Original time"
               value={formatTime(calculation.originalTimeValue)}
@@ -101,7 +102,7 @@ export function ExposureScreen() {
               originalTime,
               newTime: formatTime(calculation.newTimeValue),
               stops: calculation.stopsValue,
-              multiplier: 2 ** calculation.stopsValue,
+              multiplier,
               addedTime: formatTime(Math.abs(calculation.addedTime)),
               addedLabel: calculation.addedTime >= 0 ? 'Added' : 'Removed',
               percentageIncrease: calculation.percentageIncrease,

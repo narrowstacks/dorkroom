@@ -3,8 +3,31 @@ import { parseDecimalInput } from './input-validation';
 import { roundToPrecision, roundToStandardPrecision } from './precision';
 
 /**
+ * A third of a stop written to two decimals (0.33, 0.67, 1.33) is off its
+ * exact value by at most 1/300; anything this close is read as the third.
+ */
+const EXACT_THIRD_TOLERANCE = 0.004;
+
+/**
+ * Reads a stop value that is a rounded third (0.33, -0.67, 0.3333) as the
+ * exact third, so a third of a stop multiplies by 2^(1/3), not 2^0.33. Stops
+ * are stored and linked rounded to two decimals; this keeps the math exact.
+ *
+ * @example
+ * ```typescript
+ * exactThirds(0.33); // 1/3
+ * exactThirds(0.34); // 0.34 (not a third)
+ * ```
+ */
+export const exactThirds = (stops: number): number => {
+  const third = Math.round(stops * 3) / 3;
+  return Math.abs(third - stops) <= EXACT_THIRD_TOLERANCE ? third : stops;
+};
+
+/**
  * Calculates new exposure time based on stop adjustment using the standard formula.
  * Each stop represents a doubling or halving of light, following the formula: newTime = originalTime * 2^stopChange
+ * A rounded third (0.33) counts as the exact third (see {@link exactThirds}).
  *
  * @param originalTime - Original exposure time in seconds
  * @param stopChange - Number of stops to adjust (positive = longer exposure, negative = shorter)
@@ -20,7 +43,7 @@ export const calculateNewExposureTime = (
   originalTime: number,
   stopChange: number
 ): number => {
-  return originalTime * 2 ** stopChange;
+  return originalTime * 2 ** exactThirds(stopChange);
 };
 
 /**

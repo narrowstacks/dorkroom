@@ -3,10 +3,12 @@ import {
   convertInchesToDisplay,
   convertInchesToInputValue,
   formatMeasurement,
+  INCH_MARKS,
   matBorderToInput,
   type MatPreset,
   type MeasurementUnit,
   parseMatInput,
+  stripMatSuffix,
   toFraction,
   toFractionInput,
 } from '@dorkroom/logic';
@@ -23,6 +25,19 @@ import {
 /** Stepper / arrow-key increment: 1/16" imperial, 1mm metric. */
 const STEP_INCHES = 1 / 16;
 const STEP_CM = 0.1;
+
+/** Metric fields accept a trailing "cm", like `50cm` or `50 cm`. */
+const CM_MARK = ['cm'];
+
+/**
+ * The number in a field's text. Metric allows a trailing "cm" and rejects an
+ * inch mark, which would otherwise be stripped and the number read as cm.
+ */
+const parseDisplay = (display: string, unit: MeasurementUnit): number => {
+  if (unit === 'imperial') return parseMatInput(display);
+  if (stripMatSuffix(display, INCH_MARKS) !== display.trim()) return NaN;
+  return parseMatInput(stripMatSuffix(display, CM_MARK));
+};
 
 /** Drop the padding `toFixed` adds, so 20.40 reads as "20.4" and 40.64 as "40.64". */
 function trimDecimals(value: number, decimals: number): string {
@@ -76,7 +91,8 @@ export function matValueToDisplay(
   }
   const inches = parseMatInput(value);
   if (Number.isNaN(inches)) {
-    return '';
+    // A typo kept by matDisplayToValue shows as typed, not blanked.
+    return value.trim();
   }
   // Shortest cm text that maps back to the same stored inches, shared with
   // every calculator's metric inputs, so neither unit drifts on re-commit.
@@ -84,9 +100,11 @@ export function matValueToDisplay(
 }
 
 /**
- * Field text back to the inch string kept in form state. Unparseable or empty
- * text commits an empty string, which reads as "invalid" downstream exactly
- * like clearing an imperial field does.
+ * Field text back to the inch string kept in form state. Empty text commits
+ * an empty string. Unparseable text is kept as typed, as imperial does: it
+ * parses as NaN downstream, so a typo reads as invalid rather than as an
+ * empty field (an empty reveal means "no reveal"). A trailing "cm" is allowed
+ * in metric.
  */
 export function matDisplayToValue(
   display: string,
@@ -95,9 +113,9 @@ export function matDisplayToValue(
   if (unit === 'imperial') {
     return display;
   }
-  const parsed = parseMatInput(display);
+  const parsed = parseDisplay(display, unit);
   if (Number.isNaN(parsed)) {
-    return '';
+    return display.trim();
   }
   return String(convertDisplayToInches(parsed, unit));
 }
@@ -112,7 +130,7 @@ export function stepMatDisplay(
   direction: 1 | -1
 ): string {
   const step = unit === 'imperial' ? STEP_INCHES : STEP_CM;
-  const current = parseMatInput(display);
+  const current = parseDisplay(display, unit);
   const base = Number.isNaN(current) ? 0 : current;
   const snapped = Math.round(base / step) * step;
   const next = Math.max(0, snapped + direction * step);

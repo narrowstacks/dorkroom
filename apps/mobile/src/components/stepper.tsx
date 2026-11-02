@@ -1,6 +1,7 @@
 import * as Haptics from 'expo-haptics';
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { createStepperRepeat } from '@/components/stepper-repeat';
 import {
   handleStepperAction,
   STEPPER_ACCESSIBILITY_ACTIONS,
@@ -21,39 +22,20 @@ export function Stepper({
   onDecrement,
   onIncrement,
 }: StepperProps) {
-  const delay = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const repeat = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const stop = () => {
-    if (delay.current) {
-      clearTimeout(delay.current);
-      delay.current = null;
-    }
-    if (repeat.current) {
-      clearInterval(repeat.current);
-      repeat.current = null;
-    }
-  };
-
-  // Clear any live timers if the component unmounts mid-hold
-  useEffect(
-    () => () => {
-      if (delay.current) clearTimeout(delay.current);
-      if (repeat.current) clearInterval(repeat.current);
-    },
-    []
+  const [repeater] = useState(() =>
+    createStepperRepeat(() => {
+      Haptics.selectionAsync();
+    })
   );
 
-  const start = (fn: () => void) => () => {
-    Haptics.selectionAsync();
-    fn();
-    delay.current = setTimeout(() => {
-      repeat.current = setInterval(() => {
-        Haptics.selectionAsync();
-        fn();
-      }, 120);
-    }, 350);
-  };
+  // Every render hands over fresh handlers, so a held button keeps stepping
+  // from the latest value instead of replaying the press-in closure (#317).
+  useEffect(() => {
+    repeater.update({ value, onDecrement, onIncrement });
+  });
+
+  // Clear any live timers if the component unmounts mid-hold
+  useEffect(() => () => repeater.release(), [repeater]);
 
   return (
     // One adjustable element for VoiceOver: `accessible` groups the children so
@@ -75,16 +57,16 @@ export function Stepper({
       className="flex-row items-center justify-between rounded-xl bg-white/10 p-2"
     >
       <Pressable
-        onPressIn={start(onDecrement)}
-        onPressOut={stop}
+        onPressIn={() => repeater.press('decrement')}
+        onPressOut={repeater.release}
         className="h-10 w-12 items-center justify-center rounded-lg bg-white/10"
       >
         <Text className="text-xl text-white">−</Text>
       </Pressable>
       <Text className="text-base font-semibold text-white">{value}</Text>
       <Pressable
-        onPressIn={start(onIncrement)}
-        onPressOut={stop}
+        onPressIn={() => repeater.press('increment')}
+        onPressOut={repeater.release}
         className="h-10 w-12 items-center justify-center rounded-lg bg-white/10"
       >
         <Text className="text-xl text-white">+</Text>
