@@ -267,11 +267,17 @@ function runGate(script: string, layers: boolean, userAgent = 'Chrome') {
       written.push(html);
     },
   };
-  const window = layers ? { CSSLayerBlockRule: function () {} } : {};
-  new Function('window', 'document', 'navigator', script)(window, document, {
-    userAgent,
-  });
-  return { written, attrs };
+  const window: {
+    CSSLayerBlockRule?: () => void;
+    __vite_is_modern_browser?: boolean;
+  } = layers ? { CSSLayerBlockRule: function () {} } : {};
+  new Function('Object', 'window', 'document', 'navigator', script)(
+    Object,
+    window,
+    document,
+    { userAgent }
+  );
+  return { written, attrs, window };
 }
 
 describe('legacyGateScript', () => {
@@ -307,6 +313,16 @@ describe('legacyGateScript', () => {
 
   it('flags engines without flex gap', () => {
     expect(runGate(script, false).attrs['data-lc-nogap']).toBe('');
+  });
+
+  it("pins plugin-legacy's modern flag to false in the legacy branch only", () => {
+    // Otherwise an engine without layers that passes plugin-legacy's module
+    // detection would skip the legacy bundle too, and nothing would boot.
+    const withoutLayers = runGate(script, false).window;
+    withoutLayers.__vite_is_modern_browser = true;
+    expect(withoutLayers.__vite_is_modern_browser).toBe(false);
+    const modern = runGate(script, true).window;
+    expect('__vite_is_modern_browser' in modern).toBe(false);
   });
 });
 

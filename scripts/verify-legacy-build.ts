@@ -364,6 +364,7 @@ async function run(): Promise<void> {
   await checkLegacyOutputIsEs5();
   await checkLegacyCss();
   await checkLegacyChunksHaveNoPropertyEscapes();
+  await checkGateWithoutLayers();
 
   // ---- 1. MODERN PATH ------------------------------------------------------
   {
@@ -511,6 +512,51 @@ async function run(): Promise<void> {
       view?.close();
       await server.close();
     }
+  }
+}
+
+/** Loads the unmodified index.html in this modern engine with cascade layers
+ *  hidden: the gate withholds the modern bundle, and plugin-legacy's own
+ *  detection passes here, so the app boots only if the gate also stops that
+ *  detection from claiming a modern browser. `forceLegacyHtml` strips the
+ *  inline module scripts, so it cannot catch that. */
+async function checkGateWithoutLayers(): Promise<void> {
+  const requests: string[] = [];
+  const notFound: string[] = [];
+  const server = await startStaticServer(undefined, requests, notFound);
+  let view: CaptureView | undefined;
+  try {
+    let booted = true;
+    try {
+      view = await openAndWait(server.url, HIDE_CSS_LAYERS);
+    } catch {
+      booted = false;
+    }
+    check(
+      'gate without layers: unmodified page boots the legacy bundle (.hero-grain visible)',
+      booted
+    );
+    if (view) {
+      const shellGone = await view.evaluate<boolean>(
+        "function () { return !document.getElementById('app-shell'); }"
+      );
+      check('gate without layers: #app-shell replaced by the app', shellGone);
+    }
+    check(
+      'gate without layers: requested index-legacy chunk (via SystemJS)',
+      requests.some((u) => /index-legacy-[^/]+\.js/.test(u))
+    );
+    const modernAssets = requests.filter(
+      (u) => /\/assets\/[^/]+\.(?:js|css)$/.test(u) && !/-legacy-/.test(u)
+    );
+    check(
+      'gate without layers: requested no modern JS or CSS',
+      modernAssets.length === 0,
+      modernAssets.join(', ') || 'none'
+    );
+  } finally {
+    view?.close();
+    await server.close();
   }
 }
 

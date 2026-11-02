@@ -129,7 +129,15 @@ function inlineScriptString(value: string): string {
  *  Firefox 63, Safari 14.1) and sets `NO_FLEX_GAP_ATTR` when it does not, so
  *  browsers that have gap but not `@layer` do not get the emulated margins on
  *  top. It sets `LEGACY_BROWSER_ATTR`, and for a Kindle agent sets
- *  `data-theme="high-contrast"`, all before the first paint. */
+ *  `data-theme="high-contrast"`, all before the first paint.
+ *
+ *  First, though, it pins plugin-legacy's `__vite_is_modern_browser` flag to
+ *  false. An engine without cascade layers that still passes plugin-legacy's
+ *  module detection (any modern engine with `CSSLayerBlockRule` removed)
+ *  would otherwise set the flag, so plugin-legacy's fallback would skip the
+ *  legacy bundle while this script has already withheld the modern one, and
+ *  nothing would boot. The setter swallows the detection script's assignment
+ *  without throwing in its strict-mode module. */
 export function legacyGateScript(
   modernTags: string,
   legacyHref: string
@@ -139,6 +147,7 @@ export function legacyGateScript(
   );
   return (
     `window.CSSLayerBlockRule?document.write(${inlineScriptString(modernTags)}):function(d){` +
+    'Object.defineProperty(window,"__vite_is_modern_browser",{get:function(){return!1},set:function(){}});' +
     'var e=d.documentElement,p=d.createElement("div");' +
     `e.setAttribute("${LEGACY_BROWSER_ATTR}","");` +
     `${KINDLE_UA_SOURCE}.test(navigator.userAgent)&&e.setAttribute("data-theme","high-contrast");` +

@@ -213,9 +213,13 @@ function legacyCssPlugin(): Plugin {
  *  legacy stylesheet) and before `legacyEs5Plugin` (which parses the script
  *  as ES5). Fails the build if the markup is not the shape it expects. */
 function legacyGatePlugin(): Plugin {
+  let base = '/';
   return {
     name: 'legacy-gate',
     apply: 'build',
+    configResolved(config) {
+      base = config.base;
+    },
     generateBundle: {
       order: 'post',
       handler(_options, bundle) {
@@ -236,8 +240,8 @@ function legacyGatePlugin(): Plugin {
         try {
           html.source = gateModernAssets(
             String(html.source),
-            `/${modern.fileName}`,
-            `/${legacyCss.fileName}`
+            `${base}${modern.fileName}`,
+            `${base}${legacyCss.fileName}`
           );
         } catch (err) {
           this.error(
