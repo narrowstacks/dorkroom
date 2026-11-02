@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { isSpeculativeImportInFlight, lazyPage } from '../lazy-page';
+import {
+  isSpeculativeImportInFlight,
+  lazyPage,
+  speculativeImport,
+} from '../lazy-page';
 import {
   handleVitePreloadError,
   wasRecentPreloadReload,
@@ -152,6 +156,26 @@ describe('handleVitePreloadError during a page preload (#354)', () => {
     await settle();
 
     expect(events).toHaveLength(1);
+    expect(reloadSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not reload for a stale non-page chunk loaded on hover', async () => {
+    const events: Event[] = [];
+    const loadModule = speculativeImport(() =>
+      Promise.resolve().then(() => {
+        events.push(dispatchPreloadError());
+        throw new Error('Failed to fetch dynamically imported module');
+      })
+    );
+
+    loadModule(true).catch(() => undefined);
+    await settle();
+    expect(events).toHaveLength(1);
+    expect(reloadSpy).not.toHaveBeenCalled();
+
+    loadModule(false).catch(() => undefined);
+    await settle();
+    expect(events).toHaveLength(2);
     expect(reloadSpy).toHaveBeenCalledTimes(1);
   });
 

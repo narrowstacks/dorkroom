@@ -1,8 +1,14 @@
 import '@testing-library/jest-dom/vitest';
 import { render, screen } from '@testing-library/react';
 import { Suspense } from 'react';
-import { describe, expect, it, vi } from 'vitest';
-import { lazyPage, preloadPage } from '../lazy-page';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import {
+  isSpeculativeImportInFlight,
+  lazyPage,
+  preloadPage,
+  SPECULATIVE_IMPORT_CAP_MS,
+  speculativeImport,
+} from '../lazy-page';
 
 const Page = ({ label }: { label: string }) => <p>{label}</p>;
 
@@ -52,5 +58,52 @@ describe('preloadPage', () => {
 
     preloadPage(LazyPage);
     expect(load).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('speculativeImport', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('shares one import between a hover and the navigation after it', async () => {
+    const load = vi.fn(() => Promise.resolve('module'));
+    const loadModule = speculativeImport(load);
+
+    const hover = loadModule(true);
+    expect(isSpeculativeImportInFlight()).toBe(true);
+    const navigation = loadModule(false);
+    expect(isSpeculativeImportInFlight()).toBe(false);
+
+    expect(await navigation).toBe('module');
+    expect(await hover).toBe('module');
+    expect(load).toHaveBeenCalledOnce();
+  });
+
+  it('stops counting a hung hover import after the cap', () => {
+    vi.useFakeTimers();
+    const loadModule = speculativeImport(() => new Promise<never>(() => {}));
+
+    loadModule(true).catch(() => undefined);
+    vi.advanceTimersByTime(SPECULATIVE_IMPORT_CAP_MS - 1);
+    expect(isSpeculativeImportInFlight()).toBe(true);
+    vi.advanceTimersByTime(1);
+    expect(isSpeculativeImportInFlight()).toBe(false);
+  });
+
+  it('clears the cap when the import settles, so it cannot uncount another', async () => {
+    vi.useFakeTimers();
+    await speculativeImport(() => Promise.resolve('done'))(true);
+    expect(isSpeculativeImportInFlight()).toBe(false);
+
+    vi.advanceTimersByTime(SPECULATIVE_IMPORT_CAP_MS / 2);
+    const hung = speculativeImport(() => new Promise<never>(() => {}));
+    hung(true).catch(() => undefined);
+
+    // The settled import's cap would have fired here had it been left set.
+    vi.advanceTimersByTime(SPECULATIVE_IMPORT_CAP_MS / 2);
+    expect(isSpeculativeImportInFlight()).toBe(true);
+    vi.advanceTimersByTime(SPECULATIVE_IMPORT_CAP_MS / 2);
+    expect(isSpeculativeImportInFlight()).toBe(false);
   });
 });

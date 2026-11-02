@@ -2,6 +2,7 @@ import { ROUTE_DESCRIPTIONS, ROUTE_TITLES } from '@dorkroom/ui';
 import { createFileRoute } from '@tanstack/react-router';
 import { Suspense } from 'react';
 import { lazyPage } from '../app/lib/lazy-page';
+import { loadCataloguePrefetch } from '../app/lib/load-catalogue-prefetch';
 import { LoadingSpinner } from '../components/loading-spinner';
 import { filmsSearchSchema } from './search-schemas';
 
@@ -25,10 +26,18 @@ export const Route = createFileRoute('/films')({
   // holding the navigation for either: see lazyPage and catalogue-prefetch.
   loader: ({ context: { queryClient }, preload }) => {
     FilmsPage.preload(preload);
-    if (preload) return;
-    import('../app/lib/catalogue-prefetch')
+    const prefetcher = loadCataloguePrefetch(preload);
+    if (preload) {
+      // Only the module on intent, through the speculative count, so a stale
+      // chunk cannot reload the page on hover.
+      prefetcher.catch(() => undefined);
+      return;
+    }
+    prefetcher
       .then(({ prefetchFilmsPageData }) => prefetchFilmsPageData(queryClient))
-      .catch(() => undefined); // Unreachable: the page fetches its own.
+      // A failed import is left to the page, which fetches its own lists,
+      // and to the stale-chunk recovery.
+      .catch(() => undefined);
   },
   component: () => (
     <Suspense fallback={<LoadingSpinner />}>

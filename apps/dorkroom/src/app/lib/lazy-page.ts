@@ -26,20 +26,83 @@ export type LazyPage<P extends object> = LazyExoticComponent<
 };
 
 /**
- * Page imports in flight that only a speculative preload (hover, focus,
- * touch) asked for. A render or a real navigation joining the import takes
- * it off the count, and every import leaves it when it settles.
+ * Imports in flight that only a speculative preload (hover, focus, touch)
+ * asked for. A render or a real navigation joining the import takes it off
+ * the count, and every import leaves it when it settles or after
+ * `SPECULATIVE_IMPORT_CAP_MS`.
  */
 let speculativeImports = 0;
 
 /**
- * Whether a page chunk is loading only because a link was hovered, focused
+ * Whether a chunk is loading only because a link was hovered, focused
  * or touched. The stale-chunk recovery reads this to skip its reload: a
  * hover must not reload the page. A click afterwards imports the chunk
  * again, non-speculatively, and that failure reloads as before.
  */
 export function isSpeculativeImportInFlight(): boolean {
   return speculativeImports > 0;
+}
+
+/**
+ * How long a speculative import may hold off the stale-chunk recovery. An
+ * import that hangs (a stalled connection) leaves the count after this, so
+ * it cannot switch the recovery off for the rest of the session.
+ */
+export const SPECULATIVE_IMPORT_CAP_MS = 10_000;
+
+/** Counts one speculative import; the returned `leave` is idempotent. */
+function enterSpeculative(): () => void {
+  speculativeImports += 1;
+  let counted = true;
+  const leave = () => {
+    if (!counted) return;
+    counted = false;
+    clearTimeout(cap);
+    speculativeImports -= 1;
+  };
+  const cap = setTimeout(leave, SPECULATIVE_IMPORT_CAP_MS);
+  return leave;
+}
+
+/**
+ * Wraps a dynamic import so it runs once and its callers share it, counting
+ * it as speculative (see {@link isSpeculativeImportInFlight}) while only
+ * speculative callers have asked for it. A non-speculative caller joining
+ * takes it off the count, and so does settling or the time cap. A failed
+ * import is dropped, so the next call tries again.
+ *
+ * For any chunk a route loader starts on intent: a plain `import()` there
+ * would let a stale chunk reload the page on hover.
+ */
+export function speculativeImport<T>(
+  load: () => Promise<T>
+): (speculative?: boolean) => Promise<T> {
+  let pending: Promise<T> | undefined;
+  let leavePending: (() => void) | undefined;
+  const leave = () => {
+    leavePending?.();
+    leavePending = undefined;
+  };
+  return (speculative = false) => {
+    if (pending) {
+      if (!speculative) leave();
+      return pending;
+    }
+    const attempt = load();
+    pending = attempt;
+    if (speculative) leavePending = enterSpeculative();
+    attempt.then(
+      () => {
+        if (pending === attempt) leave();
+      },
+      () => {
+        if (pending !== attempt) return;
+        leave();
+        pending = undefined;
+      }
+    );
+    return attempt;
+  };
 }
 
 const preloaders = new WeakMap<WeakKey, (speculative?: boolean) => void>();
@@ -56,41 +119,15 @@ const preloaders = new WeakMap<WeakKey, (speculative?: boolean) => void>();
  * renders straight away and the page's own `<Suspense>` spinner covers the
  * wait.
  *
- * A failed import is dropped, so the next call (or the lazy component's
- * render, which surfaces the failure to the route's error boundary as
- * before) tries again.
+ * The import goes through {@link speculativeImport}: shared with the render,
+ * counted while only a hover asked for it, and dropped on failure, so the
+ * next call (or the lazy component's render, which surfaces the failure to
+ * the route's error boundary as before) tries again.
  */
 export function lazyPage<P extends object>(
   load: () => Promise<{ default: ComponentType<P> }>
 ): LazyPage<P> {
-  let pending: Promise<{ default: ComponentType<P> }> | undefined;
-  let pendingIsSpeculative = false;
-  const leaveSpeculative = () => {
-    if (!pendingIsSpeculative) return;
-    pendingIsSpeculative = false;
-    speculativeImports -= 1;
-  };
-  const begin = (speculative: boolean) => {
-    if (pending) {
-      if (!speculative) leaveSpeculative();
-      return pending;
-    }
-    const attempt = load();
-    pending = attempt;
-    pendingIsSpeculative = speculative;
-    if (speculative) speculativeImports += 1;
-    attempt.then(
-      () => {
-        if (pending === attempt) leaveSpeculative();
-      },
-      () => {
-        if (pending !== attempt) return;
-        leaveSpeculative();
-        pending = undefined;
-      }
-    );
-    return attempt;
-  };
+  const begin = speculativeImport(load);
   const preload = (speculative = false) => {
     begin(speculative).catch(() => undefined);
   };
