@@ -29,6 +29,7 @@
       ],
       "outputs": ["dist/**"],
       "env": [
+        "VERCEL",
         "SUPABASE_MASTER_API_KEY",
         "SUPABASE_ENDPOINT",
         "UNKEY_ROOT_KEY",
@@ -100,6 +101,7 @@
         "tools/__tests__/**",
         "vitest.config.ts",
         "PRIVACY.md",
+        "vercel.json",
         "utils/routeMetadata.ts",
         "apps/dorkroom/src/app/lib/analytics/tracked-events.ts",
         "apps/dorkroom/src/app/pages/privacy-page.tsx",

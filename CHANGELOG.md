@@ -35,6 +35,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - **The custom recipe form lists every film and developer**, including ones that don't have a recipe yet.
 - **filmdev.org recipes shot at box speed import at box speed.** Recipes that don't say what speed the film was shot at came in as ISO 400, so a recipe for a 100-speed film showed as "pushed 2 stops". They now use the film's own speed.
 - **Pages no longer scroll sideways on tablets and narrow windows.** Between 640 and about 1090 px wide the top bar was wider than the window, cutting off its right end. Windows narrower than 1024 px now get the menu and search buttons at the bottom right, as on phones, and the full top bar fits from 1024 px up. (fixes #548)
+- **Film thumbnails on /films are a fraction of the download.** Each card used to download the full-size packaging photo (up to 400 KB, about 9 MB for the whole list) to show it at 60 px. Thumbnails are now resized to the size they are shown at, served as WebP, and cached, and the larger photo in the detail panel gets its own sharper size. (part of #353)
 
 ## [2026.10.30]
 
