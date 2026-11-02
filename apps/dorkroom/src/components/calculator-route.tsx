@@ -7,6 +7,7 @@ import { useNavigate, useSearch } from '@tanstack/react-router';
 import { type ComponentType, Suspense, useEffect, useState } from 'react';
 import type { CalculatorTool } from '../app/lib/analytics/tracked-events';
 import { useShareOpened } from '../app/lib/analytics/use-share-analytics';
+import { preloadPage } from '../app/lib/lazy-page';
 import {
   type ParamParser,
   searchSchemaWithRest,
@@ -163,6 +164,10 @@ export function calculatorRoute<const M extends CalculatorLinkParamMap>(
     // Plain validators, not zod: every calculator route's `validateSearch` is
     // in the entry chunk, so its imports load on every page (issue #352).
     validateSearch: searchSchemaWithRest(linkParamFields, stringParam),
+    // Starts the page chunk on intent and at navigation without holding the
+    // navigation for it, when the page is a `lazyPage` (a route's always is):
+    // see lazyPage.
+    loader: ({ preload }: { preload: boolean }) => preloadPage(page, preload),
     component: () => (
       <CalculatorRoute tool={tool} params={params} page={page} />
     ),

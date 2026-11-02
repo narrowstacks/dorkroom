@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  isSpeculativeImportInFlight,
+  lazyPage,
+  speculativeImport,
+} from '../lazy-page';
+import {
   handleVitePreloadError,
   wasRecentPreloadReload,
 } from '../preload-chunk-recovery';
@@ -90,6 +95,123 @@ describe('handleVitePreloadError', () => {
 
     expect(reloadSpy).not.toHaveBeenCalled();
     expect(event.defaultPrevented).toBe(false);
+  });
+});
+
+/**
+ * A page chunk that 404s the way a stale one does in a build: Vite's preload
+ * helper fires `vite:preloadError` from inside the import, before the import
+ * rejects to whoever asked for it.
+ */
+function stalePage() {
+  const events: Event[] = [];
+  const page = lazyPage<object>(() =>
+    Promise.resolve().then(() => {
+      events.push(dispatchPreloadError());
+      throw new Error('Failed to fetch dynamically imported module');
+    })
+  );
+  return { page, events };
+}
+
+/** Lets the stale import fire its event and settle. */
+const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+describe('handleVitePreloadError during a page preload (#354)', () => {
+  let reloadSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    reloadSpy = vi
+      .spyOn(window.location, 'reload')
+      .mockImplementation(() => {});
+  });
+
+  it('does not reload for a hover, and a click afterwards does', async () => {
+    const { page, events } = stalePage();
+
+    page.preload(true);
+    expect(isSpeculativeImportInFlight()).toBe(true);
+    await settle();
+
+    expect(events).toHaveLength(1);
+    expect(reloadSpy).not.toHaveBeenCalled();
+    expect(events[0]?.defaultPrevented).toBe(false);
+    // Settled, so the count is back to zero and cannot hold off a reload.
+    expect(isSpeculativeImportInFlight()).toBe(false);
+
+    page.preload(false);
+    await settle();
+
+    expect(events).toHaveLength(2);
+    expect(reloadSpy).toHaveBeenCalledTimes(1);
+    expect(events[1]?.defaultPrevented).toBe(true);
+  });
+
+  it('reloads when a click joins a hover preload still in flight', async () => {
+    const { page, events } = stalePage();
+
+    page.preload(true);
+    page.preload(false);
+    expect(isSpeculativeImportInFlight()).toBe(false);
+    await settle();
+
+    expect(events).toHaveLength(1);
+    expect(reloadSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not reload for a stale non-page chunk loaded on hover', async () => {
+    const events: Event[] = [];
+    const loadModule = speculativeImport(() =>
+      Promise.resolve().then(() => {
+        events.push(dispatchPreloadError());
+        throw new Error('Failed to fetch dynamically imported module');
+      })
+    );
+
+    loadModule(true).catch(() => undefined);
+    await settle();
+    expect(events).toHaveLength(1);
+    expect(reloadSpy).not.toHaveBeenCalled();
+
+    loadModule(false).catch(() => undefined);
+    await settle();
+    expect(events).toHaveLength(2);
+    expect(reloadSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not reload for a hover import that fails after a long delay', async () => {
+    vi.useFakeTimers();
+    const events: Event[] = [];
+    const loadModule = speculativeImport(
+      () =>
+        new Promise<never>((_resolve, reject) =>
+          setTimeout(() => {
+            events.push(dispatchPreloadError());
+            reject(new Error('Failed to fetch dynamically imported module'));
+          }, 60_000)
+        )
+    );
+
+    loadModule(true).catch(() => undefined);
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    expect(events).toHaveLength(1);
+    expect(reloadSpy).not.toHaveBeenCalled();
+    expect(events[0]?.defaultPrevented).toBe(false);
+    expect(isSpeculativeImportInFlight()).toBe(false);
+  });
+
+  it('leaves the count at zero after a hover preload succeeds', async () => {
+    const page = lazyPage<object>(() =>
+      Promise.resolve({ default: () => null })
+    );
+
+    page.preload(true);
+    page.preload(true);
+    expect(isSpeculativeImportInFlight()).toBe(true);
+    await settle();
+
+    expect(isSpeculativeImportInFlight()).toBe(false);
   });
 });
 
