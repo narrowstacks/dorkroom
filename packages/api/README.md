@@ -58,6 +58,8 @@ const ilfordBw = await fetchFilms({ brand: 'Ilford', colorType: 'bw', limit: 20 
 const page2 = await fetchCombinations({ film: 'ilford-hp5-plus', count: 50, page: 2 });
 ```
 
+Use the filters from keyed `api.dorkroom.art` callers (each key has its own rate budget). The dorkroom.art web app fetches the bare lists and filters client-side, because query-string requests there bypass the CDN and share a site-wide budget.
+
 `fuzzy` is still accepted but deprecated: the API ignores it and the client
 never sends it unless you set it.
 

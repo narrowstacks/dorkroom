@@ -52,6 +52,16 @@ fetchCombinations({ film: 'ilford-hp5-plus', count: 50, page: 2 });
 | `fetchDevelopers` | `query`, `limit`, `slug`, `type`, `manufacturer` |
 | `fetchCombinations` | `film`, `developer`, `id`, `count`, `page`, `query`, `limit` |
 
+**When to use the params.** The web app (dorkroom.art, anonymous) fetches the
+bare lists once and filters client-side: TanStack Query caches them and the
+route loaders prefetch them. Keep it that way. On dorkroom.art any request with
+a query string misses the CDN and reaches the origin, and a sibling change
+(#598) charges such requests to a site-wide budget of 60 per minute and 2000
+per day across all visitors, so parameterised fetches from the web app would
+spend a shared budget on data it already has. The params are for keyed
+`api.dorkroom.art` callers (the iOS app, third parties), where each key has its
+own budget.
+
 A parameterised `useQuery` must include the params in its `queryKey`, e.g.
 `queryKey: ['films', { slug }], queryFn: ({ signal }) => fetchFilms({ signal, slug })`.
 
