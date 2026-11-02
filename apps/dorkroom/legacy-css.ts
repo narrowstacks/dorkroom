@@ -159,11 +159,39 @@ export function legacyGateScript(
   );
 }
 
-/** The tags `legacyGateScript` decides on: the modern module entry, its
- *  modulepreloads, and stylesheets. Inline module scripts (plugin-legacy's
- *  detection and fallback) have no `src` and stay in the markup. */
-const MODERN_TAG =
-  /<script\b[^>]*\btype="module"[^>]*\bsrc="[^"]*"[^>]*>\s*<\/script>|<link\b[^>]*\brel="(?:modulepreload|stylesheet)"[^>]*>/g;
+/** The tags `legacyGateScript` decides on, exactly as Vite writes them: the
+ *  modern module entry, its modulepreloads, and the stylesheet. Inline module
+ *  scripts (plugin-legacy's detection and fallback) have no `src` and stay in
+ *  the markup. Matched as literal strings, never by stripping HTML. */
+const ENTRY_OPEN = '<script type="module" crossorigin src="';
+const ENTRY_CLOSE = '"></script>';
+const PRELOAD_OPEN = '<link rel="modulepreload" crossorigin href="';
+const SHEET_OPEN = '<link rel="stylesheet" crossorigin href="';
+const LINK_CLOSE = '">';
+
+/** How often `needle` occurs in `html`. */
+function occurrences(html: string, needle: string): number {
+  let count = 0;
+  for (
+    let at = html.indexOf(needle);
+    at >= 0;
+    at = html.indexOf(needle, at + 1)
+  ) {
+    count++;
+  }
+  return count;
+}
+
+/** Module scripts with a `src`, in any attribute order. */
+function moduleEntries(html: string): number {
+  let count = 0;
+  const open = '<script type="module"';
+  for (let at = html.indexOf(open); at >= 0; at = html.indexOf(open, at + 1)) {
+    const end = html.indexOf('>', at);
+    if (end >= 0 && html.slice(at, end).includes(' src=')) count++;
+  }
+  return count;
+}
 
 /** `html` with the modern entry script, its modulepreloads and the stylesheet
  *  `<link>` to `cssHref` replaced by one inline `legacyGateScript`, at the
@@ -176,35 +204,53 @@ export function gateModernAssets(
   cssHref: string,
   legacyHref: string
 ): string {
-  const tags = [...html.matchAll(MODERN_TAG)];
-  const entries = tags.filter(([tag]) => tag.startsWith('<script'));
-  const sheets = tags.filter(([tag]) => /\brel="stylesheet"/.test(tag));
-  if (entries.length !== 1 || sheets.length !== 1) {
+  const entryCount = moduleEntries(html);
+  const sheetCount = occurrences(html, 'rel="stylesheet"');
+  if (entryCount !== 1 || sheetCount !== 1) {
     throw new Error(
       `expected one module entry and one stylesheet, found ` +
-        `${entries.length} and ${sheets.length}`
+        `${entryCount} and ${sheetCount}`
     );
   }
-  if (!sheets[0]?.[0].includes(`href="${cssHref}"`)) {
+  const start = html.indexOf(ENTRY_OPEN);
+  if (start < 0) {
+    throw new Error(`the module entry is not written as ${ENTRY_OPEN}...`);
+  }
+  // Walk the block of tags from the entry on, one known tag at a time.
+  const tags: string[] = [];
+  const hrefs: { sheet?: string; preloads: number } = { preloads: 0 };
+  let pos = start;
+  let end = start;
+  for (;;) {
+    while (pos < html.length && /\s/.test(html.charAt(pos))) pos++;
+    const open = [ENTRY_OPEN, PRELOAD_OPEN, SHEET_OPEN].find((o) =>
+      html.startsWith(o, pos)
+    );
+    if (!open) break;
+    const tagStart = pos;
+    const close = open === ENTRY_OPEN ? ENTRY_CLOSE : LINK_CLOSE;
+    const closeAt = html.indexOf(close, pos + open.length);
+    const url = closeAt < 0 ? '' : html.slice(pos + open.length, closeAt);
+    if (!url || url.includes('"') || url.includes('>')) break;
+    if (open === SHEET_OPEN) hrefs.sheet = url;
+    if (open === PRELOAD_OPEN) hrefs.preloads++;
+    pos = closeAt + close.length;
+    end = pos;
+    tags.push(html.slice(tagStart, end));
+  }
+  const preloadCount = occurrences(html, 'rel="modulepreload"');
+  if (hrefs.sheet === undefined || hrefs.preloads !== preloadCount) {
+    throw new Error(
+      `the modern tags are not contiguous; between them: ` +
+        html.slice(pos, pos + 80).trim()
+    );
+  }
+  if (hrefs.sheet !== cssHref) {
     throw new Error(`the stylesheet is not ${cssHref}`);
   }
-  const first = tags[0];
-  const last = tags[tags.length - 1];
-  if (first?.index === undefined || last?.index === undefined) {
-    throw new Error('no modern tags');
-  }
-  const start = first.index;
-  const end = last.index + last[0].length;
-  const between = html.slice(start, end).replace(MODERN_TAG, '').trim();
-  if (between !== '') {
-    throw new Error(
-      `the modern tags are not contiguous; between them: ${between.slice(0, 80)}`
-    );
-  }
-  const modernTags = tags.map(([tag]) => tag).join('');
   return (
     html.slice(0, start) +
-    `<script>${legacyGateScript(modernTags, legacyHref)}</script>` +
+    `<script>${legacyGateScript(tags.join(''), legacyHref)}</script>` +
     html.slice(end)
   );
 }

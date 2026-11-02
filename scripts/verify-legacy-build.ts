@@ -322,14 +322,13 @@ async function checkLegacyCss(): Promise<void> {
       body.includes(`setAttribute("${LEGACY_BROWSER_ATTR}","")`)
     )
   );
-  const markup = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, (tag) =>
-    /^<script\b[^>]*\bsrc=/i.test(tag) ? tag : ''
-  );
+  // In the gate script these attributes are written with escaped quotes
+  // (`rel=\"stylesheet\"`), so a plain match is a tag left in the markup.
   const ungated = [
-    ...markup.matchAll(
-      /<script\b[^>]*\btype="module"[^>]*\bsrc=[^>]*>|<link\b[^>]*\brel="(?:modulepreload|stylesheet)"[^>]*>/gi
-    ),
-  ].map(([tag]) => tag);
+    'rel="modulepreload"',
+    'rel="stylesheet"',
+    '<script type="module" crossorigin src=',
+  ].filter((needle) => html.includes(needle));
   check(
     'gate: no modern entry, modulepreload or stylesheet tag left in the markup',
     ungated.length === 0,
