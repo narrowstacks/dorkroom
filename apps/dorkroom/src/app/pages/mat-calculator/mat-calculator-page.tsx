@@ -159,6 +159,48 @@ function GuideBarCard({
 type MatCalculation = UseMatCalculatorReturn;
 type MatSetter = MatCalculation['set'];
 
+/** "overlap 5/16 inches" when the mat covers the art, "gap 1 1/4 inches" when it doesn't reach it. */
+function spokenOverlap(fmt: MatCalculation['fmt'], overlap: number): string {
+  const amount = spokenLength(fmt(Math.abs(overlap)));
+  return overlap < 0 ? `gap ${amount}` : `overlap ${amount}`;
+}
+
+/**
+ * Screen-reader summary of the result. The window opening depends only on the
+ * board and borders, so the reveal match is part of the message too: art and
+ * reveal edits change the message, and the announcer speaks them. The page's
+ * `StatusAlert`s mount together with their text, so they can't be relied on to
+ * be announced (#431).
+ */
+function describeMatResult(
+  calc: Pick<
+    MatCalculation,
+    | 'fmt'
+    | 'valid'
+    | 'revealMode'
+    | 'revVal'
+    | 'windowW'
+    | 'windowH'
+    | 'overlapLeft'
+    | 'overlapTop'
+    | 'hasRevealMismatch'
+  >
+): string {
+  if (!calc.valid) {
+    return 'No window opening. Check the inputs';
+  }
+  const opening = `Window opening ${spokenLength(calc.fmt(calc.windowW))} by ${spokenLength(calc.fmt(calc.windowH))}`;
+  if (!calc.revealMode) return opening;
+  const reveal =
+    calc.revVal > 0
+      ? `the reveal of ${spokenLength(calc.fmt(calc.revVal))}`
+      : 'the art with no reveal';
+  if (!calc.hasRevealMismatch) {
+    return `${opening}; matches ${reveal}`;
+  }
+  return `${opening}; doesn't match ${reveal}, ${spokenOverlap(calc.fmt, calc.overlapLeft)} left and right, ${spokenOverlap(calc.fmt, calc.overlapTop)} top and bottom`;
+}
+
 function MatResults({
   fmt,
   valid,
@@ -524,13 +566,7 @@ export default function MatCalculatorPage({
 
   return (
     <>
-      <ResultAnnouncer
-        message={
-          calc.valid
-            ? `Window opening ${spokenLength(calc.fmt(calc.windowW))} by ${spokenLength(calc.fmt(calc.windowH))}`
-            : ''
-        }
-      />
+      <ResultAnnouncer message={describeMatResult(calc)} />
       <CalculatorLayout
         title="Mat Cut Calculator"
         icon={getRouteIcon('/mat')}
