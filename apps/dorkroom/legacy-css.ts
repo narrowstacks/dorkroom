@@ -212,7 +212,11 @@ export const NO_MOTION_CSS =
  *  leaned on it (menu drawer, header, nav pill, nav dropdown) turn solid. The
  *  two overlay scrims keep their dim, only without the blur. Their
  *  backgrounds are inline styles, hence `!important`. Selectors avoid `:is()`,
- *  which Chromium 80 lacks. */
+ *  which Chromium 80 lacks.
+ *  Careful: the solid rule matches any `backdrop-blur-md` and anything blurred
+ *  inside `<header>`. A future translucent scrim using either would turn
+ *  opaque here, so give scrims `backdrop-blur-sm` (or plain `backdrop-blur`)
+ *  and keep them outside the header. */
 export const NO_BLUR_CSS =
   '[class*="backdrop-blur"]{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}' +
   '#mobile-navigation,header[class*="backdrop-blur"],header [class*="backdrop-blur"],' +
