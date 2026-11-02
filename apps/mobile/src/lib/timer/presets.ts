@@ -4,6 +4,7 @@
 import type { Combination } from '@dorkroom/api';
 import { STANDARD_TEMP_F } from '@dorkroom/logic';
 import { z } from 'zod';
+import { parseCollection } from '@/lib/stored-collection';
 import { AGITATION_PRESETS, patternFromRecipe } from './agitation';
 import type { StageKind, TimerPreset, TimerStage } from './types';
 
@@ -55,19 +56,11 @@ export const timerPresetSchema = z.object({
 export const timerPresetsSchema = z.array(timerPresetSchema);
 
 /**
- * Pure: parse a stored JSON string into presets, falling back to [] on bad/corrupt
- * data. Kept here (not in the native storage module) so it's unit-testable.
+ * Pure: parse a stored JSON string into presets, skipping any preset that fails
+ * validation. Kept here (not in the native storage module) so it's unit-testable.
  */
 export function parsePresets(raw: string | undefined): TimerPreset[] {
-  if (!raw) return [];
-  let json: unknown;
-  try {
-    json = JSON.parse(raw);
-  } catch {
-    return [];
-  }
-  const result = timerPresetsSchema.safeParse(json);
-  return result.success ? result.data : [];
+  return parseCollection(raw, timerPresetSchema);
 }
 
 const minutes = (m: number): number => Math.round(m * 60);

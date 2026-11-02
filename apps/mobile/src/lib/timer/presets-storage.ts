@@ -1,14 +1,14 @@
-// MMKV-backed persistence for user-saved timer presets. Mirrors
-// lib/film-log-storage.ts: the collection is a JSON-stringified array under one
-// key, read back through a schema safeParse so corrupt/legacy data falls back to
-// [] instead of crashing. The built-in DEFAULT_BW_PRESET is not stored — it's
-// prepended at read time so it's always available.
-//
-// This file touches the native MMKV module, so (like film-log-storage) it isn't
-// unit-tested; the pure schema + `parsePresets` are exercised in presets.test.ts.
+// MMKV-backed persistence for user-saved timer presets. Like
+// lib/film-log-storage.ts, the collection is a JSON-stringified array under one
+// key, read and written through lib/stored-collection.ts: presets that fail
+// validation are skipped on read and moved to `presets.quarantine` before a
+// write replaces them (issue #532). The built-in DEFAULT_BW_PRESET is not
+// stored; it's prepended at read time so it's always available.
+
 import { createMMKV } from 'react-native-mmkv';
 import { generateId } from '@/lib/id';
-import { DEFAULT_BW_PRESET, parsePresets } from './presets';
+import { writeCollection } from '@/lib/stored-collection';
+import { DEFAULT_BW_PRESET, parsePresets, timerPresetSchema } from './presets';
 import type { TimerPreset, TimerStage } from './types';
 
 export const storage = createMMKV({ id: 'dorkroom-timer' });
@@ -30,7 +30,7 @@ export function listPresets(): TimerPreset[] {
 }
 
 export function setUserPresets(presets: TimerPreset[]): void {
-  storage.set(KEYS.presets, JSON.stringify(presets));
+  writeCollection(storage, KEYS.presets, timerPresetSchema, presets);
 }
 
 export function addPreset(name: string, stages: TimerStage[]): TimerPreset {

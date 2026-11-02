@@ -36,6 +36,7 @@ import {
   updateRoll,
   updateShot,
 } from './film-log-storage';
+import { getQuarantined } from './stored-collection';
 
 function newRoll() {
   return addRoll({
@@ -264,6 +265,86 @@ describe('film-log storage', () => {
   it('falls back to [] when the shape fails schema validation', () => {
     expect(parseRolls(JSON.stringify([{ id: 1, bogus: true }]))).toEqual([]);
     expect(parseRolls(undefined)).toEqual([]);
+  });
+
+  describe('invalid records (issue #532)', () => {
+    // The issue's repro: a status value the schema does not know.
+    const badRoll = { ...fullRoll, id: 'bad', status: 'lost-in-the-mail' };
+    const goodRoll = { ...fullRoll, id: 'good' };
+
+    beforeEach(() => {
+      storage.set(KEYS.rolls, JSON.stringify([goodRoll, badRoll]));
+    });
+
+    it('loads the valid rolls when one is invalid', () => {
+      expect(getRolls()).toEqual([goodRoll]);
+    });
+
+    it('keeps every valid roll and quarantines the bad one on the next write', () => {
+      const created = newRoll();
+      expect(getRolls().map((r) => r.id)).toEqual([created.id, 'good']);
+      expect(getQuarantined(storage, KEYS.rolls)).toEqual([
+        JSON.stringify(badRoll),
+      ]);
+    });
+
+    it('leaves the quarantine intact and de-duplicated across later writes', () => {
+      newRoll();
+      newRoll();
+      updateRoll('good', { name: 'Renamed' });
+      expect(getQuarantined(storage, KEYS.rolls)).toEqual([
+        JSON.stringify(badRoll),
+      ]);
+      expect(getRolls()).toHaveLength(3);
+    });
+
+    it('applies to cameras, lenses and custom films too', () => {
+      const badCamera = { ...fullCamera, id: 'bad', format: 'glass-plate' };
+      const badLens = { ...fullLens, id: 'bad', focalLength: 'wide' };
+      const badFilm = { ...fullFilm, id: 'bad', process: 'tintype' };
+      storage.set(KEYS.cameras, JSON.stringify([fullCamera, badCamera]));
+      storage.set(KEYS.lenses, JSON.stringify([fullLens, badLens]));
+      storage.set(KEYS.customFilms, JSON.stringify([fullFilm, badFilm]));
+      addCamera({ name: 'Leica M6', format: '35mm' });
+      addLens({ name: 'Summicron 50mm', cameraId: null });
+      addCustomFilm({ brand: 'Ilford', name: 'HP5', iso: 400, process: 'bw' });
+      expect(getCameras()).toHaveLength(2);
+      expect(getLenses()).toHaveLength(2);
+      expect(getCustomFilms()).toHaveLength(2);
+      expect(getQuarantined(storage, KEYS.cameras)).toEqual([
+        JSON.stringify(badCamera),
+      ]);
+      expect(getQuarantined(storage, KEYS.lenses)).toEqual([
+        JSON.stringify(badLens),
+      ]);
+      expect(getQuarantined(storage, KEYS.customFilms)).toEqual([
+        JSON.stringify(badFilm),
+      ]);
+    });
+  });
+
+  it('preserves unparseable storage exactly before a write replaces it', () => {
+    const corrupt = '[{"id":"r1", truncated';
+    storage.set(KEYS.rolls, corrupt);
+    const created = newRoll();
+    expect(getRolls().map((r) => r.id)).toEqual([created.id]);
+    expect(getQuarantined(storage, KEYS.rolls)).toEqual([corrupt]);
+  });
+
+  it('keeps a damaged quarantine value as an entry rather than replacing it', () => {
+    storage.set(`${KEYS.rolls}.quarantine`, 'garbled');
+    storage.set(KEYS.rolls, 'not json');
+    newRoll();
+    expect(getQuarantined(storage, KEYS.rolls)).toEqual([
+      'garbled',
+      'not json',
+    ]);
+  });
+
+  it('writes no quarantine on a fresh install', () => {
+    newRoll();
+    expect(getRolls()).toHaveLength(1);
+    expect(storage.getString(`${KEYS.rolls}.quarantine`)).toBeUndefined();
   });
 
   it('deletes the photo file when a shot with a photo is removed', async () => {
