@@ -6,6 +6,7 @@ import { cssVars } from '../../lib/dom';
 import { optionChangeHandler } from '../../lib/select-options';
 import { SearchableSelect } from '../searchable-select';
 import { Select } from '../select';
+import { countActiveFilmFilters } from './count-active-film-filters';
 
 /** Static filter options - defined outside component to prevent recreation on each render */
 const FILM_TYPE_OPTIONS: SelectItem[] = [
@@ -70,13 +71,13 @@ export const FilmFiltersMobile: FC<FilmFiltersMobileProps> = ({
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(true);
 
-  // Count active filters
-  const activeFilterCount = [
+  const activeFilterCount = countActiveFilmFilters({
+    searchQuery,
     colorTypeFilter,
     isoSpeedFilter,
     brandFilter,
-    discontinuedFilter !== 'all' ? discontinuedFilter : '',
-  ].filter(Boolean).length;
+    discontinuedFilter,
+  });
 
   return (
     // z-10, not z-0: the virtualized results grid that follows is made of
