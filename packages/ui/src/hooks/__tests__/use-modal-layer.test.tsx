@@ -231,6 +231,35 @@ describe('useModalLayer', () => {
       live.remove();
     });
 
+    it('makes a live region beside an inline layer inert, but not one on the body', () => {
+      function Inline() {
+        const ref = useModalLayer<HTMLDivElement>(true);
+        return (
+          <main>
+            <div role="alert">
+              <button type="button">Dismiss</button>
+            </div>
+            <div ref={ref} aria-modal="true" aria-label="Sheet" tabIndex={-1}>
+              <button type="button">Inside</button>
+            </div>
+          </main>
+        );
+      }
+      const bodyAlert = document.createElement('div');
+      bodyAlert.setAttribute('role', 'alert');
+      document.body.append(bodyAlert);
+
+      render(<Inline />);
+      expect(isInert(screen.getByRole('button', { name: 'Dismiss' }))).toBe(
+        true
+      );
+      expect(isInert(screen.getByRole('button', { name: 'Inside' }))).toBe(
+        false
+      );
+      expect(bodyAlert).not.toHaveAttribute('inert');
+      bodyAlert.remove();
+    });
+
     it('keeps keepInteractive elements clickable, wherever they sit', () => {
       function WithToggle() {
         const toggleRef = useRef<HTMLButtonElement>(null);
@@ -323,6 +352,32 @@ describe('useModalLayer', () => {
       rerender(<WithReturn isOpen />);
       rerender(<WithReturn isOpen={false} />);
       expect(screen.getByRole('button', { name: 'Target' })).toHaveFocus();
+    });
+
+    it('falls back to the layer below when nothing had focus at open', () => {
+      const { rerender } = render(
+        <Page>
+          <Layer isOpen label="Below" />
+          <Layer isOpen={false} label="Above" />
+        </Page>
+      );
+      // A shortcut opens the upper layer while focus sits on the body.
+      const focused = document.activeElement;
+      if (focused instanceof HTMLElement) focused.blur();
+      expect(document.activeElement).toBe(document.body);
+      rerender(
+        <Page>
+          <Layer isOpen label="Below" />
+          <Layer isOpen label="Above" />
+        </Page>
+      );
+      rerender(
+        <Page>
+          <Layer isOpen label="Below" />
+          <Layer isOpen={false} label="Above" />
+        </Page>
+      );
+      expect(screen.getByRole('dialog', { name: 'Below' })).toHaveFocus();
     });
 
     it('falls back to the layer below when the opener is gone', () => {

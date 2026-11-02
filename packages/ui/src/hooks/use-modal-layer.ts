@@ -20,12 +20,17 @@ const TABBABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [contenteditable]:not([contenteditable="false"]), [tabindex]:not([tabindex="-1"])';
 
 /**
- * `document.body` children never made inert. Live regions stay announced (the
- * toast is portalled to the body for this reason), and non-rendered elements
- * are skipped as noise.
+ * Non-rendered elements, skipped as noise at any depth of the walk.
  */
-const NEVER_INERT =
-  '[aria-live], [role="status"], [role="alert"], script, style, link, template';
+const NEVER_INERT = 'script, style, link, template';
+
+/**
+ * Live regions portalled to `document.body` (the toast, for this reason) stay
+ * announced. Only body children are exempt: a live region nested beside an
+ * inline layer (a drawer rendered in place) is page content like any other,
+ * and its controls must not stay reachable behind the modal.
+ */
+const BODY_LIVE_REGION = '[aria-live], [role="status"], [role="alert"], output';
 
 /**
  * Whether the element is rendered: not `display: none` or
@@ -115,8 +120,8 @@ const madeInert = new Set<Element>();
  * Re-derive inertness from the top layer: clear everything this module set,
  * then walk down from `document.body`, making inert every subtree that holds
  * none of the top layer's kept elements and descending into the ones that do.
- * The result is that exactly the kept elements (and the live regions) remain
- * reachable, wherever in the tree they sit.
+ * The result is that exactly the kept elements (and body-level live regions)
+ * remain reachable, wherever in the tree they sit.
  */
 function syncInert(): void {
   for (const element of madeInert) element.removeAttribute('inert');
@@ -133,7 +138,13 @@ function syncInert(): void {
         visit(child);
         continue;
       }
-      if (child.hasAttribute('inert') || child.matches(NEVER_INERT)) continue;
+      if (
+        child.hasAttribute('inert') ||
+        child.matches(NEVER_INERT) ||
+        (parent === document.body && child.matches(BODY_LIVE_REGION))
+      ) {
+        continue;
+      }
       child.setAttribute('inert', '');
       madeInert.add(child);
     }
@@ -242,9 +253,13 @@ export function useModalLayer<T extends HTMLElement>(
       returnFocus,
     } = optionsRef.current;
 
+    // Focus on the body means nothing had it: no opener, so a close falls
+    // through to the layer beneath rather than to the body.
     const active = document.activeElement;
     const opener =
-      active instanceof HTMLElement && !element.contains(active)
+      active instanceof HTMLElement &&
+      active !== document.body &&
+      !element.contains(active)
         ? active
         : null;
 
