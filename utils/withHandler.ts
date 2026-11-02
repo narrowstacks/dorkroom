@@ -58,8 +58,29 @@ export interface UnkeyClient {
 
 export type CreateUnkeyClient = (rootKey: string) => UnkeyClient;
 
-const createRealUnkeyClient: CreateUnkeyClient = (rootKey) =>
-  new Unkey({ rootKey });
+/**
+ * Client-wide ceiling on one Unkey HTTP call. The SDK's own default is no
+ * timeout at all, so a blackholed Unkey would hold every request until the
+ * function's `maxDuration`. It covers `verifyKey`, which fails closed: a
+ * fast 500 beats a hung request.
+ */
+const UNKEY_CLIENT_TIMEOUT_MS = 3000;
+
+/**
+ * Per-call options for every `ratelimit.limit` check. Those checks fail open
+ * on an outage (`isUnkeyUnavailable`), so they get a short timeout and no
+ * retries: the SDK's default retries connection errors and 5xx with backoff
+ * for up to 10 s, and the request would wait that long only to skip the
+ * check anyway.
+ */
+const RATE_LIMIT_REQUEST_OPTIONS = {
+  timeoutMs: 1500,
+  retries: { strategy: 'none' },
+} satisfies Parameters<Unkey['ratelimit']['limit']>[1];
+
+/** The production Unkey client. Exported for tests only. */
+export const createRealUnkeyClient: CreateUnkeyClient = (rootKey) =>
+  new Unkey({ rootKey, timeoutMs: UNKEY_CLIENT_TIMEOUT_MS });
 
 export interface HandlerConfig {
   name: string;
@@ -276,7 +297,9 @@ async function applyPublicApiKeyAuth(
   } catch (error) {
     serverlessError('Unkey key verification failed', {
       requestId,
-      error: error instanceof Error ? error.message : String(error),
+      ...(error instanceof Error
+        ? unkeyFailureFields(error)
+        : { errorName: 'non-Error throw' }),
     });
     res.status(500).json({
       error: 'API configuration error',
@@ -415,6 +438,18 @@ function unkeyStatusCode(error: Error): number {
 }
 
 /**
+ * Log fields for a failed Unkey call: the error's name and HTTP status only.
+ * Never the message, which for an SDK `UnkeyError` embeds up to 10 KB of the
+ * response body.
+ */
+function unkeyFailureFields(error: Error) {
+  return {
+    errorName: error.name,
+    statusCode: unkeyStatusCode(error) || undefined,
+  };
+}
+
+/**
  * Whether an Unkey call failed because Unkey is down or unreachable, as
  * opposed to answering with a refusal: a transport error (above), a raw
  * fetch `TypeError`, or a 5xx answer. Permission and validation refusals are
@@ -443,6 +478,8 @@ function isUnkeyUnavailable(error: Error): boolean {
  *    -> warn and fail OPEN, like an unconfigured Unkey, the OG limiter and
  *    the global upstream budget: a limiter outage must not take uncached
  *    site data down with it.
+ *  - Unkey's own workspace quota (429) -> fail CLOSED (500), logged as
+ *    "Unkey quota exhausted".
  *  - Otherwise rethrow (the envelope answers 500): an error nobody
  *    classified is treated as a possible misconfiguration, not an outage.
  *
@@ -485,12 +522,15 @@ async function applyNamespaceRateLimit(
 
   let result: Awaited<ReturnType<typeof unkey.ratelimit.limit>>;
   try {
-    result = await unkey.ratelimit.limit({
-      namespace: opts.namespace,
-      identifier: opts.identifier,
-      limit: opts.limit,
-      duration: opts.durationMs,
-    });
+    result = await unkey.ratelimit.limit(
+      {
+        namespace: opts.namespace,
+        identifier: opts.identifier,
+        limit: opts.limit,
+        duration: opts.durationMs,
+      },
+      RATE_LIMIT_REQUEST_OPTIONS
+    );
   } catch (error) {
     if (res.writableEnded) {
       return false;
@@ -551,10 +591,27 @@ async function applyNamespaceRateLimit(
       serverlessWarn('Rate limiting skipped (Unkey unavailable)', {
         requestId,
         namespace: opts.namespace,
-        errorName: error.name,
-        statusCode: unkeyStatusCode(error) || undefined,
+        ...unkeyFailureFields(error),
       });
       return true;
+    }
+
+    // Unkey's own API quota for the workspace. Stays CLOSED: failing open
+    // would let the flood that exhausted the quota through unbounded. Answered
+    // here rather than rethrown so the envelope never logs the SDK message,
+    // which embeds the response body.
+    if (error instanceof Error && unkeyStatusCode(error) === 429) {
+      serverlessError('Unkey quota exhausted', {
+        requestId,
+        namespace: opts.namespace,
+        ...unkeyFailureFields(error),
+      });
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'An unexpected error occurred',
+        requestId,
+      });
+      return false;
     }
 
     throw error;
@@ -654,19 +711,24 @@ async function applyAnonymousUpstreamBudget(
   for (const bucket of ANONYMOUS_UPSTREAM_BUCKETS) {
     let result: Awaited<ReturnType<typeof unkey.ratelimit.limit>>;
     try {
-      result = await unkey.ratelimit.limit({
-        namespace,
-        identifier: bucket.identifier,
-        limit: bucket.limit,
-        duration: bucket.durationMs,
-        cost: 1,
-      });
+      result = await unkey.ratelimit.limit(
+        {
+          namespace,
+          identifier: bucket.identifier,
+          limit: bucket.limit,
+          duration: bucket.durationMs,
+          cost: 1,
+        },
+        RATE_LIMIT_REQUEST_OPTIONS
+      );
     } catch (error) {
       serverlessWarn('Upstream budget skipped (Unkey request failed)', {
         requestId,
         namespace,
         bucket: bucket.identifier,
-        error: error instanceof Error ? error.message : String(error),
+        ...(error instanceof Error
+          ? unkeyFailureFields(error)
+          : { errorName: 'non-Error throw' }),
       });
       return true;
     }

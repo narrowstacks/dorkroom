@@ -1,3 +1,4 @@
+import { Unkey } from '@unkey/api';
 import {
   APIError,
   ConnectionError,
@@ -26,6 +27,21 @@ const fakeUnkey: UnkeyClient = {
   keys: { verifyKey: verifyKeyMock },
   ratelimit: { limit: ratelimitLimitMock },
 };
+
+/** The per-call options every `ratelimit.limit` check must pass. */
+const RATE_LIMIT_REQUEST_OPTIONS = {
+  timeoutMs: 1500,
+  retries: { strategy: 'none' },
+};
+
+/** An SDK error for an Unkey HTTP answer, with a body that must stay out of logs. */
+function unkeyHttpError(status: number, message = 'API error occurred') {
+  return new APIError(message, {
+    response: new Response('secret-ish response body', { status }),
+    request: new Request('https://api.unkey.com/v2/ratelimit.limit'),
+    body: 'secret-ish response body',
+  });
+}
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -605,6 +621,28 @@ describe('withHandler', () => {
       expect(ratelimitLimitMock).toHaveBeenCalledTimes(2);
     });
 
+    it('verifyKey failure logs only the name and status, never the response body', async () => {
+      setupKeyedEnv();
+      verifyKeyMock.mockRejectedValueOnce(unkeyHttpError(502));
+
+      const handler = await buildHandler({
+        name: 'test',
+        handler: async () => {},
+      });
+
+      const res = createMockResponse();
+      await handler(keyedRequest(), res);
+
+      expect(res._status).toBe(500);
+      const line = vi
+        .mocked(console.error)
+        .mock.calls.map(([logged]) => String(logged))
+        .find((logged) => logged.includes('Unkey key verification failed'));
+      expect(line).toContain('"errorName":"APIError"');
+      expect(line).toContain('"statusCode":502');
+      expect(line).not.toContain('secret-ish response body');
+    });
+
     it('Unkey unreachable on verifyKey: still fails closed (500), handler not called', async () => {
       setupKeyedEnv();
       verifyKeyMock.mockRejectedValueOnce(
@@ -747,12 +785,16 @@ describe('withHandler', () => {
         res
       );
 
-      expect(ratelimitLimitMock).toHaveBeenCalledExactlyOnceWith({
-        namespace: 'test-api-anonymous',
-        identifier: '203.0.113.5',
-        limit: ANONYMOUS_RATE_LIMIT,
-        duration: ANONYMOUS_RATE_WINDOW_MS,
-      });
+      expect(ratelimitLimitMock).toHaveBeenCalledExactlyOnceWith(
+        {
+          namespace: 'test-api-anonymous',
+          identifier: '203.0.113.5',
+          limit: ANONYMOUS_RATE_LIMIT,
+          duration: ANONYMOUS_RATE_WINDOW_MS,
+        },
+        // Short timeout, no retries: an unreachable Unkey fails open fast
+        RATE_LIMIT_REQUEST_OPTIONS
+      );
       expect(ran).toHaveBeenCalledOnce();
       expect(res._status).toBe(200);
     });
@@ -898,6 +940,26 @@ describe('withHandler', () => {
       expect(ran).not.toHaveBeenCalled();
     });
 
+    it("fails closed (500) when Unkey's own workspace quota is exhausted (429)", async () => {
+      ratelimitLimitMock.mockRejectedValueOnce(unkeyHttpError(429));
+      const { handler, ran } = await anonymousHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest({ 'x-real-ip': '203.0.113.5' }), res);
+
+      expect(res._status).toBe(500);
+      expect(ran).not.toHaveBeenCalled();
+      expect(unavailableWarning()).toBeUndefined();
+      const errorLines = vi
+        .mocked(console.error)
+        .mock.calls.map(([logged]) => String(logged));
+      const quotaLine = errorLines.find((logged) =>
+        logged.includes('"message":"Unkey quota exhausted"')
+      );
+      expect(quotaLine).toContain('"statusCode":429');
+      expect(errorLines.join('\n')).not.toContain('secret-ish response body');
+    });
+
     it('still answers 500 for an unclassified Unkey error', async () => {
       ratelimitLimitMock.mockRejectedValueOnce(new Error('Something broke'));
       const { handler, ran } = await anonymousHandler();
@@ -1005,6 +1067,13 @@ describe('withHandler', () => {
           duration: ANONYMOUS_UPSTREAM_DAILY_WINDOW_MS,
           cost: 1,
         },
+      ]);
+      expect(
+        ratelimitLimitMock.mock.calls.map(([, options]) => options)
+      ).toEqual([
+        RATE_LIMIT_REQUEST_OPTIONS,
+        RATE_LIMIT_REQUEST_OPTIONS,
+        RATE_LIMIT_REQUEST_OPTIONS,
       ]);
       // A passing global check leaves the caller's own per-IP headers alone
       expectNoGlobalState(res);
@@ -1123,6 +1192,29 @@ describe('withHandler', () => {
 
       expect(res._status).toBe(200);
       expect(ran).toHaveBeenCalledOnce();
+    });
+
+    it('logs only the name and status of a failed budget check, never the response body', async () => {
+      ratelimitLimitMock.mockImplementation(async (opts) => {
+        if (opts.identifier === BURST) {
+          throw unkeyHttpError(503);
+        }
+        return passingLimit(opts.limit);
+      });
+      const { handler, ran } = await budgetedHandler();
+
+      const res = createMockResponse();
+      await handler(anonymousRequest(), res);
+
+      expect(res._status).toBe(200);
+      expect(ran).toHaveBeenCalledOnce();
+      const line = vi
+        .mocked(console.warn)
+        .mock.calls.map(([logged]) => String(logged))
+        .find((logged) => logged.includes('Upstream budget skipped'));
+      expect(line).toContain('"errorName":"APIError"');
+      expect(line).toContain('"statusCode":503');
+      expect(line).not.toContain('secret-ish response body');
     });
 
     it('fails open when Unkey is not configured', async () => {
@@ -1411,6 +1503,17 @@ describe('withHandler', () => {
 
       // Should still be 200 from the handler, not overwritten to 500
       expect(res._status).toBe(200);
+    });
+  });
+
+  describe('real Unkey client', () => {
+    it('builds the SDK client with a timeout, so a hung Unkey cannot hold a request', async () => {
+      const { createRealUnkeyClient } = await import('../withHandler');
+      const client = createRealUnkeyClient('root-key');
+
+      expect(client).toBeInstanceOf(Unkey);
+      // `_options` is the SDK's public read-only copy of its constructor options
+      expect(client instanceof Unkey && client._options.timeoutMs).toBe(3000);
     });
   });
 
