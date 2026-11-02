@@ -19,6 +19,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 - **filmdev.org imports pick the right film and developer.** Importing a recipe used to match only films and developers that already had a recipe on Dorkroom, so Fomapan 100 came in as Kentmere Pan 100 and several Adox developers came in as ADOTECH IV. Imports now search the whole catalogue and need a real name match, and anything Dorkroom doesn't list comes in as a custom film or developer instead of the nearest lookalike.
 - **The custom recipe form lists every film and developer**, including ones that don't have a recipe yet.
+- **filmdev.org recipes shot at box speed import at box speed.** Recipes that don't say what speed the film was shot at came in as ISO 400, so a recipe for a 100-speed film showed as "pushed 2 stops". They now use the film's own speed.
 
 ## [2026.10.30]
 

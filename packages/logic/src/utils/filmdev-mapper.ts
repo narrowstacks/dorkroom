@@ -366,7 +366,8 @@ export function createCustomFilmFromFilmdev(
   return {
     brand,
     name,
-    isoSpeed: 400, // Default ISO, user can adjust
+    // Box speed from the name ("Kodak Tri-X 400"), else 400; user can adjust
+    isoSpeed: extractIsoFromString(filmString) ?? 400,
     colorType: 'bw', // Default to B&W, user can adjust
     description: `Imported from filmdev.org: ${filmString}`,
   };
@@ -511,18 +512,18 @@ export function mapFilmdevRecipeToFormData(
       recipe.dilution_ratio ? ` (${recipe.dilution_ratio})` : ''
     }`;
 
-  // Determine shooting ISO from developed_at field
-  // This is the ISO at which the film was actually shot (may differ from box speed)
-  const shootingIso = recipe.developed_at || 400;
-
-  // Determine box speed ISO from the matched film or by extracting from film name
+  // Box speed from the matched film, else from the film name
   const boxSpeedIso =
-    matchedFilm?.isoSpeed || extractIsoFromString(recipe.film) || shootingIso;
+    matchedFilm?.isoSpeed || extractIsoFromString(recipe.film) || null;
+
+  // developed_at is the ISO the film was shot at. filmdev.org leaves it
+  // empty for box-speed recipes, so an empty one means box speed, not a push.
+  const shootingIso = recipe.developed_at || boxSpeedIso || 400;
 
   // Calculate push/pull stops: log2(shootingIso / boxSpeedIso)
   // Positive = push (shot at higher ISO), Negative = pull (shot at lower ISO)
   const pushPull =
-    shootingIso !== boxSpeedIso
+    boxSpeedIso && shootingIso !== boxSpeedIso
       ? Math.round(Math.log2(shootingIso / boxSpeedIso))
       : 0;
 

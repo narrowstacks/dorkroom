@@ -392,7 +392,7 @@ describe('mapFilmdevRecipeToFormData', () => {
       expect(result.shootingIso).toBe(800);
     });
 
-    it('should default to 400 when developed_at is null', () => {
+    it('should default to 400 when developed_at is null and the speed is unknown', () => {
       const recipe = createMockFilmdevRecipe({
         film: 'Test Film',
         developed_at: null,
@@ -401,6 +401,37 @@ describe('mapFilmdevRecipeToFormData', () => {
       const result = mapFilmdevRecipeToFormData(recipe, null, null);
 
       expect(result.shootingIso).toBe(400);
+      expect(result.pushPull).toBe(0);
+    });
+
+    it('treats a missing developed_at as box speed of the matched film (recipe 13387)', () => {
+      const recipe = createMockFilmdevRecipe({
+        film: 'Foma Fomapan 100',
+        developed_at: null,
+      });
+      const fomapan = createMockFilm({
+        brand: 'Foma',
+        name: 'Fomapan 100 Classic',
+        isoSpeed: 100,
+      });
+
+      const result = mapFilmdevRecipeToFormData(recipe, fomapan, null);
+
+      expect(result.shootingIso).toBe(100);
+      expect(result.pushPull).toBe(0);
+    });
+
+    it('treats a missing developed_at as the box speed in the film name for a custom film', () => {
+      const recipe = createMockFilmdevRecipe({
+        film: 'ORWO NP20 80',
+        developed_at: null,
+      });
+
+      const result = mapFilmdevRecipeToFormData(recipe, null, null);
+
+      expect(result.shootingIso).toBe(80);
+      expect(result.pushPull).toBe(0);
+      expect(result.customFilm?.isoSpeed).toBe(80);
     });
   });
 
