@@ -56,7 +56,7 @@ Everything else:
   1 per film or developer, plus `MAX_COMBINATION_PAGES` for a recipe) against
   two global buckets after the per-IP check, as Unkey `cost`: `og-upstream`,
   a 1200/min burst cap (`OG_UPSTREAM_RATE_LIMIT`), then `og-upstream-day`,
-  10k a day (`OG_UPSTREAM_DAILY_LIMIT`), both in `utils/rateLimitPolicy.ts`.
+  10000 a day (`OG_UPSTREAM_DAILY_LIMIT`), both in `utils/rateLimitPolicy.ts`.
   The daily number assumes the Supabase **Free** plan (about 500k Edge
   Function invocations a month, and a project over quota can be restricted);
   revisit it if the plan changes. It bounds OG cards only; the public

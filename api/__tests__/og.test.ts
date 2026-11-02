@@ -1240,6 +1240,42 @@ describe('og handler - rate limiting', () => {
     }
   );
 
+  const recipeParams = {
+    route: '/development',
+    film: 'kodak-tri-x-400',
+    developer: 'ilford-perceptol',
+    recipe: TARGET_UUID,
+  };
+
+  it('skips both global budgets when the per-IP check could not reach Unkey', async () => {
+    const fetchMock = stubFetchWithUnkey(() =>
+      Promise.resolve(new Response('', { status: 503 }))
+    );
+
+    await pngBytes(await handler(ogRequest(recipeParams)));
+
+    expect(unkeyBodies(fetchMock)).toEqual([
+      expect.objectContaining({ identifier: 'og:203.0.113.7' }),
+    ]);
+  });
+
+  it('stops after the first global budget that could not reach Unkey', async () => {
+    // The per-IP check passes; the first global check fails.
+    let unkeyCall = 0;
+    const fetchMock = stubFetchWithUnkey(() =>
+      unkeyCall++ === 0
+        ? unkeyAnswer(true)
+        : Promise.reject(new TypeError('fetch failed'))
+    );
+
+    await pngBytes(await handler(ogRequest(recipeParams)));
+
+    expect(unkeyBodies(fetchMock).map((body) => body.identifier)).toEqual([
+      'og:203.0.113.7',
+      'og-upstream',
+    ]);
+  });
+
   it('skips the global budget for cards drawn from the params alone', async () => {
     const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(true));
 
