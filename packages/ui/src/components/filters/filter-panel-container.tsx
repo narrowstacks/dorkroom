@@ -3,8 +3,8 @@ import {
   type FC,
   type ReactNode,
   useCallback,
-  useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -51,19 +51,21 @@ export const FilterPanelContainer: FC<FilterPanelContainerProps> = ({
   const panelId = useId();
   const expandButtonRef = useRef<HTMLButtonElement>(null);
   const collapseButtonRef = useRef<HTMLButtonElement>(null);
-  // Set when the user toggles, so focus follows to the counterpart button
-  // (the one that was clicked unmounts with its panel state).
-  const restoreFocus = useRef(false);
+  // The collapsed state the user asked for, so focus follows to the
+  // counterpart button (the clicked one unmounts). Focus only moves when the
+  // state actually becomes that target, so an unrelated change never steals it.
+  const pendingFocus = useRef<boolean | null>(null);
 
-  useEffect(() => {
-    if (!restoreFocus.current) return;
-    restoreFocus.current = false;
+  useLayoutEffect(() => {
+    const target = pendingFocus.current;
+    pendingFocus.current = null;
+    if (target !== isCollapsed) return;
     (isCollapsed ? expandButtonRef : collapseButtonRef).current?.focus();
   }, [isCollapsed]);
 
   const toggle = useCallback(() => {
-    restoreFocus.current = true;
     const newCollapsed = !isCollapsed;
+    pendingFocus.current = newCollapsed;
     if (!isControlled) {
       setInternalCollapsed(newCollapsed);
     }

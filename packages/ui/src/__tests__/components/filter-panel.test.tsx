@@ -50,4 +50,30 @@ describe('FilterPanelContainer toggle accessibility', () => {
       screen.getByRole('button', { name: 'Collapse filters' })
     ).toHaveFocus();
   });
+
+  it('does not steal focus when a controlled parent changes the state itself', () => {
+    const renderPanel = (collapsed: boolean) => (
+      <FilterPanelContainer
+        activeFilterCount={0}
+        hasActiveFilters={false}
+        collapsed={collapsed}
+        onCollapsedChange={() => {}}
+      >
+        <FilterPanelHeader />
+      </FilterPanelContainer>
+    );
+    const { rerender } = render(renderPanel(false));
+    // The parent ignores the click, so the state never changes.
+    fireEvent.click(screen.getByRole('button', { name: 'Collapse filters' }));
+    expect(
+      screen.getByRole('button', { name: 'Collapse filters' })
+    ).not.toHaveFocus();
+
+    // A later programmatic change to the other value must not move focus.
+    rerender(renderPanel(true));
+    rerender(renderPanel(false));
+    expect(
+      screen.getByRole('button', { name: 'Collapse filters' })
+    ).not.toHaveFocus();
+  });
 });
