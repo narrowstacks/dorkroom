@@ -13,8 +13,11 @@
  *
  *   2. LEGACY PATH (feature works): the ES5 `nomodule` bundle must actually boot
  *      the app. We can't run a 2009-era Kindle WebKit here, so we force the
- *      legacy path by rewriting index.html (drop the module scripts, un-gate the
- *      `nomodule` scripts) and confirm the SystemJS/ES5 bundle renders the app.
+ *      legacy path by rewriting index.html (hide `CSSLayerBlockRule` so the
+ *      gate script takes its legacy branch, drop the inline module scripts,
+ *      un-gate the `nomodule` scripts) and confirm the SystemJS/ES5 bundle
+ *      renders the app with the legacy stylesheet and requests no modern JS
+ *      or CSS (issue #644).
  *
  *   3. ES5 SYNTAX: Chrome parses ES2015+, so (2) passes even when the legacy
  *      chunks are not ES5. Every `*-legacy-*.js` file and every classic inline
@@ -141,14 +144,23 @@ function startStaticServer(
   });
 }
 
-/** Rewrite index.html to force the `nomodule` legacy path to execute. */
+/** Hides cascade-layer support before any page script runs, so the inline
+ *  loader takes the branch Kindle Silk (Chromium 80) takes. */
+const HIDE_CSS_LAYERS = `
+delete window.CSSLayerBlockRule;
+window.__layersHidden = typeof window.CSSLayerBlockRule === 'undefined';
+`;
+
+/** Rewrite index.html to force the legacy path in this modern engine. */
 function forceLegacyHtml(html: string): string {
   return (
     html
-      // Drop the modern module entry + the inline module feature-detection scripts.
+      // Hide cascade layers before the gate script runs, so it takes the
+      // branch Kindle Silk (Chromium 80) takes: legacy stylesheet only, no
+      // modern entry or modulepreloads (issue #644).
+      .replace('<head>', `<head><script>${HIDE_CSS_LAYERS}</script>`)
+      // Drop the inline module feature-detection scripts, which would pass here.
       .replace(/<script\b[^>]*\btype="module"[^>]*>[\s\S]*?<\/script>/gi, '')
-      // Drop modulepreload hints for the modern chunks.
-      .replace(/<link\b[^>]*\brel="modulepreload"[^>]*>/gi, '')
       // Un-gate the nomodule scripts so this modern engine runs them.
       .replace(/\snomodule/gi, '')
   );
@@ -310,6 +322,31 @@ async function checkLegacyCss(): Promise<void> {
       body.includes(`setAttribute("${LEGACY_BROWSER_ATTR}","")`)
     )
   );
+  const markup = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, (tag) =>
+    /^<script\b[^>]*\bsrc=/i.test(tag) ? tag : ''
+  );
+  const ungated = [
+    ...markup.matchAll(
+      /<script\b[^>]*\btype="module"[^>]*\bsrc=[^>]*>|<link\b[^>]*\brel="(?:modulepreload|stylesheet)"[^>]*>/gi
+    ),
+  ].map(([tag]) => tag);
+  check(
+    'gate: no modern entry, modulepreload or stylesheet tag left in the markup',
+    ungated.length === 0,
+    ungated.join(' ') || 'none'
+  );
+  check(
+    'gate: the classic gate script writes the modern entry, modulepreloads and stylesheet',
+    classicInlineScripts(html).some(
+      (body) =>
+        body.startsWith('window.CSSLayerBlockRule?document.write(') &&
+        /type=\\"module\\"[^)]*src=\\"\/assets\/index-[^"\\]+\.js/.test(body) &&
+        body.includes('rel=\\"modulepreload\\"') &&
+        /rel=\\"stylesheet\\"[^)]*\/assets\/index-(?!legacy)[^"\\]+\.css/.test(
+          body
+        )
+    )
+  );
   check(
     'legacy css: index.html writes it in (render-blocking) from a classic inline script',
     classicInlineScripts(html).some(
@@ -326,7 +363,6 @@ async function checkLegacyCss(): Promise<void> {
 async function run(): Promise<void> {
   await checkLegacyOutputIsEs5();
   await checkLegacyCss();
-  await checkStylesheetSwap();
   await checkLegacyChunksHaveNoPropertyEscapes();
 
   // ---- 1. MODERN PATH ------------------------------------------------------
@@ -357,6 +393,11 @@ async function run(): Promise<void> {
         anyLegacy.length
           ? anyLegacy.map((u) => u.split('/').pop()).join(', ')
           : 'none'
+      );
+      check(
+        'modern: loads the modern stylesheet and the modulepreloads',
+        requests.some((u) => /\/assets\/index-(?!legacy)[^/]+\.css$/.test(u)) &&
+          requests.some((u) => /\/assets\/react-vendor-[^/]+\.js$/.test(u))
       );
       const legacyCss = requests.filter((u) => /-legacy-[^/]*\.css$/.test(u));
       check(
@@ -396,9 +437,29 @@ async function run(): Promise<void> {
       const loadedLegacyEntry = requests.some((u) =>
         /index-legacy-[^/]+\.js/.test(u)
       );
-      const loadedModern = requests.some(
-        (u) => /\/assets\/index-[^/]+\.js/.test(u) && !u.includes('-legacy-')
+      const modernAssets = requests.filter(
+        (u) => /\/assets\/[^/]+\.(?:js|css)$/.test(u) && !/-legacy-/.test(u)
       );
+      const state = await view.evaluate<{
+        hidden: boolean;
+        marked: boolean;
+        links: string[];
+        sheets: string[];
+        legacyRules: number;
+        font: string;
+      }>(`function () {
+        var links = [].slice.call(document.querySelectorAll('link[rel=stylesheet]'));
+        var sheets = [].slice.call(document.styleSheets).filter(function (s) { return s.href; });
+        var legacy = sheets.filter(function (s) { return /-legacy-[^/]*\\.css$/.test(s.href); })[0];
+        return {
+          hidden: window.__layersHidden === true,
+          marked: document.documentElement.hasAttribute('${LEGACY_BROWSER_ATTR}'),
+          links: links.map(function (l) { return l.getAttribute('href'); }),
+          sheets: sheets.map(function (s) { return s.href.split('/').pop(); }),
+          legacyRules: legacy ? legacy.cssRules.length : 0,
+          font: getComputedStyle(document.body).fontFamily
+        };
+      }`);
 
       check(
         'legacy: ES5 nomodule bundle boots the app (.hero-grain visible)',
@@ -409,7 +470,36 @@ async function run(): Promise<void> {
         'legacy: requested index-legacy chunk (via SystemJS)',
         loadedLegacyEntry
       );
-      check('legacy: did NOT load the modern bundle', !loadedModern);
+      check(
+        'legacy: CSSLayerBlockRule hidden before the gate ran',
+        state.hidden
+      );
+      check(
+        'legacy: requested no modern JS or CSS at all (issue #644)',
+        modernAssets.length === 0,
+        modernAssets.join(', ') || 'none'
+      );
+      check(
+        'legacy: requested the legacy stylesheet',
+        requests.some((u) => /-legacy-[^/]*\.css$/.test(u))
+      );
+      check(
+        'legacy: exactly one stylesheet link, the legacy one',
+        state.links.length === 1 &&
+          /-legacy-[^/]*\.css$/.test(state.links[0] ?? ''),
+        state.links.join(', ')
+      );
+      check(
+        'legacy: legacy sheet applied, no modern sheet',
+        state.sheets.length === 1 && state.legacyRules > 0,
+        `${state.sheets.join(', ')} (${state.legacyRules} rules)`
+      );
+      check('legacy: <html> marked for the app', state.marked);
+      check(
+        'legacy: app font applied',
+        /Montserrat/.test(state.font),
+        state.font
+      );
       const missing = notFound.filter((u) => !u.startsWith('/_vercel/'));
       check('legacy: no 404s', missing.length === 0, missing.join(', '));
       check(
@@ -421,61 +511,6 @@ async function run(): Promise<void> {
       view?.close();
       await server.close();
     }
-  }
-}
-
-/** Hides cascade-layer support before any page script runs, so the inline
- *  loader takes the branch Kindle Silk (Chromium 80) takes. */
-const HIDE_CSS_LAYERS = `
-delete window.CSSLayerBlockRule;
-window.__layersHidden = typeof window.CSSLayerBlockRule === 'undefined';
-`;
-
-/** Runs the inline stylesheet loader's no-`@layer` branch in this modern
- *  engine: the legacy sheet must replace the modern one, not join it. */
-async function checkStylesheetSwap(): Promise<void> {
-  const requests: string[] = [];
-  const notFound: string[] = [];
-  const server = await startStaticServer(undefined, requests, notFound);
-  let view: CaptureView | undefined;
-  try {
-    view = await openAndWait(server.url, HIDE_CSS_LAYERS);
-    const state = await view.evaluate<{
-      hidden: boolean;
-      links: string[];
-      sheets: string[];
-      legacyRules: number;
-      font: string;
-    }>(`function () {
-      var links = [].slice.call(document.querySelectorAll('link[rel=stylesheet]'));
-      var sheets = [].slice.call(document.styleSheets).filter(function (s) { return s.href; });
-      var legacy = sheets.filter(function (s) { return /-legacy-[^/]*\\.css$/.test(s.href); })[0];
-      return {
-        hidden: window.__layersHidden === true,
-        links: links.map(function (l) { return l.getAttribute('href'); }),
-        sheets: sheets.map(function (s) { return s.href.split('/').pop(); }),
-        legacyRules: legacy ? legacy.cssRules.length : 0,
-        font: getComputedStyle(document.body).fontFamily
-      };
-    }`);
-    const legacyRequested = requests.some((u) => /-legacy-[^/]*\.css$/.test(u));
-    check('swap: CSSLayerBlockRule hidden before the loader ran', state.hidden);
-    check('swap: legacy stylesheet requested', legacyRequested);
-    check(
-      'swap: exactly one stylesheet link, the legacy one',
-      state.links.length === 1 &&
-        /-legacy-[^/]*\.css$/.test(state.links[0] ?? ''),
-      state.links.join(', ')
-    );
-    check(
-      'swap: legacy sheet applied, modern sheet gone',
-      state.sheets.length === 1 && state.legacyRules > 0,
-      `${state.sheets.join(', ')} (${state.legacyRules} rules)`
-    );
-    check('swap: app font applied', /Montserrat/.test(state.font), state.font);
-  } finally {
-    view?.close();
-    await server.close();
   }
 }
 

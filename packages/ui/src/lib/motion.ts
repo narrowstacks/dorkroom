@@ -1,6 +1,6 @@
 import { hasGlobal } from './dom';
 
-/** Attribute the legacy-stylesheet loader (`legacyCssLoader` in
+/** Attribute the legacy loader (`legacyGateScript` in
  *  apps/dorkroom/legacy-css.ts) sets on `<html>` for browsers that get the
  *  Chromium 80 fallback stylesheet: Kindle's e-ink browser and any other
  *  browser without cascade layers. Keep the

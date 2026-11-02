@@ -6,8 +6,9 @@
  * the legacy JS bundle, but the Tailwind 4 stylesheet is written for Chrome
  * 111+: Chrome drops `@layer` blocks before 99 (about three quarters of the
  * file), and `color-mix()` needs 111. This module rewrites the built CSS into
- * a copy Chromium 80 understands, and `legacyCssLoader` swaps it in only when
- * the browser has no cascade layers. Modern browsers never request it.
+ * a copy Chromium 80 understands, and `legacyGateScript` loads it instead of
+ * the modern stylesheet (and the modern JS) only when the browser has no
+ * cascade layers. Modern browsers never request it.
  *
  * What the rewrite does, in order:
  *  1. Drops `@property` rules and the `@supports (color: lab(...))` blocks
@@ -95,36 +96,107 @@ export const LEGACY_BROWSER_ATTR = 'data-lc-legacy';
  *  two spellings in sync; a test in scripts/__tests__ compares them. */
 export const KINDLE_UA_SOURCE = String.raw`/\bKindle(\/|\sBuild\/)/`;
 
-/** Body of the classic inline script, placed right after the stylesheet
- *  `<link>` with `href`, that loads `legacyHref` instead in browsers without
- *  cascade layers. It must stay ES5, because the build parses classic inline
- *  scripts as ES5. `CSSLayerBlockRule` ships with `@layer` itself (Chrome 99,
- *  Safari 15.4, Firefox 97), so it is an exact probe.
+/** `value` as a JS string literal that is safe inside an inline `<script>`:
+ *  every `<` is escaped, so a `</script>` or `<!--` in it cannot end the
+ *  script or open a comment. */
+function inlineScriptString(value: string): string {
+  return JSON.stringify(value).replace(/</g, '\\u003c');
+}
+
+/** Body of the classic inline script that decides, before the browser has
+ *  asked for any app asset, which assets this browser loads (issue #644).
+ *  `gateModernAssets` puts it where the modern tags were. It must stay ES5,
+ *  because the build parses classic inline scripts as ES5.
  *
- *  The modern `<link>` is removed and the legacy one is written with
- *  `document.write`, so the parser inserts it and it blocks rendering like
- *  the original. Changing `href` on the parsed link instead makes the new
- *  sheet non-blocking, and Chromium paints the whole app unstyled until it
- *  arrives.
+ *  With cascade layers (`CSSLayerBlockRule`: Chrome 99, Safari 15.4,
+ *  Firefox 97) it writes `modernTags` back in, unchanged: the module entry,
+ *  its modulepreloads and the app stylesheet. Without them it writes only the
+ *  legacy stylesheet, and plugin-legacy's inline fallback then loads the
+ *  SystemJS bundle. The probe is a strict subset of the browsers that pass
+ *  plugin-legacy's own guard (`import.meta.resolve`: Chrome 105, Safari 16.4,
+ *  Firefox 106), so no browser that can run the modern bundle loses it, and
+ *  Chrome 99-104 still fetch it and fall back, as before. Before this, every
+ *  legacy browser fetched and instantiated the whole modern graph and the
+ *  modern CSS, only for that guard to throw it away.
  *
- *  It also measures whether flex `gap` works (Chrome 84, Firefox 63, Safari
- *  14.1) and sets `NO_FLEX_GAP_ATTR` when it does not, so browsers that have
- *  gap but not `@layer` do not get the emulated margins on top. It also sets
- *  `LEGACY_BROWSER_ATTR`, whether or not the `<link>` was found, and for a
- *  Kindle agent sets `data-theme="high-contrast"` right away. */
-export function legacyCssLoader(href: string, legacyHref: string): string {
-  const selector = JSON.stringify(`link[rel=stylesheet][href="${href}"]`);
-  const tag = JSON.stringify(`<link rel="stylesheet" href="${legacyHref}">`);
+ *  Tags written with `document.write` from a parser-blocking script are
+ *  parser-inserted: the module script stays deferred, modulepreload works,
+ *  and the stylesheet blocks rendering like a tag in the markup. Inserting
+ *  them with DOM methods instead would make the stylesheet non-blocking, and
+ *  Chromium paints the whole app unstyled until it arrives.
+ *
+ *  The legacy branch also measures whether flex `gap` works (Chrome 84,
+ *  Firefox 63, Safari 14.1) and sets `NO_FLEX_GAP_ATTR` when it does not, so
+ *  browsers that have gap but not `@layer` do not get the emulated margins on
+ *  top. It sets `LEGACY_BROWSER_ATTR`, and for a Kindle agent sets
+ *  `data-theme="high-contrast"`, all before the first paint. */
+export function legacyGateScript(
+  modernTags: string,
+  legacyHref: string
+): string {
+  const tag = inlineScriptString(
+    `<link rel="stylesheet" href="${legacyHref}">`
+  );
   return (
-    'window.CSSLayerBlockRule||function(d,l){' +
+    `window.CSSLayerBlockRule?document.write(${inlineScriptString(modernTags)}):function(d){` +
     'var e=d.documentElement,p=d.createElement("div");' +
     `e.setAttribute("${LEGACY_BROWSER_ATTR}","");` +
     `${KINDLE_UA_SOURCE}.test(navigator.userAgent)&&e.setAttribute("data-theme","high-contrast");` +
     'p.style.cssText="display:flex;flex-direction:column;row-gap:1px;position:absolute";' +
     'p.appendChild(d.createElement("div"));p.appendChild(d.createElement("div"));' +
     `e.appendChild(p);p.offsetHeight!==1&&e.setAttribute("${NO_FLEX_GAP_ATTR}","");e.removeChild(p);` +
-    `l&&(l.parentNode.removeChild(l),d.write(${tag}))` +
-    `}(document,document.querySelector(${selector}))`
+    `d.write(${tag})` +
+    '}(document)'
+  );
+}
+
+/** The tags `legacyGateScript` decides on: the modern module entry, its
+ *  modulepreloads, and stylesheets. Inline module scripts (plugin-legacy's
+ *  detection and fallback) have no `src` and stay in the markup. */
+const MODERN_TAG =
+  /<script\b[^>]*\btype="module"[^>]*\bsrc="[^"]*"[^>]*>\s*<\/script>|<link\b[^>]*\brel="(?:modulepreload|stylesheet)"[^>]*>/g;
+
+/** `html` with the modern entry script, its modulepreloads and the stylesheet
+ *  `<link>` to `cssHref` replaced by one inline `legacyGateScript`, at the
+ *  same place, so modern browsers get the same tags in the same order. Throws
+ *  when the markup is not the shape Vite writes (one module entry, one
+ *  stylesheet, all of them next to each other), rather than gating half of
+ *  it. Other head tags, such as the font preload, are left alone. */
+export function gateModernAssets(
+  html: string,
+  cssHref: string,
+  legacyHref: string
+): string {
+  const tags = [...html.matchAll(MODERN_TAG)];
+  const entries = tags.filter(([tag]) => tag.startsWith('<script'));
+  const sheets = tags.filter(([tag]) => /\brel="stylesheet"/.test(tag));
+  if (entries.length !== 1 || sheets.length !== 1) {
+    throw new Error(
+      `expected one module entry and one stylesheet, found ` +
+        `${entries.length} and ${sheets.length}`
+    );
+  }
+  if (!sheets[0]?.[0].includes(`href="${cssHref}"`)) {
+    throw new Error(`the stylesheet is not ${cssHref}`);
+  }
+  const first = tags[0];
+  const last = tags[tags.length - 1];
+  if (first?.index === undefined || last?.index === undefined) {
+    throw new Error('no modern tags');
+  }
+  const start = first.index;
+  const end = last.index + last[0].length;
+  const between = html.slice(start, end).replace(MODERN_TAG, '').trim();
+  if (between !== '') {
+    throw new Error(
+      `the modern tags are not contiguous; between them: ${between.slice(0, 80)}`
+    );
+  }
+  const modernTags = tags.map(([tag]) => tag).join('');
+  return (
+    html.slice(0, start) +
+    `<script>${legacyGateScript(modernTags, legacyHref)}</script>` +
+    html.slice(end)
   );
 }
 
