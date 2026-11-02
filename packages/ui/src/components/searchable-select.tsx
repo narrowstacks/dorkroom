@@ -79,14 +79,16 @@ function SearchableSelectOption({
 }
 
 /**
- * Closes the list when the input loses focus. Moving focus to another element
- * outside `rootRef` (Tab, Shift+Tab) closes at once, so the list does not
- * linger and stack over the next field's (#635). A blur with no destination (a
- * press on an option or blank page) or one inside the root closes after 150 ms,
- * so an option click still registers first. Refocusing cancels a pending close.
+ * Closes the list when the input loses focus. Moving focus to any element
+ * other than the listbox (Tab, Shift+Tab, including the Clear button) closes at
+ * once, so the list does not linger and stack over the next field's (#635). A
+ * blur with no destination (touch, Safari and assistive tech pressing an
+ * option; a mouse press never blurs, the listbox cancels mousedown) or one
+ * inside the listbox closes after 150 ms, so the option click registers first.
+ * Refocusing cancels a pending close.
  */
 function useBlurClose(
-  rootRef: RefObject<HTMLElement | null>,
+  listRef: RefObject<HTMLElement | null>,
   close: () => void
 ) {
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -95,7 +97,7 @@ function useBlurClose(
   const handleInputBlur = (e: React.FocusEvent) => {
     clearTimeout(timer.current);
     const next = e.relatedTarget;
-    if (next instanceof Node && !rootRef.current?.contains(next)) {
+    if (next instanceof Node && !listRef.current?.contains(next)) {
       close();
       return;
     }
@@ -153,7 +155,7 @@ export function SearchableSelect({
   };
 
   const { cancelPendingClose, handleInputBlur } = useBlurClose(
-    rootRef,
+    listRef,
     closeList
   );
 

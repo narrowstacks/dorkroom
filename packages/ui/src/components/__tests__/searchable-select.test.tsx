@@ -559,7 +559,7 @@ describe('SearchableSelect closes when focus leaves by keyboard (#635)', () => {
   it('closes at once on Shift+Tab out', async () => {
     const user = userEvent.setup();
     const { brand } = setupTwo();
-    brand.focus();
+    await user.click(brand);
     await user.keyboard('a');
     await user.tab({ shift: true });
     expect(brand).toHaveAttribute('aria-expanded', 'false');
@@ -583,12 +583,37 @@ describe('SearchableSelect closes when focus leaves by keyboard (#635)', () => {
   it('does not let a stale blur timer close a list that was refocused', async () => {
     const user = userEvent.setup();
     const { iso } = setupTwo();
-    iso.focus();
+    act(() => iso.focus());
     // Blur with no destination (a click on blank page) schedules the delayed close.
     act(() => iso.blur());
-    iso.focus();
+    act(() => iso.focus());
     await act(() => new Promise((r) => setTimeout(r, 300)));
     expect(iso).toHaveAttribute('aria-expanded', 'true');
     await user.keyboard('{Escape}');
+  });
+
+  it('shows one list at a time when tabbing past fields that have a value', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <SearchableSelect
+          label="ISO"
+          selectedValue="a"
+          onValueChange={vi.fn()}
+          items={items}
+        />
+        <SearchableSelect
+          label="Brand"
+          selectedValue="b"
+          onValueChange={vi.fn()}
+          items={items}
+        />
+      </>
+    );
+    await user.click(screen.getByRole('combobox', { name: 'ISO' }));
+    await user.tab(); // Clear selection button
+    await user.tab(); // Brand
+    expect(screen.getAllByRole('listbox')).toHaveLength(1);
+    expect(screen.getByRole('combobox', { name: 'Brand' })).toHaveFocus();
   });
 });
