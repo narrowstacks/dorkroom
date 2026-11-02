@@ -120,6 +120,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
           alt={`${film.brand} ${film.name}`}
           size="lg"
           loading="eager"
+          renderedSize={224}
           className="!w-48 !h-48 md:!w-56 md:!h-56"
         />
         {film.staticImageUrl && (
@@ -316,6 +317,7 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
           alt={`${film.brand} ${film.name}`}
           size="lg"
           loading="eager"
+          renderedSize={128}
           className="!w-32 !h-32"
         />
         {film.staticImageUrl && (

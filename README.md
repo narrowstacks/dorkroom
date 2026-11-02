@@ -192,9 +192,9 @@ Dorkroom provides a comprehensive API for accessing film development data, avail
 
 ### Quick Overview
 
-- **TypeScript Client**: `@dorkroom/api` package with fuzzy search and caching
+- **TypeScript Client**: `@dorkroom/api` package with search and caching
 - **REST Endpoints**: `/api/films`, `/api/developers`, `/api/combinations`
-- **Features**: Query parameters, fuzzy search, request validation, CORS support
+- **Features**: Query parameters, partial-match search, request validation, CORS support
 - **API Key Access**: Contact [aaron+dorkroom@affords.art](mailto:aaron+dorkroom@affords.art) to request a key for `https://api.dorkroom.art`
 - **Authentication**: `X-API-Key` header (request a key by email — see above)
 - **Anonymous Namespace Bootstrap**: `bun run keys:anon-bootstrap` (uses `UNKEY_ROOT_KEY`; requires `ratelimit.*.limit` and `ratelimit.*.create_namespace` on that key)
