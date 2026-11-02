@@ -17,7 +17,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Fixed
 
-- **Mat measurements read the way you write them.** On /mat, `3-1/2`, `3 1/2"`, `3 1/2 in`, `3½` and `3 ½` are now 3.5 instead of being cut down to 3, and comma decimals such as `20,5` work in every form. A value with anything else left over, such as `3abc`, now shows the "Check inputs" message instead of quietly using the leading number. (fixes #340)
+- **Mat measurements read the way you write them.** On /mat, `3-1/2`, `3 1/2"`, `3 1/2 in`, `3½` and `3 ½` are now 3.5 instead of being cut down to 3, a comma decimal with an inch mark (`20,5 in`) keeps its decimals, and metric fields accept a trailing `cm`. A border or reveal with anything else left over, such as `3abc`, now shows the "Check inputs" message instead of quietly using the leading number or no reveal. (fixes #340)
 - **filmdev.org imports pick the right film and developer.** Importing a recipe used to match only films and developers that already had a recipe on Dorkroom, so Fomapan 100 came in as Kentmere Pan 100 and several Adox developers came in as ADOTECH IV. Imports now search the whole catalogue and need a real name match, and anything Dorkroom doesn't list comes in as a custom film or developer instead of the nearest lookalike.
 - **The custom recipe form lists every film and developer**, including ones that don't have a recipe yet.
 - **filmdev.org recipes shot at box speed import at box speed.** Recipes that don't say what speed the film was shot at came in as ISO 400, so a recipe for a 100-speed film showed as "pushed 2 stops". They now use the film's own speed.

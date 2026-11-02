@@ -16,7 +16,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Fixed
 
-- **Mat measurements read the way you write them.** `3-1/2`, `3 1/2"`, `3 1/2 in`, `3½` and `3 ½` are now 3.5 instead of being cut down to 3. A value with anything else left over, such as `3abc`, is treated as invalid instead of quietly using the leading number. (fixes #340)
+- **Mat measurements read the way you write them.** `3-1/2`, `3 1/2"` (including the curly quote the keyboard types), `3 1/2 in`, `3½` and `3 ½` are now 3.5 instead of being cut down to 3. A border or reveal with anything else left over, such as `3abc`, now shows the "Check inputs" message instead of quietly using the leading number or no reveal. (fixes #340)
 
 ## [2026.10.30]
 

@@ -35,6 +35,14 @@ describe('mat calculator logic', () => {
     it.each([
       ['3-1/2', 3.5],
       ['3 - 1/2', 3.5],
+      ['3–1/2', 3.5],
+      ['3 – 1/2', 3.5],
+      ['2.5”', 2.5],
+      ['.125”', 0.125],
+      ['3 1/2”', 3.5],
+      ['3 1/2“', 3.5],
+      ['3 1/2′′', 3.5],
+      ["3 1/2''", 3.5],
       ['3 1/2"', 3.5],
       ['3 1/2″', 3.5],
       ['3 1/2 in', 3.5],
@@ -107,6 +115,22 @@ describe('mat calculator logic', () => {
         borderTop: '3abc',
       });
       expect(layout.valid).toBe(false);
+    });
+
+    it('marks the layout invalid when a typed reveal does not parse', () => {
+      const layout = calculateMatLayout({
+        ...MAT_CALCULATOR_DEFAULTS,
+        reveal: '1/8abc',
+      });
+      expect(layout.revealValid).toBe(false);
+      expect(layout.valid).toBe(false);
+    });
+
+    it.each(['', '   '])('treats an empty reveal %j as none', (reveal) => {
+      const layout = calculateMatLayout({ ...MAT_CALCULATOR_DEFAULTS, reveal });
+      expect(layout.revealValid).toBe(true);
+      expect(layout.revVal).toBe(0);
+      expect(layout.valid).toBe(true);
     });
 
     it('returns NaN for empty, nullish, or unparseable input', () => {

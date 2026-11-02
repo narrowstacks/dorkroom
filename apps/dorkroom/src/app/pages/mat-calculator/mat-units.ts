@@ -86,7 +86,7 @@ export function matValueToDisplay(
 /**
  * Field text back to the inch string kept in form state. Unparseable or empty
  * text commits an empty string, which reads as "invalid" downstream exactly
- * like clearing an imperial field does.
+ * like clearing an imperial field does. A trailing "cm" is allowed in metric.
  */
 export function matDisplayToValue(
   display: string,
@@ -95,7 +95,7 @@ export function matDisplayToValue(
   if (unit === 'imperial') {
     return display;
   }
-  const parsed = parseMatInput(display);
+  const parsed = parseMatInput(display.trim().replace(/\s*cm$/i, ''));
   if (Number.isNaN(parsed)) {
     return '';
   }

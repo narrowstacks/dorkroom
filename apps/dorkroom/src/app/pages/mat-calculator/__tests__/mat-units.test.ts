@@ -78,6 +78,22 @@ describe('matDisplayToValue', () => {
     expect(matDisplayToValue('30.', 'metric')).toBe('11.811');
   });
 
+  it.each(['50cm', '50 cm', '50CM', ' 50 cm '])(
+    'accepts a trailing cm in metric: %j',
+    (cm) => {
+      expect(matDisplayToValue(cm, 'metric')).toBe('19.685');
+    }
+  );
+
+  it('reads a comma decimal with a cm suffix', () => {
+    expect(matDisplayToValue('40,64 cm', 'metric')).toBe('16');
+  });
+
+  it('leaves a cm suffix to imperial fields as typed (invalid downstream)', () => {
+    expect(matDisplayToValue('20cm', 'imperial')).toBe('20cm');
+    expect(parseMatInput('20cm')).toBeNaN();
+  });
+
   it('commits an empty string when metric input is unparseable', () => {
     expect(matDisplayToValue('', 'metric')).toBe('');
     expect(matDisplayToValue('abc', 'metric')).toBe('');

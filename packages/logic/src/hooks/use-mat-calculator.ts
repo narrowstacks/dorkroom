@@ -123,6 +123,7 @@ export function useMatCalculator(
     aw,
     ah,
     revVal,
+    revealValid,
     windowW,
     windowH,
     outerValid,
@@ -138,7 +139,7 @@ export function useMatCalculator(
   const unit = options?.unit ?? 'imperial';
   const snapStep = matSnapStep(unit);
   const bestFitPreview =
-    artValid && outerValid
+    artValid && outerValid && revealValid
       ? bestFitBorders(ow, oh, aw, ah, revVal, values.bottomWeight, snapStep)
       : null;
   const targetWindowW = revealMode ? aw - 2 * revVal : windowW;

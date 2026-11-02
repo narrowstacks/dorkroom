@@ -57,6 +57,16 @@ describe('useMatCalculator', () => {
     expect(result.current.fmt(result.current.windowW)).toBe('· · ·');
   });
 
+  it('treats an unparseable reveal as invalid, not as no reveal (#340)', () => {
+    const { result } = renderHook(() => useMatCalculator());
+
+    act(() => result.current.set('reveal', '1/8abc'));
+
+    expect(result.current.valid).toBe(false);
+    expect(result.current.bestFitPreview).toBeNull();
+    expect(result.current.fmt(result.current.windowW)).toBe('· · ·');
+  });
+
   it('offers a best-fit preview and applies it to the borders', () => {
     const { result } = renderHook(() => useMatCalculator());
 

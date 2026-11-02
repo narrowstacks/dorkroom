@@ -74,23 +74,24 @@ const GLYPH_RE = new RegExp(
 
 /**
  * Parse a measurement string into inches. Accepts decimals ("1.5", or "1,5"
- * with a comma separator), simple fractions ("1/4"), mixed numbers ("1 1/2"
- * or "1-1/2") and fraction glyphs ("3½", "3 ½"), each with an optional
- * trailing inch mark (`"`, `″` or `in`). Returns NaN for empty input, a zero
+ * with a comma separator), simple fractions ("1/4"), mixed numbers ("1 1/2",
+ * "1-1/2" or "1–1/2") and fraction glyphs ("3½", "3 ½"), each with an optional
+ * trailing inch mark (`"`, `″`, iOS smart quotes `”`/`“`, `′′`, `''` or
+ * `in`). Returns NaN for empty input, a zero
  * denominator, or any text left over, so a typo never reads as a truncated
  * number.
  */
 export function parseMatInput(str: string | number): number {
   const s = String(str)
     .trim()
-    .replace(/\s*(?:["″]|in)$/i, '');
+    .replace(/\s*(?:["″“”]|′′|''|in)$/i, '');
   if (s === '') return NaN;
   const glyph = s.match(GLYPH_RE);
   if (glyph)
     return Number(glyph[1] ?? 0) + (VULGAR_FRACTIONS.get(glyph[2]) ?? NaN);
   const ratio = (numer: string, denom: string) =>
     Number(denom) === 0 ? NaN : Number(numer) / Number(denom);
-  const mixed = s.match(/^(\d+(?:\.\d+)?)(?:\s+|\s*-\s*)(\d+)\/(\d+)$/);
+  const mixed = s.match(/^(\d+(?:\.\d+)?)(?:\s+|\s*[-–]\s*)(\d+)\/(\d+)$/);
   if (mixed) return Number(mixed[1]) + ratio(mixed[2], mixed[3]);
   const fraction = s.match(/^(\d+)\/(\d+)$/);
   if (fraction) return ratio(fraction[1], fraction[2]);
@@ -173,6 +174,8 @@ export interface MatLayout {
   ah: number;
   /** Reveal, 0 when not given. */
   revVal: number;
+  /** False when a reveal was typed but does not parse. */
+  revealValid: boolean;
   /** Window (sight opening) width and height. */
   windowW: number;
   windowH: number;
@@ -208,6 +211,9 @@ export function calculateMatLayout(values: MatCalculatorState): MatLayout {
   const aw = parseMatInput(values.artW);
   const ah = parseMatInput(values.artH);
   const rev = parseMatInput(values.reveal);
+  // An empty reveal means none; a typed one that does not parse is invalid,
+  // not 0, so a typo never yields a window sized for no reveal.
+  const revealValid = String(values.reveal).trim() === '' || !isNaN(rev);
   const revVal = isNaN(rev) ? 0 : rev;
 
   const bordersValid =
@@ -222,7 +228,8 @@ export function calculateMatLayout(values: MatCalculatorState): MatLayout {
   const outerValid = !isNaN(ow) && !isNaN(oh) && ow > 0 && oh > 0;
   const windowW = ow - bl - br;
   const windowH = oh - bt - bb;
-  const valid = outerValid && bordersValid && windowW > 0 && windowH > 0;
+  const valid =
+    outerValid && bordersValid && revealValid && windowW > 0 && windowH > 0;
   const artValid = !isNaN(aw) && !isNaN(ah) && aw > 0 && ah > 0;
 
   return {
@@ -235,6 +242,7 @@ export function calculateMatLayout(values: MatCalculatorState): MatLayout {
     aw,
     ah,
     revVal,
+    revealValid,
     windowW,
     windowH,
     outerValid,
