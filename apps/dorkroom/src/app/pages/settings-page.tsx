@@ -16,6 +16,14 @@ import {
   Sun,
 } from 'lucide-react';
 
+const THEME_VALUES: readonly string[] = [
+  'system',
+  'dark',
+  'light',
+  'high-contrast',
+  'darkroom',
+];
+
 export default function SettingsPage() {
   const {
     theme,
@@ -29,6 +37,9 @@ export default function SettingsPage() {
   // Legacy (e-ink) browsers never animate, so the switch would do nothing.
   const showAnimations =
     theme !== 'high-contrast' && theme !== 'darkroom' && !isLegacyBrowser();
+  // Stored values are always valid, but keep the groups reachable regardless.
+  const noThemeSelected = !THEME_VALUES.includes(theme);
+  const noUnitSelected = unit !== 'imperial' && unit !== 'metric';
   const hideEmojis = theme === 'high-contrast' || theme === 'darkroom';
 
   return (
@@ -83,6 +94,7 @@ export default function SettingsPage() {
                 <SettingsButton
                   asRadio
                   label="System"
+                  tabbable={noThemeSelected}
                   value="Follow system preference (chaotic neutral)"
                   onPress={() => setTheme('system')}
                   icon={Monitor}
@@ -181,6 +193,7 @@ export default function SettingsPage() {
                 <SettingsButton
                   asRadio
                   label="Imperial"
+                  tabbable={noUnitSelected}
                   labelDecoration={hideEmojis ? undefined : '🇺🇸'}
                   value="Inches, feet"
                   onPress={() => setUnit('imperial')}

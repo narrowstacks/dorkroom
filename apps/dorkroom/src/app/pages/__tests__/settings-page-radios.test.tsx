@@ -7,6 +7,7 @@ import {
 } from '@dorkroom/ui';
 import { render, screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import { useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import SettingsPage from '../settings-page';
 
@@ -151,15 +152,32 @@ describe('SettingsPage single-choice groups', () => {
     ).toBeInTheDocument();
   });
 
-  it('keeps a tab stop when nothing is checked', () => {
+  it('keeps exactly one tab stop when selection lives in a child', async () => {
+    const user = userEvent.setup();
+    function Options() {
+      const [value, setValue] = useState<string | null>(null);
+      return ['a', 'b', 'c'].map((id, index) => (
+        <SettingsButton
+          key={id}
+          asRadio
+          label={id}
+          isSelected={value === id}
+          tabbable={value === null && index === 0}
+          onPress={() => setValue(value === id ? null : id)}
+        />
+      ));
+    }
     render(
       <SettingsRadioGroup labelledBy="x">
-        <SettingsButton asRadio label="A" onPress={vi.fn()} />
-        <SettingsButton asRadio label="B" onPress={vi.fn()} />
+        <Options />
       </SettingsRadioGroup>
     );
-    const radios = screen.getAllByRole('radio');
-    expect(radios.map((r) => r.tabIndex)).toEqual([0, -1]);
+    const stops = () => screen.getAllByRole('radio').map((r) => r.tabIndex);
+    expect(stops()).toEqual([0, -1, -1]);
+    await user.click(screen.getByRole('radio', { name: 'c' }));
+    expect(stops()).toEqual([-1, -1, 0]);
+    await user.click(screen.getByRole('radio', { name: 'c' }));
+    expect(stops()).toEqual([0, -1, -1]);
   });
 
   it('calls onPress once per arrow keypress', async () => {

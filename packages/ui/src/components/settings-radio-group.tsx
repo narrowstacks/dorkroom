@@ -1,9 +1,4 @@
-import {
-  type KeyboardEvent,
-  type ReactNode,
-  useLayoutEffect,
-  useRef,
-} from 'react';
+import type { KeyboardEvent, ReactNode } from 'react';
 
 export interface SettingsRadioGroupProps {
   /** Id of the heading that names the group. */
@@ -29,31 +24,14 @@ function isMoveKey(key: string): key is keyof typeof MOVE_KEYS {
  * Arrow keys move focus to the neighbouring option (wrapping) and activate it
  * by clicking it, so selection goes through the option's own `onPress` exactly
  * once. Home and End jump to the first and last option. Tab order is handled
- * by the options (only the checked one is tabbable).
+ * by the options: only the checked one is tabbable, and when none is checked
+ * the caller marks the first option `tabbable` so the group stays reachable.
  */
 export function SettingsRadioGroup({
   labelledBy,
   className,
   children,
 }: SettingsRadioGroupProps) {
-  const groupRef = useRef<HTMLDivElement>(null);
-
-  // Roving tabindex: the checked option is the tab stop. With nothing checked
-  // the group would be unreachable, so the first option takes over. Runs every
-  // render and rewrites every radio, so the fallback never leaves a second stop.
-  useLayoutEffect(() => {
-    const radios = Array.from(
-      groupRef.current?.querySelectorAll<HTMLElement>('[role="radio"]') ?? []
-    );
-    const hasChecked = radios.some(
-      (radio) => radio.getAttribute('aria-checked') === 'true'
-    );
-    radios.forEach((radio, index) => {
-      const checked = radio.getAttribute('aria-checked') === 'true';
-      radio.tabIndex = checked || (!hasChecked && index === 0) ? 0 : -1;
-    });
-  });
-
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     // Leave browser and OS shortcuts alone (Alt+Left is Back).
     if (event.altKey || event.ctrlKey || event.metaKey) return;
@@ -80,7 +58,6 @@ export function SettingsRadioGroup({
     // The options hold focus; the group only listens for their bubbled keys.
     // oxlint-disable-next-line jsx-a11y/interactive-supports-focus
     <div
-      ref={groupRef}
       role="radiogroup"
       aria-labelledby={labelledBy}
       onKeyDown={onKeyDown}

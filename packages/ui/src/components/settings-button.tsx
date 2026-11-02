@@ -20,6 +20,11 @@ interface SettingsButtonProps {
    * tab order (only the checked option is tabbable).
    */
   asRadio?: boolean;
+  /**
+   * With `asRadio`, also make this option a tab stop. Set it on the first
+   * option while nothing in the group is selected, so the group stays reachable.
+   */
+  tabbable?: boolean;
 }
 
 export function SettingsButton({
@@ -34,6 +39,7 @@ export function SettingsButton({
   className,
   isSelected = false,
   asRadio = false,
+  tabbable = false,
 }: SettingsButtonProps) {
   const labelId = useId();
   const valueId = useId();
@@ -47,7 +53,7 @@ export function SettingsButton({
       type="button"
       role={asRadio ? 'radio' : undefined}
       aria-checked={asRadio ? isSelected : undefined}
-      tabIndex={asRadio ? (isSelected ? 0 : -1) : undefined}
+      tabIndex={asRadio ? (isSelected || tabbable ? 0 : -1) : undefined}
       aria-labelledby={named ? labelId : undefined}
       aria-describedby={named && value ? valueId : undefined}
       onClick={onPress}
