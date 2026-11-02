@@ -9,7 +9,7 @@ import { buildDeveloperFilters } from '../_shared/developerFilters.ts';
  * Query Parameters:
  *   - slug: Exact match on developer slug
  *   - query: Case-insensitive partial match on developer name or manufacturer
- *     (punctuation other than hyphens is dropped)
+ *     (commas, quotes and parentheses are fine)
  *   - fuzzy: Deprecated and ignored; accepted so existing clients keep working
  *   - limit: Maximum number of results
  *   - type: Filter by developer type (concentrate/powder)
@@ -82,10 +82,12 @@ import { buildDeveloperFilters } from '../_shared/developerFilters.ts';
   const query = searchParams.get('query');
   const limit = parseInt(searchParams.get('limit') ?? '0', 10);
   const type = searchParams.get('type');
-  const { orFilter, manufacturerPattern } = buildDeveloperFilters({
-    query,
-    manufacturer: searchParams.get('manufacturer'),
-  });
+  const { orFilter, manufacturerPattern, invalidQuery } = buildDeveloperFilters(
+    {
+      query,
+      manufacturer: searchParams.get('manufacturer'),
+    }
+  );
 
   // ────────────────────────────────────────
   //  Build query
@@ -93,6 +95,16 @@ import { buildDeveloperFilters } from '../_shared/developerFilters.ts';
   let dbQuery = supabase.from('developers').select('*', {
     count: 'exact',
   });
+
+  if (invalidQuery) {
+    return new Response(JSON.stringify({ error: 'Invalid query parameter' }), {
+      status: 400,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
+  }
 
   // Apply filters
   if (slug) {

@@ -1,30 +1,33 @@
-import { sanitizeQuery } from './sanitize.ts';
+import { cleanSearchTerm, ilikeCondition } from './search.ts';
 
 export interface DeveloperFilters {
+  /** `.or()` filter string for `query`, or null when there is no query. */
   orFilter: string | null;
+  /** `%manufacturer%` pattern for `.ilike()`, or null when absent. */
   manufacturerPattern: string | null;
+  /** True when `query` was sent but holds no letter or digit (answer 400). */
+  invalidQuery: boolean;
 }
 
 /**
- * The `/developers` search term and manufacturer filter, made safe for
- * PostgREST. `query` goes into an `.or()` filter string, where a comma or a
- * parenthesis is syntax and used to make the request fail with a 500 (surfaced
- * as a 502 by the proxy). Both values go through `sanitizeQuery`, like the
- * films and combinations functions, so punctuation is dropped instead.
- *
- * A value that is empty after sanitizing (`,`, `()`) yields `null`, meaning
- * "no filter", so the request behaves as if the param had not been sent.
+ * The `/developers` search term and manufacturer filter. `query` goes into an
+ * `.or()` filter string, so it is double-quoted (commas and parentheses were
+ * syntax there and used to fail with a 500, surfaced as 502). `manufacturer`
+ * goes through `.ilike()`, whose value is not parsed as a filter list, so it
+ * passes through unchanged.
  */
 export function buildDeveloperFilters(params: {
   query: string | null;
   manufacturer: string | null;
 }): DeveloperFilters {
-  const safeQuery = sanitizeQuery(params.query ?? '').trim();
-  const safeManufacturer = sanitizeQuery(params.manufacturer ?? '').trim();
+  const hasQuery = Boolean(params.query?.trim());
+  const term = hasQuery ? cleanSearchTerm(params.query ?? '') : null;
+  const manufacturer = params.manufacturer?.trim();
   return {
-    orFilter: safeQuery
-      ? `name.ilike.%${safeQuery}%,manufacturer.ilike.%${safeQuery}%`
+    orFilter: term
+      ? `${ilikeCondition('name', term)},${ilikeCondition('manufacturer', term)}`
       : null,
-    manufacturerPattern: safeManufacturer ? `%${safeManufacturer}%` : null,
+    manufacturerPattern: manufacturer ? `%${manufacturer}%` : null,
+    invalidQuery: hasQuery && term === null,
   };
 }
