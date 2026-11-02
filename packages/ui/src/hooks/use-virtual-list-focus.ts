@@ -22,7 +22,8 @@ import {
  * grid keeps the focused item's row in its virtual window with
  * `keepFocusedInRange` (pass it the virtualizer's `rangeExtractor`). That also
  * stops the focused card from virtualizing away when the list is scrolled
- * past it. The remount path never scrolls: a list whose focused item did
+ * past it. The remount path never scrolls (it focuses with `preventScroll`,
+ * and never calls `scrollToIndex`): a list whose focused item did
  * leave the window (the table, scrolled far enough) simply loses focus, as
  * any virtualized list does, rather than fighting the user's scroll.
  *
@@ -264,7 +265,11 @@ export function useVirtualListFocus({
       const item = container && findItem(container, last.target.key);
       if (item) {
         const controls = focusablesIn(item);
-        (controls[last.target.control] ?? controls[0] ?? item).focus();
+        // No scrolling here either: a card kept in the window while scrolled
+        // out of view must not pull the list back when a resize remounts it.
+        (controls[last.target.control] ?? controls[0] ?? item).focus({
+          preventScroll: true,
+        });
       }
     }
     settlePending();

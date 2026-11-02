@@ -77,6 +77,21 @@ describe('useVirtualListFocus', () => {
     );
   });
 
+  it('refocuses a remounted item without scrolling to it', () => {
+    const focus = vi.spyOn(HTMLElement.prototype, 'focus');
+    const { rerender } = render(<Grid columns={3} />);
+    screen.getByRole('button', { name: 'Delete c' }).focus();
+    focus.mockClear();
+
+    rerender(<Grid columns={2} />);
+
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Delete c' })
+    );
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+    focus.mockRestore();
+  });
+
   it('does not scroll back or move focus when the focused item leaves the window', () => {
     const scrollToIndex = vi.fn();
     const { rerender } = render(
