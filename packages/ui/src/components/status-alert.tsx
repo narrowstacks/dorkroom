@@ -95,3 +95,60 @@ export function StatusAlert({
     </div>
   );
 }
+
+interface LiveStatusAlertProps {
+  /** The text to show and announce. Empty, null or undefined hides the alert. */
+  message: string | null | undefined;
+  action?: 'warning' | 'error';
+  className?: string;
+  onDismiss?: () => void;
+  dismissLabel?: string;
+}
+
+/**
+ * A `StatusAlert` that screen readers announce when it appears.
+ *
+ * Assistive tech only announces text *added to* a live region that already
+ * exists, so an alert that mounts together with its own `role` is usually
+ * silent. This keeps the live region (`role="alert"` for errors, `role="status"`
+ * for warnings) mounted at all times and swaps the visible alert in and out
+ * of it. Render it unconditionally and pass `message` instead of writing
+ * `{cond && <StatusAlert />}`.
+ *
+ * While the message is empty the wrapper is taken out of flow
+ * (`empty:absolute`, still rendered and in the accessibility tree, unlike
+ * `display: none`), so nothing is visible and a flex `gap-*` ignores it.
+ * `space-y-*` does not ignore it, so put the alert in a `flex flex-col gap-*`
+ * parent when it needs spacing from its siblings.
+ *
+ * Do not place it inside another live region (use `StatusAlert` with
+ * `omitRole` there), and do not pair it with a `ResultAnnouncer` that speaks
+ * the same text.
+ */
+export function LiveStatusAlert({
+  message,
+  action = 'warning',
+  className,
+  onDismiss,
+  dismissLabel,
+}: LiveStatusAlertProps) {
+  const alert = message ? (
+    <StatusAlert
+      message={message}
+      action={action}
+      className={className}
+      omitRole
+      onDismiss={onDismiss}
+      dismissLabel={dismissLabel}
+    />
+  ) : null;
+
+  if (action === 'error') {
+    return (
+      <div role="alert" className="block empty:absolute">
+        {alert}
+      </div>
+    );
+  }
+  return <output className="block empty:absolute">{alert}</output>;
+}

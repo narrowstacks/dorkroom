@@ -1,10 +1,10 @@
 import { RESIZE_CALCULATOR_LINK_PARAMS } from '@dorkroom/logic';
 import { ROUTE_DESCRIPTIONS, ROUTE_TITLES } from '@dorkroom/ui';
 import { createFileRoute } from '@tanstack/react-router';
-import { lazy } from 'react';
+import { lazyPage } from '../app/lib/lazy-page';
 import { calculatorRoute } from '../components/calculator-route';
 
-const ResizeCalculatorPage = lazy(
+const ResizeCalculatorPage = lazyPage(
   () => import('../app/pages/resize-calculator/resize-calculator-page')
 );
 

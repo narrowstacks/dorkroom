@@ -1,6 +1,6 @@
-import { type Combination, fetchCombinations } from '@dorkroom/api';
+import type { Combination } from '@dorkroom/api';
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '../../queries/query-keys';
+import { combinationsQueryOptions } from '../../queries/api-query-options';
 import type { QueryHookOptions } from './query-hook-options';
 
 /**
@@ -8,8 +8,7 @@ import type { QueryHookOptions } from './query-hook-options';
  */
 export function useCombinations({ enabled = true }: QueryHookOptions = {}) {
   return useQuery<Combination[]>({
-    queryKey: queryKeys.combinations.list(),
-    queryFn: fetchCombinations,
+    ...combinationsQueryOptions(),
     enabled,
   });
 }
