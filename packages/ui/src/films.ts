@@ -9,6 +9,11 @@ export {
   FILM_IMAGE_WIDTHS,
   FilmImage,
   FilmImageLoaderContext,
+  FilmImageModeContext,
   FilmResultsVirtualized,
 } from './components/films';
-export type { FilmImageLoader, FilmImageWidth } from './components/films';
+export type {
+  FilmImageLoader,
+  FilmImageMode,
+  FilmImageWidth,
+} from './components/films';

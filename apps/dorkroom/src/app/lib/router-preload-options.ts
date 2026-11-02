@@ -29,3 +29,17 @@ export const routerPreloadOptions = {
   // hover reused the preload and never prefetched the page's data.
   defaultPreloadStaleTime: 0,
 } as const;
+
+/** The app's preload options for this browser: as above, minus intent
+ *  preloading on a legacy one. */
+export function routerPreloadOptionsFor(isLegacy: boolean) {
+  return {
+    ...routerPreloadOptions,
+    // No intent preloading on legacy browsers such as the Kindle's (#636): a
+    // touch-scroll over links there pulled in route chunks the user never
+    // opened, on a slow engine with little memory.
+    defaultPreload: isLegacy
+      ? (false as const)
+      : routerPreloadOptions.defaultPreload,
+  };
+}

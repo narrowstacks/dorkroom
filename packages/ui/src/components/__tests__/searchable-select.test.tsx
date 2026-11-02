@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { StrictMode } from 'react';
+import { StrictMode, useState } from 'react';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { SearchableSelect } from '../searchable-select';
 
@@ -615,5 +615,331 @@ describe('SearchableSelect closes when focus leaves by keyboard (#635)', () => {
     await user.tab(); // Brand
     expect(screen.getAllByRole('listbox')).toHaveLength(1);
     expect(screen.getByRole('combobox', { name: 'Brand' })).toHaveFocus();
+  });
+});
+
+describe('SearchableSelect keeps focus after Clear selection (#639)', () => {
+  beforeAll(() => {
+    Element.prototype.scrollIntoView = vi.fn();
+  });
+
+  // Controlled, so the Clear button really unmounts once the value is empty.
+  function Controlled() {
+    const [value, setValue] = useState('b');
+    return (
+      <>
+        <SearchableSelect
+          label="Brand"
+          selectedValue={value}
+          onValueChange={setValue}
+          items={items}
+        />
+        <button type="button">Next</button>
+      </>
+    );
+  }
+
+  it('Enter on Clear leaves focus on the input with the list closed', async () => {
+    const user = userEvent.setup();
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    await user.tab(); // input (opens its list)
+    await user.keyboard('{Escape}');
+    await user.tab(); // Clear selection
+    expect(
+      screen.getByRole('button', { name: 'Clear selection' })
+    ).toHaveFocus();
+    await user.keyboard('{Enter}');
+    expect(
+      screen.queryByRole('button', { name: 'Clear selection' })
+    ).toBeNull();
+    expect(input).toHaveFocus();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('listbox')).toBeNull();
+  });
+
+  it('a mouse click on Clear does the same', async () => {
+    const user = userEvent.setup();
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    await user.click(screen.getByRole('button', { name: 'Clear selection' }));
+    expect(input).toHaveFocus();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('listbox')).toBeNull();
+  });
+
+  it('Tab then moves to the next field, and ArrowDown opens as usual', async () => {
+    const user = userEvent.setup();
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    await user.click(screen.getByRole('button', { name: 'Clear selection' }));
+    await user.keyboard('{ArrowDown}');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    await user.keyboard('{Escape}');
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Next' })).toHaveFocus();
+  });
+
+  it('does not move focus to the input after a touch tap on Clear', () => {
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    const clear = screen.getByRole('button', { name: 'Clear selection' });
+    fireEvent.pointerDown(clear, { pointerType: 'touch' });
+    fireEvent.click(clear, { detail: 1 });
+    expect(
+      screen.queryByRole('button', { name: 'Clear selection' })
+    ).toBeNull();
+    expect(input).not.toHaveFocus();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('a cancelled touch press does not stop a later Enter from refocusing', async () => {
+    const user = userEvent.setup();
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    const clear = screen.getByRole('button', { name: 'Clear selection' });
+    fireEvent.pointerDown(clear, { pointerType: 'touch' });
+    act(() => clear.focus());
+    await user.keyboard('{Enter}');
+    expect(input).toHaveFocus();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('a mouse press on Clear does not blur the input, so an open list stays until the click', async () => {
+    const user = userEvent.setup();
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    const clear = screen.getByRole('button', { name: 'Clear selection' });
+    expect(fireEvent.mouseDown(clear)).toBe(false); // default prevented
+    expect(input).toHaveFocus();
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    await user.click(clear);
+    expect(
+      screen.queryByRole('button', { name: 'Clear selection' })
+    ).toBeNull();
+    expect(input).toHaveFocus();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('typing right after a clear searches for just the typed text', async () => {
+    const user = userEvent.setup();
+    render(
+      <SearchableSelect
+        label="Brand"
+        selectedValue="b"
+        onValueChange={vi.fn()}
+        items={[{ value: '', label: 'All Brands' }, ...items]}
+      />
+    );
+    const input = screen.getByRole('combobox');
+    await user.click(screen.getByRole('button', { name: 'Clear selection' }));
+    await user.keyboard('Ga');
+    expect(input).toHaveValue('Ga');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+  });
+
+  it('typing after Escape searches for just the typed text', async () => {
+    const user = userEvent.setup();
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    await user.keyboard('{Escape}');
+    await user.keyboard('Ga');
+    expect(input).toHaveValue('Ga');
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+  });
+
+  it('text that lands after the label without a keydown (paste) searches for just the new text', () => {
+    render(
+      <SearchableSelect
+        label="Brand"
+        selectedValue="b"
+        onValueChange={vi.fn()}
+        items={items}
+      />
+    );
+    const input = screen.getByRole('combobox');
+    fireEvent.change(input, { target: { value: 'BetaG' } });
+    expect(input).toHaveValue('G');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+  });
+
+  it('a keyCode 229 keydown (IME, Android keyboards) does not break typing', () => {
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    fireEvent.keyDown(input, { key: 'Unidentified', keyCode: 229 });
+    fireEvent.change(input, { target: { value: 'BetaG' } });
+    expect(input).toHaveValue('G');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('a touch tap on Clear with the list open dismisses the keyboard (blurs the input)', async () => {
+    const user = userEvent.setup();
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    const clear = screen.getByRole('button', { name: 'Clear selection' });
+    fireEvent.pointerDown(clear, { pointerType: 'touch' });
+    fireEvent.click(clear, { detail: 1 });
+    expect(input).not.toHaveFocus();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  function setupIso() {
+    render(
+      <SearchableSelect
+        label="ISO"
+        selectedValue="100"
+        onValueChange={vi.fn()}
+        items={[
+          { value: '100', label: '100' },
+          { value: '1000', label: '1000' },
+        ]}
+      />
+    );
+    const input = screen.getByRole('combobox');
+    if (!(input instanceof HTMLInputElement)) throw new Error('not an input');
+    return input;
+  }
+
+  it('pasting over a fully selected label searches for the pasted text', () => {
+    const input = setupIso();
+    input.focus();
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    act(() => input.setSelectionRange(0, 3));
+    fireEvent.paste(input);
+    fireEvent.change(input, { target: { value: '1000' } });
+    expect(input).toHaveValue('1000');
+  });
+
+  it('pasting at the end of an unselected label searches for just the pasted text', () => {
+    const input = setupIso();
+    input.focus();
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    act(() => input.setSelectionRange(3, 3));
+    fireEvent.paste(input);
+    fireEvent.change(input, { target: { value: '100Q' } });
+    expect(input).toHaveValue('Q');
+  });
+
+  it('Space after a clear opens the full list with an empty search', async () => {
+    const user = userEvent.setup();
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    await user.click(screen.getByRole('button', { name: 'Clear selection' }));
+    await user.keyboard(' ');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(input).toHaveValue('');
+    expect(screen.getAllByRole('option')).toHaveLength(3);
+  });
+
+  it('Space after Escape with a value opens the full list with an empty search', async () => {
+    const user = userEvent.setup();
+    render(<Controlled />);
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    await user.keyboard('{Escape}');
+    await user.keyboard(' ');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(input).toHaveValue('');
+    expect(screen.getAllByRole('option')).toHaveLength(3);
+  });
+
+  it('keeps a space typed in the middle of a search', async () => {
+    const user = userEvent.setup();
+    render(
+      <SearchableSelect
+        label="Brand"
+        selectedValue=""
+        onValueChange={vi.fn()}
+        items={[{ value: 'k', label: 'Kosmo Foto' }, ...items]}
+      />
+    );
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    await user.keyboard('Kosmo F');
+    expect(input).toHaveValue('Kosmo F');
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+  });
+
+  function setupAdox() {
+    render(
+      <SearchableSelect
+        label="Brand"
+        selectedValue="a"
+        onValueChange={vi.fn()}
+        items={[
+          { value: 'a', label: 'Adox' },
+          { value: 'q', label: 'Qux' },
+          { value: 'b', label: 'Beta' },
+        ]}
+      />
+    );
+    const input = screen.getByRole('combobox');
+    if (!(input instanceof HTMLInputElement)) throw new Error('not an input');
+    input.focus();
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    return input;
+  }
+
+  function editFrom(
+    input: HTMLInputElement,
+    caret: [number, number],
+    value: string
+  ) {
+    act(() => input.setSelectionRange(caret[0], caret[1]));
+    fireEvent.paste(input);
+    fireEvent.change(input, { target: { value } });
+  }
+
+  it.each([
+    ['Home', [0, 0], 'QAdox'],
+    ['ArrowLeft x2', [2, 2], 'AdQox'],
+    ['Shift+ArrowLeft x2', [2, 4], 'AdQ'],
+  ] as const)(
+    'an edit with no keydown after %s keeps just the inserted text',
+    (_name, caret, value) => {
+      const input = setupAdox();
+      editFrom(input, [caret[0], caret[1]], value);
+      expect(input).toHaveValue('Q');
+      expect(input).toHaveAttribute('aria-expanded', 'true');
+    }
+  );
+
+  it('an Android-style deletion of the last character opens the full list', () => {
+    const input = setupAdox();
+    editFrom(input, [4, 4], 'Ado');
+    expect(input).toHaveValue('');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getAllByRole('option')).toHaveLength(3);
+  });
+
+  it('a select-all replacement keeps the full pasted text', () => {
+    const input = setupAdox();
+    editFrom(input, [0, 4], 'Adoxes');
+    expect(input).toHaveValue('Adoxes');
+  });
+
+  it('pasting over the last two characters keeps all of the pasted text', () => {
+    const input = setupIso();
+    input.focus();
+    fireEvent.keyDown(input, { key: 'Escape' });
+    act(() => input.setSelectionRange(1, 3));
+    fireEvent.paste(input);
+    fireEvent.change(input, { target: { value: '1200' } });
+    expect(input).toHaveValue('200');
+  });
+
+  it('pasting over the first character keeps the pasted text', () => {
+    const input = setupAdox();
+    editFrom(input, [0, 1], '9dox');
+    expect(input).toHaveValue('9');
   });
 });
