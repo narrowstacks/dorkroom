@@ -269,13 +269,25 @@ export function useModalLayer<T extends HTMLElement>(
         .map((kept) => kept.current)
         .filter((kept): kept is HTMLElement => kept !== null),
     };
+    // Focus moves in before the page turns inert. A focused element that
+    // turns inert is blurred, and an engine that does this at once (rather
+    // than at the next frame, as Chromium does) would close a phone's
+    // keyboard held open by a field outside the layer before focus reached
+    // the layer's own field.
+    const focusIn = () => {
+      if (!element.contains(document.activeElement)) {
+        (initialFocus?.current ?? tabbablesIn(element)[0] ?? element).focus();
+      }
+    };
+    focusIn();
+
     layers.push(layer);
     syncInert();
     element.addEventListener('keydown', trapTab);
-
-    if (!element.contains(document.activeElement)) {
-      (initialFocus?.current ?? tabbablesIn(element)[0] ?? element).focus();
-    }
+    // A layer that opens inside a subtree the layer below made inert could
+    // not take focus above (focus on an inert element does nothing); now
+    // that it is on top and interactive, it can.
+    focusIn();
 
     return () => {
       element.removeEventListener('keydown', trapTab);

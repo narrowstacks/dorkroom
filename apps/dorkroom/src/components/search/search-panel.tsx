@@ -7,8 +7,8 @@ import {
 import { cn, TemperatureProvider, useTemperature } from '@dorkroom/ui';
 import {
   type MouseEventHandler,
+  type RefObject,
   useDeferredValue,
-  useEffect,
   useId,
   useMemo,
   useRef,
@@ -97,10 +97,22 @@ function TryChips({
 interface SearchPanelProps {
   /**
    * Where the panel sits. `hero`: the home page's box, where Escape clears it.
-   * `dialog`: the nav search, which takes focus on open, leaves Escape to
-   * close the dialog, and reports `nav_search` rather than `home_search`.
+   * `dialog`: the nav search, which leaves Escape to close the dialog and
+   * reports `nav_search` rather than `home_search`.
    */
   variant: 'hero' | 'dialog';
+  /**
+   * The search box, for a dialog that opens with focus in it (the dialog
+   * owns initial focus, so the box takes it in the same commit).
+   */
+  inputRef?: RefObject<HTMLInputElement | null>;
+  /** What the box starts with (text typed while the dialog loaded). */
+  initialQuery?: string;
+  /**
+   * Called as the box gains focus, for text typed elsewhere until then (the
+   * nav trigger's stand-in field). Non-empty text replaces the query.
+   */
+  takeHeldText?: () => string;
   /** Called when an answer's or a match's link is clicked. */
   onNavigate?: MouseEventHandler<HTMLAnchorElement>;
 }
@@ -122,16 +134,24 @@ export function SearchPanel(props: SearchPanelProps) {
   );
 }
 
-function SearchPanelBody({ variant, onNavigate }: SearchPanelProps) {
+function SearchPanelBody({
+  variant,
+  onNavigate,
+  inputRef: givenInputRef,
+  initialQuery = '',
+  takeHeldText,
+}: SearchPanelProps) {
   const inDialog = variant === 'dialog';
-  const [query, setQuery] = useState('');
+  // A new input given a value has its caret at the end, ready to type on.
+  const [query, setQuery] = useState(initialQuery);
   // The option the arrow keys moved to; null means the top one.
   const [chosen, setChosen] = useState<string | null>(null);
   // The active option is marked only while the box has focus, so it never
   // looks like a second focused element.
   const [focused, setFocused] = useState(false);
   const listId = useId();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const ownInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = givenInputRef ?? ownInputRef;
   const { data, load, loadError } = useSearchData();
   // Results trail the keystrokes a little on slow devices; the box never does.
   const settledQuery = useDeferredValue(query);
@@ -151,12 +171,6 @@ function SearchPanelBody({ variant, onNavigate }: SearchPanelProps) {
     result,
     loadError !== null
   );
-
-  // The dialog opens straight into its box. Once, on mount: `inDialog` never
-  // changes for a mounted panel.
-  useEffect(() => {
-    if (inDialog) inputRef.current?.focus();
-  }, [inDialog]);
 
   const searching = settledQuery.trim() !== '';
   // One sentence per settled query, not one per keystroke.
@@ -207,6 +221,14 @@ function SearchPanelBody({ variant, onNavigate }: SearchPanelProps) {
     setChosen(null);
   };
 
+  const onFocusedChange = (next: boolean) => {
+    setFocused(next);
+    if (!next || !takeHeldText) return;
+    // Setting a focused box's value leaves the caret at the end.
+    const held = takeHeldText();
+    if (held && held !== query) changeQuery(held);
+  };
+
   const fill = (next: string) => {
     load();
     changeQuery(next);
@@ -228,7 +250,7 @@ function SearchPanelBody({ variant, onNavigate }: SearchPanelProps) {
         options={options}
         activeId={activeId}
         onActiveChange={choose}
-        onFocusedChange={setFocused}
+        onFocusedChange={onFocusedChange}
         placeholder="Ask: hp5 at 800 in dd-x"
         standalone={!inDialog}
       />
