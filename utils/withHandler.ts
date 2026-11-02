@@ -537,6 +537,10 @@ async function applyAnonymousRateLimit(
     identifier: getClientIp(req),
     limit: ANONYMOUS_RATE_LIMIT,
     durationMs: ANONYMOUS_RATE_WINDOW_MS,
+    // A passing response is CDN-cached (public s-maxage) and shared, so
+    // per-IP X-RateLimit-* would show every later visitor the first caller's
+    // budget. A 429 is no-store, so it keeps them.
+    setHeadersOnSuccess: false,
   });
 }
 

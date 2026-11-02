@@ -37,7 +37,10 @@ busy install can still exhaust the key-wide limit for the others. Omitting the
 header keeps key-only limiting; a malformed value is treated as absent rather
 than rejected.
 
-Every response includes rate limit headers:
+Responses to requests with an API key include rate limit headers, and so does
+any `429`. Anonymous `200` responses from `dorkroom.art/api` omit them: the CDN
+caches and shares those responses, so a per-IP count would describe someone
+else's budget.
 
 | Header | Description |
 | --- | --- |

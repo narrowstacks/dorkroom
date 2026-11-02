@@ -314,6 +314,9 @@ dev, a preview without them), requests filtered `/api/films`,
   caller's own per-IP budget). Filtered requests stay refused until the
   bucket frees up, which for the daily one can take hours
 - Fails open on any Unkey failure, like the OG limiter
+- A passing anonymous response carries no `X-RateLimit-*` (it is CDN-cached
+  and shared, so the headers would show later visitors the first caller's
+  budget); anonymous 429s and keyed responses (no-store) keep them
 - Proxy responses carry `stale-if-error=86400`, so the CDN keeps serving the
   last good copy for a day if the origin fails (Vercel documents it for 500s,
   network and DNS errors; whether a 502 or 503 qualifies is unconfirmed)
