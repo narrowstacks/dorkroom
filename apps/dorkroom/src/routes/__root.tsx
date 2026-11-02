@@ -88,7 +88,7 @@ function RootComponent() {
               status-bar/toolbar bands, which hijacked the tint that should
               come from .backdrop-gradient (see utilities.css). */}
           <header
-            className="z-50 hidden border-b lg:sticky lg:top-[env(safe-area-inset-top)] lg:block lg:backdrop-blur"
+            className="z-50 hidden border-b lg:sticky lg:top-[env(safe-area-inset-top)] lg:block lg:backdrop-blur solid-without-blur"
             style={{
               backgroundColor: 'rgba(var(--color-background-rgb), 0.8)',
               borderColor: 'var(--color-border-muted)',
@@ -119,7 +119,7 @@ function RootComponent() {
               </Link>
               <nav className="hidden flex-1 justify-center lg:flex">
                 <div
-                  className="relative flex max-w-full gap-1 rounded-full border p-1 text-sm backdrop-blur"
+                  className="relative flex max-w-full gap-1 rounded-full border p-1 text-sm backdrop-blur solid-without-blur"
                   style={{
                     borderColor: 'var(--color-border-secondary)',
                     backgroundColor: 'rgba(var(--color-background-rgb), 0.5)',

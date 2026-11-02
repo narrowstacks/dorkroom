@@ -303,6 +303,22 @@ describe('legacy browser marker', () => {
   });
 });
 
+describe('solid surfaces without backdrop-filter', () => {
+  it('keeps the @supports-not rule through the rewrite', async () => {
+    const source = readFileSync(
+      join(__dirname, '../../apps/dorkroom/src/styles/utilities.css'),
+      'utf8'
+    );
+    const out = await legacy(`:root{--color-background:#000}${source}`);
+    expect(out).toMatch(/@supports not/);
+    // lightningcss narrows the condition to what its Chrome 80 target knows.
+    expect(out).toMatch(/@supports not \(backdrop-filter:\s*blur\(1px\)\)/);
+    expect(out).toMatch(
+      /\.solid-without-blur[^{]*\{background-color:var\(--color-background\)!important\}/
+    );
+  });
+});
+
 describe('legacyCssLeftovers', () => {
   it('counts constructs Chromium 80 ignores', () => {
     const counts = legacyCssLeftovers(

@@ -109,7 +109,7 @@ export function NavigationDropdown({
       {isOpen && (
         // dropdown
         <div
-          className="absolute left-0 top-full z-50 mt-2 min-w-56 rounded-2xl border p-2 shadow-xl backdrop-blur-md"
+          className="absolute left-0 top-full z-50 mt-2 min-w-56 rounded-2xl border p-2 shadow-xl backdrop-blur-md solid-without-blur"
           style={{
             borderColor: 'var(--color-border-primary)',
             backgroundColor: 'rgba(var(--color-background-rgb), 0.95)',
