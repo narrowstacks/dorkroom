@@ -9,7 +9,11 @@
  * `Rodinal/Adonal` matching themselves, which stripping characters did not.
  */
 
-/** Wrap a value for use in an `.or()` condition, escaping `\` and `"`. */
+/**
+ * Wrap a value for use in an `.or()` condition, escaping `\` and `"`.
+ * `cleanSearchTerm` already collapses both into `%`, so they cannot reach
+ * here from a search term; the escaping is defence in depth.
+ */
 export const quoteFilterValue = (v: string) =>
   `"${v.replace(/[\\"]/g, '\\$&')}"`;
 
