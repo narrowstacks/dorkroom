@@ -53,7 +53,7 @@ describe('buildDeveloperFilters', () => {
   });
 
   it('flags a query without letters or digits as invalid', () => {
-    for (const q of [',', '()', ' , ']) {
+    for (const q of [',', '()', ' , ', '   ']) {
       expect(
         buildDeveloperFilters({ query: q, manufacturer: null })
       ).toMatchObject({ orFilter: null, invalidQuery: true });

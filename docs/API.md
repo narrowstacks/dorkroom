@@ -52,7 +52,7 @@ All error responses include a `requestId` for debugging.
 
 | Status | Error | Cause |
 | --- | --- | --- |
-| `400` | e.g. `Invalid query parameter` | A parameter was rejected, for example a `query`, `slug`, `brand`, or `film` value that is empty once sanitized. The `error` text comes from the data service. |
+| `400` | e.g. `Invalid query parameter` | A parameter was rejected: `query` with no letter or digit in it (including spaces only), or a `slug`, `film`, or `developer` value with no letter, digit, or hyphen left once sanitized. An empty `query=` and a blank `brand` or `manufacturer` are ignored, not rejected. The `error` text comes from the data service. |
 | `401` | `Unauthorized` | Missing or invalid API key |
 | `404` | `Not found` | Path is not an endpoint (returned without an API key) |
 | `405` | `Method Not Allowed` | Non-GET request |

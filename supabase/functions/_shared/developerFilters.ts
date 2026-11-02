@@ -20,7 +20,9 @@ export function buildDeveloperFilters(params: {
   query: string | null;
   manufacturer: string | null;
 }): DeveloperFilters {
-  const hasQuery = Boolean(params.query?.trim());
+  // Any non-empty value counts, whitespace-only included, so this agrees with
+  // /films and /combinations (`if (query)`): both answer 400.
+  const hasQuery = Boolean(params.query);
   const term = hasQuery ? cleanSearchTerm(params.query ?? '') : null;
   const manufacturer = params.manufacturer?.trim();
   return {
