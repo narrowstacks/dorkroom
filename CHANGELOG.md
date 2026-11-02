@@ -22,6 +22,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Fixed
 
+- **Film and developer pickers show which row is active and selected in every theme, and screen readers announce it.** The row you are arrowing through gets an inset outline and the chosen row gets a check mark, so Darkroom no longer shows identical rows. The search box is now a proper combobox, so the active option is read out as you move. (fixes #522)
 - **Warnings are announced to screen readers.** Calculator warnings and errors (blade readings, minimum border, offsets, aspect ratio mismatch, a failed shared recipe link) used to appear together with their own alert role, which many screen readers do not announce. They now appear inside an alert area that is already on the page. Nothing changes visually. (fixes #585)
 - **The dev server port can be pinned again.** `MFE_APP_PORT=4200 bun run dev` was ignored (turbo filtered the variable out), so the dev server always started on port 4503, which broke the Docker setup that publishes port 4200. The variable now reaches the dev server. (fixes #592)
 - **Development time is visible on tablets.** On the development recipes table, the filters sidebar now starts collapsed below 1280px wide, such as on tablets (an iPad in portrait) and narrow windows, so the Time column fits without scrolling sideways. Expand the sidebar any time with its toggle. (#586)
