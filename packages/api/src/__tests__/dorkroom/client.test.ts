@@ -181,6 +181,8 @@ describe('DorkroomApiClient', () => {
           reciprocity_failure: null,
           discontinued: false,
           static_image_url: null,
+          image_credit: null,
+          image_source_url: null,
           aliases: [],
           base_film_slug: null,
           date_added: '2023-01-01',
@@ -231,6 +233,8 @@ describe('DorkroomApiClient', () => {
         reciprocity_failure: null,
         discontinued: true,
         static_image_url: null,
+        image_credit: null,
+        image_source_url: null,
         aliases: [],
         base_film_slug: null,
         date_added: '2026-11-02T03:20:01.356106',
@@ -291,6 +295,54 @@ describe('DorkroomApiClient', () => {
 
       await expect(client.fetchFilms()).rejects.toThrow('Network error');
     });
+
+    it('maps the photo credit and source, and defaults them to null when absent', async () => {
+      const base = {
+        id: 1,
+        uuid: 'u',
+        slug: 'ilford-pan-100',
+        brand: 'Ilford',
+        name: 'Pan 100',
+        color_type: 'bw',
+        iso_speed: 100,
+        grain_structure: null,
+        description: 'd',
+        manufacturer_notes: null,
+        reciprocity_failure: null,
+        discontinued: false,
+        static_image_url: 'https://example.com/pan-100.jpeg',
+        aliases: [],
+        base_film_slug: null,
+        date_added: '2026-11-02',
+        created_at: '2026-11-02',
+        updated_at: '2026-11-02',
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              ...base,
+              image_credit: 'El Grafo, CC BY-SA 4.0 via Wikimedia Commons',
+              image_source_url: 'https://commons.wikimedia.org/wiki/File:X.jpg',
+            },
+            // A response from before the columns existed omits them.
+            { ...base, id: 2, slug: 'older-row' },
+          ],
+        }),
+      });
+
+      const [withCredit, without] = await client.fetchFilms();
+
+      expect(withCredit).toMatchObject({
+        imageCredit: 'El Grafo, CC BY-SA 4.0 via Wikimedia Commons',
+        imageSourceUrl: 'https://commons.wikimedia.org/wiki/File:X.jpg',
+      });
+      expect(without).toMatchObject({
+        imageCredit: null,
+        imageSourceUrl: null,
+      });
+    });
   });
 
   describe('fetchDevelopers', () => {
@@ -312,6 +364,8 @@ describe('DorkroomApiClient', () => {
           mixing_instructions: 'Mix 1 part with 9 parts water',
           storage_requirements: 'Store in cool place',
           safety_notes: 'Wear gloves',
+          image_credit: null,
+          image_source_url: null,
           created_at: '2023-01-01T00:00:00Z',
           updated_at: '2023-01-01T00:00:00Z',
         },
@@ -363,6 +417,8 @@ describe('DorkroomApiClient', () => {
         mixing_instructions: null,
         storage_requirements: null,
         safety_notes: null,
+        image_credit: null,
+        image_source_url: null,
         created_at: '2026-11-02T03:33:54.174109',
         updated_at: '2026-11-02T03:33:54.174109',
       };
@@ -790,6 +846,8 @@ describe('Data Transformation', () => {
       mixing_instructions: null,
       storage_requirements: null,
       safety_notes: null,
+      image_credit: null,
+      image_source_url: null,
       created_at: '2023-01-01T00:00:00Z',
       updated_at: '2023-01-01T00:00:00Z',
     };
@@ -818,6 +876,8 @@ describe('Data Transformation', () => {
       mixing_instructions: null,
       storage_requirements: null,
       safety_notes: null,
+      image_credit: null,
+      image_source_url: null,
       created_at: '2023-01-01T00:00:00Z',
       updated_at: '2023-01-01T00:00:00Z',
     };
@@ -850,6 +910,8 @@ describe('Data Transformation', () => {
       mixing_instructions: null,
       storage_requirements: null,
       safety_notes: null,
+      image_credit: null,
+      image_source_url: null,
       created_at: '2023-01-01T00:00:00Z',
       updated_at: '2023-01-01T00:00:00Z',
     };
@@ -905,6 +967,8 @@ describe('Film manufacturer_notes parsing', () => {
     reciprocity_failure: null,
     discontinued: false,
     static_image_url: null,
+    image_credit: null,
+    image_source_url: null,
     aliases: [],
     base_film_slug: null,
     date_added: '2023-01-01',
@@ -1140,6 +1204,8 @@ describe('DorkroomApiError contract', () => {
         reciprocity_failure: null,
         discontinued: false,
         static_image_url: null,
+        image_credit: null,
+        image_source_url: null,
         aliases: [],
         base_film_slug: null,
         date_added: '2023-01-01',
@@ -1181,6 +1247,8 @@ describe('DorkroomApiError contract', () => {
         mixing_instructions: null,
         storage_requirements: null,
         safety_notes: null,
+        image_credit: null,
+        image_source_url: null,
         created_at: '2023-01-01T00:00:00Z',
         updated_at: '2023-01-01T00:00:00Z',
       };

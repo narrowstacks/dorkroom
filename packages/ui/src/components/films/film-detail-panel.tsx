@@ -4,6 +4,7 @@ import type { FC, ReactNode } from 'react';
 import { DetailPanel } from '../detail-panel/detail-panel';
 import { Tag } from '../ui/tag';
 import { FilmImage } from './film-image';
+import { FilmImageCredit } from './film-image-credit';
 import { FilmRebrandInfo } from './film-rebrand-info';
 
 /**
@@ -110,7 +111,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
   const expandedContent = (
     <div className="grid gap-8 md:grid-cols-[auto_1fr]">
       {/* Left column: Image */}
-      <div className="flex justify-center md:justify-start">
+      <div className="flex flex-col items-center gap-3 md:items-start">
         {/* Eager: this is the expanded panel's hero image, already in the
             viewport the moment the panel opens, so lazy-loading it would
             only delay a paint the user is about to see anyway. */}
@@ -121,6 +122,13 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
           loading="eager"
           className="!w-48 !h-48 md:!w-56 md:!h-56"
         />
+        {film.staticImageUrl && (
+          <FilmImageCredit
+            credit={film.imageCredit}
+            sourceUrl={film.imageSourceUrl}
+            className="max-w-48 md:max-w-56"
+          />
+        )}
       </div>
 
       {/* Right column: Details */}
@@ -299,7 +307,7 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
   return (
     <div className="space-y-6">
       {/* Film image */}
-      <div className="flex justify-center">
+      <div className="flex flex-col items-center gap-3">
         {/* Eager: the sidebar/drawer's own hero image, visible as soon as
             the panel opens (not virtualized, not off-screen), so lazy would
             just delay a paint the user is about to see anyway. */}
@@ -310,6 +318,12 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
           loading="eager"
           className="!w-32 !h-32"
         />
+        {film.staticImageUrl && (
+          <FilmImageCredit
+            credit={film.imageCredit}
+            sourceUrl={film.imageSourceUrl}
+          />
+        )}
       </div>
 
       {/* Title */}

@@ -344,6 +344,8 @@ export class DorkroomApiClient {
       reciprocityFailure: raw.reciprocity_failure,
       discontinued: raw.discontinued,
       staticImageUrl: raw.static_image_url,
+      imageCredit: raw.image_credit,
+      imageSourceUrl: raw.image_source_url,
       aliases: raw.aliases,
       baseFilmSlug: raw.base_film_slug,
       dateAdded: raw.date_added,
@@ -382,6 +384,8 @@ export class DorkroomApiClient {
       mixingInstructions: raw.mixing_instructions,
       storageRequirements: raw.storage_requirements,
       safetyNotes: raw.safety_notes,
+      imageCredit: raw.image_credit,
+      imageSourceUrl: raw.image_source_url,
       notes: null, // Not provided by API
       createdAt: raw.created_at,
       updatedAt: raw.updated_at,

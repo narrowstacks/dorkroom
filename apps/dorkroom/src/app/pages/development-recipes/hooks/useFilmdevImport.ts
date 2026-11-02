@@ -195,6 +195,8 @@ export function useFilmdevImport({
                   reciprocityFailure: null,
                   discontinued: false,
                   staticImageUrl: null,
+                  imageCredit: null,
+                  imageSourceUrl: null,
                   aliases: [],
                   baseFilmSlug: null,
                   dateAdded: new Date().toISOString(),
@@ -233,6 +235,8 @@ export function useFilmdevImport({
                   storageRequirements: null,
                   safetyNotes:
                     mappingResult.formData.customDeveloper.safetyNotes || null,
+                  imageCredit: null,
+                  imageSourceUrl: null,
                   notes: mappingResult.formData.customDeveloper.notes || null,
                   createdAt: new Date().toISOString(),
                   updatedAt: new Date().toISOString(),

@@ -120,6 +120,8 @@ curl -H "X-API-Key: dk_..." \
       "reciprocity_failure": "1.3",
       "discontinued": false,
       "static_image_url": "https://...",
+      "image_credit": "Jane Doe, CC BY-SA 4.0 via Wikimedia Commons",
+      "image_source_url": "https://...",
       "aliases": [{ "slug": "kodak-portra-160-alt", "name": "Portra 160 (alt)" }],
       "base_film_slug": null,
       "date_added": "2024-01-15",
@@ -146,7 +148,9 @@ curl -H "X-API-Key: dk_..." \
 | `manufacturer_notes` | string \| null | PostgreSQL array string of notes |
 | `reciprocity_failure` | string \| null | Reciprocity correction exponent |
 | `discontinued` | boolean | Whether the film is discontinued |
-| `static_image_url` | string \| null | Sample image URL |
+| `static_image_url` | string \| null | Photo of the film's packaging (box or canister) |
+| `image_credit` | string \| null | Who took the packaging photo, and its licence |
+| `image_source_url` | string \| null | Page the packaging photo came from |
 | `aliases` | array | Alternate `{ slug, name }` pairs this film is also known by; `[]` when none |
 | `base_film_slug` | string \| null | Slug of the base film this is a rebrand/variant of, or `null` |
 | `date_added` | string | Date added (YYYY-MM-DD) |
@@ -201,6 +205,8 @@ curl -H "X-API-Key: dk_..." \
       "mixing_instructions": null,
       "storage_requirements": null,
       "safety_notes": null,
+      "image_credit": null,
+      "image_source_url": null,
       "created_at": "2024-01-15T00:00:00Z",
       "updated_at": "2024-06-01T00:00:00Z"
     }
@@ -224,6 +230,8 @@ curl -H "X-API-Key: dk_..." \
 | `mixing_instructions` | string \| null | Mixing instructions |
 | `storage_requirements` | string \| null | Storage guidance |
 | `safety_notes` | string \| null | Safety information |
+| `image_credit` | string \| null | Who took the packaging photo, and its licence |
+| `image_source_url` | string \| null | Page the packaging photo came from |
 | `created_at` | string | ISO 8601 timestamp |
 | `updated_at` | string | ISO 8601 timestamp |
 
