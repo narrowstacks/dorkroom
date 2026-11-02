@@ -308,11 +308,11 @@ describe('empty var() fallbacks (Chromium 80 rejects them)', () => {
   // Tailwind 4's real output for .backdrop-blur, .ring-2 and .tabular-nums,
   // with the `@layer properties` reset that sets each name to `initial`.
   const tailwind = [
-    '@layer properties{*,:before,:after,::backdrop{--tw-backdrop-blur:initial;--tw-backdrop-brightness:initial;--tw-ring-inset:initial;--tw-ring-shadow:0 0 #0000;--tw-numeric-spacing:initial;--tw-numeric-figure:initial}}',
+    '@layer properties{*,:before,:after,::backdrop{--tw-backdrop-blur:initial;--tw-backdrop-brightness:initial;--tw-ring-inset:initial;--tw-ring-shadow:0 0 #0000;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial}}',
     '@layer utilities{',
     '.backdrop-blur{--tw-backdrop-blur:blur(8px);-webkit-backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,);backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,)}',
     '.ring-2{--tw-ring-shadow:var(--tw-ring-inset,) 0 0 0 calc(2px + 0px) var(--tw-ring-color,currentcolor);box-shadow:var(--tw-ring-inset,) 0 0 0 2px red}',
-    '.tabular-nums{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,)}',
+    '.tabular-nums{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,)}',
     '}',
   ].join('');
 
@@ -324,6 +324,17 @@ describe('empty var() fallbacks (Chromium 80 rejects them)', () => {
     );
     expect(out).toContain('--tw-backdrop-brightness: ;');
     expect(out).toContain('--tw-ring-inset: ;');
+    // Every var a rewritten declaration reads must have a space reset, or the
+    // declaration is invalid at computed-value time and the utility is dropped.
+    const used = /(?:backdrop-filter|font-variant-numeric):([^;}]*)/g;
+    for (const [, value = ''] of out.matchAll(used)) {
+      for (const [, name] of value.matchAll(/var\((--[\w-]+)\)/g)) {
+        // A space value; the minifier drops the `;` after the last declaration.
+        expect(out, `${name} has no reset`).toMatch(
+          new RegExp(`${name}: [;}]`)
+        );
+      }
+    }
     // A name with no empty fallback keeps its reset.
     expect(out).not.toMatch(/--tw-ring-shadow:\s*;/);
     expect(legacyCssProblem(out)).toBeUndefined();
