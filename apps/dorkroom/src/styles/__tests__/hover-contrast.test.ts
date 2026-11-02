@@ -486,3 +486,60 @@ describe('migrated hover utilities keep their content legible in every theme', (
     }
   }
 });
+
+// SearchableSelect marks the keyboard-focused row with an inset ring drawn in
+// `--color-on-hover-surface` (the row's own text colour, so it always clears the fill; high-contrast's focus ring is black on a black row) and the selected row with a check icon (#522). Darkroom
+// paints surface and hover-surface the same black, so the row fill alone says
+// nothing there: the ring has to stand out from the fill (WCAG 1.4.11, 3:1)
+// and the ring plus the icon have to be wired up in the component.
+describe('searchable select focused and selected rows', () => {
+  const MIN_NON_TEXT_CONTRAST = 3;
+  const componentSource = readFileSync(
+    join(
+      here,
+      '..',
+      '..',
+      '..',
+      '..',
+      '..',
+      'packages',
+      'ui',
+      'src',
+      'components',
+      'searchable-select.tsx'
+    ),
+    'utf8'
+  );
+
+  it('draws the focus ring from the focus-ring token and the selection as a check icon', () => {
+    expect(componentSource).toContain(
+      'shadow-[inset_0_0_0_2px_var(--color-on-hover-surface)]'
+    );
+    expect(componentSource).toMatch(/<Check\b/);
+  });
+
+  for (const theme of THEMES) {
+    it(`focus ring is distinct from the row fill on ${theme}`, () => {
+      const surface = opaque(
+        mustParse(resolveToken(theme, '--color-surface'), `${theme} surface`)
+      );
+      const row = flatten(utilityColor(theme, 'bg-hover-surface'), surface);
+      const ring = flatten(utilityColor(theme, 'text-on-hover-surface'), row);
+      expect(
+        contrastRatio(ring, row),
+        `focus ring on a focused row in "${theme}"`
+      ).toBeGreaterThanOrEqual(MIN_NON_TEXT_CONTRAST);
+    });
+
+    it(`icon (row text) is legible on the selected row on ${theme}`, () => {
+      const surface = opaque(
+        mustParse(resolveToken(theme, '--color-surface'), `${theme} surface`)
+      );
+      const row = flatten(utilityColor(theme, 'bg-hover-surface'), surface);
+      const icon = flatten(utilityColor(theme, 'text-on-hover-surface'), row);
+      expect(contrastRatio(icon, row)).toBeGreaterThanOrEqual(
+        MIN_NON_TEXT_CONTRAST
+      );
+    });
+  }
+});

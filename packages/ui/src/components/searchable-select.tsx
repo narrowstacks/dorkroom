@@ -1,5 +1,5 @@
 import type { SelectItem } from '@dorkroom/logic';
-import { ChevronDown, X } from 'lucide-react';
+import { Check, ChevronDown, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { cn } from '../lib/cn';
 import { cssVars } from '../lib/dom';
@@ -28,6 +28,8 @@ export function SearchableSelect({
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [focused, setFocused] = useState(false);
   const id = useId();
+  const listboxId = `${id}-listbox`;
+  const optionId = (index: number) => `${id}-option-${index}`;
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -139,7 +141,7 @@ export function SearchableSelect({
     const focusedElement = listRef.current?.children[focusedIndex];
     // eslint-disable-next-line react-doctor/no-event-handler -- the focused option element only exists after the listbox mounts (post-commit), so scrollIntoView can't run in the keydown handler that sets focusedIndex
     if (focusedIndex >= 0 && focusedElement instanceof HTMLElement) {
-      focusedElement.scrollIntoView({ block: 'start' });
+      focusedElement.scrollIntoView({ block: 'nearest' });
     }
   }, [focusedIndex]);
 
@@ -160,6 +162,18 @@ export function SearchableSelect({
           id={id}
           ref={inputRef}
           type="text"
+          // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- WAI-ARIA combobox pattern: a filterable text input that owns a listbox; <datalist> cannot style or announce options
+          // eslint-disable-next-line react-doctor/prefer-tag-over-role -- WAI-ARIA combobox pattern: a filterable text input that owns a listbox; <datalist> cannot style or announce options
+          role="combobox"
+          aria-expanded={isOpen}
+          aria-controls={isOpen ? listboxId : undefined}
+          aria-haspopup="listbox"
+          aria-autocomplete="list"
+          aria-activedescendant={
+            isOpen && focusedIndex >= 0 && focusedIndex < filteredItems.length
+              ? optionId(focusedIndex)
+              : undefined
+          }
           value={isOpen ? searchTerm : displayValue}
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={(_e) => {
@@ -171,6 +185,11 @@ export function SearchableSelect({
             handleInputBlur();
           }}
           onKeyDown={handleKeyDown}
+          // The input keeps focus after a selection, so a click on it has to
+          // reopen the list; focus alone no longer does.
+          onClick={() => {
+            if (!isOpen) openAndFocusSelected();
+          }}
           placeholder={selectedValue ? displayValue : placeholder}
           aria-label={label ?? placeholder}
           className="w-full rounded-lg border px-3 py-2 pr-16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
@@ -206,6 +225,11 @@ export function SearchableSelect({
         {isOpen && (
           <div
             ref={listRef}
+            id={listboxId}
+            tabIndex={-1}
+            // Keep DOM focus on the input while the pointer is on the list
+            // (scrollbar drags, option clicks); the options are never focused.
+            onMouseDown={(e) => e.preventDefault()}
             // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- combobox listbox pattern; a native <select>/<datalist> cannot provide the type-to-filter UX
             // eslint-disable-next-line react-doctor/prefer-tag-over-role -- combobox listbox pattern; <datalist> cannot provide the type-to-filter UX or custom option markup
             role="listbox"
@@ -230,6 +254,7 @@ export function SearchableSelect({
                   // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- combobox option pattern; native <option> cannot host custom filtered markup
                   // eslint-disable-next-line react-doctor/prefer-tag-over-role -- combobox option pattern; native <option> cannot host custom filtered markup
                   role="option"
+                  id={optionId(index)}
                   aria-selected={item.value === selectedValue}
                   onClick={() => handleSelectItem(item)}
                   onKeyDown={(e) => {
@@ -238,21 +263,27 @@ export function SearchableSelect({
                       handleSelectItem(item);
                     }
                   }}
-                  tabIndex={index === focusedIndex ? 0 : -1}
+                  tabIndex={-1}
                   className={cn(
-                    'cursor-pointer px-3 py-2 text-sm transition-colors',
+                    'flex cursor-pointer items-center justify-between gap-2 px-3 py-2 text-sm transition-colors',
                     // Hover, focus and selection share one surface pair. The
                     // monochrome themes collapse the border and text tokens to
-                    // one value, so these per-theme tokens (guarded by
-                    // hover-contrast.test.ts) keep the label readable. Colour
-                    // lives in classes, not inline style, so `hover:` can win.
+                    // one value (darkroom: surface and hover-surface are both
+                    // black), so colour alone can't mark a row. Focus is an
+                    // inset ring and selection is a check icon, both drawn
+                    // from theme tokens (guarded by hover-contrast.test.ts).
                     index === focusedIndex || item.value === selectedValue
                       ? 'bg-hover-surface text-on-hover-surface'
                       : 'text-secondary hover:bg-hover-surface hover:text-on-hover-surface',
+                    index === focusedIndex &&
+                      'shadow-[inset_0_0_0_2px_var(--color-on-hover-surface)]',
                     item.value === selectedValue ? 'font-medium' : 'font-normal'
                   )}
                 >
-                  {item.label}
+                  <span>{item.label}</span>
+                  {item.value === selectedValue && (
+                    <Check className="size-4 shrink-0" aria-hidden="true" />
+                  )}
                 </div>
               ))
             )}
