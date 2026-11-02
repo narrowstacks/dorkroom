@@ -69,6 +69,10 @@ export { Select } from './components/select';
 export type { SensorSizeVisualizationProps } from './components/sensor-size-visualization';
 export { SensorSizeVisualization } from './components/sensor-size-visualization';
 export { SettingsButton } from './components/settings-button';
+export {
+  SettingsRadioGroup,
+  type SettingsRadioGroupProps,
+} from './components/settings-radio-group';
 // Sharing Components
 export { ShareButton, type ShareResult } from './components/share-button';
 export { ShareModal } from './components/share-modal';

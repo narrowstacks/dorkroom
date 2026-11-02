@@ -1,6 +1,7 @@
 import {
   isLegacyBrowser,
   SettingsButton,
+  SettingsRadioGroup,
   ToggleSwitch,
   useMeasurement,
   useTheme,
@@ -15,6 +16,14 @@ import {
   Sun,
 } from 'lucide-react';
 
+const THEME_VALUES: readonly string[] = [
+  'system',
+  'dark',
+  'light',
+  'high-contrast',
+  'darkroom',
+];
+
 export default function SettingsPage() {
   const {
     theme,
@@ -28,6 +37,9 @@ export default function SettingsPage() {
   // Legacy (e-ink) browsers never animate, so the switch would do nothing.
   const showAnimations =
     theme !== 'high-contrast' && theme !== 'darkroom' && !isLegacyBrowser();
+  // Stored values are always valid, but keep the groups reachable regardless.
+  const noThemeSelected = !THEME_VALUES.includes(theme);
+  const noUnitSelected = unit !== 'imperial' && unit !== 'metric';
   const hideEmojis = theme === 'high-contrast' || theme === 'darkroom';
 
   return (
@@ -60,6 +72,7 @@ export default function SettingsPage() {
           {/* Theme Settings - takes full width on larger screens when it's the main section */}
           <section className="lg:col-span-2 xl:col-span-1">
             <h2
+              id="settings-theme-heading"
               className="mb-4 text-lg font-semibold sm:mb-5 sm:text-xl"
               style={{ color: 'var(--color-text-primary)' }}
             >
@@ -73,10 +86,15 @@ export default function SettingsPage() {
                 High contrast is used on e-ink screens.
               </p>
             ) : (
-              <div className="space-y-3">
+              <SettingsRadioGroup
+                labelledBy="settings-theme-heading"
+                className="space-y-3"
+              >
                 {/* System theme - full width */}
                 <SettingsButton
+                  asRadio
                   label="System"
+                  tabbable={noThemeSelected}
                   value="Follow system preference (chaotic neutral)"
                   onPress={() => setTheme('system')}
                   icon={Monitor}
@@ -88,6 +106,7 @@ export default function SettingsPage() {
                 {/* Other themes - 2 column grid */}
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <SettingsButton
+                    asRadio
                     label="Dark"
                     value="The correct choice."
                     onPress={() => setTheme('dark')}
@@ -97,6 +116,7 @@ export default function SettingsPage() {
                     isSelected={theme === 'dark'}
                   />
                   <SettingsButton
+                    asRadio
                     label="Light"
                     value="Honestly, why would you want to do this? It's a darkroom app!"
                     onPress={() => setTheme('light')}
@@ -106,6 +126,7 @@ export default function SettingsPage() {
                     isSelected={theme === 'light'}
                   />
                   <SettingsButton
+                    asRadio
                     label="High Contrast"
                     value="Ideal for e-ink devices. Black on white, no gradients, no motion"
                     onPress={() => setTheme('high-contrast')}
@@ -115,6 +136,7 @@ export default function SettingsPage() {
                     isSelected={theme === 'high-contrast'}
                   />
                   <SettingsButton
+                    asRadio
                     label="Darkroom"
                     value="Pure black with red accents - the authentic darkroom experience"
                     onPress={() => setTheme('darkroom')}
@@ -124,7 +146,7 @@ export default function SettingsPage() {
                     isSelected={theme === 'darkroom'}
                   />
                 </div>
-              </div>
+              </SettingsRadioGroup>
             )}
           </section>
 
@@ -158,14 +180,21 @@ export default function SettingsPage() {
             {/* Units Settings */}
             <section>
               <h2
+                id="settings-units-heading"
                 className="mb-4 text-lg font-semibold sm:mb-5 sm:text-xl"
                 style={{ color: 'var(--color-text-primary)' }}
               >
                 Default Units
               </h2>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1">
+              <SettingsRadioGroup
+                labelledBy="settings-units-heading"
+                className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1"
+              >
                 <SettingsButton
-                  label={hideEmojis ? 'Imperial' : 'Imperial 🇺🇸'}
+                  asRadio
+                  label="Imperial"
+                  tabbable={noUnitSelected}
+                  labelDecoration={hideEmojis ? undefined : '🇺🇸'}
                   value="Inches, feet"
                   onPress={() => setUnit('imperial')}
                   icon={Ruler}
@@ -174,7 +203,9 @@ export default function SettingsPage() {
                   isSelected={unit === 'imperial'}
                 />
                 <SettingsButton
-                  label={hideEmojis ? 'Metric' : 'Metric 🌍'}
+                  asRadio
+                  label="Metric"
+                  labelDecoration={hideEmojis ? undefined : '🌍'}
                   value="Millimeters, centimeters"
                   onPress={() => setUnit('metric')}
                   icon={Globe}
@@ -182,7 +213,7 @@ export default function SettingsPage() {
                   showChevron={false}
                   isSelected={unit === 'metric'}
                 />
-              </div>
+              </SettingsRadioGroup>
             </section>
           </div>
         </div>
