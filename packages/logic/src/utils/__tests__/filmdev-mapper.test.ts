@@ -641,6 +641,16 @@ describe('findBestDeveloperMatch', () => {
     expect(findBestDeveloperMatch('Pyrocat HD', developers)).toBeNull();
   });
 
+  // #494: D-76 precedes HC-110 in the list and shares its manufacturer.
+  it.each(['Kodak HC-110 (B)', 'Kodak HC-110 Dilution B', 'Kodak HC110'])(
+    'does not match "%s" to an earlier developer from the same manufacturer',
+    (query) => {
+      expect(findBestDeveloperMatch(query, developers)?.uuid).toBe('hc110');
+      const withoutHc110 = developers.filter((d) => d.uuid !== 'hc110');
+      expect(findBestDeveloperMatch(query, withoutHc110)).toBeNull();
+    }
+  );
+
   describe('against the real catalogue (filmdev.org names)', () => {
     const catalogue: Developer[] = [
       createMockDeveloper(

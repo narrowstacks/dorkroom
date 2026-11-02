@@ -66,8 +66,10 @@ describe('MobileNav (#346)', () => {
 });
 
 /**
- * #457: the close-on-sm rule goes through the shared `useBreakpoint('sm')`
- * instead of a hand-written `(min-width: 640px)` listener.
+ * #457: the close rule goes through the shared `useBreakpoint`
+ * instead of a hand-written `(min-width: ...)` listener. #548 moved the
+ * switch from sm (640px) to lg (1024px): the desktop header does not fit
+ * any narrower.
  */
 /** `min-width` / `max-width` list whose `matches` reads a fake viewport width. */
 class FakeMediaQueryList extends EventTarget implements MediaQueryList {
@@ -94,7 +96,7 @@ class FakeMediaQueryList extends EventTarget implements MediaQueryList {
 }
 
 describe('MobileNav breakpoint', () => {
-  it('closes the drawer when the viewport crosses up to 640px', () => {
+  it('keeps the drawer open up to 1023px and closes it at 1024px', () => {
     const originalMatchMedia = window.matchMedia;
     let width = 375;
     const lists: FakeMediaQueryList[] = [];
@@ -111,13 +113,13 @@ describe('MobileNav breakpoint', () => {
       expect(drawer).toHaveAttribute('aria-modal', 'true');
 
       act(() => {
-        width = 639;
+        width = 1023;
         for (const list of lists) list.dispatchEvent(new Event('change'));
       });
       expect(drawer).toHaveAttribute('aria-modal', 'true');
 
       act(() => {
-        width = 640;
+        width = 1024;
         for (const list of lists) list.dispatchEvent(new Event('change'));
       });
       expect(drawer).toHaveAttribute('aria-hidden', 'true');

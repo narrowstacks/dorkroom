@@ -48,14 +48,15 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
   // closed menu never clears a lock some other overlay holds).
   useBodyScrollLock(isMobileMenuOpen);
 
-  // Close when the viewport crosses up past the sm breakpoint (640px), where
-  // the toggle is hidden. React's "adjust state when a value changes" pattern:
-  // compared during render, so the drawer never paints open past sm.
-  const isSmUp = useBreakpoint('sm');
-  const [wasSmUp, setWasSmUp] = useState(isSmUp);
-  if (isSmUp !== wasSmUp) {
-    setWasSmUp(isSmUp);
-    if (isSmUp) setIsMobileMenuOpen(false);
+  // Close when the viewport crosses up past the lg breakpoint (1024px), where
+  // the toggle is hidden and the desktop header takes over (#548). React's
+  // "adjust state when a value changes" pattern: compared during render, so
+  // the drawer never paints open past lg.
+  const isLgUp = useBreakpoint('lg');
+  const [wasLgUp, setWasLgUp] = useState(isLgUp);
+  if (isLgUp !== wasLgUp) {
+    setWasLgUp(isLgUp);
+    if (isLgUp) setIsMobileMenuOpen(false);
   }
 
   // Close on Escape
@@ -117,7 +118,7 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
           {/* Backdrop */}
           <div
             className={cn(
-              'fixed inset-0 z-40 backdrop-blur-sm transition-opacity duration-300 sm:hidden',
+              'fixed inset-0 z-40 backdrop-blur-sm transition-opacity duration-300 lg:hidden',
               visible
                 ? 'pointer-events-auto opacity-100'
                 : 'pointer-events-none opacity-0'
@@ -136,7 +137,7 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
           <nav
             id="mobile-navigation"
             className={cn(
-              'fixed right-0 top-0 z-50 h-dvh w-72 border-l pb-[calc(env(safe-area-inset-bottom)+5rem)] shadow-xl backdrop-blur transition-transform duration-300 ease-out sm:hidden',
+              'fixed right-0 top-0 z-50 h-dvh w-72 border-l pb-[calc(env(safe-area-inset-bottom)+5rem)] shadow-xl backdrop-blur transition-transform duration-300 ease-out lg:hidden',
               visible ? 'translate-x-0' : 'translate-x-full'
             )}
             style={{
