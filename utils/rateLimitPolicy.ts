@@ -45,8 +45,8 @@ export const OG_UPSTREAM_RATE_WINDOW_MS = RATE_WINDOW_MS;
  * keeps OG cards to at most about 300k a month, leaving room for the site
  * itself. Revisit both numbers if the plan changes.
  *
- * This does not fully protect the quota: the public `dorkroom.art/api/*`
- * path is limited per IP only, with no global ceiling.
+ * The public `dorkroom.art/api/*` path has its own global budget for the
+ * requests the CDN cannot absorb (`ANONYMOUS_UPSTREAM_*` below, #598).
  *
  * Unkey allows a window of up to 30 days, so a 24-hour one is fine.
  */
@@ -154,14 +154,12 @@ export function normalizeResetMs(reset: number, now = Date.now()): number {
  * and without a query string, in Vercel observability:
  *  - Free plan: about 500k Edge Function invocations a month, about 16.1k a
  *    day over a 31-day month.
- *  - The OG budget (PR #595) reserves up to 10k a day, 310k a month at most.
- *    These numbers assume #595 has landed (merge it first): it moves the
- *    `api/og.tsx` film, developer and combination lookups off
- *    `dorkroom.art/api/*` to direct Supabase calls, so OG cards are not
+ *  - The OG budget (`OG_UPSTREAM_DAILY_LIMIT`, above) reserves up to 10k a
+ *    day, 310k a month at most. `api/og.tsx` calls the Supabase Edge
+ *    Functions directly (`utils/internalDataSource.ts`), so OG cards are not
  *    charged here. Only its fallback, used when the Supabase env vars are
  *    missing (local dev, a preview without them), sends filtered `/api/*`
- *    requests and is charged. Before #595, those lookups are filtered
- *    `/api/*` calls and would draw on this budget.
+ *    requests and is charged.
  *  - Query-string traffic: no first-party client sends any, so whatever
  *    arrives is third-party or abuse. 2k a day caps it at 62k a month.
  *  - That leaves about 128k a month (about 4.1k a day) for what these

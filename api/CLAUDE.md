@@ -59,8 +59,8 @@ Everything else:
   10k a day (`OG_UPSTREAM_DAILY_LIMIT`), both in `utils/rateLimitPolicy.ts`.
   The daily number assumes the Supabase **Free** plan (about 500k Edge
   Function invocations a month, and a project over quota can be restricted);
-  revisit it if the plan changes. It bounds OG cards only: the public
-  `/api/*` path still has no global ceiling. Over either bucket, the same
+  revisit it if the plan changes. It bounds OG cards only; the public
+  `/api/*` path has its own global budget (below). Over either bucket, the same
   `no-store` 307 to the static card, never a slug-only card the CDN would
   keep for a day, with `Retry-After` but no `X-RateLimit-*` (those report
   only the caller's own per-IP budget). Like the per-IP check, both fail open
@@ -281,12 +281,11 @@ arithmetic against the Supabase Free plan quota sits beside the constants in
 `utils/rateLimitPolicy.ts`; check real origin call counts in Vercel
 observability before changing them.
 
-`og.tsx`'s catalogue lookups are off this path once PR #595 (#443) lands: it
-calls the Supabase Edge Functions directly (`utils/internalDataSource.ts`),
-under its own OG budget. Only its fallback, used when the Supabase env vars
-are missing (local dev, a preview without them), requests filtered
-`/api/films`, `/api/developers` or `/api/combinations` URLs and is charged
-here. This budget assumes #595 merges first.
+`og.tsx`'s catalogue lookups are off this path: it calls the Supabase Edge
+Functions directly (`utils/internalDataSource.ts`, #443), under its own OG
+budget. Only its fallback, used when the Supabase env vars are missing (local
+dev, a preview without them), requests filtered `/api/films`,
+`/api/developers` or `/api/combinations` URLs and is charged here.
 
 - Canonical paths first (`HandlerConfig.canonicalPath`, `/api/<name>`): on
   the website host, a raw `req.url` path that is not byte for byte the
