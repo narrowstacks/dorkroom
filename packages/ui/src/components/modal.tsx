@@ -1,5 +1,5 @@
 import { X } from 'lucide-react';
-import { useId, useRef } from 'react';
+import { type RefObject, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '../hooks/use-body-scroll-lock';
 import { useEscapeKey } from '../hooks/use-escape-key';
@@ -41,6 +41,17 @@ interface ModalProps {
   className?: string;
   /** Extra classes for the scrolling body that wraps `children`. */
   bodyClassName?: string;
+  /**
+   * Where focus goes on open, in place of the first tabbable element (the
+   * close button, when shown). For a dialog that opens straight into a field.
+   */
+  initialFocus?: RefObject<HTMLElement | null>;
+  /**
+   * Where focus goes on close, in place of the element that had focus when
+   * the dialog opened. For an opener that hands focus to something else
+   * while the dialog loads.
+   */
+  returnFocus?: RefObject<HTMLElement | null>;
 }
 
 const SIZE_CLASSES = {
@@ -80,6 +91,8 @@ export function Modal({
   ariaLabelledBy,
   className,
   bodyClassName,
+  initialFocus,
+  returnFocus,
 }: ModalProps) {
   useBodyScrollLock(isOpen);
   useEscapeKey(isOpen, onClose);
@@ -91,6 +104,8 @@ export function Modal({
   const backdropRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useModalLayer<HTMLDialogElement>(isOpen, {
     keepInteractive: [backdropRef],
+    initialFocus,
+    returnFocus,
   });
 
   if (!hasGlobal('document') || !isOpen) {

@@ -7,8 +7,8 @@ import {
 import { cn, TemperatureProvider, useTemperature } from '@dorkroom/ui';
 import {
   type MouseEventHandler,
+  type RefObject,
   useDeferredValue,
-  useEffect,
   useId,
   useMemo,
   useRef,
@@ -97,10 +97,15 @@ function TryChips({
 interface SearchPanelProps {
   /**
    * Where the panel sits. `hero`: the home page's box, where Escape clears it.
-   * `dialog`: the nav search, which takes focus on open, leaves Escape to
-   * close the dialog, and reports `nav_search` rather than `home_search`.
+   * `dialog`: the nav search, which leaves Escape to close the dialog and
+   * reports `nav_search` rather than `home_search`.
    */
   variant: 'hero' | 'dialog';
+  /**
+   * The search box, for a dialog that opens with focus in it (the dialog
+   * owns initial focus, so the box takes it in the same commit).
+   */
+  inputRef?: RefObject<HTMLInputElement | null>;
   /** Called when an answer's or a match's link is clicked. */
   onNavigate?: MouseEventHandler<HTMLAnchorElement>;
 }
@@ -122,7 +127,11 @@ export function SearchPanel(props: SearchPanelProps) {
   );
 }
 
-function SearchPanelBody({ variant, onNavigate }: SearchPanelProps) {
+function SearchPanelBody({
+  variant,
+  onNavigate,
+  inputRef: givenInputRef,
+}: SearchPanelProps) {
   const inDialog = variant === 'dialog';
   const [query, setQuery] = useState('');
   // The option the arrow keys moved to; null means the top one.
@@ -131,7 +140,8 @@ function SearchPanelBody({ variant, onNavigate }: SearchPanelProps) {
   // looks like a second focused element.
   const [focused, setFocused] = useState(false);
   const listId = useId();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const ownInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = givenInputRef ?? ownInputRef;
   const { data, load, loadError } = useSearchData();
   // Results trail the keystrokes a little on slow devices; the box never does.
   const settledQuery = useDeferredValue(query);
@@ -151,12 +161,6 @@ function SearchPanelBody({ variant, onNavigate }: SearchPanelProps) {
     result,
     loadError !== null
   );
-
-  // The dialog opens straight into its box. Once, on mount: `inDialog` never
-  // changes for a mounted panel.
-  useEffect(() => {
-    if (inDialog) inputRef.current?.focus();
-  }, [inDialog]);
 
   const searching = settledQuery.trim() !== '';
   // One sentence per settled query, not one per keystroke.

@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { createRef } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Modal } from '../../components/modal';
 
@@ -264,6 +265,30 @@ describe('Modal', () => {
       unmount();
       expect(opener).toHaveFocus();
       opener.remove();
+    });
+
+    it('opens on `initialFocus` and closes back to `returnFocus` when given', () => {
+      // A stand-in held focus at open; the real opener is elsewhere.
+      const standIn = document.createElement('input');
+      const trigger = document.createElement('button');
+      document.body.append(standIn, trigger);
+      standIn.focus();
+      const field = createRef<HTMLInputElement>();
+      const returnFocus = { current: trigger };
+
+      const { unmount } = render(
+        <Modal {...defaultProps} initialFocus={field} returnFocus={returnFocus}>
+          <input ref={field} aria-label="Search query" />
+        </Modal>
+      );
+      expect(
+        screen.getByRole('textbox', { name: 'Search query' })
+      ).toHaveFocus();
+
+      unmount();
+      expect(trigger).toHaveFocus();
+      standIn.remove();
+      trigger.remove();
     });
   });
 });
