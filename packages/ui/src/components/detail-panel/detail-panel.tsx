@@ -98,8 +98,9 @@ export interface DetailPanelProps {
    * already lost), just before `onClose`, to move focus back to whatever
    * opened it. The sidebar is not modal, so it has no opener of its own to
    * return to, and closing it would otherwise drop focus to the page (#604).
-   * The mobile sheet and the expanded view are modal and return focus
-   * themselves.
+   * The mobile sheet and the expanded view are modal and return focus to
+   * their opener themselves; they call this only when that opener is gone,
+   * such as a card remounted into another row while the sheet was open.
    */
   returnFocus?: () => void;
 }
@@ -170,7 +171,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
     mobileBackdropRef,
     mobileDialogRef,
     expandButtonRef,
-  } = useDetailPanelLayers(isOpen, isMobile, isExpanded);
+  } = useDetailPanelLayers(isOpen, isMobile, isExpanded, returnFocus);
 
   // Mobile drag handlers
   const handleDragStart = (clientY: number) => {

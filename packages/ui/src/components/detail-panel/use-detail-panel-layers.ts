@@ -11,21 +11,28 @@ import { useModalLayer } from '../../hooks/use-modal-layer';
  * Collapsing the expanded view remounts the sidebar, so the expand button
  * that opened it is gone and the layer has no opener to return focus to.
  * Focus goes to the sidebar's new expand button instead of the page body.
+ *
+ * The opener can also be gone when a dialog closes: a card that re-sorted
+ * while the sheet was open (Favorite toggled inside it) or moved rows on a
+ * resize was remounted, and its old element is disconnected. `returnFocus`
+ * then puts focus on the card's new element rather than leaving it on the
+ * page body.
  */
 export function useDetailPanelLayers(
   isOpen: boolean,
   isMobile: boolean,
-  isExpanded: boolean
+  isExpanded: boolean,
+  returnFocus?: () => void
 ) {
   const expandedBackdropRef = useRef<HTMLButtonElement>(null);
   const expandedDialogRef = useModalLayer<HTMLDialogElement>(
     isOpen && isExpanded,
-    { keepInteractive: [expandedBackdropRef] }
+    { keepInteractive: [expandedBackdropRef], onReturnFocus: returnFocus }
   );
   const mobileBackdropRef = useRef<HTMLButtonElement>(null);
   const mobileDialogRef = useModalLayer<HTMLDialogElement>(
     isOpen && isMobile && !isExpanded,
-    { keepInteractive: [mobileBackdropRef] }
+    { keepInteractive: [mobileBackdropRef], onReturnFocus: returnFocus }
   );
 
   const expandButtonRef = useRef<HTMLButtonElement>(null);

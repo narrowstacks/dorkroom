@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { type ReactNode, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useModalLayer } from '../use-modal-layer';
 
 /** A minimal modal: portalled to the body, like Modal and DetailPanel. */
@@ -425,6 +425,68 @@ describe('useModalLayer', () => {
         </Page>
       );
       expect(screen.getByRole('dialog', { name: 'Below' })).toHaveFocus();
+    });
+
+    it('calls onReturnFocus when the opener is gone, and keeps focus where it put it', () => {
+      // A list card that opened the layer, remounted while the layer was open
+      // (it re-sorted into another row): the old element is disconnected.
+      function Remounting({
+        isOpen,
+        generation,
+      }: {
+        isOpen: boolean;
+        generation: number;
+      }) {
+        const ref = useModalLayer<HTMLDialogElement>(isOpen, {
+          onReturnFocus: () => {
+            document.getElementById('card')?.focus();
+          },
+        });
+        return (
+          <main>
+            <button type="button" key={generation} id="card">
+              Card
+            </button>
+            {isOpen && (
+              <dialog ref={ref} open aria-label="D" tabIndex={-1}>
+                <button type="button">Inside</button>
+              </dialog>
+            )}
+          </main>
+        );
+      }
+      const { rerender } = render(<Remounting isOpen={false} generation={0} />);
+      const before = screen.getByRole('button', { name: 'Card' });
+      before.focus();
+      rerender(<Remounting isOpen generation={0} />);
+      rerender(<Remounting isOpen generation={1} />);
+      expect(before.isConnected).toBe(false);
+      rerender(<Remounting isOpen={false} generation={1} />);
+      const after = screen.getByRole('button', { name: 'Card' });
+      expect(after).not.toBe(before);
+      expect(after).toHaveFocus();
+    });
+
+    it('does not call onReturnFocus while the opener is still there', () => {
+      const onReturnFocus = vi.fn();
+      function Plain({ isOpen }: { isOpen: boolean }) {
+        const ref = useModalLayer<HTMLDialogElement>(isOpen, { onReturnFocus });
+        return (
+          <Page>
+            {isOpen && (
+              <dialog ref={ref} open aria-label="D" tabIndex={-1}>
+                <button type="button">Inside</button>
+              </dialog>
+            )}
+          </Page>
+        );
+      }
+      const { rerender } = render(<Plain isOpen={false} />);
+      screen.getByRole('button', { name: 'Opener' }).focus();
+      rerender(<Plain isOpen />);
+      rerender(<Plain isOpen={false} />);
+      expect(onReturnFocus).not.toHaveBeenCalled();
+      expect(screen.getByRole('button', { name: 'Opener' })).toHaveFocus();
     });
 
     it('falls back to the layer below when the opener is gone', () => {
