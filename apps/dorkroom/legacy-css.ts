@@ -61,6 +61,7 @@ const LEGACY_CHROME = 80;
 const FORBIDDEN: ReadonlyArray<readonly [RegExp, string]> = [
   [/@layer\b/, '@layer (Chrome 99+)'],
   [/color-mix\(/, 'color-mix() (Chrome 111+)'],
+  [/var\(--[\w-]+,\s*\)/, 'empty var() fallback (invalid in Chromium 80)'],
 ];
 
 /** Why `css` would not work as the legacy stylesheet, or `undefined`. */
@@ -184,7 +185,7 @@ export async function buildLegacyCss(
     lowered.code.toString(),
     { from: undefined }
   );
-  return { css: split.css + NO_MOTION_CSS, report };
+  return { css: split.css + NO_BLUR_CSS + NO_MOTION_CSS, report };
 }
 
 /** Appended last, so it wins over every rule above regardless of specificity
@@ -203,6 +204,23 @@ export const NO_MOTION_CSS =
   '*,*::before,*::after{animation-duration:0s!important;animation-delay:0s!important;' +
   'animation-iteration-count:1!important;transition:none!important;' +
   'scroll-behavior:auto!important}';
+
+/** Appended before `NO_MOTION_CSS`. Kindle's e-ink screen has no use for blur:
+ *  it only smears text, and the drawer's 95% opaque background let faint page
+ *  text show through it (issue #642). So on the legacy stylesheet every
+ *  `backdrop-blur-*` user loses its blur, and the translucent surfaces that
+ *  leaned on it (menu drawer, header, nav pill, nav dropdown) turn solid. The
+ *  two overlay scrims keep their dim, only without the blur. Their
+ *  backgrounds are inline styles, hence `!important`. Selectors avoid `:is()`,
+ *  which Chromium 80 lacks.
+ *  Careful: the solid rule matches any `backdrop-blur-md` and anything blurred
+ *  inside `<header>`. A future translucent scrim using either would turn
+ *  opaque here, so give scrims `backdrop-blur-sm` (or plain `backdrop-blur`)
+ *  and keep them outside the header. */
+export const NO_BLUR_CSS =
+  '[class*="backdrop-blur"]{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}' +
+  '#mobile-navigation,header[class*="backdrop-blur"],header [class*="backdrop-blur"],' +
+  '[class*="backdrop-blur-md"]{background-color:var(--color-background)!important}';
 
 // ---------------------------------------------------------------------------
 // 1. @supports and @property
@@ -536,6 +554,9 @@ function percentToNumber(value: string): string {
   );
 }
 
+const EMPTY_FALLBACK = /var\((--[\w-]+),\s*\)/g;
+const EMPTY_FALLBACK_TEST = /var\(--[\w-]+,\s*\)/;
+
 const TRANSFORM = 'var(--lc-translate) var(--lc-rotate) var(--lc-scale)';
 
 function lowerProperties(): Plugin {
@@ -543,6 +564,25 @@ function lowerProperties(): Plugin {
     postcssPlugin: 'legacy-css-properties',
     Once(root: Root) {
       let usesTransforms = false;
+      // Chromium 80 treats `var(--x,)` (an empty fallback, which Tailwind 4
+      // writes for every optional `--tw-*` part) as invalid at computed-value
+      // time, so the whole declaration is dropped: `backdrop-filter`, ring
+      // shadows (every focus ring), `tabular-nums`, the filter utilities.
+      // Drop the fallback and have the reset set each name to an empty value
+      // instead (`--x: ;`, which Chromium 80 accepts; `--x:;` it rejects).
+      const emptyFallbacks = new Set<string>();
+      root.walkDecls((decl) => {
+        for (const m of decl.value.matchAll(EMPTY_FALLBACK)) {
+          if (m[1]) emptyFallbacks.add(m[1]);
+        }
+      });
+      root.walkDecls((decl) => {
+        if (emptyFallbacks.has(decl.prop) && decl.value.trim() === 'initial') {
+          decl.value = ' ';
+        } else if (EMPTY_FALLBACK_TEST.test(decl.value)) {
+          decl.value = decl.value.replace(EMPTY_FALLBACK, 'var($1)');
+        }
+      });
       root.walkDecls((decl) => {
         decl.value = decl.value.replace(/(\d)[dsl]v([hw])\b/g, '$1v$2');
         if (/^--tw-scale-[xyz]$/.test(decl.prop)) {

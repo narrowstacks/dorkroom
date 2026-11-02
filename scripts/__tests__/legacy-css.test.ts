@@ -11,6 +11,7 @@ import {
   legacyCssLeftovers,
   legacyCssLoader,
   legacyCssProblem,
+  NO_BLUR_CSS,
   NO_MOTION_CSS,
 } from '../../apps/dorkroom/legacy-css';
 
@@ -118,7 +119,7 @@ describe('buildLegacyCss', () => {
     it('keeps translate when .transform comes later (transform translate-x-6)', async () => {
       const out = unboosted(await legacy(utilities));
       expect(out).toContain(
-        `.transform{transform:${COMPOSED} var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)}`
+        `.transform{transform:${COMPOSED} var(--tw-rotate-x) var(--tw-rotate-y) var(--tw-rotate-z) var(--tw-skew-x) var(--tw-skew-y)}`
       );
       expect(out).toMatch(
         /\.translate-x-6\{[^}]*--lc-translate:translate\(var\(--tw-translate-x\),var\(--tw-translate-y\)\)/
@@ -300,6 +301,62 @@ describe('legacy browser marker', () => {
       'utf8'
     );
     expect(source).toContain(`'${LEGACY_BROWSER_ATTR}'`);
+  });
+});
+
+describe('empty var() fallbacks (Chromium 80 rejects them)', () => {
+  // Tailwind 4's real output for .backdrop-blur, .ring-2 and .tabular-nums,
+  // with the `@layer properties` reset that sets each name to `initial`.
+  const tailwind = [
+    '@layer properties{*,:before,:after,::backdrop{--tw-backdrop-blur:initial;--tw-backdrop-brightness:initial;--tw-ring-inset:initial;--tw-ring-shadow:0 0 #0000;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial}}',
+    '@layer utilities{',
+    '.backdrop-blur{--tw-backdrop-blur:blur(8px);-webkit-backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,);backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,)}',
+    '.ring-2{--tw-ring-shadow:var(--tw-ring-inset,) 0 0 0 calc(2px + 0px) var(--tw-ring-color,currentcolor);box-shadow:var(--tw-ring-inset,) 0 0 0 2px red}',
+    '.tabular-nums{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,)}',
+    '}',
+  ].join('');
+
+  it('drops the empty fallback and resets the names to a space', async () => {
+    const out = await legacy(tailwind);
+    expect(out).not.toMatch(/var\(--[\w-]+,\s*\)/);
+    expect(out).toContain(
+      'backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness)'
+    );
+    expect(out).toContain('--tw-backdrop-brightness: ;');
+    expect(out).toContain('--tw-ring-inset: ;');
+    // Every var a rewritten declaration reads must have a space reset, or the
+    // declaration is invalid at computed-value time and the utility is dropped.
+    const used = /(?:backdrop-filter|font-variant-numeric):([^;}]*)/g;
+    for (const [, value = ''] of out.matchAll(used)) {
+      for (const [, name] of value.matchAll(/var\((--[\w-]+)\)/g)) {
+        // A space value; the minifier drops the `;` after the last declaration.
+        expect(out, `${name} has no reset`).toMatch(
+          new RegExp(`${name}: [;}]`)
+        );
+      }
+    }
+    // A name with no empty fallback keeps its reset.
+    expect(out).not.toMatch(/--tw-ring-shadow:\s*;/);
+    expect(legacyCssProblem(out)).toBeUndefined();
+  });
+
+  it('flags an empty fallback as a problem', () => {
+    expect(legacyCssProblem('a{b:var(--x,)}')).toMatch(/empty var\(\)/);
+    expect(legacyCssProblem('a{b:var(--x, )}')).toMatch(/empty var\(\)/);
+    expect(legacyCssProblem('a{b:var(--x,1px)}')).toBeUndefined();
+  });
+});
+
+describe('blur on the legacy stylesheet', () => {
+  it('removes backdrop blur and makes translucent surfaces solid', async () => {
+    const out = await legacy('a{color:red}');
+    expect(out).toContain(
+      '[class*="backdrop-blur"]{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}'
+    );
+    expect(out).toMatch(
+      /#mobile-navigation[^{]*\{background-color:var\(--color-background\)!important\}/
+    );
+    expect(out).toContain(NO_BLUR_CSS);
   });
 });
 
