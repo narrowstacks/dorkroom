@@ -80,9 +80,7 @@ describe('MobileNav (#346)', () => {
 
     fireEvent.click(closeButton);
     // The page is live again; only the sliding-out drawer itself is inert.
-    expect(
-      screen.getByRole('link', { name: 'Page link' }).closest('[inert]')
-    ).toBeNull();
+    expect([...document.querySelectorAll('[inert]')]).toEqual([drawer]);
   });
 
   it('makes the drawer inert, with no focusable links, as soon as it closes (#603)', () => {
@@ -101,6 +99,7 @@ describe('MobileNav (#346)', () => {
     // Still mounted while it slides out, but nothing in it is reachable.
     expect(drawer).toBeInTheDocument();
     expect(drawer).toHaveAttribute('inert');
+    expect(drawer).toHaveClass('pointer-events-none');
     expect(drawer).not.toHaveAttribute('aria-hidden');
     for (const link of links) expect(link.closest('[inert]')).toBe(drawer);
   });
