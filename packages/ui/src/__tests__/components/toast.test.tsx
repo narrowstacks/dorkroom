@@ -37,7 +37,7 @@ describe('Toast', () => {
   it('renders the success check icon and border by default', () => {
     render(<Toast {...defaultProps} />);
 
-    const toastElement = screen.getByRole('status');
+    const toastElement = screen.getByTestId('toast');
     expect(toastElement.querySelector('svg')).toHaveClass('lucide-check');
     expect(toastElement.querySelector('.lucide-x')).not.toBeInTheDocument();
     expect(toastElement.style.borderColor).toBe(
@@ -48,7 +48,7 @@ describe('Toast', () => {
   it('renders the error X icon and border for error type', () => {
     render(<Toast {...defaultProps} type="error" />);
 
-    const toastElement = screen.getByRole('status');
+    const toastElement = screen.getByTestId('toast');
     expect(toastElement.querySelector('svg')).toHaveClass('lucide-x');
     expect(toastElement.querySelector('.lucide-check')).not.toBeInTheDocument();
     expect(toastElement.style.borderColor).toBe('var(--color-semantic-error)');
@@ -57,7 +57,7 @@ describe('Toast', () => {
   it('renders no icon for info type', () => {
     render(<Toast {...defaultProps} type="info" />);
 
-    const toastElement = screen.getByRole('status');
+    const toastElement = screen.getByTestId('toast');
     // Info type should not render an icon
     expect(toastElement.querySelector('svg')).not.toBeInTheDocument();
   });
@@ -100,15 +100,16 @@ describe('Toast', () => {
   it('has proper accessibility attributes', () => {
     render(<Toast {...defaultProps} />);
 
-    const toast = screen.getByRole('status');
-    expect(toast).toHaveAttribute('aria-live', 'polite');
+    const toast = screen.getByTestId('toast');
+    expect(toast).not.toHaveAttribute('aria-live');
+    expect(toast).not.toHaveAttribute('role');
   });
 
   describe('animation classes', () => {
     it('applies animation classes when visible', () => {
       render(<Toast {...defaultProps} isVisible={true} />);
 
-      const toast = screen.getByRole('status');
+      const toast = screen.getByTestId('toast');
       expect(toast).toHaveClass('translate-x-0', 'opacity-100');
     });
   });
@@ -134,7 +135,7 @@ describe('ToastProvider', () => {
 
     const button = screen.getByText('Show Toast');
     fireEvent.click(button);
-    expect(screen.getByText('Test toast')).toBeInTheDocument();
+    expect(screen.getByTestId('toast')).toHaveTextContent('Test toast');
   });
 
   it('uses default success type when type not specified', async () => {
@@ -156,7 +157,7 @@ describe('ToastProvider', () => {
     const button = screen.getByText('Show Default Toast');
     fireEvent.click(button);
 
-    const toastElement = screen.getByRole('status');
+    const toastElement = screen.getByTestId('toast');
     expect(toastElement).toHaveTextContent('Default toast');
     expect(toastElement.querySelector('svg')).toHaveClass('lucide-check');
     expect(toastElement.style.borderColor).toBe(
@@ -187,11 +188,11 @@ describe('ToastProvider', () => {
 
     const firstButton = screen.getByText('First Toast');
     fireEvent.click(firstButton);
-    expect(screen.getByText('First toast')).toBeInTheDocument();
+    expect(screen.getByTestId('toast')).toHaveTextContent('First toast');
 
     const secondButton = screen.getByText('Second Toast');
     fireEvent.click(secondButton);
-    expect(screen.getByText('Second toast')).toBeInTheDocument();
+    expect(screen.getByTestId('toast')).toHaveTextContent('Second toast');
     expect(screen.queryByText('First toast')).not.toBeInTheDocument();
   });
 
@@ -204,13 +205,107 @@ describe('ToastProvider', () => {
 
     const button = screen.getByText('Show Toast');
     fireEvent.click(button);
-    expect(screen.getByText('Test toast')).toBeInTheDocument();
+    expect(screen.getByTestId('toast')).toBeInTheDocument();
 
     // Auto-dismiss after duration
     act(() => {
       vi.advanceTimersByTime(3000);
     });
     expect(screen.queryByText('Test toast')).not.toBeInTheDocument();
+  });
+});
+
+describe('ToastProvider live regions', () => {
+  const regions = () =>
+    Array.from(document.body.querySelectorAll('[data-toast-live-region]'));
+  const polite = () =>
+    document.body.querySelector('[data-toast-live-region="polite"]');
+  const assertive = () =>
+    document.body.querySelector('[data-toast-live-region="assertive"]');
+
+  const Trigger = ({ type }: { type?: 'error' }) => {
+    const { showToast } = useToast();
+    return (
+      <button type="button" onClick={() => showToast('Link copied', type)}>
+        Go
+      </button>
+    );
+  };
+
+  it('mounts the regions as body children before any toast, empty', () => {
+    render(
+      <ToastProvider>
+        <Trigger />
+      </ToastProvider>
+    );
+    expect(regions()).toHaveLength(2);
+    for (const region of regions()) {
+      expect(region.parentElement).toBe(document.body);
+      expect(region).toBeEmptyDOMElement();
+    }
+    expect(polite()).toHaveAttribute('aria-live', 'polite');
+    expect(polite()).toHaveAttribute('aria-atomic', 'true');
+    expect(assertive()).toHaveAttribute('aria-live', 'assertive');
+  });
+
+  it('puts the message in the persistent region without duplicating it', () => {
+    render(
+      <ToastProvider>
+        <Trigger />
+      </ToastProvider>
+    );
+    const before = polite();
+    fireEvent.click(screen.getByText('Go'));
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+    expect(polite()).toBe(before);
+    expect(polite()).toHaveTextContent('Link copied');
+    expect(regions()).toHaveLength(2);
+    expect(screen.getAllByText('Link copied')).toHaveLength(2);
+  });
+
+  it('announces an identical message again by clearing it first', () => {
+    render(
+      <ToastProvider>
+        <Trigger />
+      </ToastProvider>
+    );
+    fireEvent.click(screen.getByText('Go'));
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+    expect(polite()).toHaveTextContent('Link copied');
+    fireEvent.click(screen.getByText('Go'));
+    expect(polite()).toBeEmptyDOMElement();
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+    expect(polite()).toHaveTextContent('Link copied');
+  });
+
+  it('routes error toasts to the assertive region', () => {
+    render(
+      <ToastProvider>
+        <Trigger type="error" />
+      </ToastProvider>
+    );
+    fireEvent.click(screen.getByText('Go'));
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+    expect(assertive()).toHaveTextContent('Link copied');
+    expect(polite()).toBeEmptyDOMElement();
+  });
+
+  it('removes the regions on unmount', () => {
+    const { unmount } = render(
+      <ToastProvider>
+        <Trigger />
+      </ToastProvider>
+    );
+    unmount();
+    expect(regions()).toHaveLength(0);
   });
 });
 

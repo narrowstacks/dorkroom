@@ -383,7 +383,11 @@ describe.each([
     // happy-dom has no share sheet, so the shared flow lands on the clipboard.
     await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
     expect(writeText.mock.calls[0]?.[0]).toContain(API_ID);
-    expect(await screen.findByText('Link copied to clipboard!')).toBeVisible();
+    expect(
+      within(await screen.findByTestId('toast')).getByText(
+        'Link copied to clipboard!'
+      )
+    ).toBeVisible();
   });
 
   it('copies the share link of a custom recipe from the panel', async () => {
@@ -396,7 +400,11 @@ describe.each([
 
     await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
     expect(writeText.mock.calls[0]?.[0]).toContain('/development?');
-    expect(await screen.findByText('Link copied to clipboard!')).toBeVisible();
+    expect(
+      within(await screen.findByTestId('toast')).getByText(
+        'Link copied to clipboard!'
+      )
+    ).toBeVisible();
   });
 
   it('toggles the favorite from the panel', async () => {
