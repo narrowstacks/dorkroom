@@ -16,6 +16,8 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Fixed
 
+- **Holding + or − on a stepper keeps changing the value.** It used to move once while the haptic kept ticking. Holding now steps repeatedly, and stops at the end of the range. This covers Exposure stops, the volume mixer, the Process Timer preset editor and the film log's frame number. (fixes #317)
+- **One unreadable record no longer erases the rest of the film log.** If a single roll, camera, lens, custom film or timer preset couldn't be read, the whole list showed as empty, and the next change saved that empty list over everything. Readable records now load as usual, and anything unreadable is kept aside on the device instead of being deleted. (fixes #532)
 - **Mat measurements read the way you write them.** `3-1/2`, `3 1/2"` (including the curly quote the keyboard types), `3 1/2 in`, `3½` and `3 ½` are now 3.5 instead of being cut down to 3. A border or reveal with anything else left over, such as `3abc`, now shows the "Check inputs" message instead of quietly using the leading number or no reveal. (fixes #340)
 
 ## [2026.10.30]
