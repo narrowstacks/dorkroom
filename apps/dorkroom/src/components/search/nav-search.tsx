@@ -100,7 +100,7 @@ export function useNavSearch(pathname: string, pageSearch: boolean): NavSearch {
 
 interface NavSearchButtonProps {
   search: NavSearch;
-  /** `header`: in the sm+ header. `fab`: floating beside the phone menu toggle. */
+  /** `header`: in the lg+ header. `fab`: floating beside the phone menu toggle. */
   variant: 'header' | 'fab';
 }
 

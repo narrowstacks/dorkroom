@@ -85,7 +85,9 @@ const CASES: AnnouncementCase[] = [
       fireEvent.change(screen.getByTitle('Enter Width'), {
         target: { value: '20' },
       }),
-    expected: 'Window opening 14 1/2 inches by 13 1/2 inches',
+    // A wider board widens the window past the default 11" art (#431).
+    expected:
+      "Window opening 14 1/2 inches by 13 1/2 inches; doesn't match the reveal of 1/4 inches, gap 1 3/4 inches left and right, overlap 1/4 inches top and bottom",
   },
   {
     route: '/mat (metric)',
@@ -95,7 +97,8 @@ const CASES: AnnouncementCase[] = [
       fireEvent.change(screen.getByTitle('Enter Width'), {
         target: { value: '50' },
       }),
-    expected: 'Window opening 36.0 centimeters by 34.3 centimeters',
+    expected:
+      "Window opening 36.0 centimeters by 34.3 centimeters; doesn't match the reveal of 0.6 centimeters, gap 4.0 centimeters left and right, overlap 0.6 centimeters top and bottom",
   },
   {
     route: '/border (landscape paper)',

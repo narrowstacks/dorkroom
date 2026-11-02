@@ -79,13 +79,9 @@ describe('event property types', () => {
    * never free text. This is checked by the typechecker (`bun check` covers
    * test files), not at runtime; the `it` is only here so the assertion has a
    * name in the suite.
-   *
-   * `units_changed.unit` is a known violation, tracked as #438. It is listed
-   * here so that nothing else can join it; fixing #438 turns this red until
-   * the entry is deleted, which is the intent.
    */
-  it('admits no free-text string property beyond the known #438 exception', () => {
-    expectTypeOf<FreeTextProperties>().toEqualTypeOf<'units_changed.unit'>();
+  it('admits no free-text string property in any event', () => {
+    expectTypeOf<FreeTextProperties>().toEqualTypeOf<never>();
   });
 
   it('flags string and template-literal types but not closed unions', () => {
