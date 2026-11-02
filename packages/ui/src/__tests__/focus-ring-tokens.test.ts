@@ -40,10 +40,12 @@ const FOCUS_RING_COLOR =
 /**
  * The outline analogue of FOCUS_RING_COLOR. Excludes `outline-none` (a
  * reset, not a colour), widths (`outline-2`), and every
- * `outline-offset-*` utility.
+ * `outline-offset-*` utility. Also covers a wrapper that draws a child's
+ * focus indicator (`has-[[data-x]:focus-visible]:outline-…`), as the recipe
+ * table does around its scroll container.
  */
 const FOCUS_OUTLINE_COLOR =
-  /\b(?:group-)?focus(?:-visible|-within)?:(outline-(?!none\b|\d+\b|offset-)(?:\[(?:color:|--|#|var\(|rgb|hsl|oklch)[^\]]*\]|\(--[^)]*\)|[a-z]+(?:-\d{2,3})?)(?:\/(?:\[[^\]]*\]|\d{1,3}))?)/g;
+  /(?:\b(?:group-)?focus(?:-visible|-within)?|\bhas-\[\S*?:focus-visible\]):(outline-(?!none\b|\d+\b|offset-)(?:\[(?:color:|--|#|var\(|rgb|hsl|oklch)[^\]]*\]|\(--[^)]*\)|[a-z]+(?:-\d{2,3})?)(?:\/(?:\[[^\]]*\]|\d{1,3}))?)/g;
 
 /** A bare `focus:` ring prefix. `focus-visible:` does not match. */
 const BARE_FOCUS_RING = /\bfocus:ring-/g;
@@ -73,7 +75,7 @@ const FOCUS_RING_WIDTH_GLOBAL =
  * the token.
  */
 const FOCUS_OUTLINE_WIDTH_GLOBAL =
-  /\b(?:group-)?focus(?:-visible|-within)?:outline-\d+\b/g;
+  /(?:\b(?:group-)?focus(?:-visible|-within)?|\bhas-\[\S*?:focus-visible\]):outline-\d+\b/g;
 
 /**
  * A focus-prefixed outline-style reset. Tailwind v4's `outline-none` sets

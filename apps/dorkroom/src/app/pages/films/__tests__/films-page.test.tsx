@@ -360,6 +360,26 @@ describe.each([
     );
   });
 
+  it('keeps focus on the card that opens the panel and returns it there on close (#604)', async () => {
+    await renderFilmsPage({ mobile });
+    const card = await findFilmCard(/Kodak Portra 400/);
+    card.focus();
+    fireEvent.click(card);
+
+    const selected = () =>
+      screen.getByRole('button', { name: /Kodak Portra 400/, pressed: true });
+    const panel = getDetailPanel('Kodak Portra 400 details', mobile);
+    // The mobile sheet is modal and takes focus; the desktop sidebar is not,
+    // so focus stays on the card even though the narrower grid remounts it.
+    if (!mobile) expect(document.activeElement).toBe(selected());
+
+    const close = within(panel).getByRole('button', { name: 'Close panel' });
+    close.focus();
+    fireEvent.click(close);
+
+    expect(document.activeElement).toBe(filmCard(/Kodak Portra 400/));
+  });
+
   it('narrows the desktop grid to one column while the panel is open', async () => {
     await renderFilmsPage({ mobile });
     fireEvent.click(await findFilmCard(/Kodak Portra 400/));

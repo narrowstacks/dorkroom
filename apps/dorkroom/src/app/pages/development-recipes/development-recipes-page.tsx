@@ -16,6 +16,7 @@ import {
   useIsMobile,
   useTheme,
   useToast,
+  type VirtualListFocusHandle,
 } from '@dorkroom/ui';
 import {
   CollapsibleFilters,
@@ -180,6 +181,13 @@ export default function DevelopmentRecipesPage({
   );
   const resultsContainerRef = useRef<HTMLDivElement>(null);
   const virtualScrollContainerRef = useRef<HTMLDivElement>(null);
+  // Closing the desktop sidebar from inside it puts focus back on the row or
+  // card that opened it (#604).
+  const resultsFocusRef = useRef<VirtualListFocusHandle>(null);
+  // Set on a confirmed delete, which removes the Delete button that opened
+  // the confirm dialog: focus then goes to the results list instead of the
+  // page body. Cancel leaves it null so focus returns to the Delete button.
+  const deleteReturnFocusRef = useRef<HTMLElement | null>(null);
   const mainContentRef = useRef<HTMLElement>(null);
   const [mainContentHeight, setMainContentHeight] = useState<
     number | undefined
@@ -579,6 +587,7 @@ export default function DevelopmentRecipesPage({
       table={table}
       resultsContainerRef={resultsContainerRef}
       virtualScrollContainerRef={virtualScrollContainerRef}
+      resultsFocusRef={resultsFocusRef}
       favoriteTransitions={favoriteTransitions}
       onSelectCombination={handleOpenDetail}
       onToggleFavorite={handleToggleFavorite}
@@ -610,6 +619,14 @@ export default function DevelopmentRecipesPage({
       // returns, showing the saved recipe, when the form closes.
       isOpen={isDetailOpen && !(isMobile && isCustomModalOpen)}
       onClose={() => setIsDetailOpen(false)}
+      returnFocus={() => {
+        if (detailView) {
+          const { combination } = detailView;
+          resultsFocusRef.current?.focusItem(
+            String(combination.uuid || combination.id)
+          );
+        }
+      }}
       isMobile={isMobile}
       isFavorite={handleCheckFavorite}
       onToggleFavorite={handleToggleViewFavorite}
@@ -742,8 +759,15 @@ export default function DevelopmentRecipesPage({
 
         <ConfirmModal
           isOpen={isDeleteConfirmOpen}
-          onClose={closeDeleteConfirm}
-          onConfirm={confirmDeleteCustomRecipe}
+          onClose={() => {
+            deleteReturnFocusRef.current = null;
+            closeDeleteConfirm();
+          }}
+          onConfirm={() => {
+            deleteReturnFocusRef.current = virtualScrollContainerRef.current;
+            void confirmDeleteCustomRecipe();
+          }}
+          returnFocus={deleteReturnFocusRef}
           title="Delete Recipe"
           message="Are you sure you want to delete this custom recipe? This action cannot be undone."
           confirmText="Delete"

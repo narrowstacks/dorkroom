@@ -195,6 +195,15 @@ export interface UseModalLayerOptions {
    * is not the right place (or may be gone by then).
    */
   returnFocus?: RefObject<HTMLElement | null>;
+  /**
+   * Called on close when neither `returnFocus` nor the opener is still in the
+   * document, to put focus back by other means. A virtualized card that opened
+   * the layer can have been remounted meanwhile (it re-sorted into another
+   * row), so its old element is gone, but the list can still focus the card's
+   * new element. When this leaves focus outside the layer, it stays there;
+   * otherwise focus falls back to the layer below, as without it.
+   */
+  onReturnFocus?: () => void;
 }
 
 /**
@@ -303,8 +312,23 @@ export function useModalLayer<T extends HTMLElement>(
       // Read at close on purpose: the target is whatever the ref holds now.
       // oxlint-disable-next-line react-hooks/exhaustive-deps -- the latest ref value is the point, not a snapshot from open time
       const returnTarget = returnFocus?.current;
+      const isConnected = (candidate: HTMLElement | null | undefined) =>
+        candidate?.isConnected === true;
+      if (!isConnected(returnTarget) && !isConnected(opener)) {
+        optionsRef.current.onReturnFocus?.();
+        const moved = document.activeElement;
+        if (
+          moved instanceof HTMLElement &&
+          moved !== document.body &&
+          moved.isConnected &&
+          !element.contains(moved)
+        ) {
+          pendingReturnRef.current = { target: moved, layer: element };
+          return;
+        }
+      }
       const target = [returnTarget, opener, layers.at(-1)?.element].find(
-        (candidate) => candidate?.isConnected
+        isConnected
       );
       if (!target) return;
       target.focus();

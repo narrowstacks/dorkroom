@@ -444,6 +444,32 @@ describe.each([
     ).toBeVisible();
   });
 
+  it('puts focus on the results after a confirmed delete, and back on Delete after cancel (#604)', async () => {
+    renderPage({ mobile, customRecipes: [CUSTOM] });
+    await openRecipe(mobile, CUSTOM_RECIPE);
+    const deleteButton = within(getDetailPanel(mobile)).getByRole('button', {
+      name: 'Delete',
+    });
+
+    deleteButton.focus();
+    fireEvent.click(deleteButton);
+    fireEvent.click(await screen.findByRole('button', { name: 'Cancel' }));
+    expect(document.activeElement).toBe(deleteButton);
+
+    deleteButton.focus();
+    fireEvent.click(deleteButton);
+    const confirm = await screen.findByRole('dialog', {
+      name: 'Delete Recipe',
+    });
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Delete' }));
+
+    await waitFor(() => expect(queryDetailPanel()).toBeNull());
+    const focused = document.activeElement;
+    expect(focused).not.toBe(document.body);
+    expect(focused?.getAttribute('tabindex')).toBe('-1');
+    expect(focused?.querySelector('[data-list-item-key]')).not.toBeNull();
+  });
+
   it('closes with the close button, Escape and the backdrop where there is one', async () => {
     renderPage({ mobile });
 
@@ -455,6 +481,20 @@ describe.each([
     );
     expect(queryDetailPanel()).toBeNull();
     expect(document.body.style.overflow).not.toBe('hidden');
+
+    // Closing the desktop sidebar from inside puts focus back on the recipe
+    // (#604). The mobile sheet returns it to its opener itself.
+    if (!mobile) {
+      await openRecipe(mobile, API_RECIPE);
+      const close = within(getDetailPanel(mobile)).getByRole('button', {
+        name: 'Close panel',
+      });
+      close.focus();
+      fireEvent.click(close);
+      expect(
+        document.activeElement?.closest('[data-list-item-key]')
+      ).not.toBeNull();
+    }
 
     await openRecipe(mobile, API_RECIPE);
     fireEvent.keyDown(document, { key: 'Escape' });

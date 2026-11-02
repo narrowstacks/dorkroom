@@ -30,6 +30,11 @@ interface FilmDetailPanelProps {
   isMobile: boolean;
   /** Share a link to this film. When provided, the panel shows a Share button. */
   onShare?: (film: Film) => void;
+  /**
+   * Called when the desktop sidebar closes with focus inside it, to put focus
+   * back on whatever opened it (see `DetailPanel`).
+   */
+  returnFocus?: () => void;
 }
 
 /**
@@ -74,6 +79,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
   onClose,
   isMobile,
   onShare,
+  returnFocus,
 }) => {
   if (!film) {
     return null;
@@ -277,6 +283,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
     <DetailPanel
       isOpen={isOpen}
       onClose={onClose}
+      returnFocus={returnFocus}
       isMobile={isMobile}
       ariaLabel={ariaLabel}
       expandedContent={expandedContent}

@@ -147,6 +147,12 @@ Don't reach for it in new code expecting a visible shadow.
   the ring stays at 3:1 or better against the surface in every theme. The
   dark/light border tokens are translucent and fail contrast for focus
   indicators.
+- Scroll containers that take focus use an outline (`focus-visible:outline-2
+  focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--color-focus-ring)]`),
+  not a ring: an inset ring is a box shadow painted under the content, so the
+  cards or rows hide most of it. Where a sticky header or full-bleed rows would
+  still cover the outline (the recipe table), draw it on the bordered wrapper
+  with a `has-[…:focus-visible]:outline-*` variant instead.
 
 ## Accessibility
 
