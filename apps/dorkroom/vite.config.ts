@@ -1,5 +1,7 @@
 /// <reference types='vitest' />
 
+import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tanstackRouter } from '@tanstack/router-vite-plugin';
@@ -7,6 +9,128 @@ import { microfrontends } from '@vercel/microfrontends/experimental/vite';
 import legacy from '@vitejs/plugin-legacy';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
+import { classicInlineScripts, es5SyntaxProblem } from './es5-syntax';
+
+/** Single source of truth for the `legacy()` plugin and `lowerToEs5`. */
+const LEGACY_TARGETS = ['ie >= 11', 'safari >= 5'];
+
+/** Babel down-levels `code` to the legacy targets, then terser re-minifies it
+ *  as ES5. Only the polyfill chunk needs this: plugin-legacy builds it in a
+ *  nested Vite build this config cannot reach, and that build leaves
+ *  rolldown's arrow-function runtime helpers and oxc's template literals in. */
+async function lowerToEs5(code: string): Promise<string> {
+  const { transformAsync } = await import('@babel/core');
+  const { minify } = await import('terser');
+  const lowered = await transformAsync(code, {
+    babelrc: false,
+    configFile: false,
+    sourceType: 'script',
+    compact: true,
+    presets: [
+      [
+        createRequire(import.meta.url).resolve('@babel/preset-env'),
+        {
+          targets: LEGACY_TARGETS,
+          modules: false,
+          // core-js advises against Babel's typeof-Symbol helper over its
+          // own Symbol polyfill, and the polyfill chunk is core-js.
+          exclude: ['transform-typeof-symbol'],
+        },
+      ],
+    ],
+  });
+  if (!lowered?.code) throw new Error('Babel returned no code');
+  const minified = await minify(lowered.code, { ecma: 5, safari10: true });
+  if (!minified.code) throw new Error('terser returned no code');
+  return minified.code;
+}
+
+/** Keeps every `*-legacy-*` chunk ES5 (issue #49), and fails the build if one
+ *  is not. Since Vite 8.1.4, plugin-legacy minifies legacy chunks with oxc at
+ *  an ES2015 floor, which turns strings into template literals, and its
+ *  polyfill chunk carries rolldown's arrow-function runtime. ES5-only engines
+ *  (the Kindle browser) cannot parse either, so the app never boots there.
+ *  1. Turning rolldown's minifier off for the legacy output hands those chunks
+ *     to Vite's terser path, which prints ES5. The modern output keeps oxc.
+ *  2. The polyfill chunk is lowered (`lowerToEs5`) and renamed with a hash of
+ *     its new content. Its old hash covered the pre-lowering code, and
+ *     `/assets/*` is cached immutably, so keeping the name would leave
+ *     browsers on the broken copy they already have.
+ *     The rename emits no sourcemap: `build.sourcemap` is off today, and
+ *     turning it on would need the polyfill map regenerated here too.
+ *  3. Every legacy chunk is then parsed as ES5.
+ *  This is hygiene, not full support for ES5-only engines: the app also needs
+ *  Proxy (TanStack Query), AbortController, fetch and CSS custom properties,
+ *  none of which core-js provides, so pre-5.16.4 Kindles (old WebKit) stay
+ *  unsupported. Newer Kindles run Chromium 80 (Silk), which parses ES2015+. */
+function legacyEs5Plugin(): Plugin {
+  const renamed = new Map<string, string>();
+  return {
+    name: 'legacy-es5',
+    apply: 'build',
+    outputOptions(options) {
+      // plugin-legacy's name for legacy entries when none is configured. If
+      // that ever changes, this stops matching and step 3 fails the build.
+      if (options.entryFileNames !== 'assets/[name]-legacy-[hash].js') {
+        return null;
+      }
+      return { ...options, minify: false };
+    },
+    generateBundle: {
+      order: 'post',
+      async handler(_options, bundle) {
+        const problems: string[] = [];
+        for (const output of Object.values(bundle)) {
+          if (output.type !== 'chunk' || !output.fileName.includes('-legacy')) {
+            continue;
+          }
+          let { code, fileName } = output;
+          if (output.name === 'polyfills' && es5SyntaxProblem(code)) {
+            code = await lowerToEs5(code);
+            const hash = createHash('sha256')
+              .update(code)
+              .digest('base64url')
+              .slice(0, 8);
+            fileName = fileName.replace(
+              /[^/]+$/,
+              `polyfills-legacy-${hash}.js`
+            );
+            renamed.set(output.fileName, fileName);
+            delete bundle[output.fileName];
+            this.emitFile({
+              type: 'prebuilt-chunk',
+              fileName,
+              code,
+              exports: [],
+            });
+          }
+          const problem = es5SyntaxProblem(code);
+          if (problem) problems.push(`${fileName}: ${problem}`);
+        }
+        // index.html lands in the modern output, after the legacy one. Its
+        // classic (non-module) inline scripts run in ES5 engines too.
+        for (const output of Object.values(bundle)) {
+          if (output.type !== 'asset' || !output.fileName.endsWith('.html')) {
+            continue;
+          }
+          let html = String(output.source);
+          for (const [from, to] of renamed) html = html.replaceAll(from, to);
+          output.source = html;
+          for (const script of classicInlineScripts(html)) {
+            const problem = es5SyntaxProblem(script);
+            if (problem) problems.push(`${output.fileName} script: ${problem}`);
+          }
+        }
+        if (problems.length > 0) {
+          this.error(
+            `Legacy chunks are not ES5, so ES5-only browsers (the Kindle, ` +
+              `issue #49) cannot parse them:\n  ${problems.join('\n  ')}`
+          );
+        }
+      },
+    },
+  };
+}
 
 /** Injects a <link rel="preload"> for the Latin Montserrat woff2 so the browser
  *  starts downloading it before CSS is parsed. Vite resolves the bare-module
@@ -44,11 +168,76 @@ function fontPreloadPlugin(): Plugin {
   };
 }
 
+/** Packages that only lazy pages use. If the entry chunk reaches one of them
+ *  through static imports, `index.html` modulepreloads it and every page pays
+ *  for it before first render (issue #352: ~35 KB gzip of zod and TanStack
+ *  Form on the home page). */
+const LAZY_ONLY_PACKAGES = [
+  '/node_modules/zod/',
+  '/node_modules/@tanstack/form-core/',
+  '/node_modules/@tanstack/react-form/',
+];
+
+/** Fails the build when the modern entry's static import graph (what
+ *  `index.html` modulepreloads) contains a lazy-only package. The legacy
+ *  output (`*-legacy-*` chunks, SystemJS behind `nomodule`) is skipped: it
+ *  has no modulepreload list. */
+function initialChunkGuardPlugin(): Plugin {
+  return {
+    name: 'initial-chunk-guard',
+    apply: 'build',
+    generateBundle(_options, bundle) {
+      const chunks = new Map<string, { imports: string[]; ids: string[] }>();
+      for (const output of Object.values(bundle)) {
+        if (output.type === 'chunk') {
+          chunks.set(output.fileName, {
+            imports: output.imports,
+            ids: output.moduleIds,
+          });
+        }
+      }
+      const initial = new Set<string>();
+      const queue = Object.values(bundle).flatMap((output) =>
+        output.type === 'chunk' &&
+        output.isEntry &&
+        !output.fileName.includes('-legacy')
+          ? [output.fileName]
+          : []
+      );
+      for (let file = queue.pop(); file !== undefined; file = queue.pop()) {
+        if (initial.has(file)) continue;
+        initial.add(file);
+        queue.push(...(chunks.get(file)?.imports ?? []));
+      }
+      const offenders = [...initial].flatMap((file) => {
+        const ids = chunks.get(file)?.ids ?? [];
+        return LAZY_ONLY_PACKAGES.filter((pkg) =>
+          ids.some((id) => id.replaceAll('\\', '/').includes(pkg))
+        ).map((pkg) => `${file} contains ${pkg}`);
+      });
+      if (offenders.length > 0) {
+        this.error(
+          `Lazy-only packages reached the initial chunks, so every page would ` +
+            `preload them (issue #352):\n  ${offenders.join('\n  ')}\n` +
+            `Import them from a lazy page, not from code the route tree or ` +
+            `main.tsx loads.`
+        );
+      }
+    },
+  };
+}
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/apps/dorkroom',
+  define: {
+    // True only in a build running on Vercel, which sets VERCEL=1 (it must be
+    // declared in turbo.json's build `env`, or strict env mode drops it). Gates
+    // features that exist only on a Vercel deployment, such as `/_vercel/image`.
+    __VERCEL__: JSON.stringify(process.env.VERCEL === '1'),
+  },
   server: {
     // No `port` here on purpose. The @vercel/microfrontends plugin's `config()`
     // hook sets `server.port` (and `preview.port`) from a hash of the package
@@ -113,12 +302,14 @@ export default defineConfig(() => ({
     // real-world target. Modern browsers never load this — it sits behind
     // `nomodule`, so there is zero impact on the modern ES-module bundle.
     legacy({
-      targets: ['ie >= 11', 'safari >= 5'],
+      targets: LEGACY_TARGETS,
       // Polyfill the bare globals the Kindle's ancient engine is missing even
       // before app code runs (the usage scan covers the rest).
       additionalLegacyPolyfills: ['regenerator-runtime/runtime'],
     }),
+    legacyEs5Plugin(),
     fontPreloadPlugin(),
+    initialChunkGuardPlugin(),
   ],
   resolve: {
     alias: {
@@ -160,9 +351,13 @@ export default defineConfig(() => ({
     },
     // A user-provided output.minify object overrides Vite 8's default, so the
     // full config is spelled out; compress.drop* replaces the removed esbuild.drop.
-    // The modern bundle keeps oxc minify (fast, unchanged from before); the
-    // legacy plugin minifies its separate legacy chunks with terser automatically.
+    // The modern bundle keeps oxc minify. The legacy chunks go to terser
+    // (legacyEs5Plugin), which reads only `terserOptions`; it drops console and
+    // debugger statements the same way.
     minify: 'oxc',
+    terserOptions: {
+      compress: { drop_console: true, drop_debugger: true },
+    },
     rollupOptions: {
       output: {
         minify: {
@@ -171,7 +366,15 @@ export default defineConfig(() => ({
           compress: { dropConsole: true, dropDebugger: true },
         },
         manualChunks(id) {
+          // The modern build targets es2020 (plugin-legacy's floor), so the
+          // `#private` fields in query-core and form-core are down-levelled to
+          // oxc runtime helpers. Left alone, those helpers land in whichever
+          // manual chunk claims them first (`tanstack-form`), and the entry's
+          // QueryClient then modulepreloads that whole chunk on every page
+          // (issue #352). Keep them with the vendor code every page loads.
           if (
+            id.includes('@oxc-project+runtime') ||
+            id.includes('@oxc-project/runtime') ||
             id.includes('node_modules/react/') ||
             id.includes('node_modules/react-dom/') ||
             id.includes('node_modules/@tanstack/react-router/')
@@ -190,9 +393,10 @@ export default defineConfig(() => ({
           ) {
             return 'tanstack-table-virtual';
           }
-          if (id.includes('node_modules/zod/')) {
-            return 'zod';
-          }
+          // No manual chunk for zod: a forced chunk holding every zod file
+          // makes any small zod import in the entry preload all of it (issue
+          // #352). Rolldown's own splitting keeps zod with the lazy pages that
+          // use it; the route schemas (search-schemas.ts) use no zod at all.
           return undefined;
         },
       },

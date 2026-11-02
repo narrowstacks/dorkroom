@@ -1,6 +1,15 @@
 import { Film } from 'lucide-react';
-import { type FC, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  type FC,
+  use,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { cn } from '../../lib/cn';
+import { FilmImageLoaderContext } from './film-image-loader-context';
+import { resolveFilmImageSources } from './film-image-sources';
 
 interface FilmImageProps {
   src: string | null;
@@ -16,6 +25,13 @@ interface FilmImageProps {
    * is about to see anyway.
    */
   loading?: 'lazy' | 'eager';
+  /**
+   * Largest CSS size, in pixels, the image is displayed at, when a
+   * `className` override makes it bigger than `size`. Picks which resized
+   * width to request from the image optimizer (see `FilmImageLoaderContext`).
+   * Defaults to the `size` dimension.
+   */
+  renderedSize?: number;
 }
 
 const sizeMap = {
@@ -35,12 +51,18 @@ interface ImageState {
   hasError: boolean;
   isLoading: boolean;
   hasTimedOut: boolean;
+  /**
+   * The optimized URL failed (no optimizer here, e.g. a local or non-Vercel
+   * build, or it is over quota), so load the original instead.
+   */
+  useOriginal: boolean;
 }
 
 function getInitialState(src: string | null): ImageState {
   return {
     hasError: false,
     hasTimedOut: false,
+    useOriginal: false,
     // Only show loading state if we have a src to load and we haven't
     // already seen it load successfully earlier in this session.
     isLoading: !!src && !loadedImageCache.has(src),
@@ -53,7 +75,9 @@ export const FilmImage: FC<FilmImageProps> = ({
   size = 'md',
   className,
   loading = 'lazy',
+  renderedSize,
 }) => {
+  const loader = use(FilmImageLoaderContext);
   // Single consolidated state so the per-src reset is one update.
   const [state, setState] = useState<ImageState>(() => getInitialState(src));
   const imgRef = useRef<HTMLImageElement>(null);
@@ -89,8 +113,13 @@ export const FilmImage: FC<FilmImageProps> = ({
     }
   }, [src]);
 
-  const { hasError, isLoading, hasTimedOut } = state;
+  const { hasError, isLoading, hasTimedOut, useOriginal } = state;
   const dimension = sizeMap[size];
+  const sources =
+    src && !useOriginal
+      ? resolveFilmImageSources(src, renderedSize ?? dimension, loader)
+      : { src: src ?? '' };
+  const isOptimized = sources.src !== src;
 
   // Timeout after 5 seconds - show fallback icon instead of loading animation
   useEffect(() => {
@@ -170,18 +199,19 @@ export const FilmImage: FC<FilmImageProps> = ({
           )}
           <img
             ref={imgRef}
-            src={src}
+            srcSet={sources.srcSet}
+            src={sources.src}
             alt={alt}
             width={dimension}
             height={dimension}
             loading={loading}
             decoding="async"
             onError={() => {
-              setState((prev) => ({
-                ...prev,
-                hasError: true,
-                isLoading: false,
-              }));
+              setState((prev) =>
+                isOptimized && !prev.useOriginal
+                  ? { ...prev, useOriginal: true }
+                  : { ...prev, hasError: true, isLoading: false }
+              );
             }}
             onLoad={() => {
               if (src) loadedImageCache.add(src);
