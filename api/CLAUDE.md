@@ -51,7 +51,14 @@ Everything else:
   through the public `/api/*` (local dev). Going through the public API would
   key the anonymous limit on the function's egress IP and share one 30/min
   budget among every render (#443). The choice rests on env vars only, never
-  on a request header, so a caller cannot opt in.
+  on a request header, so a caller cannot opt in. In its place, every render
+  that looks anything up is charged its worst-case call count (`upstreamLookupCost`:
+  1 per film or developer, plus `MAX_COMBINATION_PAGES` for a recipe) against
+  one global `og-upstream` budget (`OG_UPSTREAM_RATE_LIMIT` in
+  `utils/rateLimitPolicy.ts`, Unkey `cost`), after the per-IP check. Over it,
+  the same `no-store` 307 to the static card, never a slug-only card the CDN
+  would keep for a day. Like the per-IP check it fails open if Unkey is down,
+  so the page cap is what still bounds one render then.
 
 Host-based routing lives in `vercel.json`: on `api.dorkroom.art` the bare paths
 (`/films`, `/openapi.json`, `/reference`, …) map onto these handlers, while
@@ -222,7 +229,8 @@ Two access modes are supported from one Vercel project:
   - No API key required
   - Anonymous rate limiting by client IP (30 req/min)
   - `/api/og` uses the same namespace and budget under a separate `og:<ip>`
-    identifier, and fails open if Unkey is unreachable
+    identifier, plus a global `og-upstream` budget for its catalogue lookups,
+    and fails open if Unkey is unreachable
 
 When Unkey is not configured (`UNKEY_ROOT_KEY` missing), anonymous rate limiting is skipped with warning logs for local development.
 

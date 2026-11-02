@@ -44,6 +44,34 @@ describe('catalogueRequest', () => {
     });
   });
 
+  it.each(['direct', 'public'] as const)(
+    'encodes hostile values and keeps the %s host and path fixed',
+    (mode) => {
+      if (mode === 'direct') configure();
+      const hostile = 'a&page=999#x/../';
+
+      const request = catalogueRequest(
+        'films',
+        new URLSearchParams({ slug: hostile, limit: '1' })
+      );
+
+      expect(request.mode).toBe(mode);
+      const url = new URL(request.url);
+      expect(url.origin).toBe(
+        mode === 'direct' ? ENDPOINT : 'https://dorkroom.art'
+      );
+      expect(url.pathname).toBe(
+        mode === 'direct' ? '/functions/v1/films' : '/api/films'
+      );
+      expect(url.hash).toBe('');
+      expect([...url.searchParams]).toEqual([
+        ['slug', hostile],
+        ['limit', '1'],
+      ]);
+      expect(url.searchParams.has('page')).toBe(false);
+    }
+  );
+
   it('accepts an endpoint with a trailing slash', () => {
     configure(`${ENDPOINT}/`);
     expect(catalogueRequest('films', SLUG).url).toBe(

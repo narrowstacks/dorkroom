@@ -20,6 +20,8 @@ import {
 import {
   ANONYMOUS_RATE_LIMIT,
   ANONYMOUS_RATE_WINDOW_MS,
+  OG_UPSTREAM_RATE_LIMIT,
+  OG_UPSTREAM_RATE_WINDOW_MS,
 } from '../utils/rateLimitPolicy';
 import {
   buildFilmFilterParts,
@@ -69,14 +71,20 @@ function rejectUnknownParams(searchParams: URLSearchParams): boolean {
 }
 
 const FETCH_TIMEOUT_MS = 3000;
-/** Rows requested per combinations page when scanning for a recipe UUID. */
-const COMBINATION_PAGE_SIZE = 50;
 /**
- * Upper bound on pages scanned for a recipe UUID (500 rows at
- * `COMBINATION_PAGE_SIZE`). Prevents a pathological film+developer pairing
- * from fanning out into unbounded upstream requests.
+ * Rows requested per combinations page when scanning for a recipe UUID.
+ * The largest film+developer pairing in the catalogue had 70 rows
+ * (2026-11), so one page covers nearly every recipe card.
  */
-const MAX_COMBINATION_PAGES = 10;
+export const COMBINATION_PAGE_SIZE = 100;
+/**
+ * Upper bound on pages scanned for a recipe UUID (300 rows at
+ * `COMBINATION_PAGE_SIZE`, about four times the largest pairing). Bounds
+ * what one recipe card can cost upstream; see `upstreamLookupCost`.
+ */
+export const MAX_COMBINATION_PAGES = 3;
+/** Identifier of the global upstream budget, in the anonymous namespace. */
+const OG_UPSTREAM_IDENTIFIER = 'og-upstream';
 const FONT_URL =
   'https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Ew-.ttf';
 const FONT_BOLD_URL =
@@ -1063,7 +1071,7 @@ const NO_STORE = 'no-store';
  * `og:image` URL — so no upstream lookup ever runs on a malformed slug and
  * attacker-chosen text never reaches the rendered card.
  */
-interface OgParams {
+export interface OgParams {
   route: string;
   film: string | null;
   developer: string | null;
@@ -1189,6 +1197,23 @@ export default async function handler(request: Request): Promise<Response> {
     }
   }
 
+  // The catalogue lookups bypass the anonymous /api/* limiter (#443), so
+  // every render draws on one global budget, charged its worst-case call
+  // count. Over it, the static card (uncached) rather than a slug-only card,
+  // which the CDN would otherwise keep for a day.
+  const cost = upstreamLookupCost(params);
+  if (cost > 0) {
+    const budget = await checkEdgeRateLimit({
+      identifier: OG_UPSTREAM_IDENTIFIER,
+      limit: OG_UPSTREAM_RATE_LIMIT,
+      durationMs: OG_UPSTREAM_RATE_WINDOW_MS,
+      cost,
+    });
+    if (budget.status === 'limited') {
+      return rateLimitedResponse(request, params.route, budget);
+    }
+  }
+
   try {
     return await renderCard(params);
   } catch (cause) {
@@ -1201,6 +1226,20 @@ export default async function handler(request: Request): Promise<Response> {
       headers: { 'Cache-Control': NO_STORE },
     });
   }
+}
+
+/**
+ * The most upstream catalogue calls `renderCard` can make for `params`,
+ * mirroring its branches: one per film or developer lookup, plus up to
+ * `MAX_COMBINATION_PAGES` for a recipe card. Zero for every card drawn from
+ * the params alone.
+ */
+export function upstreamLookupCost(params: OgParams): number {
+  const { route, film, developer, recipe } = params;
+  if (route === '/films') return film ? 1 : 0;
+  if (route !== '/development') return 0;
+  if (film && developer) return recipe ? 2 + MAX_COMBINATION_PAGES : 2;
+  return film || developer ? 1 : 0;
 }
 
 async function renderCard(params: OgParams): Promise<Response> {

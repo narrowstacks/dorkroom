@@ -5,7 +5,8 @@
  * rule of its own:
  *  - `withHandler.ts` (Node runtime): keyed and anonymous limits on the data
  *    endpoints.
- *  - `edgeRateLimit.ts` (edge runtime, `api/og.tsx`): the anonymous limit.
+ *  - `edgeRateLimit.ts` (edge runtime, `api/og.tsx`): the anonymous limit,
+ *    and the global budget on the card renders' catalogue lookups.
  *  - `scripts/unkey-keys.ts`: per-key tier limits and namespace bootstrap.
  *
  * The per-key tier limits are also quoted in `docs/API.md`, `api/CLAUDE.md`
@@ -22,6 +23,17 @@ export const RATE_WINDOW_MS = 60_000;
 /** Anonymous (per-IP) budget on `dorkroom.art/api/*`, shared by Node and edge handlers. */
 export const ANONYMOUS_RATE_LIMIT = 30;
 export const ANONYMOUS_RATE_WINDOW_MS = RATE_WINDOW_MS;
+
+/**
+ * One budget shared by every `api/og.tsx` render, counted in upstream
+ * catalogue calls (a render is charged its worst-case call count up front).
+ * The card lookups skip the anonymous `/api/*` limiter (#443), so this is
+ * the ceiling on how hard renders can drive the data layer, whatever the
+ * spread of client IPs. Generous: share bursts mostly hit the CDN, and a
+ * cache miss costs at most a handful of calls.
+ */
+export const OG_UPSTREAM_RATE_LIMIT = 1200;
+export const OG_UPSTREAM_RATE_WINDOW_MS = RATE_WINDOW_MS;
 
 /**
  * Per-client budgets on the keyed (`api.dorkroom.art`) path, applied only when

@@ -10,11 +10,14 @@ import {
 import { ACCENT_TONE_HEX, ROUTE_TITLES } from '../../utils/routeMetadata';
 import handler, {
   clearFontCache,
+  COMBINATION_PAGE_SIZE,
   getDilutionLabel,
   getRouteAccent,
   getRouteIcon,
   loadFontData,
   lookupCombination,
+  MAX_COMBINATION_PAGES,
+  upstreamLookupCost,
 } from '../og';
 
 const FONT_HOST = 'fonts.gstatic.com';
@@ -391,7 +394,7 @@ describe('og handler - development recipe', () => {
                     push_pull: 0,
                   },
                 ],
-                count: 51,
+                count: COMBINATION_PAGE_SIZE + 1,
               })
             )
           );
@@ -399,13 +402,13 @@ describe('og handler - development recipe', () => {
         return Promise.resolve(
           jsonResponse(
             JSON.stringify({
-              data: Array.from({ length: 50 }, (_, i) => ({
+              data: Array.from({ length: COMBINATION_PAGE_SIZE }, (_, i) => ({
                 uuid: `other-${i}`,
                 time_minutes: 1,
                 temperature_celsius: 20,
                 shooting_iso: 400,
               })),
-              count: 51,
+              count: COMBINATION_PAGE_SIZE + 1,
             })
           )
         );
@@ -497,14 +500,19 @@ describe('lookupCombination', () => {
       requestedUrls.push(url);
       if (requestedPage(url) === 2) {
         return Promise.resolve(
-          combinationsResponse([{ uuid: 'target', time_minutes: 20 }], 75)
+          combinationsResponse(
+            [{ uuid: 'target', time_minutes: 20 }],
+            COMBINATION_PAGE_SIZE + 25
+          )
         );
       }
-      const page1 = Array.from({ length: 50 }, (_, i) => ({
+      const page1 = Array.from({ length: COMBINATION_PAGE_SIZE }, (_, i) => ({
         uuid: `other-${i}`,
         time_minutes: 1,
       }));
-      return Promise.resolve(combinationsResponse(page1, 75));
+      return Promise.resolve(
+        combinationsResponse(page1, COMBINATION_PAGE_SIZE + 25)
+      );
     });
 
     const result = await lookupCombination(
@@ -515,7 +523,11 @@ describe('lookupCombination', () => {
 
     expect(result?.time_minutes).toBe(20);
     expect(requestedUrls.some((url) => requestedPage(url) === 2)).toBe(true);
-    expect(requestedUrls.every((url) => url.includes('count=50'))).toBe(true);
+    expect(
+      requestedUrls.every((url) =>
+        url.includes(`count=${COMBINATION_PAGE_SIZE}`)
+      )
+    ).toBe(true);
   });
 
   it('returns null, never the first row, when the uuid is absent', async () => {
@@ -525,13 +537,17 @@ describe('lookupCombination', () => {
           uuid: `other-page2-${i}`,
           time_minutes: 2,
         }));
-        return Promise.resolve(combinationsResponse(page2, 60));
+        return Promise.resolve(
+          combinationsResponse(page2, COMBINATION_PAGE_SIZE + 10)
+        );
       }
-      const page1 = Array.from({ length: 50 }, (_, i) => ({
+      const page1 = Array.from({ length: COMBINATION_PAGE_SIZE }, (_, i) => ({
         uuid: `other-page1-${i}`,
         time_minutes: 1,
       }));
-      return Promise.resolve(combinationsResponse(page1, 60));
+      return Promise.resolve(
+        combinationsResponse(page1, COMBINATION_PAGE_SIZE + 10)
+      );
     });
 
     const result = await lookupCombination(
@@ -545,11 +561,11 @@ describe('lookupCombination', () => {
 
   it('stops at the page cap and returns null when the uuid is never found', async () => {
     const fetchMock = stubFetch((url) => {
-      const page = Array.from({ length: 50 }, (_, i) => ({
+      const page = Array.from({ length: COMBINATION_PAGE_SIZE }, (_, i) => ({
         uuid: `${url}-${i}`,
         time_minutes: 1,
       }));
-      // count far exceeds what MAX_COMBINATION_PAGES * 50 rows can cover.
+      // count far exceeds what MAX_COMBINATION_PAGES pages can cover.
       return Promise.resolve(combinationsResponse(page, 10_000));
     });
 
@@ -560,8 +576,9 @@ describe('lookupCombination', () => {
     );
 
     expect(result).toBeNull();
-    // 10 combination pages (MAX_COMBINATION_PAGES) — no font requests here.
-    expect(fetchMock).toHaveBeenCalledTimes(10);
+    // MAX_COMBINATION_PAGES pages, no font requests here.
+    expect(MAX_COMBINATION_PAGES).toBe(3);
+    expect(fetchMock).toHaveBeenCalledTimes(MAX_COMBINATION_PAGES);
   });
 
   it('requests limit=1 and returns the first row when no uuid is given', async () => {
@@ -1115,6 +1132,101 @@ describe('og handler - rate limiting', () => {
     );
   });
 
+  /** The request body `edgeRateLimit.ts` sends Unkey. */
+  interface UnkeyBody {
+    identifier: string;
+    cost?: number;
+  }
+
+  /** Bodies of every Unkey call, in order. */
+  function unkeyBodies(fetchMock: Mock<typeof fetch>): UnkeyBody[] {
+    return fetchMock.mock.calls
+      .filter(([input]) => String(input) === UNKEY_URL)
+      .map(([, init]): UnkeyBody => JSON.parse(String(init?.body)));
+  }
+
+  it('charges a recipe card its worst-case upstream calls against one global budget', async () => {
+    const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(true));
+
+    await pngBytes(
+      await handler(
+        ogRequest({
+          route: '/development',
+          film: 'kodak-tri-x-400',
+          developer: 'ilford-perceptol',
+          recipe: TARGET_UUID,
+        })
+      )
+    );
+
+    expect(unkeyBodies(fetchMock)).toEqual([
+      expect.objectContaining({ identifier: 'og:203.0.113.7' }),
+      {
+        namespace: 'api_test-anonymous',
+        identifier: 'og-upstream',
+        limit: 1200,
+        duration: 60_000,
+        cost: 2 + MAX_COMBINATION_PAGES,
+      },
+    ]);
+  });
+
+  it('shares the global budget across client IPs', async () => {
+    const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(true));
+
+    for (const ip of ['203.0.113.7', '198.51.100.9']) {
+      await pngBytes(
+        await handler(
+          ogRequest({ route: '/films', film: 'kodak-tri-x-400' }, ip)
+        )
+      );
+    }
+
+    const globalChecks = unkeyBodies(fetchMock).filter(
+      (body) => body.identifier === 'og-upstream'
+    );
+    expect(globalChecks).toEqual([
+      expect.objectContaining({ cost: 1 }),
+      expect.objectContaining({ cost: 1 }),
+    ]);
+  });
+
+  it('serves the uncached static card, with no lookups, when the global budget is spent', async () => {
+    // Per-IP check passes, the global one does not.
+    let unkeyCall = 0;
+    const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(unkeyCall++ === 0));
+
+    const res = await handler(
+      ogRequest({
+        route: '/development',
+        film: 'kodak-tri-x-400',
+        developer: 'ilford-perceptol',
+      })
+    );
+
+    expect(res.status).toBe(307);
+    expect(res.headers.get('location')).toBe(
+      'https://dorkroom.art/api/og?route=%2Fdevelopment'
+    );
+    expect(res.headers.get('cache-control')).toBe('no-store');
+    expect(fetchMock.mock.calls.map(([input]) => String(input))).toEqual([
+      UNKEY_URL,
+      UNKEY_URL,
+    ]);
+  });
+
+  it('skips the global budget for cards drawn from the params alone', async () => {
+    const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(true));
+
+    await pngBytes(
+      await handler(ogRequest({ route: '/films', color: 'bw', brand: 'Kodak' }))
+    );
+
+    expect(unkeyBodies(fetchMock)).toEqual([
+      expect.objectContaining({ identifier: 'og:203.0.113.7' }),
+    ]);
+  });
+
   it('does not rate limit the cheap 400 for unknown params', async () => {
     const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(false));
 
@@ -1209,7 +1321,7 @@ describe('og handler - catalogue lookups bypass the public API limiter', () => {
     await lookupCombination('kodak-tri-x-400', 'ilford-perceptol', TARGET_UUID);
 
     expect(upstreamCalls(fetchMock)).toEqual([
-      `${ENDPOINT}/functions/v1/combinations?film=kodak-tri-x-400&developer=ilford-perceptol&count=50&page=1`,
+      `${ENDPOINT}/functions/v1/combinations?film=kodak-tri-x-400&developer=ilford-perceptol&count=${COMBINATION_PAGE_SIZE}&page=1`,
     ]);
   });
 
@@ -1261,5 +1373,42 @@ describe('og handler - catalogue lookups bypass the public API limiter', () => {
     for (const name of ['authorization', 'x-proxy-secret', 'x-api-key']) {
       expect(headers.get(name)).toBeNull();
     }
+  });
+});
+
+describe('upstreamLookupCost', () => {
+  const base = {
+    route: '/',
+    film: null,
+    developer: null,
+    recipe: null,
+    color: null,
+    iso: null,
+    brand: null,
+    status: null,
+    preset: null,
+    linkSearch: {},
+  };
+
+  it.each([
+    ['a static page', { route: '/border' }, 0],
+    ['a film filter card', { route: '/films', color: 'bw' }, 0],
+    ['a film card', { route: '/films', film: 'f' }, 1],
+    ['a film-only search', { route: '/development', film: 'f' }, 1],
+    ['a developer-only card', { route: '/development', developer: 'd' }, 1],
+    [
+      'a film and developer search',
+      { route: '/development', film: 'f', developer: 'd' },
+      2,
+    ],
+    [
+      'a recipe card',
+      { route: '/development', film: 'f', developer: 'd', recipe: 'r' },
+      2 + MAX_COMBINATION_PAGES,
+    ],
+    ['a recipe without its pairing', { route: '/development', recipe: 'r' }, 0],
+    ['a film on another route', { route: '/border', film: 'f' }, 0],
+  ])('costs %s', (_label, overrides, expected) => {
+    expect(upstreamLookupCost({ ...base, ...overrides })).toBe(expected);
   });
 });
