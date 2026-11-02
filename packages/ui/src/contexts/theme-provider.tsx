@@ -1,4 +1,10 @@
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import {
+  type ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { hasGlobal, matchMediaQuery } from '../lib/dom';
 import { isLegacyBrowser } from '../lib/motion';
 import type { Theme } from '../lib/themes';
@@ -74,6 +80,14 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const [animationsEnabled, setAnimationsEnabledState] = useState(
     getInitialAnimationsEnabled
   );
+
+  // Paint the right theme on React's first frame, before the effect below
+  // (which also handles the system listener) runs after paint.
+  useLayoutEffect(() => {
+    if (hasGlobal('document')) {
+      document.documentElement.setAttribute('data-theme', resolveTheme(theme));
+    }
+  }, [theme]);
 
   // Update resolved theme when theme changes or system preference changes
   useEffect(() => {

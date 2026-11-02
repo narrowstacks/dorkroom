@@ -166,7 +166,7 @@ describe('ThemeProvider e-ink lock', () => {
   it('leaves a Kindle UA alone on a browser with cascade layers', () => {
     stubMonochrome(false);
     stubUserAgent(KINDLE_SCRIBE_UA);
-    vi.stubGlobal('CSSLayerBlockRule', class {});
+    vi.stubGlobal('CSSLayerBlockRule', function CSSLayerBlockRule() {});
     const { result } = renderTheme();
 
     expect(result.current.themeLocked).toBe(false);

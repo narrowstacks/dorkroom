@@ -36,6 +36,7 @@ import {
   es5SyntaxProblem,
 } from '../apps/dorkroom/es5-syntax';
 import {
+  KINDLE_UA_SOURCE,
   LEGACY_BROWSER_ATTR,
   legacyCssProblem,
   NO_MOTION_CSS,
@@ -295,6 +296,14 @@ async function checkLegacyCss(): Promise<void> {
     legacyCss.endsWith(NO_MOTION_CSS)
   );
   const html = await readFile(join(distDir, 'index.html'), 'utf8');
+  check(
+    'legacy css: loader themes a Kindle high contrast before first paint',
+    classicInlineScripts(html).some(
+      (body) =>
+        body.includes(KINDLE_UA_SOURCE) &&
+        body.includes('setAttribute("data-theme","high-contrast")')
+    )
+  );
   check(
     'legacy css: loader marks <html> for the app',
     classicInlineScripts(html).some((body) =>

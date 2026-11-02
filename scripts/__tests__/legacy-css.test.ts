@@ -5,6 +5,7 @@ import { es5SyntaxProblem } from '../../apps/dorkroom/es5-syntax';
 import {
   BREAKPOINTS,
   buildLegacyCss,
+  KINDLE_UA_SOURCE,
   LEGACY_BROWSER_ATTR,
   legacyCssFileName,
   legacyCssLeftovers,
@@ -275,6 +276,22 @@ describe('legacy browser marker', () => {
     expect(script.indexOf('data-lc-legacy')).toBeGreaterThan(
       script.indexOf('CSSLayerBlockRule||')
     );
+  });
+
+  it('themes a Kindle high contrast before first paint, in ES5', () => {
+    const script = legacyCssLoader('/a.css', '/b.css');
+    expect(es5SyntaxProblem(script)).toBeUndefined();
+    expect(script).toContain(
+      `${KINDLE_UA_SOURCE}.test(navigator.userAgent)&&e.setAttribute("data-theme","high-contrast")`
+    );
+  });
+
+  it('uses the Kindle pattern isEInkDevice uses', () => {
+    const source = readFileSync(
+      join(__dirname, '../../packages/ui/src/lib/themes.ts'),
+      'utf8'
+    );
+    expect(source).toContain(KINDLE_UA_SOURCE.slice(1, -1));
   });
 
   it('matches the attribute the UI package reads', () => {

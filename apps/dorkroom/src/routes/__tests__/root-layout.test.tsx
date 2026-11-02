@@ -15,7 +15,7 @@ import {
   RouterProvider,
 } from '@tanstack/react-router';
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Route as rootRouteOptions } from '../__root';
 
 // `__root.tsx` intentionally exports only `Route` (react-doctor's
@@ -94,5 +94,33 @@ describe('root layout', () => {
     expect(wordmark).toHaveClass('sr-only', 'xl:not-sr-only');
     expect(wordmark).not.toHaveClass('hidden');
     expect(wordmark.closest('a')).toHaveAccessibleName('Dorkroom');
+  });
+
+  it('has a Themes button on a color screen', async () => {
+    await renderRootLayout();
+
+    expect(screen.getAllByLabelText('Theme').length).toBeGreaterThan(0);
+  });
+
+  describe('on an e-ink screen', () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it('leaves out the header theme toggle', async () => {
+      vi.stubGlobal(
+        'matchMedia',
+        vi.fn((query: string) => ({
+          matches: query === '(monochrome)',
+          media: query,
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+        }))
+      );
+      await renderRootLayout();
+
+      expect(screen.queryByLabelText('Theme')).toBeNull();
+      expect(screen.queryByText('Themes')).toBeNull();
+    });
   });
 });

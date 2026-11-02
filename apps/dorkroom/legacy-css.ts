@@ -88,6 +88,12 @@ export const NO_FLEX_GAP_ATTR = 'data-lc-nogap';
  *  JS-driven motion, which the stylesheet's no-motion override cannot reach. */
 export const LEGACY_BROWSER_ATTR = 'data-lc-legacy';
 
+/** The Kindle user agents `isEInkDevice` (packages/ui/src/lib/themes.ts) locks
+ *  to high contrast. The loader sets `data-theme` with it before first paint,
+ *  so the page does not flash dark and then white on an e-ink screen. Keep the
+ *  two spellings in sync; a test in scripts/__tests__ compares them. */
+export const KINDLE_UA_SOURCE = String.raw`/\bKindle(\/|\sBuild\/)/`;
+
 /** Body of the classic inline script, placed right after the stylesheet
  *  `<link>` with `href`, that loads `legacyHref` instead in browsers without
  *  cascade layers. It must stay ES5, because the build parses classic inline
@@ -103,7 +109,8 @@ export const LEGACY_BROWSER_ATTR = 'data-lc-legacy';
  *  It also measures whether flex `gap` works (Chrome 84, Firefox 63, Safari
  *  14.1) and sets `NO_FLEX_GAP_ATTR` when it does not, so browsers that have
  *  gap but not `@layer` do not get the emulated margins on top. It also sets
- *  `LEGACY_BROWSER_ATTR`, whether or not the `<link>` was found. */
+ *  `LEGACY_BROWSER_ATTR`, whether or not the `<link>` was found, and for a
+ *  Kindle agent sets `data-theme="high-contrast"` right away. */
 export function legacyCssLoader(href: string, legacyHref: string): string {
   const selector = JSON.stringify(`link[rel=stylesheet][href="${href}"]`);
   const tag = JSON.stringify(`<link rel="stylesheet" href="${legacyHref}">`);
@@ -111,6 +118,7 @@ export function legacyCssLoader(href: string, legacyHref: string): string {
     'window.CSSLayerBlockRule||function(d,l){' +
     'var e=d.documentElement,p=d.createElement("div");' +
     `e.setAttribute("${LEGACY_BROWSER_ATTR}","");` +
+    `${KINDLE_UA_SOURCE}.test(navigator.userAgent)&&e.setAttribute("data-theme","high-contrast");` +
     'p.style.cssText="display:flex;flex-direction:column;row-gap:1px;position:absolute";' +
     'p.appendChild(d.createElement("div"));p.appendChild(d.createElement("div"));' +
     `e.appendChild(p);p.offsetHeight!==1&&e.setAttribute("${NO_FLEX_GAP_ATTR}","");e.removeChild(p);` +
