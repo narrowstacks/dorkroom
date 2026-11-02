@@ -1,6 +1,6 @@
 import type { SelectItem } from '@dorkroom/logic';
 import { Check, ChevronDown, X } from 'lucide-react';
-import { useEffect, useId, useRef, useState } from 'react';
+import { type RefObject, useEffect, useId, useRef, useState } from 'react';
 import { useSwallowOutsideClick } from '../hooks/use-swallow-outside-click';
 import { cn } from '../lib/cn';
 import { cssVars } from '../lib/dom';
@@ -78,6 +78,32 @@ function SearchableSelectOption({
   );
 }
 
+/**
+ * Closes the list when the input loses focus. Moving focus to another element
+ * outside `rootRef` (Tab, Shift+Tab) closes at once, so the list does not
+ * linger and stack over the next field's (#635). A blur with no destination (a
+ * press on an option or blank page) or one inside the root closes after 150 ms,
+ * so an option click still registers first. Refocusing cancels a pending close.
+ */
+function useBlurClose(
+  rootRef: RefObject<HTMLElement | null>,
+  close: () => void
+) {
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const cancelPendingClose = () => clearTimeout(timer.current);
+  const handleInputBlur = (e: React.FocusEvent) => {
+    clearTimeout(timer.current);
+    const next = e.relatedTarget;
+    if (next instanceof Node && !rootRef.current?.contains(next)) {
+      close();
+      return;
+    }
+    timer.current = setTimeout(close, 150);
+  };
+  return { cancelPendingClose, handleInputBlur };
+}
+
 export function SearchableSelect({
   label,
   selectedValue,
@@ -120,14 +146,23 @@ export function SearchableSelect({
     };
   }, [isListShown]);
 
+  const closeList = () => {
+    setIsOpen(false);
+    setSearchTerm('');
+    setFocusedIndex(-1);
+  };
+
+  const { cancelPendingClose, handleInputBlur } = useBlurClose(
+    rootRef,
+    closeList
+  );
+
   // Close on a touch or pen press outside without waiting for the platform to
   // blur the input (iOS Safari sometimes doesn't); blurring also dismisses the
   // keyboard. Pressing another field still focuses it afterwards.
   useSwallowOutsideClick(rootRef, isOpen, () => {
     inputRef.current?.blur();
-    setIsOpen(false);
-    setSearchTerm('');
-    setFocusedIndex(-1);
+    closeList();
   });
 
   // Open the dropdown with a cleared search term and focus the selected item.
@@ -152,33 +187,21 @@ export function SearchableSelect({
   // Handle item selection
   const handleSelectItem = (item: SelectItem) => {
     onValueChange(item.value);
-    setSearchTerm('');
-    setIsOpen(false);
-    setFocusedIndex(-1);
+    closeList();
   };
 
   // Handle clear selection
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
     onValueChange('');
-    setSearchTerm('');
-    setIsOpen(false);
-    setFocusedIndex(-1);
+    closeList();
   };
 
   // Handle input focus
   const handleInputFocus = () => {
+    // A close scheduled by an earlier blur must not shut the list just reopened.
+    cancelPendingClose();
     openAndFocusSelected();
-  };
-
-  // Handle input blur
-  const handleInputBlur = () => {
-    // Delay closing to allow for item selection
-    setTimeout(() => {
-      setIsOpen(false);
-      setSearchTerm('');
-      setFocusedIndex(-1);
-    }, 150);
   };
 
   // Handle keyboard navigation
@@ -212,9 +235,7 @@ export function SearchableSelect({
         break;
       case 'Escape':
         e.preventDefault();
-        setIsOpen(false);
-        setSearchTerm('');
-        setFocusedIndex(-1);
+        closeList();
         break;
     }
   };
@@ -269,9 +290,9 @@ export function SearchableSelect({
             setFocused(true);
             handleInputFocus();
           }}
-          onBlur={(_e) => {
+          onBlur={(e) => {
             setFocused(false);
-            handleInputBlur();
+            handleInputBlur(e);
           }}
           onKeyDown={handleKeyDown}
           // The input keeps focus after a selection, so a click on it has to
