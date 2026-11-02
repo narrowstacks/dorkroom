@@ -16,13 +16,20 @@ import {
  * grid) moves every card into a different row and React remounts it. The card
  * that had focus is gone and focus falls to `<body>`. This hook notices that
  * (the element it last saw focused is disconnected and nothing else has
- * focus) and focuses the same control in the item's new element, scrolling
- * the item back into the rendered window first when it fell out of it.
+ * focus) and focuses the same control in the item's new element.
  *
- * Spread the returned handlers on the scroll container. Each item's root
- * carries `data-list-item-key`. The control that had focus
- * is found again by its position among the item's focusable controls, so
- * focus on a card's Delete button comes back to that card's Delete button.
+ * That only works when the new element is rendered in the same commit, so a
+ * grid keeps the focused item's row in its virtual window with
+ * `keepFocusedInRange` (pass it the virtualizer's `rangeExtractor`). That also
+ * stops the focused card from virtualizing away when the list is scrolled
+ * past it. The remount path never scrolls: a list whose focused item did
+ * leave the window (the table, scrolled far enough) simply loses focus, as
+ * any virtualized list does, rather than fighting the user's scroll.
+ *
+ * Spread `containerProps` on the scroll container. Each item's root carries
+ * `data-list-item-key`. The control that had focus is found again by its
+ * position among the item's focusable controls, so focus on a card's Delete
+ * button comes back to that card's Delete button.
  *
  * The scroll container is the fallback when the item is no longer in the list
  * (filtered out, deleted), so give it `tabIndex={-1}`.
@@ -53,7 +60,10 @@ export interface UseVirtualListFocusOptions {
   containerRef: RefObject<HTMLElement | null>;
   /** Every item's key, in list order (not just the rendered ones). */
   keys: readonly string[];
-  /** Scroll the item at this index (into `keys`) into the rendered window. */
+  /**
+   * Scroll the item at this index (into `keys`) into the rendered window.
+   * Used by `focusItem` only.
+   */
   scrollToIndex: (index: number) => void;
   /** Receives the `focusItem` handle. */
   handleRef?: Ref<VirtualListFocusHandle>;
@@ -68,6 +78,27 @@ export interface UseVirtualListFocusOptions {
 export interface VirtualListFocusProps {
   onFocus: (event: FocusEvent<HTMLElement>) => void;
   onBlur: (event: FocusEvent<HTMLElement>) => void;
+}
+
+export interface VirtualListFocus {
+  /** Spread onto the scroll container. */
+  containerProps: VirtualListFocusProps;
+  /**
+   * Index (into `keys`) of the item whose control has focus, or -1. Read it
+   * while rendering, such as from the virtualizer's `rangeExtractor`.
+   */
+  focusedIndex: () => number;
+}
+
+/**
+ * Add `index` to a virtualizer range (sorted row indexes) so that row stays
+ * rendered: the focused item's row, so it neither unmounts when scrolled out
+ * of view nor lands outside the window when a column change moves it.
+ * A negative index leaves the range as it is.
+ */
+export function keepFocusedInRange(range: number[], index: number): number[] {
+  if (index < 0 || range.includes(index)) return range;
+  return [...range, index].sort((a, b) => a - b);
 }
 
 interface FocusTarget {
@@ -112,7 +143,7 @@ export function useVirtualListFocus({
   scrollToIndex,
   handleRef,
   fallbackRef,
-}: UseVirtualListFocusOptions): VirtualListFocusProps {
+}: UseVirtualListFocusOptions): VirtualListFocus {
   /** The item control that last had focus, while it (or its remount) does. */
   const lastRef = useRef<{ element: HTMLElement; target: FocusTarget } | null>(
     null
@@ -145,7 +176,7 @@ export function useVirtualListFocus({
     if (!container) {
       // Nothing rendered to look in (an empty state): settle on the fallback.
       pendingRef.current = null;
-      fallbackRef?.current?.focus();
+      fallbackRef?.current?.focus({ preventScroll: true });
       return;
     }
     const index = latestRef.current.keys.indexOf(pending.key);
@@ -176,7 +207,7 @@ export function useVirtualListFocus({
     }
     // Gone from the list, or still not rendered after scrolling to it.
     pendingRef.current = null;
-    container.focus();
+    container.focus({ preventScroll: true });
   };
 
   useImperativeHandle(handleRef, () => ({
@@ -221,16 +252,28 @@ export function useVirtualListFocus({
   };
 
   // After every render: if the focused control was remounted away, follow it
-  // to its new element. Runs before paint, so focus never visibly drops.
+  // to its new element. Runs before paint, so focus never visibly drops. Only
+  // an element rendered in this same commit counts; anything else means the
+  // item left the window, and focus is not dragged back to it (no scrolling).
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- runs after every render on purpose: any render can remount the focused item
   useLayoutEffect(() => {
     const last = lastRef.current;
     if (last && !last.element.isConnected && isFocusLost()) {
       lastRef.current = null;
-      pendingRef.current = { ...last.target, from: null };
+      const container = containerRef.current;
+      const item = container && findItem(container, last.target.key);
+      if (item) {
+        const controls = focusablesIn(item);
+        (controls[last.target.control] ?? controls[0] ?? item).focus();
+      }
     }
     settlePending();
   });
 
-  return { onFocus, onBlur };
+  const focusedIndex = () => {
+    const last = lastRef.current;
+    return last ? keys.indexOf(last.target.key) : -1;
+  };
+
+  return { containerProps: { onFocus, onBlur }, focusedIndex };
 }

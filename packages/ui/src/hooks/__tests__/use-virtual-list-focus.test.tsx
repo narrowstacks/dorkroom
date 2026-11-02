@@ -2,6 +2,7 @@ import { act, cleanup, render, screen } from '@testing-library/react';
 import { createRef, type Ref, useRef } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  keepFocusedInRange,
   useVirtualListFocus,
   type VirtualListFocusHandle,
 } from '../use-virtual-list-focus';
@@ -25,7 +26,7 @@ function Grid({
   handleRef,
 }: GridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const focusProps = useVirtualListFocus({
+  const { containerProps } = useVirtualListFocus({
     containerRef,
     keys: KEYS,
     scrollToIndex,
@@ -36,7 +37,12 @@ function Grid({
     rows.push(rendered.slice(i, i + columns));
   }
   return (
-    <div ref={containerRef} tabIndex={-1} data-testid="list" {...focusProps}>
+    <div
+      ref={containerRef}
+      tabIndex={-1}
+      data-testid="list"
+      {...containerProps}
+    >
       {rows.map((row) => (
         // Keyed by the first item, so an item that moves rows remounts.
         <div key={row[0]}>
@@ -69,6 +75,28 @@ describe('useVirtualListFocus', () => {
     expect(document.activeElement).toBe(
       screen.getByRole('button', { name: 'Delete c' })
     );
+  });
+
+  it('does not scroll back or move focus when the focused item leaves the window', () => {
+    const scrollToIndex = vi.fn();
+    const { rerender } = render(
+      <Grid columns={1} rendered={['a', 'b']} scrollToIndex={scrollToIndex} />
+    );
+    screen.getByRole('button', { name: 'Select a' }).focus();
+
+    // Scrolled past: the virtualizer drops the focused item.
+    rerender(
+      <Grid columns={1} rendered={['c', 'd']} scrollToIndex={scrollToIndex} />
+    );
+    expect(scrollToIndex).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(document.body);
+
+    // Scrolled back: focus is not grabbed when the item renders again.
+    rerender(
+      <Grid columns={1} rendered={['a', 'b']} scrollToIndex={scrollToIndex} />
+    );
+    expect(scrollToIndex).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(document.body);
   });
 
   it('scrolls an unrendered item into the window, then focuses it', () => {
@@ -131,5 +159,17 @@ describe('useVirtualListFocus', () => {
     act(() => handle.current?.focusItem('zz'));
 
     expect(document.activeElement).toBe(screen.getByTestId('list'));
+  });
+});
+
+describe('keepFocusedInRange', () => {
+  it('adds the focused row to the range, in order', () => {
+    expect(keepFocusedInRange([4, 5, 6], 1)).toEqual([1, 4, 5, 6]);
+  });
+
+  it('leaves the range alone when the row is in it or nothing is focused', () => {
+    const range = [4, 5, 6];
+    expect(keepFocusedInRange(range, 5)).toBe(range);
+    expect(keepFocusedInRange(range, -1)).toBe(range);
   });
 });

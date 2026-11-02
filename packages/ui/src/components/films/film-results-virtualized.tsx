@@ -1,9 +1,14 @@
 import type { Film } from '@dorkroom/api';
-import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
+import {
+  defaultRangeExtractor,
+  useVirtualizer,
+  type VirtualItem,
+} from '@tanstack/react-virtual';
 import { Film as FilmIcon } from 'lucide-react';
 import { type FC, type Ref, useMemo, useRef } from 'react';
 import { useColumnCount } from '../../hooks/use-column-count';
 import {
+  keepFocusedInRange,
   useVirtualListFocus,
   type VirtualListFocusHandle,
 } from '../../hooks/use-virtual-list-focus';
@@ -94,6 +99,21 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
   };
   const columnCount = getColumnCount();
 
+  // Opening or closing the detail sidebar changes the column count, which
+  // moves every card into another row container and remounts it. This keeps
+  // focus on the card (#604), and the virtualizer keeps the focused card's row
+  // rendered so it survives the move and scrolling past it.
+  const filmKeys = useMemo(() => films.map((film) => film.uuid), [films]);
+  const listFocus = useVirtualListFocus({
+    containerRef: parentRef,
+    keys: filmKeys,
+    // Called from focusItem only, after render, when rowVirtualizer exists.
+    scrollToIndex: (index) =>
+      rowVirtualizer.scrollToIndex(Math.floor(index / columnCount)),
+    handleRef: focusHandleRef,
+    fallbackRef: emptyStateRef,
+  });
+
   // Memoize the debounced observer to prevent recreation on every render
   const debouncedObserveElementRect = useMemo(
     () => createDebouncedObserveElementRect(),
@@ -105,6 +125,11 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
     getScrollElement: () => parentRef.current,
     estimateSize: () => CARD_ROW_ESTIMATED_HEIGHT,
     overscan: CARD_OVERSCAN,
+    rangeExtractor: (range) =>
+      keepFocusedInRange(
+        defaultRangeExtractor(range),
+        Math.floor(listFocus.focusedIndex() / columnCount)
+      ),
     // Use debounced resize observation to prevent browser lockups during rapid resizing
     observeElementRect: debouncedObserveElementRect,
     // Measure actual element height for accurate positioning (add gap)
@@ -112,19 +137,6 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
   });
 
   const virtualRows = rowVirtualizer.getVirtualItems();
-
-  // Opening or closing the detail sidebar changes the column count, which
-  // moves every card into another row container and remounts it. This keeps
-  // focus on the card (#604).
-  const filmKeys = useMemo(() => films.map((film) => film.uuid), [films]);
-  const listFocusProps = useVirtualListFocus({
-    containerRef: parentRef,
-    keys: filmKeys,
-    scrollToIndex: (index) =>
-      rowVirtualizer.scrollToIndex(Math.floor(index / columnCount)),
-    handleRef: focusHandleRef,
-    fallbackRef: emptyStateRef,
-  });
 
   // Show loading skeletons
   if (isLoading) {
@@ -151,7 +163,7 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
         ref={emptyStateRef}
         tabIndex={-1}
         className={cn(
-          'flex flex-col items-center justify-center rounded-2xl border p-12 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]',
+          'flex flex-col items-center justify-center rounded-2xl border p-12 text-center focus-visible:outline-2 focus-visible:outline-[color:var(--color-focus-ring)]',
           className
         )}
         style={{
@@ -184,7 +196,7 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
           <button
             type="button"
             onClick={onClearFilters}
-            className="mt-4 rounded-xl px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
+            className="mt-4 rounded-xl px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-focus-ring)]"
             style={{
               backgroundColor: 'var(--color-surface-muted)',
               color: 'var(--color-text-secondary)',
@@ -203,11 +215,11 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
       ref={parentRef}
       // Focus lands here when the card it was meant for is gone (#604).
       tabIndex={-1}
-      {...listFocusProps}
+      {...listFocus.containerProps}
       // p-2 (8px) adds padding so the card hover scale effect isn't clipped
       // at the scroll container edges; overflow-auto enables virtualized scroll.
       className={cn(
-        'overflow-auto p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-focus-ring)]',
+        'overflow-auto p-2 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--color-focus-ring)]',
         className
       )}
       style={{

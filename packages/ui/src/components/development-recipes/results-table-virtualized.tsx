@@ -77,7 +77,7 @@ export const DevelopmentResultsTableVirtualized: FC<
       ),
     [rows]
   );
-  const listFocusProps = useVirtualListFocus({
+  const listFocus = useVirtualListFocus({
     containerRef: parentRef,
     keys: recipeKeys,
     scrollToIndex: (index) => rowVirtualizer.scrollToIndex(index),
@@ -95,7 +95,10 @@ export const DevelopmentResultsTableVirtualized: FC<
 
   return (
     <div
-      className="overflow-visible rounded-2xl border shadow-subtle"
+      // The scroll container's focus indicator is drawn here, outside the
+      // border: inside it, the sticky header and the row backgrounds paint
+      // over an outline (#604).
+      className="overflow-visible rounded-2xl border shadow-subtle has-[[data-results-scroll]:focus-visible]:outline-2 has-[[data-results-scroll]:focus-visible]:outline-offset-2 has-[[data-results-scroll]:focus-visible]:outline-[color:var(--color-focus-ring)]"
       style={{
         borderColor: 'var(--color-border-secondary)',
         backgroundColor: 'rgba(var(--color-surface-muted-rgb), 0.2)',
@@ -106,13 +109,15 @@ export const DevelopmentResultsTableVirtualized: FC<
           ref={parentRef}
           // Focus lands here when the row it was meant for is gone (#604).
           tabIndex={-1}
-          {...listFocusProps}
-          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-focus-ring)]"
+          {...listFocus.containerProps}
+          data-results-scroll
           style={{
             height,
             minHeight: MIN_CONTAINER_HEIGHT,
             maxHeight: MAX_CONTAINER_HEIGHT,
             overflow: 'auto',
+            // The bordered wrapper draws this container's focus indicator.
+            outline: 'none',
           }}
         >
           <table

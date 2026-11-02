@@ -1,5 +1,11 @@
 import type { Film } from '@dorkroom/api';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from '@testing-library/react';
 import { createRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FilmResultsVirtualized } from '../../../components/films/film-results-virtualized';
@@ -185,6 +191,32 @@ describe('FilmResultsVirtualized focus (#604)', () => {
 
     expect(card.isConnected).toBe(false);
     expect(document.activeElement).toBe(document.body);
+  });
+
+  it('keeps the focused card rendered, and the scroll where it is, when the list scrolls past it', () => {
+    const many = Array.from({ length: 60 }, (_, i) => makeFilm(i + 1));
+    const { container } = render(
+      <FilmResultsVirtualized
+        films={many}
+        selectedFilmId={null}
+        onSelectFilm={noop}
+      />
+    );
+    const card = cardFor('Stock 1');
+    card.focus();
+    const list = container.firstElementChild;
+    if (!(list instanceof HTMLElement)) throw new Error('no scroll container');
+
+    act(() => {
+      list.scrollTop = 50_000;
+      list.dispatchEvent(new Event('scroll'));
+    });
+
+    expect(screen.queryByRole('button', { name: /^Ilford Stock 1 / })).toBe(
+      card
+    );
+    expect(document.activeElement).toBe(card);
+    expect(list.scrollTop).toBe(50_000);
   });
 
   it('focuses a card by uuid through the focus handle', () => {

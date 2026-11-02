@@ -5,7 +5,11 @@ import {
   getCombinationDilution,
 } from '@dorkroom/logic';
 import type { Row, Table } from '@tanstack/react-table';
-import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
+import {
+  defaultRangeExtractor,
+  useVirtualizer,
+  type VirtualItem,
+} from '@tanstack/react-virtual';
 import {
   ArrowDown,
   ArrowUp,
@@ -20,6 +24,7 @@ import { type FC, type Ref, useMemo, useRef, useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { useColumnCount } from '../../hooks/use-column-count';
 import {
+  keepFocusedInRange,
   useVirtualListFocus,
   type VirtualListFocusHandle,
 } from '../../hooks/use-virtual-list-focus';
@@ -442,6 +447,26 @@ export const DevelopmentResultsCardsVirtualized: FC<
   // Calculate number of columns based on container width (responsive)
   const columnCount = useColumnCount(parentRef, isMobile);
 
+  // A column count change (the detail sidebar narrowing the grid) moves every
+  // card into another row container and remounts it. This keeps focus on the
+  // card (#604), and the virtualizer keeps the focused card's row rendered so
+  // it survives the move and scrolling past it.
+  const recipeKeys = useMemo(
+    () =>
+      rows.map(({ original: { combination } }) =>
+        String(combination.uuid || combination.id)
+      ),
+    [rows]
+  );
+  const listFocus = useVirtualListFocus({
+    containerRef: parentRef,
+    keys: recipeKeys,
+    // Called from focusItem only, after render, when rowVirtualizer exists.
+    scrollToIndex: (index) =>
+      rowVirtualizer.scrollToIndex(Math.floor(index / columnCount)),
+    handleRef: focusHandleRef,
+  });
+
   // Memoize the debounced observer to prevent recreation on every render
   const debouncedObserveElementRect = useMemo(
     () => createDebouncedObserveElementRect(),
@@ -453,6 +478,11 @@ export const DevelopmentResultsCardsVirtualized: FC<
     getScrollElement: () => parentRef.current,
     estimateSize: () => CARD_ROW_ESTIMATED_HEIGHT,
     overscan: CARD_OVERSCAN,
+    rangeExtractor: (range) =>
+      keepFocusedInRange(
+        defaultRangeExtractor(range),
+        Math.floor(listFocus.focusedIndex() / columnCount)
+      ),
     // Use debounced resize observation to prevent browser lockups during rapid resizing
     observeElementRect: debouncedObserveElementRect,
     // Enable dynamic measurement for rows with varying heights (e.g., custom recipes with extra buttons)
@@ -466,30 +496,12 @@ export const DevelopmentResultsCardsVirtualized: FC<
 
   const virtualRows = rowVirtualizer.getVirtualItems();
 
-  // A column count change (the detail sidebar narrowing the grid) moves every
-  // card into another row container and remounts it. This keeps focus on the
-  // card (#604).
-  const recipeKeys = useMemo(
-    () =>
-      rows.map(({ original: { combination } }) =>
-        String(combination.uuid || combination.id)
-      ),
-    [rows]
-  );
-  const listFocusProps = useVirtualListFocus({
-    containerRef: parentRef,
-    keys: recipeKeys,
-    scrollToIndex: (index) =>
-      rowVirtualizer.scrollToIndex(Math.floor(index / columnCount)),
-    handleRef: focusHandleRef,
-  });
-
   return (
     <div
       ref={parentRef}
       // Focus lands here when the card it was meant for is gone (#604).
       tabIndex={-1}
-      {...listFocusProps}
+      {...listFocus.containerProps}
       // p-2 (8px) adds padding so the card hover scale effect isn't clipped
       // at the scroll container edges; overflow-auto enables virtualized scroll.
       className="overflow-auto p-2 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--color-focus-ring)]"
