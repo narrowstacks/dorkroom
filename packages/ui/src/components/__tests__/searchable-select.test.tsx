@@ -867,4 +867,63 @@ describe('SearchableSelect keeps focus after Clear selection (#639)', () => {
     expect(input).toHaveValue('Kosmo F');
     expect(screen.getAllByRole('option')).toHaveLength(1);
   });
+
+  function setupAdox() {
+    render(
+      <SearchableSelect
+        label="Brand"
+        selectedValue="a"
+        onValueChange={vi.fn()}
+        items={[
+          { value: 'a', label: 'Adox' },
+          { value: 'q', label: 'Qux' },
+          { value: 'b', label: 'Beta' },
+        ]}
+      />
+    );
+    const input = screen.getByRole('combobox');
+    if (!(input instanceof HTMLInputElement)) throw new Error('not an input');
+    input.focus();
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    return input;
+  }
+
+  function editFrom(
+    input: HTMLInputElement,
+    caret: [number, number],
+    value: string
+  ) {
+    act(() => input.setSelectionRange(caret[0], caret[1]));
+    fireEvent.paste(input);
+    fireEvent.change(input, { target: { value } });
+  }
+
+  it.each([
+    ['Home', [0, 0], 'QAdox'],
+    ['ArrowLeft x2', [2, 2], 'AdQox'],
+    ['Shift+ArrowLeft x2', [2, 4], 'AdQ'],
+  ] as const)(
+    'an edit with no keydown after %s keeps just the inserted text',
+    (_name, caret, value) => {
+      const input = setupAdox();
+      editFrom(input, [caret[0], caret[1]], value);
+      expect(input).toHaveValue('Q');
+      expect(input).toHaveAttribute('aria-expanded', 'true');
+    }
+  );
+
+  it('an Android-style deletion of the last character opens the full list', () => {
+    const input = setupAdox();
+    editFrom(input, [4, 4], 'Ado');
+    expect(input).toHaveValue('');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getAllByRole('option')).toHaveLength(3);
+  });
+
+  it('a select-all replacement keeps the full pasted text', () => {
+    const input = setupAdox();
+    editFrom(input, [0, 4], 'Adoxes');
+    expect(input).toHaveValue('Adoxes');
+  });
 });

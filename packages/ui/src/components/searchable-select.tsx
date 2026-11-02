@@ -181,17 +181,32 @@ interface Selection {
 
 /**
  * Closed, the input shows the label. Text that arrived without a usable
- * keydown (paste, Android keyboards) lands after it: keep only the new part.
- * Only when it was inserted at the unselected end of the label; when the
- * label (or part of it) was selected, the new value already is the
- * replacement. An unknown selection counts as the caret at the end.
+ * keydown (paste, Android keyboards, drag-drop) lands somewhere in it: keep
+ * only what is new, whatever the caret position. When the whole label was
+ * selected the new value already is the replacement. Otherwise drop the
+ * prefix and suffix shared with the label, so an insertion keeps just the
+ * inserted text and a deletion leaves an empty search (the full list).
  */
 function stripLabel(raw: string, label: string, selection: Selection | null) {
-  if (!label || !raw.startsWith(label)) return raw;
-  const atEnd =
-    !selection ||
-    (selection.start === label.length && selection.end === label.length);
-  return atEnd ? raw.slice(label.length) : raw;
+  if (!label) return raw;
+  if (selection?.start === 0 && selection.end === label.length) return raw;
+  let prefix = 0;
+  while (
+    prefix < raw.length &&
+    prefix < label.length &&
+    raw[prefix] === label[prefix]
+  ) {
+    prefix += 1;
+  }
+  const maxSuffix = Math.min(raw.length, label.length) - prefix;
+  let suffix = 0;
+  while (
+    suffix < maxSuffix &&
+    raw[raw.length - 1 - suffix] === label[label.length - 1 - suffix]
+  ) {
+    suffix += 1;
+  }
+  return raw.slice(prefix, raw.length - suffix);
 }
 
 /** Selection just before the next edit, read from the events that precede it. */
