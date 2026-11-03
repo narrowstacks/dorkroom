@@ -14,6 +14,10 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - **The inverter remembers your negative.** Leave the Inverter, switch tools or relaunch the app, and the photo comes back as you left it: crop, base, neutral, adjustments, film type and orientation. The photo is kept in the app until you load another or choose Close Photo in the info sheet. (#527)
 - **Live negative inverter.** Point the camera at a negative on a light table and see the positive as it streams. The film base is found automatically, or tap Base to pick it; film type and the sliders work live, and the whole frame is metered. The camera meters for the film rather than the bright light table, raising exposure until the densest parts of a colour negative keep their blue, and a badge warns if blue is still clipping. Capture takes a full-resolution photo that opens in the editor with the same base and settings, ready to crop and save. It replaces the separate Take Photo button: to photograph a negative, open Live Camera and press the shutter. (#527)
 
+### Changed
+
+- **Settings shows the real app version.** It read a hand-kept number that had fallen months behind (2026.7.3); it now follows the app's release version.
+
 ### Fixed
 
 - **Holding + or − on a stepper keeps changing the value.** It used to move once while the haptic kept ticking. Holding now steps repeatedly, and stops at the end of the range. This covers Exposure stops, the volume mixer, the Process Timer preset editor and the film log's frame number. (fixes #317)

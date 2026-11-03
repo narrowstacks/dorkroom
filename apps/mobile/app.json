@@ -3,7 +3,6 @@
     "name": "Dorkroom",
     "slug": "dorkroom",
     "scheme": "dorkroom",
-    "version": "2026.7.3",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "ios": {
