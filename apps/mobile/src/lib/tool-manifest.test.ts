@@ -19,6 +19,7 @@ const read = (...parts: string[]) =>
 // Today's registry, pinned so a refactor can't reorder or relabel the More
 // screen or the pin editor without a deliberate test change.
 const EXPECTED_TOOLS = [
+  ['home', 'Home', 'house', '/', 'reference'],
   ['border', 'Border', 'crop', '/more/border', 'printing'],
   ['resize', 'Resize', 'ruler', '/more/resize', 'printing'],
   ['exposure', 'Exposure', 'gauge', '/more/exposure', 'printing'],
@@ -46,9 +47,9 @@ const EXPECTED_TOOLS = [
 ] as const;
 
 // Tool id -> route file under app/(tabs) for every single-screen tool that can
-// be pinned as a tab. Film Log and Recipes are permanent directory tabs.
+// be pinned as a tab. Home, Film Log and Recipes are permanent tabs.
 const EXPECTED_TAB_ROUTES = {
-  border: 'index',
+  border: 'border',
   resize: 'resize',
   exposure: 'exposure',
   mat: 'mat',
@@ -61,6 +62,9 @@ const EXPECTED_TAB_ROUTES = {
 } as const;
 
 const EXPECTED_TAB_IDS = Object.keys(EXPECTED_TAB_ROUTES);
+
+// Home's route file: the app's initial route, bound to no tool in TOOL_SCREENS.
+const HOME_ROUTE = 'index';
 
 describe('iOS tool registry (pinned)', () => {
   it('keeps the order, labels, icons, routes and categories', () => {
@@ -114,7 +118,7 @@ describe('tab route names', () => {
 
   it('each tab route resolves back to its tool when unpinned', () => {
     for (const [id, route] of Object.entries(EXPECTED_TAB_ROUTES)) {
-      const path = route === 'index' ? '/' : `/${route}`;
+      const path = `/${route}`;
       expect(resolveToolPath(path, [])).toBe(`/more/${id}`);
       expect(resolveToolPath(path, [id])).toBe(path);
     }
@@ -126,13 +130,34 @@ describe('tab route names', () => {
       .map((e) => e.name.replace(/\.tsx$/, ''))
       .filter((name) => name !== '_layout')
       .sort();
-    expect(routeFiles).toEqual(Object.values(EXPECTED_TAB_ROUTES).sort());
+    expect(routeFiles).toEqual(
+      [HOME_ROUTE, ...Object.values(EXPECTED_TAB_ROUTES)].sort()
+    );
+  });
+
+  it('Home is the initial route and a permanent, unpinnable tab', () => {
+    expect(read('app', '(tabs)', 'index.tsx')).toMatch(/HomeScreen/);
+    const home = TOOLS.find((t) => t.id === 'home');
+    expect(home?.pinnable).toBe(false);
+    expect(home?.tabRoute).toBeUndefined();
+    // Home is the first trigger, ahead of the user's pins.
+    const layout = read('app', '(tabs)', '_layout.tsx');
+    expect(layout.indexOf('name="index"')).toBeGreaterThan(-1);
+    expect(layout.indexOf('name="index"')).toBeLessThan(
+      layout.indexOf('pinned.map')
+    );
   });
 });
 
 describe('tab icons', () => {
   it('ships a PNG at every scale for each tab tool and permanent tab', () => {
-    for (const id of [...EXPECTED_TAB_IDS, 'film-log', 'recipes', 'more']) {
+    for (const id of [
+      ...EXPECTED_TAB_IDS,
+      'home',
+      'film-log',
+      'recipes',
+      'more',
+    ]) {
       for (const suffix of ['', '@2x', '@3x']) {
         expect(
           existsSync(

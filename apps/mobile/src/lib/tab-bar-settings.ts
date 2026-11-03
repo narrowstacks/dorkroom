@@ -5,9 +5,10 @@ import { DEFAULT_PINNED_IDS, getTool, isPinnable } from './tools';
 export const storage = createMMKV({ id: 'dorkroom-tab-bar' });
 export const KEY = 'pinnedToolIds';
 
-// The native tab bar holds at most 5 items. Film Log, Recipes and More are
-// permanent, so the user can pin up to 2 of their own tools.
-export const MAX_PINNED = 2;
+// The native tab bar holds at most 5 items before iOS folds the rest into its
+// own "More". Home, Film Log, Recipes and More are permanent, so the user can
+// pin 1 tool of their own.
+export const MAX_PINNED = 1;
 
 // Default pins, capped to the limit (takes the first MAX_PINNED in priority order).
 const DEFAULT_PINS = DEFAULT_PINNED_IDS.slice(0, MAX_PINNED);

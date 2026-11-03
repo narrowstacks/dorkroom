@@ -2,6 +2,7 @@ import {
   getDisplayUnitLabel,
   type MeasurementUnit,
   parseDecimalInput,
+  resizeCalculatorLink,
   useResizeCalculator,
 } from '@dorkroom/logic';
 import { useState } from 'react';
@@ -17,12 +18,14 @@ import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
 import { SegmentedControl } from '@/components/segmented-control';
 import { ShareButton } from '@/components/share-button';
+import { useLinkOverrides } from '@/hooks/use-link-overrides';
 import { useMeasurementUnit } from '@/hooks/use-measurement-unit';
 import { buildResizeShare } from '@/lib/share-text';
 
 const num = (s: string) => parseDecimalInput(s) || 0;
 
-export function ResizeScreen() {
+function ResizeScreenBody() {
+  const { overrides } = useLinkOverrides(resizeCalculatorLink);
   const {
     isEnlargerHeightMode,
     setIsEnlargerHeightMode,
@@ -43,7 +46,7 @@ export function ResizeScreen() {
     newTime,
     stopsDifference,
     isAspectRatioMatched,
-  } = useResizeCalculator();
+  } = useResizeCalculator({ overrides });
 
   // The global preference, not a screen-local override: like web, where the
   // one Imperial/Metric toggle drives every page, flipping it here also flips
@@ -215,4 +218,10 @@ export function ResizeScreen() {
       )}
     </Screen>
   );
+}
+
+export function ResizeScreen() {
+  const { prefillId } = useLinkOverrides(resizeCalculatorLink);
+  // Re-mounts on a new link: the shared hooks apply overrides on mount only.
+  return <ResizeScreenBody key={prefillId} />;
 }

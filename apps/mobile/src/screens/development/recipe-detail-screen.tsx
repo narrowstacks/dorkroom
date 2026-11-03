@@ -1,5 +1,6 @@
 import { calculatePushPull, useDevelopmentRecipes } from '@dorkroom/logic';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { useEffect } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { CollapsibleSection } from '@/components/development/collapsible-section';
 import { LinkRow } from '@/components/development/link-row';
@@ -15,6 +16,7 @@ import { VolumeMixer } from '@/components/development/volume-mixer';
 import { GlassCard } from '@/components/glass-card';
 import { ResultRow } from '@/components/result-row';
 import { Screen } from '@/components/screen';
+import { recordRecipeOpen } from '@/lib/recent-store';
 import { agitationSummary, patternFromRecipe } from '@/lib/timer/agitation';
 import { setTimerPrefill } from '@/lib/timer/prefill';
 import { ACCENT } from '@/theme/accents';
@@ -26,6 +28,12 @@ export function RecipeDetailScreen() {
   const combination = recipes.allCombinations.find(
     (c) => c.uuid === id || String(c.id) === id
   );
+
+  const openedUuid = combination?.uuid;
+  useEffect(() => {
+    // Home lists the recipes opened last.
+    if (openedUuid) recordRecipeOpen(openedUuid);
+  }, [openedUuid]);
 
   if (!recipes.isLoaded && !combination) {
     return (
