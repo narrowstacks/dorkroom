@@ -89,6 +89,9 @@ describe('should-deploy.sh', () => {
       ['apps/mobile/src/lib/a.ts']
     );
     expect(code).toBe(SKIP);
+    expect(readFileSync(join(binDir, 'url'), 'utf8')).toContain(
+      '/compare/prev...head'
+    );
   });
 
   it('builds when the compare API returns nothing', () => {
