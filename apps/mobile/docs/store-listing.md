@@ -11,7 +11,7 @@ each submission. Character limits are Apple's.
 | Subtitle | 30 | Darkroom & film calculators |
 | Keywords | 100 | `darkroom,film,photography,analog,exposure,reciprocity,enlarger,timer,light meter,developer,negative` |
 | Promotional text | 170 | Exposure, reciprocity, print borders, development timers and a film log for analog photographers, plus a light meter and negative inverter. |
-| Support URL | n/a | https://github.com/narrowstacks/dorkroom/discussions (matches the Settings Support row) |
+| Support URL | n/a | https://github.com/narrowstacks/dorkroom/discussions (the same link as the Settings Support row added in #665) |
 | Privacy policy URL | n/a | https://dorkroom.art/privacy |
 | Category | n/a | Photo & Video (secondary: Utilities) |
 
