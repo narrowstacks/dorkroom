@@ -8,6 +8,7 @@ import { useEffect, useMemo, useReducer, useRef } from 'react';
 import { PAPER_SIZE_MAP } from '../../constants/border-calculator';
 import { BORDER_CALCULATOR_STORAGE_KEY } from '../../constants/storage-keys';
 import {
+  completeBorderLinkValues,
   initialState,
   persistedBorderCalculatorSchema,
   type PersistedBorderCalculatorState,
@@ -70,6 +71,10 @@ function reducer(
  * Handles state persistence, restoration, and provides the reducer dispatch function.
  * Automatically saves state to localStorage with debouncing to prevent excessive writes.
  *
+ * @param options - `overrides`: values applied over the stored ones on mount,
+ *   such as a link's (`borderCalculatorLink.read`). They are completed the way
+ *   a form edit would complete them (`completeBorderLinkValues`) and persist
+ *   like any other edit.
  * @returns Object containing current state and dispatch function for state updates
  *
  * @example
@@ -89,7 +94,9 @@ function reducer(
  * });
  * ```
  */
-export const useBorderCalculatorState = () => {
+export const useBorderCalculatorState = (options?: {
+  overrides?: Partial<BorderCalculatorState>;
+}) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const storage = usePersistenceStorage();
   const persistTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -127,15 +134,25 @@ export const useBorderCalculatorState = () => {
   useEffect(() => {
     try {
       const raw = storage.getItem(BORDER_CALCULATOR_STORAGE_KEY);
-      if (!raw) return;
-      removeSupersededStorageKeys(BORDER_CALCULATOR_STORAGE_KEY, storage);
+      if (raw) {
+        removeSupersededStorageKeys(BORDER_CALCULATOR_STORAGE_KEY, storage);
 
-      const cached = persistedBorderCalculatorSchema.safeParse(JSON.parse(raw));
-      if (cached.success) {
-        dispatch({ type: 'BATCH_UPDATE', payload: cached.data });
+        const cached = persistedBorderCalculatorSchema.safeParse(
+          JSON.parse(raw)
+        );
+        if (cached.success) {
+          dispatch({ type: 'BATCH_UPDATE', payload: cached.data });
+        }
       }
     } catch (error) {
       console.warn('Failed to load calculator state', error);
+    }
+    // The link's values go on top of whatever was stored.
+    if (options?.overrides) {
+      dispatch({
+        type: 'BATCH_UPDATE',
+        payload: completeBorderLinkValues(options.overrides),
+      });
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- mount-only hydration; the storage provider is fixed for the app's lifetime
   }, []);
