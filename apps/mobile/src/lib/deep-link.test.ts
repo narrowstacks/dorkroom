@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { resolveToolPath } from './deep-link';
+import { resolveToolPath, toolIdForPath } from './deep-link';
 
-// Post-006 default pins are capped at MAX_PINNED = 2: meter, border.
-const DEFAULT_PINS = ['meter', 'border'];
+// Default pins are capped at MAX_PINNED = 1: meter.
+const DEFAULT_PINS = ['meter'];
 
 describe('resolveToolPath', () => {
   it('leaves a pinned tool tab path unchanged', () => {
@@ -21,12 +21,21 @@ describe('resolveToolPath', () => {
     );
   });
 
-  it('leaves the border root path unchanged when border is pinned', () => {
-    expect(resolveToolPath('/', ['border', 'meter'])).toBe('/');
+  it('leaves the root path alone: it is Home, whatever is pinned', () => {
+    expect(resolveToolPath('/', ['border'])).toBe('/');
+    expect(resolveToolPath('/', DEFAULT_PINS)).toBe('/');
+    expect(resolveToolPath('/?x=1', [])).toBe('/?x=1');
   });
 
-  it('rewrites the border root path to /more/border when border is unpinned', () => {
-    expect(resolveToolPath('/', ['meter', 'exposure'])).toBe('/more/border');
+  it('keeps the border calculator reachable at /border', () => {
+    expect(resolveToolPath('/border', ['border'])).toBe('/border');
+    expect(resolveToolPath('/border', DEFAULT_PINS)).toBe('/more/border');
+  });
+
+  it("carries a Home answer's prefill through to the More route", () => {
+    expect(resolveToolPath('/lenses?focal=80&to=full-frame', [])).toBe(
+      '/more/lens?focal=80&to=full-frame'
+    );
   });
 
   it('rewrites /lenses (route name) to /more/lens (tool id) when unpinned', () => {
@@ -77,5 +86,22 @@ describe('resolveToolPath', () => {
     expect(resolveToolPath('/exposure?x=1', DEFAULT_PINS)).toBe(
       '/more/exposure?x=1'
     );
+  });
+});
+
+describe('toolIdForPath', () => {
+  it('names the tool for a tab route, its More route and the sections', () => {
+    expect(toolIdForPath('/lenses')).toBe('lens');
+    expect(toolIdForPath('/border?paper=8x10')).toBe('border');
+    expect(toolIdForPath('/more/reciprocity')).toBe('reciprocity');
+    expect(toolIdForPath('/film-log/roll/abc')).toBe('film-log');
+    expect(toolIdForPath('/development/recipe/abc')).toBe('recipes');
+  });
+
+  it('names no tool for Home, the More directory or unknown paths', () => {
+    expect(toolIdForPath('/')).toBeUndefined();
+    expect(toolIdForPath('/more')).toBeUndefined();
+    expect(toolIdForPath('/more/edit')).toBeUndefined();
+    expect(toolIdForPath('/nope')).toBeUndefined();
   });
 });

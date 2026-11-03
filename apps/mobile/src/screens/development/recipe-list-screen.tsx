@@ -1,8 +1,15 @@
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import { useDevelopmentRecipes } from '@dorkroom/logic';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SlidersHorizontal } from 'lucide-react-native';
-import { memo, useCallback, useDeferredValue, useMemo, useState } from 'react';
+import {
+  memo,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -44,6 +51,37 @@ const RecipeRow = memo(function RecipeRow({
 
 export function RecipeListScreen() {
   const recipes = useDevelopmentRecipes();
+  // A Home result for a film or developer opens the browser filtered to it.
+  const { film: filmParam, developer: developerParam } = useLocalSearchParams<{
+    film?: string;
+    developer?: string;
+  }>();
+  const {
+    isLoaded,
+    allFilms,
+    allDevelopers,
+    setSelectedFilm,
+    setSelectedDeveloper,
+  } = recipes;
+  useEffect(() => {
+    if (!isLoaded) return;
+    const film = filmParam
+      ? allFilms.find((f) => f.slug === filmParam)
+      : undefined;
+    const developer = developerParam
+      ? allDevelopers.find((d) => d.slug === developerParam)
+      : undefined;
+    if (film) setSelectedFilm(film);
+    if (developer) setSelectedDeveloper(developer);
+  }, [
+    isLoaded,
+    filmParam,
+    developerParam,
+    allFilms,
+    allDevelopers,
+    setSelectedFilm,
+    setSelectedDeveloper,
+  ]);
   const [query, setQuery] = useState('');
   const [tagFilter, setTagFilter] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);

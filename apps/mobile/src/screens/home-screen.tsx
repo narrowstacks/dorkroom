@@ -1,0 +1,188 @@
+import {
+  BORDER_CALCULATOR_STORAGE_KEY,
+  type HomeLinkTarget,
+  searchHome,
+  suggestHome,
+} from '@dorkroom/logic';
+import { type Href, router } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
+import { Text, View } from 'react-native';
+import { SearchBar } from '@/components/development/search-bar';
+import { GlassCard } from '@/components/glass-card';
+import { AnswerCard } from '@/components/home/answer-card';
+import { ResultGroups } from '@/components/home/result-groups';
+import { ResumeSections } from '@/components/home/resume-sections';
+import { SuggestionList } from '@/components/home/suggestion-list';
+import { TryChips } from '@/components/home/try-chips';
+import { Screen } from '@/components/screen';
+import { SectionLabel } from '@/components/section-label';
+import { useDebouncedValue } from '@/hooks/use-debounced-value';
+import { useHomeSearchData } from '@/hooks/use-home-search-data';
+import { useMeasurementUnit } from '@/hooks/use-measurement-unit';
+import { usePinnedTabs } from '@/hooks/use-pinned-tabs';
+import {
+  homeDestination,
+  type HomeRoute,
+  homeRouteDestination,
+  toolHref,
+} from '@/lib/home/destination';
+import { summarizeEasel } from '@/lib/home/easel-summary';
+import { recentRecipeRows } from '@/lib/home/recent-recipes';
+import { sharedStorage } from '@/lib/mmkv-storage';
+import {
+  getRecentRecipeIds,
+  getRecentToolIds,
+  isFirstHomeLaunch,
+  markHomeSeen,
+} from '@/lib/recent-store';
+
+/** What the empty box shows on a first launch: a real answer, worked out like any other. */
+const EXAMPLE_QUERY = '8x10 35mm 1/2';
+
+export function HomeScreen() {
+  const [query, setQuery] = useState('');
+  const [focused, setFocused] = useState(false);
+  const settled = useDebouncedValue(query, 150);
+  const searching = settled.trim() !== '';
+  const { pinned } = usePinnedTabs();
+  const [unit] = useMeasurementUnit();
+
+  // Read once per visit to Home: what to resume, and whether this is the
+  // first time Home has been shown on the device.
+  const [resume] = useState(() => ({
+    firstLaunch: isFirstHomeLaunch(),
+    toolIds: getRecentToolIds(),
+    recipeIds: getRecentRecipeIds(),
+    easelRaw: sharedStorage.getString(BORDER_CALCULATOR_STORAGE_KEY),
+  }));
+  useEffect(() => markHomeSeen(), []);
+
+  const { data, loadError } = useHomeSearchData(
+    searching || focused || resume.recipeIds.length > 0
+  );
+  const result = useMemo(
+    () => (searching ? searchHome(settled, data) : null),
+    [searching, settled, data]
+  );
+  const suggestions = useMemo(
+    () => (searching ? suggestHome(settled, data) : []),
+    [searching, settled, data]
+  );
+  const example = useMemo(() => searchHome(EXAMPLE_QUERY).answer, []);
+
+  const easel = useMemo(
+    () => summarizeEasel(resume.easelRaw, unit),
+    [resume.easelRaw, unit]
+  );
+  const recentRecipes = useMemo(
+    () => recentRecipeRows(resume.recipeIds, data),
+    [resume.recipeIds, data]
+  );
+  const hasResume =
+    easel !== null || resume.toolIds.length > 0 || recentRecipes.length > 0;
+  const showExample = !searching && (resume.firstLaunch || !hasResume);
+
+  // SAFETY: `path` is built by `lib/home/destination.ts` from tool routes and
+  // recipe ids; the typed-routes union cannot express its query strings.
+  const go = (path: string) => router.push(path as Href);
+  const openTarget = (target: HomeLinkTarget) =>
+    go(homeDestination(target, pinned, Date.now()));
+  const openRoute = (route: HomeRoute) =>
+    go(homeRouteDestination(route, pinned));
+
+  const answer = result?.answer ?? null;
+  // Camera exposure questions get a plain link to the calculator, not a card.
+  const cameraLink = answer?.kind === 'camera_exposure' ? answer : null;
+  const card = answer && !cameraLink ? answer : null;
+
+  return (
+    <Screen>
+      <SearchBar
+        value={query}
+        onChangeText={setQuery}
+        onFocus={() => setFocused(true)}
+        placeholder="Ask: hp5 at 800 in dd-x"
+      />
+
+      {!searching ? <TryChips onTry={setQuery} /> : null}
+
+      {searching ? (
+        <SuggestionList suggestions={suggestions} onPick={setQuery} />
+      ) : null}
+
+      {card ? (
+        <AnswerCard answer={card} onOpen={() => openTarget(card.link.target)} />
+      ) : null}
+
+      {cameraLink ? (
+        <GlassCard className="gap-2">
+          <Text className="text-base font-semibold text-white">
+            {cameraLink.title}
+          </Text>
+          {cameraLink.notes.map((note) => (
+            <Text key={note} className="text-sm text-white/60">
+              {note}
+            </Text>
+          ))}
+          <Text
+            onPress={() => openTarget(cameraLink.link.target)}
+            accessibilityRole="button"
+            className="pt-1 text-sm font-medium text-rose-400"
+          >
+            {cameraLink.link.label}
+          </Text>
+        </GlassCard>
+      ) : null}
+
+      {result && !answer && result.pending ? (
+        <GlassCard>
+          <Text className="text-sm text-white/60">
+            {loadError ?? 'Loading recipes and films…'}
+          </Text>
+        </GlassCard>
+      ) : null}
+
+      {result && !answer && !result.pending && result.groups.length === 0 ? (
+        <GlassCard className="gap-3">
+          <Text className="text-sm text-white/60">
+            Nothing matches that yet. Name a film, a developer or a size, or try
+            one of these.
+          </Text>
+          <TryChips onTry={setQuery} />
+        </GlassCard>
+      ) : null}
+
+      {result ? (
+        <ResultGroups
+          groups={result.groups}
+          onOpen={openTarget}
+          onOpenTool={openRoute}
+        />
+      ) : null}
+
+      {showExample && example ? (
+        <View className="gap-2">
+          <SectionLabel>Example</SectionLabel>
+          <AnswerCard
+            answer={example}
+            example={EXAMPLE_QUERY}
+            onOpen={() => openTarget(example.link.target)}
+          />
+        </View>
+      ) : null}
+
+      {!searching && !showExample ? (
+        <ResumeSections
+          easel={easel}
+          recentToolIds={resume.toolIds}
+          recentRecipes={recentRecipes}
+          onOpenEasel={() => openRoute('/border')}
+          onOpenTool={(id) => go(toolHref(id, pinned))}
+          onOpenRecipe={(id) =>
+            go(`/development/recipe/${encodeURIComponent(id)}`)
+          }
+        />
+      ) : null}
+    </Screen>
+  );
+}

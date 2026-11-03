@@ -20,6 +20,7 @@ const LUCIDE = join(
 
 // id -> lucide kebab name (mirror src/lib/tools.ts + 'more')
 const ICON_NAMES = {
+  home: 'house',
   border: 'crop',
   resize: 'ruler',
   exposure: 'gauge',

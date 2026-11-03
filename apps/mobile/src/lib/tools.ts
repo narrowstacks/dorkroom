@@ -12,11 +12,11 @@ export interface Tool {
   category: ToolCategory;
   /**
    * Route file name under `app/(tabs)` for a single-screen tool that can be
-   * pinned as a tab (`border` lives at `index`, `lens` at `lenses`). Tools
+   * pinned as a tab (`lens` lives at `lenses`). Tools
    * with a `tabRoute` must also have an entry in `TOOL_SCREENS`
    * (`tool-screens.ts`) and `TAB_ICONS` (`tab-icons.ts`), which the compiler
-   * enforces. Film Log and Recipes
-   * have none: they are permanent directory tabs with their own stacks.
+   * enforces. Home, Film Log and Recipes
+   * have none: they are permanent tabs (Home's route file is `index`).
    */
   tabRoute?: string;
   /**
@@ -46,11 +46,21 @@ export interface Tool {
 // and App Intents against it.
 const TOOL_LIST = [
   {
+    id: 'home',
+    label: 'Home',
+    icon: 'house',
+    // The app's initial route (`app/(tabs)/index.tsx`) and a permanent tab,
+    // like Film Log: search that answers a question, plus what you used last.
+    route: '/',
+    category: 'reference',
+    pinnable: false,
+  },
+  {
     id: 'border',
     label: 'Border',
     icon: 'crop',
     route: '/more/border',
-    tabRoute: 'index',
+    tabRoute: 'border',
     category: 'printing',
   },
   {
