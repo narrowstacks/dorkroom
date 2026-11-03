@@ -2,6 +2,7 @@ import type { ComponentType } from 'react';
 import type { ScreenToolId } from '@/lib/tools';
 import { BorderScreen } from '@/screens/border-screen';
 import { CameraExposureScreen } from '@/screens/camera-exposure-screen';
+import { TimerScreen } from '@/screens/development/timer-screen';
 import { ExposureScreen } from '@/screens/exposure-screen';
 import { LensScreen } from '@/screens/lens-screen';
 import { MatScreen } from '@/screens/mat-screen';
@@ -25,6 +26,7 @@ export const TOOL_SCREENS = {
   mat: MatScreen,
   reciprocity: ReciprocityScreen,
   'negative-inverter': NegativeInverterScreen,
+  timer: TimerScreen,
   lens: LensScreen,
   'camera-exposure': CameraExposureScreen,
   meter: MeterScreen,

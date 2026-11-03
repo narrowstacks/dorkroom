@@ -26,6 +26,7 @@ const ICON_NAMES = {
   mat: 'frame',
   reciprocity: 'timer',
   'negative-inverter': 'contrast',
+  timer: 'hourglass',
   'film-log': 'film',
   recipes: 'flask-conical',
   lens: 'focus',
