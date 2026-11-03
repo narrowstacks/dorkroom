@@ -1,7 +1,9 @@
 // Pure countdown state machine for the film-processing timer. No native deps, no
-// React, no timers — the UI owns the clock and dispatches `TICK` with the real
-// elapsed delta; this module owns every state transition so it can be unit-tested
-// in isolation. See `types.ts` for the data model.
+// React, no timers. Time is never counted in ticks: the caller records the wall
+// clock timestamp a state was captured at and `projectState` derives the state at
+// any later timestamp, so a suspended app (backgrounded, JS paused) catches up
+// exactly. This module owns every state transition so it can be unit-tested in
+// isolation. See `types.ts` for the data model.
 import type {
   StageBoundary,
   TimerAction,
@@ -126,6 +128,24 @@ function applyTick(state: TimerState, seconds: number): TimerState {
   }
 
   return { ...state, currentStageIndex: index, remainingSeconds: remaining };
+}
+
+/**
+ * The state at wall-clock time `nowMs`, given `state` was captured at
+ * `anchoredAtMs`. Only a running timer advances; paused, idle and completed
+ * states are returned unchanged, so a pause is just "stop projecting" and the
+ * time spent paused is never counted. A clock that went backwards (negative
+ * delta) is treated as no time passing. This is the drift-free replacement for
+ * counting interval ticks: however long JS was suspended, the result is exact.
+ */
+export function projectState(
+  state: TimerState,
+  anchoredAtMs: number,
+  nowMs: number
+): TimerState {
+  if (state.status !== 'running') return state;
+  const elapsedSeconds = (nowMs - anchoredAtMs) / 1000;
+  return applyTick(state, elapsedSeconds);
 }
 
 /** The single source of truth for timer transitions. */
