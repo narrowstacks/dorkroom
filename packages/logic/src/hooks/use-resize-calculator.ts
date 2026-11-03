@@ -8,6 +8,7 @@ import {
   DEFAULT_ORIGINAL_TIME,
   DEFAULT_ORIGINAL_WIDTH,
 } from '../constants/resize-calculator';
+import type { resizeCalculatorLink } from '../schemas/resize-calculator.schema';
 import { parseDecimalInput } from '../utils/input-validation';
 import {
   calculateResizeExposure,
@@ -40,26 +41,40 @@ export interface UseResizeCalculatorReturn {
  * Hook that calculates darkroom exposure adjustments when resizing prints.
  * Tracks dimension inputs, supports enlarger height mode, and returns derived times.
  *
+ * @param options - `overrides`: values the calculator starts with instead of
+ *   its defaults, such as a link's (`resizeCalculatorLink.read`). Read on
+ *   mount only. This hook does not persist, so they are not stored.
  * @returns State values, setters, and derived exposure information for resizing
  */
-export const useResizeCalculator = (): UseResizeCalculatorReturn => {
-  const [isEnlargerHeightMode, setIsEnlargerHeightMode] = useState(false);
+export const useResizeCalculator = (options?: {
+  overrides?: ReturnType<typeof resizeCalculatorLink.read>;
+}): UseResizeCalculatorReturn => {
+  const overrides = options?.overrides;
+  const [isEnlargerHeightMode, setIsEnlargerHeightMode] = useState(
+    () => overrides?.isEnlargerHeightMode ?? false
+  );
   const [originalWidth, setOriginalWidth] = useState(() =>
-    String(DEFAULT_ORIGINAL_WIDTH)
+    String(overrides?.originalWidth ?? DEFAULT_ORIGINAL_WIDTH)
   );
   const [originalLength, setOriginalLength] = useState(() =>
-    String(DEFAULT_ORIGINAL_LENGTH)
+    String(overrides?.originalLength ?? DEFAULT_ORIGINAL_LENGTH)
   );
-  const [newWidth, setNewWidth] = useState(() => String(DEFAULT_NEW_WIDTH));
-  const [newLength, setNewLength] = useState(() => String(DEFAULT_NEW_LENGTH));
+  const [newWidth, setNewWidth] = useState(() =>
+    String(overrides?.newWidth ?? DEFAULT_NEW_WIDTH)
+  );
+  const [newLength, setNewLength] = useState(() =>
+    String(overrides?.newLength ?? DEFAULT_NEW_LENGTH)
+  );
   const [originalTime, setOriginalTime] = useState(() =>
-    String(DEFAULT_ORIGINAL_TIME)
+    String(overrides?.originalTime ?? DEFAULT_ORIGINAL_TIME)
   );
   const [isAspectRatioMatched, setIsAspectRatioMatched] = useState(true);
   const [originalHeight, setOriginalHeight] = useState(() =>
-    String(DEFAULT_ORIGINAL_HEIGHT)
+    String(overrides?.originalHeight ?? DEFAULT_ORIGINAL_HEIGHT)
   );
-  const [newHeight, setNewHeight] = useState(() => String(DEFAULT_NEW_HEIGHT));
+  const [newHeight, setNewHeight] = useState(() =>
+    String(overrides?.newHeight ?? DEFAULT_NEW_HEIGHT)
+  );
 
   const checkAspectRatio = useCallback(() => {
     setIsAspectRatioMatched(

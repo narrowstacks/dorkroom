@@ -3,6 +3,7 @@ import {
   DEFAULT_EXPOSURE_ORIGINAL_TIME,
   DEFAULT_EXPOSURE_STOPS,
 } from '../constants/exposure-calculator-defaults';
+import type { exposureCalculatorLink } from '../schemas/exposure-calculator.schema';
 import type {
   ExposureCalculation,
   ExposureCalculatorState,
@@ -30,6 +31,9 @@ const inSeparatorOf = (typed: string, value: string): string =>
  * Calculates new exposure times based on stop adjustments,
  * providing tools for exposure compensation and timing calculations.
  *
+ * @param options - `overrides`: values the calculator starts with instead of
+ *   its defaults, such as a link's (`exposureCalculatorLink.read`). Read on
+ *   mount only. This hook does not persist, so they are not stored.
  * @returns Object containing calculator state, calculation results, and control functions
  * @example
  * ```typescript
@@ -54,14 +58,21 @@ const inSeparatorOf = (typed: string, value: string): string =>
  * }
  * ```
  */
-export const useExposureCalculator = () => {
-  const [state, setState] = useState<ExposureCalculatorState>({
-    originalTime: String(DEFAULT_EXPOSURE_ORIGINAL_TIME),
-    stops: String(DEFAULT_EXPOSURE_STOPS),
-    newTime: calculateNewExposureTime(
-      DEFAULT_EXPOSURE_ORIGINAL_TIME,
-      DEFAULT_EXPOSURE_STOPS
-    ).toString(),
+export const useExposureCalculator = (options?: {
+  overrides?: ReturnType<typeof exposureCalculatorLink.read>;
+}) => {
+  const [state, setState] = useState<ExposureCalculatorState>(() => {
+    const originalTime =
+      options?.overrides?.originalTime ?? DEFAULT_EXPOSURE_ORIGINAL_TIME;
+    // Round like the stop buttons do, so a link's `stops=-1/3` shows -0.33.
+    const stops = roundToStandardPrecision(
+      options?.overrides?.stops ?? DEFAULT_EXPOSURE_STOPS
+    );
+    return {
+      originalTime: String(originalTime),
+      stops: String(stops),
+      newTime: calculateNewExposureTime(originalTime, stops).toString(),
+    };
   });
 
   // Calculate new time whenever inputs change

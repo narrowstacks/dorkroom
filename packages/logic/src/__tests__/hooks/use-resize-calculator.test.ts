@@ -44,3 +44,25 @@ describe('useResizeCalculator decimal-comma input (#318)', () => {
     expect(comma.result.current.newTime).toBe(dot.result.current.newTime);
   });
 });
+
+describe('useResizeCalculator overrides', () => {
+  it("starts from a link's sizes, time and mode", () => {
+    const { result } = renderHook(() =>
+      useResizeCalculator({
+        overrides: {
+          originalWidth: 8,
+          originalLength: 10,
+          newWidth: 11,
+          newLength: 14,
+          originalTime: 12,
+        },
+      })
+    );
+
+    expect(result.current.originalWidth).toBe('8');
+    expect(result.current.newLength).toBe('14');
+    expect(result.current.originalTime).toBe('12');
+    expect(result.current.isEnlargerHeightMode).toBe(false);
+    expect(result.current.newTime).not.toBe('');
+  });
+});

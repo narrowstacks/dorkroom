@@ -202,3 +202,18 @@ describe('useReciprocityCalculator', () => {
     expect(result.current.calculation?.originalTime).toBe(1.5);
   });
 });
+
+describe('useReciprocityCalculator overrides', () => {
+  it("starts from a link's film and metered time", () => {
+    const { result } = renderHook(() =>
+      useReciprocityCalculator({
+        overrides: { filmType: 'tri-x', meteredTime: '2m' },
+      })
+    );
+
+    expect(result.current.filmType).toBe('tri-x');
+    expect(result.current.meteredTime).toBe('2m');
+    expect(result.current.formattedTime).toBe(formatReciprocityTime(120));
+    expect(result.current.calculation?.originalTime).toBe(120);
+  });
+});
