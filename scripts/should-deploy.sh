@@ -20,14 +20,25 @@ case "$VERCEL_GIT_COMMIT_MESSAGE" in
     ;;
 esac
 
-# Check if we have a previous commit to compare against
-if [ -z "$VERCEL_GIT_PREVIOUS_SHA" ]; then
+# Pick the base to diff against. Vercel leaves VERCEL_GIT_PREVIOUS_SHA empty
+# on the first push of a branch, which used to fall through to "build" and
+# deployed a preview for every iOS-only PR (apps/mobile/ is skipped below,
+# but only once there was something to diff). For a branch other than main,
+# diff the whole branch against main instead: GitHub's three-dot compare
+# lists the changes since the merge base, which is exactly the PR's diff.
+BASE="$VERCEL_GIT_PREVIOUS_SHA"
+if [ -z "$BASE" ] && [ -n "$VERCEL_GIT_COMMIT_REF" ] && [ "$VERCEL_GIT_COMMIT_REF" != "main" ]; then
+  BASE="main"
+  echo "📌 First push of branch $VERCEL_GIT_COMMIT_REF: diffing against main."
+fi
+
+if [ -z "$BASE" ]; then
   echo "⚠️ No previous commit SHA — cannot diff, so building."
   exit 1
 fi
 
 # Use GitHub API to get changed files (works without git history)
-GITHUB_API="https://api.github.com/repos/$VERCEL_GIT_REPO_OWNER/$VERCEL_GIT_REPO_SLUG/compare/$VERCEL_GIT_PREVIOUS_SHA...$VERCEL_GIT_COMMIT_SHA"
+GITHUB_API="https://api.github.com/repos/$VERCEL_GIT_REPO_OWNER/$VERCEL_GIT_REPO_SLUG/compare/$BASE...$VERCEL_GIT_COMMIT_SHA"
 echo "📡 Fetching diff from GitHub API..."
 
 CHANGED_FILES=$(curl -s "$GITHUB_API" | grep '"filename":' | sed 's/.*"filename": "\([^"]*\)".*/\1/')
