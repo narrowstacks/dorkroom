@@ -5,6 +5,7 @@ import {
   currentStage,
   elapsedInStageSeconds,
   isLastStage,
+  projectState,
   timerReducer,
   totalDurationSeconds,
   totalRemainingSeconds,
@@ -255,5 +256,49 @@ describe('computeStageSchedule', () => {
 
   it('returns an empty schedule for no stages', () => {
     expect(computeStageSchedule([])).toEqual([]);
+  });
+});
+
+describe('projectState (timestamp math)', () => {
+  const running = run(createTimerState(THREE), { type: 'START' });
+
+  it('derives the state from elapsed wall-clock time, not tick count', () => {
+    const projected = projectState(running, 1_000, 1_000 + 20_000);
+    expect(projected.remainingSeconds).toBe(40);
+    expect(projected.currentStageIndex).toBe(0);
+  });
+
+  it('catches up exactly after a long suspension, crossing stages', () => {
+    // 60 (a) + 30 (b) + 10 into c, as if JS was frozen for 100 s.
+    const projected = projectState(running, 0, 100_000);
+    expect(projected.currentStageIndex).toBe(2);
+    expect(projected.remainingSeconds).toBe(80);
+  });
+
+  it('is path independent: one jump equals many small steps', () => {
+    let stepped = running;
+    let anchor = 0;
+    for (let now = 250; now <= 95_000; now += 250) {
+      stepped = projectState(stepped, anchor, now);
+      anchor = now;
+    }
+    const jumped = projectState(running, 0, 95_000);
+    expect(stepped.currentStageIndex).toBe(jumped.currentStageIndex);
+    expect(stepped.remainingSeconds).toBeCloseTo(jumped.remainingSeconds, 6);
+  });
+
+  it('completes when the elapsed time passes the end', () => {
+    const projected = projectState(running, 0, 10_000_000);
+    expect(projected.status).toBe('completed');
+    expect(projected.remainingSeconds).toBe(0);
+  });
+
+  it('never counts time spent paused', () => {
+    const paused = run(running, { type: 'PAUSE' });
+    expect(projectState(paused, 0, 500_000)).toBe(paused);
+  });
+
+  it('treats a clock that went backwards as no elapsed time', () => {
+    expect(projectState(running, 5_000, 1_000)).toBe(running);
   });
 });
