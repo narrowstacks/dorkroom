@@ -373,3 +373,26 @@ describe('film-log storage', () => {
     expect((await getInfoAsync(photoUri('new.jpg'))).exists).toBe(true);
   });
 });
+
+describe('film log schema version', () => {
+  it('stamps unversioned data and a future version blocks writes', async () => {
+    const { openVersionedStore, SCHEMA_VERSION_KEY } =
+      await import('./schema-version');
+    const { filmRollSchema } = await import('@/schemas/film-log.schema');
+    storage.clearAll();
+    storage.set(KEYS.rolls, '[]');
+    expect(
+      openVersionedStore(storage, [{ key: KEYS.rolls, schema: filmRollSchema }])
+        .state
+    ).toBe('migrated');
+    expect(storage.getString(SCHEMA_VERSION_KEY)).toBe('1');
+
+    storage.set(SCHEMA_VERSION_KEY, '99');
+    const raw = JSON.stringify([{ id: 'future' }]);
+    storage.set(KEYS.rolls, raw);
+    openVersionedStore(storage, [{ key: KEYS.rolls, schema: filmRollSchema }]);
+    newRoll();
+    expect(storage.getString(KEYS.rolls)).toBe(raw);
+    expect(storage.getString(SCHEMA_VERSION_KEY)).toBe('99');
+  });
+});

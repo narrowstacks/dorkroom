@@ -5,6 +5,7 @@
 import { createMMKV } from 'react-native-mmkv';
 import { deletePhotoFile } from '@/lib/film-log-photos';
 import { generateId } from '@/lib/id';
+import { openVersionedStore } from '@/lib/schema-version';
 import { parseCollection, writeCollection } from '@/lib/stored-collection';
 import {
   cameraSchema,
@@ -29,6 +30,14 @@ export const KEYS = {
   lenses: 'lenses',
   customFilms: 'customFilms',
 } as const;
+
+// Migrate stored data to the current format before any hook reads it.
+export const storeOpenResult = openVersionedStore(storage, [
+  { key: KEYS.rolls, schema: filmRollSchema },
+  { key: KEYS.cameras, schema: cameraSchema },
+  { key: KEYS.lenses, schema: lensSchema },
+  { key: KEYS.customFilms, schema: filmStockSchema },
+]);
 
 function nowIso(): string {
   return new Date().toISOString();

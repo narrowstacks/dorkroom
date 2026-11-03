@@ -7,6 +7,7 @@
 
 import { createMMKV } from 'react-native-mmkv';
 import { generateId } from '@/lib/id';
+import { openVersionedStore } from '@/lib/schema-version';
 import { writeCollection } from '@/lib/stored-collection';
 import { DEFAULT_BW_PRESET, parsePresets, timerPresetSchema } from './presets';
 import type { TimerPreset, TimerStage } from './types';
@@ -14,6 +15,11 @@ import type { TimerPreset, TimerStage } from './types';
 export const storage = createMMKV({ id: 'dorkroom-timer' });
 
 export const KEYS = { presets: 'presets' } as const;
+
+// Migrate stored data to the current format before any hook reads it.
+export const storeOpenResult = openVersionedStore(storage, [
+  { key: KEYS.presets, schema: timerPresetSchema },
+]);
 
 function nowIso(): string {
   return new Date().toISOString();
