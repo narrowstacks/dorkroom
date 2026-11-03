@@ -15,6 +15,19 @@ import { isRunActive, timerStore } from '@/lib/timer/timer-store';
 /** How often the display re-samples the wall clock while a run is going. */
 const SYNC_INTERVAL_MS = 250;
 
+type TimerSnapshot = ReturnType<typeof timerStore.getSnapshot>['timer'];
+
+function isAgitating(timer: TimerSnapshot): boolean {
+  const stage = timer.stages[timer.currentStageIndex];
+  const pattern = stage?.agitationPattern ?? null;
+  if (!stage || !pattern || timer.status !== 'running') return false;
+  const windows = agitationWindows(pattern, stage.durationSeconds);
+  return agitationStateAt(
+    windows,
+    stage.durationSeconds - timer.remainingSeconds
+  ).agitating;
+}
+
 function KeepAwakeWhileActive() {
   useKeepAwake('process-timer');
   return null;
@@ -45,6 +58,13 @@ export function TimerRunEffects() {
     return () => clearInterval(id);
   }, [status]);
 
+  // Last values the cue effects below have seen. The foreground handler also
+  // writes them, so catching up after a background stretch is silent.
+  const prevStageRef = useRef(currentStageIndex);
+  const prevStatusRef = useRef(status);
+  const prevAgitatingRef = useRef(false);
+  const prevAgitationStageRef = useRef(currentStageIndex);
+
   // Background alerts: while running, schedule one notification per upcoming
   // cue the moment the app leaves the foreground, and clear them all on return.
   // Anything that is not running (paused, reset, finished) clears them too.
@@ -56,6 +76,16 @@ export function TimerRunEffects() {
     const subscription = AppState.addEventListener('change', (next) => {
       if (next === 'active') {
         void cancelCueAlerts();
+        // JS was suspended, so the stage ends and agitation starts that passed
+        // meanwhile were already announced by notifications. Catch the store
+        // up and adopt the result as the cue baseline, so returning to the app
+        // doesn't replay them as late beeps.
+        timerStore.sync();
+        const { timer: now } = timerStore.getSnapshot();
+        prevStageRef.current = now.currentStageIndex;
+        prevStatusRef.current = now.status;
+        prevAgitationStageRef.current = now.currentStageIndex;
+        prevAgitatingRef.current = isAgitating(now);
         return;
       }
       timerStore.sync();
@@ -67,8 +97,6 @@ export function TimerRunEffects() {
 
   // Stage-boundary cues: haptic plus sound. The first render is skipped so
   // loading a preset or remounting does not buzz.
-  const prevStageRef = useRef(currentStageIndex);
-  const prevStatusRef = useRef(status);
   useEffect(() => {
     const stageChanged = currentStageIndex !== prevStageRef.current;
     const justCompleted =
@@ -88,8 +116,6 @@ export function TimerRunEffects() {
   // Agitation cues: haptic on entering/leaving an agitation window, plus a
   // sound on entering. Tracked with its own refs so a stage change is detected
   // here too and skipped: the stage-boundary cue already fired that tick.
-  const prevAgitatingRef = useRef(false);
-  const prevAgitationStageRef = useRef(currentStageIndex);
   useEffect(() => {
     const stage = stages[currentStageIndex];
     const pattern = stage?.agitationPattern ?? null;
