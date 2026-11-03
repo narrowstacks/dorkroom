@@ -16,6 +16,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Appearance } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { TimerRunEffects } from '@/components/development/timer/timer-run-effects';
 import { calculatorStorage } from '@/lib/mmkv-storage';
 import { queryClient } from '@/providers/query-client';
 import {
@@ -44,6 +45,7 @@ export default function RootLayout() {
           <PersistenceStorageProvider value={calculatorStorage}>
             <ThemeProvider value={DarkTheme}>
               <Stack screenOptions={{ headerShown: false }} />
+              <TimerRunEffects />
               {/* oxlint-disable-next-line react/style-prop-object -- expo-status-bar's `style` is a preset string ('auto' | 'light' | 'dark'), not a React style object */}
               <StatusBar style="light" />
             </ThemeProvider>

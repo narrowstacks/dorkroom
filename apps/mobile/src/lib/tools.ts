@@ -95,6 +95,14 @@ const TOOL_LIST = [
     fixedLayout: true,
   },
   {
+    id: 'timer',
+    label: 'Timer',
+    icon: 'hourglass',
+    route: '/more/timer',
+    tabRoute: 'timer',
+    category: 'film',
+  },
+  {
     id: 'film-log',
     label: 'Film Log',
     icon: 'film',

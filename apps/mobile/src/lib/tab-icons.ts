@@ -12,6 +12,7 @@ export const TAB_ICONS = {
   mat: require('../../assets/tab-icons/mat.png'),
   reciprocity: require('../../assets/tab-icons/reciprocity.png'),
   'negative-inverter': require('../../assets/tab-icons/negative-inverter.png'),
+  timer: require('../../assets/tab-icons/timer.png'),
   lens: require('../../assets/tab-icons/lens.png'),
   'camera-exposure': require('../../assets/tab-icons/camera-exposure.png'),
   meter: require('../../assets/tab-icons/meter.png'),
