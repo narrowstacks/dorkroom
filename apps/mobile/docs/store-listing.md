@@ -11,7 +11,7 @@ each submission. Character limits are Apple's.
 | Subtitle | 30 | Darkroom & film calculators |
 | Keywords | 100 | `darkroom,film,photography,analog,exposure,reciprocity,enlarger,timer,light meter,developer,negative` |
 | Promotional text | 170 | Exposure, reciprocity, print borders, development timers and a film log for analog photographers, plus a light meter and negative inverter. |
-| Support URL | n/a | https://dorkroom.art |
+| Support URL | n/a | https://github.com/narrowstacks/dorkroom/discussions (matches the Settings Support row) |
 | Privacy policy URL | n/a | https://dorkroom.art/privacy |
 | Category | n/a | Photo & Video (secondary: Utilities) |
 
@@ -38,8 +38,8 @@ the field.
 
 Pin the tools you use most to the tab bar, jump straight into the meter,
 border, exposure or reciprocity calculators from Home Screen quick actions,
-and use Dorkroom links to open tools directly. Everything runs on your
-device; the app is open source.
+and use Dorkroom links to open tools directly. Calculations run on your
+device, and the film log never leaves it; the app is open source.
 
 Requires iOS 26.
 
