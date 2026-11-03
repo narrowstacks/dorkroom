@@ -1,5 +1,4 @@
 import * as Haptics from 'expo-haptics';
-import { useKeepAwake } from 'expo-keep-awake';
 import { Pencil } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -13,65 +12,49 @@ import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
 import { totalRemainingSeconds } from '@/lib/timer/engine';
 import { consumeTimerPrefill } from '@/lib/timer/prefill';
-import { DEFAULT_BW_PRESET, stagesFromCombination } from '@/lib/timer/presets';
+import { stagesFromCombination } from '@/lib/timer/presets';
 import { addPreset, listPresets } from '@/lib/timer/presets-storage';
+import { isRunActive, timerStore } from '@/lib/timer/timer-store';
 import type { TimerStage } from '@/lib/timer/types';
 
 /**
- * Rendered only while the timer is active: keeps the display on for the
- * duration of a development run (activates on mount, releases on unmount).
- */
-function KeepAwakeWhileActive() {
-  useKeepAwake('process-timer');
-  return null;
-}
-
-/**
- * Standalone multi-stage film-processing timer. Drives the pure engine
- * (lib/timer/) from a wall-clock interval; presets persist via MMKV. The
- * screen stays awake while a run is active (running/paused) via
- * expo-keep-awake. Native alerts / audio are a later, EAS-gated card
- * (mob-timer-engine) — this screen is JS-only and runs in the current Metro
- * session.
+ * Standalone multi-stage film-processing timer. The run itself lives in the
+ * module-level timer store (lib/timer/timer-store.ts), so leaving this screen
+ * and coming back shows the same run, and `TimerRunEffects` (mounted at the
+ * root) keeps the clock, cues, alerts and keep-awake going meanwhile. Presets
+ * persist via MMKV.
  */
 export function TimerScreen() {
   const [presets, setPresets] = useState(() => listPresets());
-  const [stages, setStages] = useState<TimerStage[]>(
-    () => DEFAULT_BW_PRESET.stages
-  );
-  const [selectedPresetId, setSelectedPresetId] = useState<string>(
-    DEFAULT_BW_PRESET.id
-  );
   const [editing, setEditing] = useState(false);
 
-  const timer = useTimer(stages);
-  const { load: loadTimer } = timer;
+  const timer = useTimer();
+  const {
+    load: applyStages,
+    setSelectedPresetId,
+    selectedPresetId,
+    stages,
+  } = timer;
   const idle = timer.status === 'idle';
-
-  const applyStages = useCallback(
-    (next: TimerStage[]) => {
-      setStages(next);
-      loadTimer(next);
-    },
-    [loadTimer]
-  );
 
   // One-shot recipe prefill: if the user arrived via a recipe's "Start Process
   // Timer", seed the stages from that recipe (dev time/temp/agitation + the
   // standard stop/fix/wash tail) and clear the preset selection. Runs once on
-  // mount; the standalone entry (nothing queued) keeps DEFAULT_BW.
+  // mount; the standalone entry (nothing queued) keeps whatever the store
+  // holds. A queued recipe never replaces a run in progress: it is dropped.
   const prefillApplied = useRef(false);
   useEffect(() => {
     if (prefillApplied.current) return;
     prefillApplied.current = true;
     const prefill = consumeTimerPrefill();
-    if (prefill) {
+    const runActive = isRunActive(timerStore.getSnapshot().timer);
+    if (prefill && !runActive) {
       // eslint-disable-next-line react-doctor/no-chain-state-updates -- one-shot mount effect consuming an external module-level queue (consumeTimerPrefill destructively reads-and-clears it), not a state reacting to another state
       setSelectedPresetId('');
       // eslint-disable-next-line react-doctor/no-derived-state -- same one-shot external-system sync; stagesFromCombination(prefill) reads a destructive module singleton, not props/state already available during render, so it can't be computed inline or via useMemo
       applyStages(stagesFromCombination(prefill));
     }
-  }, [applyStages]);
+  }, [applyStages, setSelectedPresetId]);
 
   const handleSelectPreset = useCallback(
     (id: string) => {
@@ -81,7 +64,7 @@ export function TimerScreen() {
       setEditing(false);
       applyStages(preset.stages);
     },
-    [presets, applyStages]
+    [presets, applyStages, setSelectedPresetId]
   );
 
   const handleChangeStages = useCallback(
@@ -90,7 +73,7 @@ export function TimerScreen() {
       setSelectedPresetId('');
       applyStages(next);
     },
-    [applyStages]
+    [applyStages, setSelectedPresetId]
   );
 
   const handleSavePreset = useCallback(
@@ -99,7 +82,7 @@ export function TimerScreen() {
       setPresets(listPresets());
       setSelectedPresetId(created.id);
     },
-    [stages]
+    [stages, setSelectedPresetId]
   );
 
   const presetOptions = presets.map((p) => ({ label: p.name, value: p.id }));
@@ -124,10 +107,6 @@ export function TimerScreen() {
 
   return (
     <Screen>
-      {timer.status === 'running' || timer.status === 'paused' ? (
-        <KeepAwakeWhileActive />
-      ) : null}
-
       <View className="gap-2">
         <SectionLabel>Preset</SectionLabel>
         <PresetChipRow
@@ -159,6 +138,13 @@ export function TimerScreen() {
         onSkip={timer.skip}
         onPrev={timer.prev}
       />
+
+      {timer.alertsDenied && !idle ? (
+        <Text className="text-center text-xs text-white/50">
+          Notifications are off, so there are no alerts while Dorkroom is in the
+          background. Turn them on in the iOS Settings app.
+        </Text>
+      ) : null}
 
       <StageList
         stages={timer.stages}

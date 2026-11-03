@@ -1,7 +1,7 @@
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import { useDevelopmentRecipes } from '@dorkroom/logic';
 import { router } from 'expo-router';
-import { SlidersHorizontal, Timer } from 'lucide-react-native';
+import { SlidersHorizontal } from 'lucide-react-native';
 import { memo, useCallback, useDeferredValue, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -167,18 +167,6 @@ export function RecipeListScreen() {
           {visible.length} {visible.length === 1 ? 'recipe' : 'recipes'}
         </Text>
         <View className="flex-row items-center gap-2">
-          {/* TODO(mob-timer-recipe-link): temporary entry to reach the standalone
-              Process Timer for in-session testing. Remove once tools.ts registers
-              the timer permanently and the recipe→timer link card lands. */}
-          <Pressable
-            onPress={() => router.push('/development/timer')}
-            accessibilityRole="button"
-            accessibilityLabel="Process timer"
-            className="flex-row items-center gap-2 rounded-full bg-white/10 px-4 py-2"
-          >
-            <Timer size={16} color="#ffffff" />
-            <Text className="text-sm font-semibold text-white">Timer</Text>
-          </Pressable>
           <Pressable
             onPress={() => setFiltersOpen(true)}
             accessibilityRole="button"
