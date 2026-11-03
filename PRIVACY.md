@@ -67,6 +67,18 @@ session or a person.
 - Any data sold, shared, or handed to advertisers. There are no ad networks
   here.
 
+## The iOS app
+
+The Dorkroom iOS app shares its calculators and film data with the website, but it handles data differently. The sections above describe the website; this section describes the app.
+
+- **No analytics.** The app has no analytics, crash reporting, advertising, or tracking code, and no cookies. It does not track you, so it never shows the App Tracking Transparency prompt. The Vercel Analytics events above are for the website only.
+- **The light meter and camera.** The light meter reads the exposure time and ISO that the camera's own auto-exposure chooses for the scene and works out a reading from them. It does not analyze, record, or upload the camera's video frames. The negative inverter's live preview is processed on your phone too. A photo is taken only when you press the shutter, and it stays on your phone.
+- **Photos.** You choose a photo for a film log shot or the negative inverter with the system photo picker, which hands the app only the photo you picked. The app adds to your Photos library only when you tap Save in the negative inverter or turn on "Also save meter photos to Photos" in Settings (off by default), and it asks iOS for add-only permission. It never reads your library.
+- **The film log stays on your phone.** Rolls, shots, cameras, lenses, and the photos attached to shots are stored only on your phone: the text in the app's local storage and the photos in the app's documents folder. There is no account and no sync, and none of it is uploaded. It leaves your phone only when you export or share it from the share sheet. Like other app data, iOS may include it in your device backups, depending on your backup settings. Deleting the app deletes it. The negative inverter keeps its last photo and settings in the app's private data folder the same way.
+- **What the app sends over the network.** The only server the app talks to is api.dorkroom.art, to download film, developer, and recipe data. Nothing from your film log, photos, or calculators is sent. The app keeps those downloads on your phone for up to 7 days so it works offline. As with any request, your IP address reaches the server.
+- **The per-install client ID.** Each request carries an ID that the app makes up the first time it runs, from the time of that first launch plus random characters. It is stored on your phone, is not derived from your device, Apple ID, or advertising identifier, and is not linked to a name, email address, or any account. It exists so the API can limit how many requests each install makes per minute, instead of limiting all installs together. The API checks it, with your IP address, against a rate limit that resets every minute, using the rate-limiting service Unkey. Dorkroom's API code does not write it to logs or to a database. Deleting the app deletes the ID, and a reinstall gets a new one.
+- **Links.** Privacy Policy, Support, Licenses, GitHub, Newsletter, and links inside recipes open in your browser, where the site you reach has its own policy.
+
 ## Opting out
 
 Any content blocker or a browser's Do Not Track setting will stop analytics from

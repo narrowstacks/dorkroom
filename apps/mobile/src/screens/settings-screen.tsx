@@ -10,6 +10,13 @@ import { ToolListRow } from '@/components/tool-list-row';
 import { useMeasurementUnit } from '@/hooks/use-measurement-unit';
 import { useSaveMeterPhotosToLibrary } from '@/lib/photo-settings';
 
+const REPO_URL = 'https://github.com/narrowstacks/dorkroom';
+const PRIVACY_URL = 'https://dorkroom.art/privacy';
+// Questions go to GitHub Discussions, the channel CONTRIBUTING.md names.
+const SUPPORT_URL = `${REPO_URL}/discussions`;
+// The repo's AGPLv3 license text. Dependencies carry their own licenses.
+const LICENSES_URL = `${REPO_URL}/blob/main/LICENSE`;
+
 export function SettingsScreen() {
   const version = Constants.expoConfig?.version;
   const [savePhotos, setSavePhotos] = useSaveMeterPhotosToLibrary();
@@ -51,11 +58,27 @@ export function SettingsScreen() {
 
       <GlassCard>
         <ToolListRow
+          label="Privacy Policy"
+          accessoryText="›"
+          onPress={() => Linking.openURL(PRIVACY_URL)}
+        />
+        <ToolListRow
+          label="Support"
+          accessoryText="›"
+          onPress={() => Linking.openURL(SUPPORT_URL)}
+        />
+        <ToolListRow
+          label="Open-source licenses"
+          accessoryText="›"
+          onPress={() => Linking.openURL(LICENSES_URL)}
+        />
+      </GlassCard>
+
+      <GlassCard>
+        <ToolListRow
           label="GitHub"
           accessoryText="›"
-          onPress={() =>
-            Linking.openURL('https://github.com/narrowstacks/dorkroom')
-          }
+          onPress={() => Linking.openURL(REPO_URL)}
         />
         <ToolListRow
           label="Newsletter"
