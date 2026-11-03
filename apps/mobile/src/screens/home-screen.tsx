@@ -4,8 +4,8 @@ import {
   searchHome,
   suggestHome,
 } from '@dorkroom/logic';
-import { type Href, router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { type Href, router, useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 import { SearchBar } from '@/components/development/search-bar';
 import { GlassCard } from '@/components/glass-card';
@@ -39,6 +39,16 @@ import {
 /** What the empty box shows on a first launch: a real answer, worked out like any other. */
 const EXAMPLE_QUERY = '8x10 35mm 1/2';
 
+/** What Home resumes from, read fresh from storage. */
+function readResume() {
+  return {
+    firstLaunch: isFirstHomeLaunch(),
+    toolIds: getRecentToolIds(),
+    recipeIds: getRecentRecipeIds(),
+    easelRaw: sharedStorage.getString(BORDER_CALCULATOR_STORAGE_KEY),
+  };
+}
+
 export function HomeScreen() {
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState(false);
@@ -47,15 +57,17 @@ export function HomeScreen() {
   const { pinned } = usePinnedTabs();
   const [unit] = useMeasurementUnit();
 
-  // Read once per visit to Home: what to resume, and whether this is the
-  // first time Home has been shown on the device.
-  const [resume] = useState(() => ({
-    firstLaunch: isFirstHomeLaunch(),
-    toolIds: getRecentToolIds(),
-    recipeIds: getRecentRecipeIds(),
-    easelRaw: sharedStorage.getString(BORDER_CALCULATOR_STORAGE_KEY),
-  }));
-  useEffect(() => markHomeSeen(), []);
+  // Native tabs keep Home mounted, so re-read on every focus: a tool opened,
+  // a recipe viewed or an easel saved elsewhere shows up on return. The read
+  // comes before markHomeSeen, so the first visit still shows the example and
+  // the next one gives way to the resume sections.
+  const [resume, setResume] = useState(readResume);
+  useFocusEffect(
+    useCallback(() => {
+      setResume(readResume());
+      markHomeSeen();
+    }, [])
+  );
 
   const { data, loadError } = useHomeSearchData(
     searching || focused || resume.recipeIds.length > 0
