@@ -75,6 +75,16 @@
           "photosPermission": "Choose a photo from your library to attach to a film log shot or to convert a negative to a positive.",
           "cameraPermission": "Dorkroom uses the camera to meter the light in your scene and to photograph negatives for the inverter."
         }
+      ],
+      "expo-audio",
+      [
+        "expo-notifications",
+        {
+          "sounds": [
+            "./assets/sounds/cue-stage.wav",
+            "./assets/sounds/cue-agitate.wav"
+          ]
+        }
       ]
     ],
     "experiments": {
