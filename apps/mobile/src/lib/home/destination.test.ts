@@ -154,6 +154,19 @@ describe('homeDestination: recipes, films and developers', () => {
     ).toBe('/development?developer=rodinal');
   });
 
+  it('marks a filtered browser opening so the same one re-applies', () => {
+    const target = {
+      to: '/development',
+      search: { film: 'hp5-plus' },
+    } as const;
+    expect(homeDestination(target, PINS, 9)).toBe(
+      '/development?film=hp5-plus&at=9'
+    );
+    expect(homeDestination({ to: '/development', search: {} }, PINS, 9)).toBe(
+      '/development'
+    );
+  });
+
   it('opens the bare browser when there is nothing to filter by', () => {
     expect(homeDestination({ to: '/development', search: {} }, PINS)).toBe(
       '/development'

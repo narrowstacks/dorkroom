@@ -56,9 +56,16 @@ export function homeDestination(
     if ('recipe' in search && search.recipe) {
       return `/development/recipe/${encodeURIComponent(search.recipe)}`;
     }
+    const film = search.film;
+    const developer = 'developer' in search ? search.developer : undefined;
+    // The browser keeps its state while its tab is open, so a filtered
+    // opening carries the marker too: the same film opened twice re-applies.
+    const filtered = film !== undefined || developer !== undefined;
     return `/development${queryOf({
-      film: search.film,
-      developer: 'developer' in search ? search.developer : undefined,
+      film,
+      developer,
+      [LINK_OPENED_PARAM]:
+        opened !== undefined && filtered ? String(opened) : undefined,
     })}`;
   }
   const toolId = TOOL_ID_BY_HOME_ROUTE[target.to];
