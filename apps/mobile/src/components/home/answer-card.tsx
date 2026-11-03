@@ -52,9 +52,7 @@ export function AnswerCard({ answer, example, onOpen }: AnswerCardProps) {
   return (
     <GlassCard className="gap-4">
       {example ? (
-        <Text className="text-xs font-medium uppercase tracking-wide text-white/40">
-          Example: “{example}”
-        </Text>
+        <Text className="text-xs text-white/50">Try typing “{example}”</Text>
       ) : null}
 
       <View className="flex-row items-start justify-between gap-3">
