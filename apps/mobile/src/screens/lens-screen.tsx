@@ -69,7 +69,8 @@ export function LensScreen() {
   useAnnounceResult(
     calculation && labels
       ? lensAnnouncement(
-          formatFocalLength(calculation.equivalentFocalLength),
+          calculation.equivalentFocalLength,
+          formatFocalLength,
           labels.target
         )
       : null

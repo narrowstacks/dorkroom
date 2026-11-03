@@ -28,9 +28,9 @@ export function SliderRow({
 }: SliderRowProps) {
   return (
     <View className="gap-2">
-      <View className="flex-row items-center justify-between">
-        <Text className="text-sm text-white/60">{label}</Text>
-        <Text className="text-base font-semibold text-white">
+      <View className="flex-row flex-wrap items-center justify-between gap-x-3">
+        <Text className="shrink text-sm text-white/60">{label}</Text>
+        <Text className="ml-auto shrink text-right text-base font-semibold text-white">
           {displayValue}
         </Text>
       </View>

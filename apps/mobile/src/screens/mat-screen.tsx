@@ -102,9 +102,11 @@ export function MatScreen() {
         onPress={resetToDefaults}
         accessibilityRole="button"
         accessibilityLabel="Reset mat calculator to defaults"
-        className="items-center rounded-full border border-white/15 py-3"
+        className="items-center rounded-3xl border border-white/15 px-4 py-3"
       >
-        <Text className="font-semibold text-rose-400">Reset to defaults</Text>
+        <Text className="text-center font-semibold text-rose-400">
+          Reset to defaults
+        </Text>
       </Pressable>
 
       <BottomSheet

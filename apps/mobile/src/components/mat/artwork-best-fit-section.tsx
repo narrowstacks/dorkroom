@@ -5,6 +5,7 @@ import {
 } from '@dorkroom/logic';
 import { Pressable, Text, View } from 'react-native';
 import { LabeledTextField } from '@/components/labeled-text-field';
+import { ResponsiveRow } from '@/components/responsive-row';
 import { ToggleRow } from '@/components/toggle-row';
 import { ACCENT, selectionTint } from '@/theme/accents';
 import { FlipButton } from './flip-button';
@@ -26,31 +27,30 @@ export function ArtworkBestFitSection({
 
   return (
     <View className="gap-4">
-      <View className="flex-row items-end gap-3">
-        <View className="flex-1">
-          <LabeledTextField
-            label="Art width (in)"
-            value={values.artW}
-            onChangeText={(value) => set('artW', value)}
-            keyboardType="default"
+      <ResponsiveRow
+        trailing={
+          <FlipButton
+            accessibilityLabel="Flip artwork orientation"
+            onPress={() => {
+              set('artW', values.artH);
+              set('artH', values.artW);
+            }}
           />
-        </View>
-        <View className="flex-1">
-          <LabeledTextField
-            label="Art height (in)"
-            value={values.artH}
-            onChangeText={(value) => set('artH', value)}
-            keyboardType="default"
-          />
-        </View>
-        <FlipButton
-          accessibilityLabel="Flip artwork orientation"
-          onPress={() => {
-            set('artW', values.artH);
-            set('artH', values.artW);
-          }}
+        }
+      >
+        <LabeledTextField
+          label="Art width (in)"
+          value={values.artW}
+          onChangeText={(value) => set('artW', value)}
+          keyboardType="default"
         />
-      </View>
+        <LabeledTextField
+          label="Art height (in)"
+          value={values.artH}
+          onChangeText={(value) => set('artH', value)}
+          keyboardType="default"
+        />
+      </ResponsiveRow>
       <LabeledTextField
         label="Reveal per side (in)"
         value={values.reveal}

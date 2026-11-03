@@ -63,7 +63,11 @@ export function BorderScreen() {
   ].filter((w): w is string => Boolean(w));
 
   useAnnounceResult(
-    borderAnnouncement(formatPreviewCaption(calculation, paperLabel, unit))
+    borderAnnouncement(
+      formatLength(calculation.printWidth, unit),
+      formatLength(calculation.printHeight, unit),
+      paperLabel
+    )
   );
 
   return (
@@ -120,9 +124,11 @@ export function BorderScreen() {
       <Pressable
         onPress={calc.resetToDefaults}
         accessibilityRole="button"
-        className="items-center rounded-full border border-white/15 py-3"
+        className="items-center rounded-3xl border border-white/15 px-4 py-3"
       >
-        <Text className="font-semibold text-rose-400">Reset to defaults</Text>
+        <Text className="text-center font-semibold text-rose-400">
+          Reset to defaults
+        </Text>
       </Pressable>
 
       <BottomSheet

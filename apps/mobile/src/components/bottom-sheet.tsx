@@ -1,5 +1,13 @@
 import type { ReactNode } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import Animated, {
   FadeIn,
   SlideInDown,
@@ -48,6 +56,7 @@ export function BottomSheet({
   dismissLabel = 'Done',
 }: BottomSheetProps) {
   const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
   const keyboard = useAnimatedKeyboard();
   // Lift the panel by the keyboard's height; reading the shared value here means
   // the movement follows the keyboard's own animation curve (smooth + quick).
@@ -84,8 +93,10 @@ export function BottomSheet({
           className="rounded-t-3xl bg-[#161618] px-5 pt-4"
           style={{ paddingBottom: insets.bottom + 16 }}
         >
-          <View className="mb-4 flex-row items-center justify-between">
-            <Text className="text-lg font-semibold text-white">{title}</Text>
+          <View className="mb-4 flex-row items-center justify-between gap-3">
+            <Text className="shrink text-lg font-semibold text-white">
+              {title}
+            </Text>
             <Pressable
               className="min-h-11 min-w-11 items-center justify-center"
               onPress={onClose}
@@ -97,7 +108,13 @@ export function BottomSheet({
               </Text>
             </Pressable>
           </View>
-          {children}
+          {/* Scrolls when large text makes the content taller than the screen. */}
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            style={{ maxHeight: windowHeight * 0.75 - insets.top }}
+          >
+            {children}
+          </ScrollView>
         </Animated.View>
       </Animated.View>
     </Modal>

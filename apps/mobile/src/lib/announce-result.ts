@@ -28,13 +28,19 @@ export interface AnnounceDecision {
  * settled text is real and differs from what was last settled. An invalid
  * state (null) is remembered, so recovering to the same result as before the
  * invalid state is announced again: the user lost it and should hear it return.
+ *
+ * While the screen is not focused (tabs stay mounted behind the visible one)
+ * nothing is spoken and the current text becomes the baseline, so a change
+ * made elsewhere, such as flipping units in Settings, is not announced on top
+ * of the visible screen and not replayed when the user comes back.
  */
 export function resolveAnnouncement(
   lastSettled: string | null,
-  next: string | null | undefined
+  next: string | null | undefined,
+  focused = true
 ): AnnounceDecision {
   const settled = normalizeAnnouncement(next);
-  if (settled === null || settled === lastSettled) {
+  if (!focused || settled === null || settled === lastSettled) {
     return { speak: null, settled };
   }
   return { speak: settled, settled };
@@ -60,9 +66,15 @@ export function speakFocalLength(formatted: string): string {
   );
 }
 
-/** Exposure (stops): "New time 14.2 seconds". */
-export function exposureAnnouncement(formattedTime: string): string {
-  return `New time ${speakExposureTime(formattedTime)}`;
+const isFiniteNumber = (n: number) => Number.isFinite(n);
+
+/** Exposure (stops): "New time 14.2 seconds". Null unless the time is finite. */
+export function exposureAnnouncement(
+  seconds: number,
+  format: (seconds: number) => string
+): string | null {
+  if (!isFiniteNumber(seconds)) return null;
+  return `New time ${speakExposureTime(format(seconds))}`;
 }
 
 /** Resize: the hook's newTime is a one-decimal seconds string, or empty. */
@@ -72,17 +84,65 @@ export function resizeAnnouncement(newTimeSeconds: string): string | null {
   return `New time ${speakExposureTime(`${seconds}s`)}`;
 }
 
-/** Reciprocity: "Adjusted exposure 2 minutes 5 seconds". */
-export function reciprocityAnnouncement(formattedTime: string): string {
-  return `Adjusted exposure ${speakExposureTime(formattedTime)}`;
+/** Reciprocity: "Adjusted exposure 2 minutes 5 seconds". Null unless finite. */
+export function reciprocityAnnouncement(
+  seconds: number,
+  format: (seconds: number) => string
+): string | null {
+  if (!isFiniteNumber(seconds)) return null;
+  return `Adjusted exposure ${speakExposureTime(format(seconds))}`;
 }
 
-/** Lens: "Equivalent focal length 75 millimeters on Full frame". */
+/** Lens: "Equivalent focal length 75 millimeters on Full frame". Null unless finite. */
 export function lensAnnouncement(
-  formattedFocalLength: string,
+  focalLength: number,
+  format: (focalLength: number) => string,
   targetLabel: string
-): string {
-  return `Equivalent focal length ${speakFocalLength(formattedFocalLength)} on ${targetLabel}`;
+): string | null {
+  if (!isFiniteNumber(focalLength)) return null;
+  return `Equivalent focal length ${speakFocalLength(format(focalLength))} on ${targetLabel}`;
+}
+
+const FRACTION_WORDS = new Map<number, [string, string]>([
+  [2, ['half', 'halves']],
+  [4, ['quarter', 'quarters']],
+  [8, ['eighth', 'eighths']],
+  [16, ['sixteenth', 'sixteenths']],
+]);
+const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five'];
+
+function speakFraction(numerator: number, denominator: number): string {
+  const words = FRACTION_WORDS.get(denominator);
+  if (!words) return `${numerator} over ${denominator}`;
+  const count = NUMBER_WORDS[numerator] ?? String(numerator);
+  return `${count} ${numerator === 1 ? words[0] : words[1]}`;
+}
+
+const MEASURE = /^(\d+(?:\.\d+)?)?(?:\s*(\d+)\/(\d+))?\s*("|cm)$/;
+
+/**
+ * Turns a displayed length into words VoiceOver reads cleanly: `8 3/4"`
+ * becomes "8 and three quarters inches" (a bare 3/4 can be read as a date),
+ * `17.8cm` becomes "17.8 centimeters". Text that is not a length is returned
+ * unchanged.
+ */
+export function speakLength(formatted: string): string {
+  const match = MEASURE.exec(formatted.trim());
+  if (!match) return formatted;
+  const [, whole, numer, denom, unit] = match;
+  if (whole === undefined && numer === undefined) return formatted;
+  const inches = unit === '"';
+  if (numer !== undefined && denom !== undefined) {
+    const fraction = speakFraction(Number(numer), Number(denom));
+    if (whole === undefined) {
+      return inches ? `${fraction} of an inch` : `${fraction} of a centimeter`;
+    }
+    return `${whole} and ${fraction} ${inches ? 'inches' : 'centimeters'}`;
+  }
+  const amount = whole ?? '0';
+  const one = Number(amount) === 1;
+  if (inches) return `${amount} ${one ? 'inch' : 'inches'}`;
+  return `${amount} ${one ? 'centimeter' : 'centimeters'}`;
 }
 
 /** Mat: null while the layout is invalid, so the placeholder is never spoken. */
@@ -92,12 +152,19 @@ export function matAnnouncement(
   formattedHeight: string
 ): string | null {
   if (!valid) return null;
-  return `Window opening ${formattedWidth} by ${formattedHeight}`;
+  return `Window opening ${speakLength(formattedWidth)} by ${speakLength(formattedHeight)}`;
 }
 
-/** Border: reads the preview caption, e.g. `7" × 9" image on 8×10`. */
-export function borderAnnouncement(caption: string): string {
-  return `Border layout, ${caption}`;
+/**
+ * Border: "Border layout, image 7 inches by 9 inches on 8 by 10 paper". Takes
+ * the displayed lengths (`7"`, `17.8cm`) and the paper's trade size (`8×10`).
+ */
+export function borderAnnouncement(
+  printWidth: string,
+  printHeight: string,
+  paperLabel: string
+): string {
+  return `Border layout, image ${speakLength(printWidth)} by ${speakLength(printHeight)} on ${paperLabel.replace('×', ' by ')} paper`;
 }
 
 /** Camera exposure: "Exposure value 12". */

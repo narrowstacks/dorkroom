@@ -11,6 +11,7 @@ import {
   resolveAnnouncement,
   speakExposureTime,
   speakFocalLength,
+  speakLength,
 } from './announce-result';
 
 describe('normalizeAnnouncement', () => {
@@ -81,9 +82,57 @@ describe('speakFocalLength', () => {
   });
 });
 
+describe('resolveAnnouncement focus', () => {
+  it('is silent while unfocused and re-baselines to the current text', () => {
+    expect(resolveAnnouncement('a', 'b', false)).toEqual({
+      speak: null,
+      settled: 'b',
+    });
+  });
+
+  it('does not replay a change made while hidden once focus returns', () => {
+    const hidden = resolveAnnouncement('a', 'b', false);
+    expect(resolveAnnouncement(hidden.settled, 'b', true).speak).toBeNull();
+  });
+
+  it('speaks a change made after focus returns', () => {
+    const hidden = resolveAnnouncement('a', 'b', false);
+    expect(resolveAnnouncement(hidden.settled, 'c', true).speak).toBe('c');
+  });
+});
+
+describe('speakLength', () => {
+  it('reads fractions in words, not as a date', () => {
+    expect(speakLength('8 3/4"')).toBe('8 and three quarters inches');
+    expect(speakLength('3/4"')).toBe('three quarters of an inch');
+    expect(speakLength('1/2"')).toBe('one half of an inch');
+    expect(speakLength('3 1/2"')).toBe('3 and one half inches');
+    expect(speakLength('5/16"')).toBe('five sixteenths of an inch');
+  });
+
+  it('reads whole and decimal inches', () => {
+    expect(speakLength('1"')).toBe('1 inch');
+    expect(speakLength('10"')).toBe('10 inches');
+    expect(speakLength('7.25"')).toBe('7.25 inches');
+  });
+
+  it('reads centimeters', () => {
+    expect(speakLength('17.8cm')).toBe('17.8 centimeters');
+    expect(speakLength('1cm')).toBe('1 centimeter');
+  });
+
+  it('leaves anything else alone', () => {
+    expect(speakLength('· · ·')).toBe('· · ·');
+    expect(speakLength('')).toBe('');
+  });
+});
+
 describe('phrases', () => {
   it('exposure', () => {
-    expect(exposureAnnouncement('14.2s')).toBe('New time 14.2 seconds');
+    const fmt = (n: number) => `${n}s`;
+    expect(exposureAnnouncement(14.2, fmt)).toBe('New time 14.2 seconds');
+    expect(exposureAnnouncement(Infinity, fmt)).toBeNull();
+    expect(exposureAnnouncement(Number.NaN, fmt)).toBeNull();
   });
 
   it('resize', () => {
@@ -93,21 +142,25 @@ describe('phrases', () => {
   });
 
   it('reciprocity', () => {
-    expect(reciprocityAnnouncement('2m 5s')).toBe(
+    const fmt = () => '2m 5s';
+    expect(reciprocityAnnouncement(125, fmt)).toBe(
       'Adjusted exposure 2 minutes 5 seconds'
     );
+    expect(reciprocityAnnouncement(Infinity, fmt)).toBeNull();
   });
 
   it('lens', () => {
-    expect(lensAnnouncement('75mm', 'Full frame')).toBe(
+    const fmt = (n: number) => `${n}mm`;
+    expect(lensAnnouncement(75, fmt, 'Full frame')).toBe(
       'Equivalent focal length 75 millimeters on Full frame'
     );
+    expect(lensAnnouncement(Infinity, fmt, 'Full frame')).toBeNull();
   });
 
   it('mat is silent while invalid', () => {
     expect(matAnnouncement(false, '· · ·', '· · ·')).toBeNull();
     expect(matAnnouncement(true, '8 3/4"', '10 3/4"')).toBe(
-      'Window opening 8 3/4" by 10 3/4"'
+      'Window opening 8 and three quarters inches by 10 and three quarters inches'
     );
   });
 
@@ -116,8 +169,11 @@ describe('phrases', () => {
   });
 
   it('border', () => {
-    expect(borderAnnouncement('7" × 9" image on 8×10')).toBe(
-      'Border layout, 7" × 9" image on 8×10'
+    expect(borderAnnouncement('7"', '9"', '8×10')).toBe(
+      'Border layout, image 7 inches by 9 inches on 8 by 10 paper'
+    );
+    expect(borderAnnouncement('17.8cm', '22.9cm', '8×10')).toBe(
+      'Border layout, image 17.8 centimeters by 22.9 centimeters on 8 by 10 paper'
     );
   });
 });

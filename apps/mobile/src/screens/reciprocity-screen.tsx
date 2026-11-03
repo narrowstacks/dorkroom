@@ -35,7 +35,7 @@ export function ReciprocityScreen() {
 
   useAnnounceResult(
     calculation
-      ? reciprocityAnnouncement(formatTime(calculation.adjustedTime))
+      ? reciprocityAnnouncement(calculation.adjustedTime, formatTime)
       : null
   );
 

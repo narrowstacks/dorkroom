@@ -37,7 +37,7 @@ export function ExposureScreen() {
 
   useAnnounceResult(
     calculation
-      ? exposureAnnouncement(formatTime(calculation.newTimeValue))
+      ? exposureAnnouncement(calculation.newTimeValue, formatTime)
       : null
   );
 

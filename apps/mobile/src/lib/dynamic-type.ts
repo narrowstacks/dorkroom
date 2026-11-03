@@ -1,8 +1,9 @@
 /**
  * Font scale (the Dynamic Type multiplier from `useWindowDimensions`) at and
  * above which side-by-side layouts stop fitting and should stack. iOS "Large"
- * is 1.0 and the accessibility sizes start near 1.9; 1.5 sits between the
- * largest standard size (about 1.35) and the first accessibility size.
+ * is 1.0, the largest standard size (xxxLarge) is about 1.35, and the
+ * accessibility sizes start well above that (roughly 1.8 and up); 1.5 sits
+ * between the two groups.
  */
 export const LARGE_TEXT_SCALE = 1.5;
 
