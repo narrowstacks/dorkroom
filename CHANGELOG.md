@@ -9,6 +9,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Added
 
+- **The privacy page covers the iOS app.** A new section explains that the app has no analytics, that the light meter and camera never upload anything, that the film log and its photos stay on the phone, and what the per-install client ID is for. (refs #537)
 - **API client filters.** `fetchFilms`, `fetchDevelopers` and `fetchCombinations` in `@dorkroom/api` accept typed, optional query params (slug, brand, colour type, film, developer, page and so on) matching the API reference. Calls without params behave as before, and failures already throw `DorkroomApiError`. (fixes #254)
 - **Film photos credit their source.** A film's detail panel now shows who took the packaging photo and its licence, linked to where it came from.
 
