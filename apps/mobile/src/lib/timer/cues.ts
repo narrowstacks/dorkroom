@@ -22,6 +22,7 @@ export interface TimerCue {
 
 /**
  * Upcoming cues for a running `state`, soonest first, capped at `limit`.
+ * Every stage end fits within the cap before any agitation start does.
  * A paused, idle or completed timer has none. Agitation windows that start at
  * the very beginning of a stage are folded into the stage-boundary cue.
  */
@@ -68,12 +69,23 @@ export function upcomingCues(
     stageStartOffset += duration;
   }
 
-  return cues
-    .filter((cue) => cue.offsetSeconds > 0)
-    .sort(
-      (a, b) =>
-        a.offsetSeconds - b.offsetSeconds ||
-        (a.kind === b.kind ? 0 : a.kind === 'stage' ? -1 : 1)
-    )
-    .slice(0, Math.max(0, limit));
+  const bySoonest = (a: TimerCue, b: TimerCue) =>
+    a.offsetSeconds - b.offsetSeconds ||
+    (a.kind === b.kind ? 0 : a.kind === 'stage' ? -1 : 1);
+  const upcoming = cues.filter((cue) => cue.offsetSeconds > 0);
+  const cap = Math.max(0, limit);
+
+  // Stage ends (and completion) are the alerts that matter most, so they get
+  // their slots first; agitation starts fill whatever is left, soonest first.
+  // Otherwise a long stage with frequent agitation could push its own end
+  // past the cap.
+  const stages = upcoming
+    .filter((cue) => cue.kind === 'stage')
+    .sort(bySoonest)
+    .slice(0, cap);
+  const agitations = upcoming
+    .filter((cue) => cue.kind === 'agitate')
+    .sort(bySoonest)
+    .slice(0, cap - stages.length);
+  return [...stages, ...agitations].sort(bySoonest);
 }

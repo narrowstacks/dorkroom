@@ -80,4 +80,22 @@ describe('upcomingCues', () => {
       upcomingCues(started([stage('long', 36_000, ilford)]), 3)
     ).toHaveLength(3);
   });
+
+  it('keeps every stage end within the cap, ahead of agitation starts', () => {
+    const cues = upcomingCues(
+      started([stage('develop', 36_000, ilford), stage('stop', 30)]),
+      5
+    );
+    expect(cues).toHaveLength(5);
+    const stageEnds = cues.filter((cue) => cue.kind === 'stage');
+    expect(stageEnds.map((cue) => cue.offsetSeconds)).toEqual([36_000, 36_030]);
+    // Still soonest first overall: the agitation starts come before the ends.
+    expect(cues.map((cue) => cue.kind)).toEqual([
+      'agitate',
+      'agitate',
+      'agitate',
+      'stage',
+      'stage',
+    ]);
+  });
 });
