@@ -33,6 +33,12 @@ interface BottomSheetProps {
    * "Cancel" here, since the header action only discards — it never saves.
    */
   dismissLabel?: string;
+  /**
+   * Wrap the body in a ScrollView so tall content (large accessibility text)
+   * scrolls. Pass false when the body already owns a FlatList, SectionList or
+   * ScrollView, so lists aren't nested inside a scroller of the same direction.
+   */
+  scrollable?: boolean;
 }
 
 // Scrim fade and panel slide share this duration so they ramp up in lockstep —
@@ -54,6 +60,7 @@ export function BottomSheet({
   children,
   showScrim = true,
   dismissLabel = 'Done',
+  scrollable = true,
 }: BottomSheetProps) {
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -109,12 +116,16 @@ export function BottomSheet({
             </Pressable>
           </View>
           {/* Scrolls when large text makes the content taller than the screen. */}
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
-            style={{ maxHeight: windowHeight * 0.75 - insets.top }}
-          >
-            {children}
-          </ScrollView>
+          {scrollable ? (
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              style={{ maxHeight: windowHeight * 0.75 - insets.top }}
+            >
+              {children}
+            </ScrollView>
+          ) : (
+            children
+          )}
         </Animated.View>
       </Animated.View>
     </Modal>

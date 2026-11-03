@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import {
   ANNOUNCE_DEBOUNCE_MS,
+  ANNOUNCE_SETTLE_MS,
   normalizeAnnouncement,
   resolveAnnouncement,
 } from '@/lib/announce-result';
@@ -13,6 +14,10 @@ import {
  * records a baseline (opening a screen is not a change); and the same text is
  * never spoken twice in a row. Pass null or an empty string while the inputs
  * are invalid and nothing is spoken.
+ *
+ * Persisted calculators restore saved inputs in an effect after the first
+ * render, so changes within ANNOUNCE_SETTLE_MS of mounting re-baseline
+ * silently: opening a screen with saved values is not a change either.
  *
  * Tabs stay mounted once visited, so a hidden screen whose text changes (a
  * unit flipped in Settings) stays silent and re-baselines instead of talking
@@ -26,10 +31,12 @@ export function useAnnounceResult(
   // Mutable holder, created once from the first render's text (the baseline).
   const [memory] = useState(() => ({
     settled: normalizeAnnouncement(text),
+    mountedAt: Date.now(),
   }));
 
   useEffect(() => {
-    if (!focused) {
+    const settling = Date.now() - memory.mountedAt < ANNOUNCE_SETTLE_MS;
+    if (!focused || settling) {
       memory.settled = resolveAnnouncement(memory.settled, text, false).settled;
       return;
     }

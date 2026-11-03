@@ -25,6 +25,7 @@ export function ReciprocityScreen() {
     customFactor,
     setCustomFactor,
     timeFormatError,
+    formattedTime,
     calculation,
     formatTime,
     exposurePresets,
@@ -33,8 +34,10 @@ export function ReciprocityScreen() {
 
   const films = filmTypes.map((f) => ({ label: f.label, value: f.value }));
 
+  // `calculation` falls back to the last valid result while the metered time
+  // is empty or unparseable; `formattedTime` is null then, so stay silent.
   useAnnounceResult(
-    calculation
+    calculation && formattedTime !== null
       ? reciprocityAnnouncement(calculation.adjustedTime, formatTime)
       : null
   );

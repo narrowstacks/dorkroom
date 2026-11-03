@@ -8,6 +8,13 @@
 /** Quiet period before a changed result is spoken, so typing a number does not spam. */
 export const ANNOUNCE_DEBOUNCE_MS = 700;
 
+/**
+ * Window after a screen mounts in which result changes are restored state
+ * (persisted inputs hydrate in an effect after the first render), not edits.
+ * Too short for a person to have changed an input.
+ */
+export const ANNOUNCE_SETTLE_MS = 400;
+
 /** Trims a candidate phrase; empty or missing text means "nothing to say". */
 export function normalizeAnnouncement(
   text: string | null | undefined
@@ -118,7 +125,11 @@ function speakFraction(numerator: number, denominator: number): string {
   return `${count} ${numerator === 1 ? words[0] : words[1]}`;
 }
 
-const MEASURE = /^(\d+(?:\.\d+)?)?(?:\s*(\d+)\/(\d+))?\s*("|cm)$/;
+// A whole number, a whole number and a fraction separated by whitespace, or a
+// bare fraction. The separator is required, so `11/16"` is a fraction and not
+// 1 and 1/16.
+const MEASURE =
+  /^(?:(\d+(?:\.\d+)?)(?:\s+(\d+)\/(\d+))?|(\d+)\/(\d+))\s*("|cm)$/;
 
 /**
  * Turns a displayed length into words VoiceOver reads cleanly: `8 3/4"`
@@ -129,8 +140,9 @@ const MEASURE = /^(\d+(?:\.\d+)?)?(?:\s*(\d+)\/(\d+))?\s*("|cm)$/;
 export function speakLength(formatted: string): string {
   const match = MEASURE.exec(formatted.trim());
   if (!match) return formatted;
-  const [, whole, numer, denom, unit] = match;
-  if (whole === undefined && numer === undefined) return formatted;
+  const [, whole, mixedNumer, mixedDenom, bareNumer, bareDenom, unit] = match;
+  const numer = mixedNumer ?? bareNumer;
+  const denom = mixedDenom ?? bareDenom;
   const inches = unit === '"';
   if (numer !== undefined && denom !== undefined) {
     const fraction = speakFraction(Number(numer), Number(denom));

@@ -76,6 +76,7 @@ export function FilmPicker({ films, value, onChange }: FilmPickerProps) {
         <Text className="text-white/70">▾</Text>
       </Pressable>
       <BottomSheet
+        scrollable={false}
         visible={open}
         title="Select film"
         onClose={() => setOpen(false)}

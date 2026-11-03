@@ -110,6 +110,12 @@ describe('speakLength', () => {
     expect(speakLength('5/16"')).toBe('five sixteenths of an inch');
   });
 
+  it('reads a multi-digit bare fraction as one fraction', () => {
+    expect(speakLength('11/16"')).toBe('11 sixteenths of an inch');
+    expect(speakLength('15/16"')).toBe('15 sixteenths of an inch');
+    expect(speakLength('8 11/16"')).toBe('8 and 11 sixteenths inches');
+  });
+
   it('reads whole and decimal inches', () => {
     expect(speakLength('1"')).toBe('1 inch');
     expect(speakLength('10"')).toBe('10 inches');
