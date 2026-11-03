@@ -36,7 +36,7 @@ import {
   updateRoll,
   updateShot,
 } from './film-log-storage';
-import { getQuarantined } from './stored-collection';
+import { getQuarantined, markReadOnly } from './stored-collection';
 
 function newRoll() {
   return addRoll({
@@ -371,5 +371,47 @@ describe('film-log storage', () => {
     });
     expect((await getInfoAsync(photoUri('old.jpg'))).exists).toBe(false);
     expect((await getInfoAsync(photoUri('new.jpg'))).exists).toBe(true);
+  });
+});
+
+// Both tests leave the store read-only, which cannot be undone, so this
+// block stays last in the file.
+describe('film log schema version', () => {
+  it('keeps photo files when the film log is read-only', async () => {
+    storage.clearAll();
+    const shot = await shotWithPhoto('kept.jpg');
+    markReadOnly(storage);
+    setShotPhoto(shot.rollId, shot.shotId, {
+      fileName: 'other.jpg',
+      width: 1,
+      height: 1,
+      capturedAt: 'x',
+      source: 'library',
+    });
+    removeShot(shot.rollId, shot.shotId);
+    deleteRoll(shot.rollId);
+    expect((await getInfoAsync(photoUri('kept.jpg'))).exists).toBe(true);
+    expect(getRolls()[0]?.shots[0]?.photo?.fileName).toBe('kept.jpg');
+  });
+
+  it('stamps unversioned data and a future version blocks writes', async () => {
+    const { openVersionedStore, SCHEMA_VERSION_KEY } =
+      await import('./schema-version');
+    const { filmRollSchema } = await import('@/schemas/film-log.schema');
+    storage.clearAll();
+    storage.set(KEYS.rolls, '[]');
+    expect(
+      openVersionedStore(storage, [{ key: KEYS.rolls, schema: filmRollSchema }])
+        .state
+    ).toBe('migrated');
+    expect(storage.getString(SCHEMA_VERSION_KEY)).toBe('1');
+
+    storage.set(SCHEMA_VERSION_KEY, '99');
+    const raw = JSON.stringify([{ id: 'future' }]);
+    storage.set(KEYS.rolls, raw);
+    openVersionedStore(storage, [{ key: KEYS.rolls, schema: filmRollSchema }]);
+    newRoll();
+    expect(storage.getString(KEYS.rolls)).toBe(raw);
+    expect(storage.getString(SCHEMA_VERSION_KEY)).toBe('99');
   });
 });

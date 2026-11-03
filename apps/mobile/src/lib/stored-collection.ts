@@ -9,6 +9,11 @@
 // strings. A write therefore never destroys data it could not read.
 import { z } from 'zod';
 
+/** Any value `JSON.parse` can produce: the shape of a stored record before it
+ * is validated. */
+export type JsonValue =
+  string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+
 const quarantineSchema = z.array(z.string());
 
 /** The subset of an MMKV instance this module uses. */
@@ -71,21 +76,74 @@ export function getQuarantined(store: StringStore, key: string): string[] {
   return readQuarantine(store.getString(quarantineKey(key)));
 }
 
+function quarantine(store: StringStore, key: string, invalid: string[]): void {
+  if (invalid.length === 0) return;
+  const existing = getQuarantined(store, key);
+  const merged = [...new Set([...existing, ...invalid])];
+  if (merged.length > existing.length) {
+    store.set(quarantineKey(key), JSON.stringify(merged));
+  }
+}
+
+// Stores whose on-device data was written by a newer app version (see
+// lib/schema-version.ts). Nothing may be written to them: this build cannot
+// know what a newer format needs, and a write would replace it.
+const readOnlyStores = new WeakSet<StringStore>();
+
+/** Refuse every later `writeCollection` and `migrateCollection` on `store`. */
+export function markReadOnly(store: StringStore): void {
+  readOnlyStores.add(store);
+}
+
+export const isReadOnly = (store: StringStore): boolean =>
+  readOnlyStores.has(store);
+
 /** Replace the records under `key`, first quarantining anything stored there
- * that does not decode. */
+ * that does not decode. A no-op on a read-only store. */
 export function writeCollection<T>(
   store: StringStore,
   key: string,
   schema: z.ZodType<T>,
   items: T[]
 ): void {
-  const { invalid } = decode(store.getString(key), schema);
-  if (invalid.length > 0) {
-    const existing = getQuarantined(store, key);
-    const merged = [...new Set([...existing, ...invalid])];
-    if (merged.length > existing.length) {
-      store.set(quarantineKey(key), JSON.stringify(merged));
-    }
-  }
+  if (readOnlyStores.has(store)) return;
+  quarantine(store, key, decode(store.getString(key), schema).invalid);
   store.set(key, JSON.stringify(items));
+}
+
+/** Run `migrate` over every stored record and write back those that then pass
+ * `schema`. A record that still fails is quarantined as it was stored, before
+ * migration, so nothing is lost. A value that is not a JSON array is left for
+ * the next `writeCollection` to quarantine. */
+export function migrateCollection<T>(
+  store: StringStore,
+  key: string,
+  schema: z.ZodType<T>,
+  migrate: (item: JsonValue) => JsonValue
+): void {
+  if (readOnlyStores.has(store)) return;
+  const raw = store.getString(key);
+  if (!raw) return;
+  let json: JsonValue;
+  try {
+    json = JSON.parse(raw);
+  } catch {
+    return;
+  }
+  if (!Array.isArray(json)) return;
+  const valid: T[] = [];
+  const invalid: string[] = [];
+  for (const item of json) {
+    let result: z.ZodSafeParseResult<T>;
+    try {
+      result = schema.safeParse(migrate(item));
+    } catch {
+      invalid.push(JSON.stringify(item));
+      continue;
+    }
+    if (result.success) valid.push(result.data);
+    else invalid.push(JSON.stringify(item));
+  }
+  quarantine(store, key, invalid);
+  store.set(key, JSON.stringify(valid));
 }
