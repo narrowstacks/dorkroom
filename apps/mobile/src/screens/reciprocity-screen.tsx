@@ -12,6 +12,8 @@ import { ResultStat } from '@/components/result-stat';
 import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
 import { ShareButton } from '@/components/share-button';
+import { useAnnounceResult } from '@/hooks/use-announce-result';
+import { reciprocityAnnouncement } from '@/lib/announce-result';
 import { buildReciprocityShare } from '@/lib/share-text';
 
 export function ReciprocityScreen() {
@@ -30,6 +32,12 @@ export function ReciprocityScreen() {
   } = useReciprocityCalculator();
 
   const films = filmTypes.map((f) => ({ label: f.label, value: f.value }));
+
+  useAnnounceResult(
+    calculation
+      ? reciprocityAnnouncement(formatTime(calculation.adjustedTime))
+      : null
+  );
 
   return (
     <Screen>

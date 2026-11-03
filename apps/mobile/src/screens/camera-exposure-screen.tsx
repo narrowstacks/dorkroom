@@ -21,6 +21,8 @@ import { SectionLabel } from '@/components/section-label';
 import { SegmentedControl } from '@/components/segmented-control';
 import { ShareButton } from '@/components/share-button';
 import { WarningsCard } from '@/components/warnings-card';
+import { useAnnounceResult } from '@/hooks/use-announce-result';
+import { cameraExposureAnnouncement } from '@/lib/announce-result';
 import { buildCameraExposureShare } from '@/lib/share-text';
 
 const SOLVE_FOR_LABEL = 'When selecting a preset, adjust';
@@ -60,6 +62,13 @@ export function CameraExposureScreen() {
       });
     }
   }, [presetTaps, warning]);
+
+  // A preset warning is announced above; do not talk over it with the EV.
+  useAnnounceResult(
+    exposureValue.isValid && !warning
+      ? cameraExposureAnnouncement(exposureValue.ev)
+      : null
+  );
 
   const settings = formatSettings(
     values.aperture,

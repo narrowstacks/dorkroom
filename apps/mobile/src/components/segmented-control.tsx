@@ -1,5 +1,6 @@
 import * as Haptics from 'expo-haptics';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, useWindowDimensions, View } from 'react-native';
+import { isLargeTextScale } from '@/lib/dynamic-type';
 import { type AccentColor, selectionTint } from '@/theme/accents';
 
 interface SegmentedControlProps<T extends string | number | boolean> {
@@ -25,8 +26,10 @@ export function SegmentedControl<T extends string | number | boolean>({
   accessibilityLabel,
 }: SegmentedControlProps<T>) {
   const tint = accent ? selectionTint(accent) : null;
+  // Segments stack at large text sizes, where side by side would break words.
+  const stacked = isLargeTextScale(useWindowDimensions().fontScale);
   return (
-    <View className="flex-row rounded-xl bg-white/10 p-1">
+    <View className={`rounded-xl bg-white/10 p-1 ${stacked ? '' : 'flex-row'}`}>
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -46,7 +49,7 @@ export function SegmentedControl<T extends string | number | boolean>({
             }
             accessibilityState={{ selected }}
             accessibilityHint={accessibilityHint}
-            className={`flex-1 items-center rounded-lg py-2 ${
+            className={`items-center rounded-lg py-2 ${stacked ? 'min-h-11 justify-center' : 'flex-1'} ${
               selected && !tint ? 'bg-rose-600' : ''
             }`}
             style={

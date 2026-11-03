@@ -17,6 +17,8 @@ import { OuterMatSection } from '@/components/mat/outer-mat-section';
 import { NavRow } from '@/components/nav-row';
 import { Screen } from '@/components/screen';
 import { WarningsCard } from '@/components/warnings-card';
+import { useAnnounceResult } from '@/hooks/use-announce-result';
+import { matAnnouncement } from '@/lib/announce-result';
 
 type SheetId = 'outer' | 'borders' | 'artwork' | null;
 
@@ -25,6 +27,10 @@ export function MatScreen() {
   const [sheet, setSheet] = useState<SheetId>(null);
   const closeSheet = () => setSheet(null);
   const warnings = buildMatWarnings(calc);
+
+  useAnnounceResult(
+    matAnnouncement(calc.valid, calc.fmt(calc.windowW), calc.fmt(calc.windowH))
+  );
 
   const resetToDefaults = () => {
     calc.set('outerW', MAT_CALCULATOR_DEFAULTS.outerW);

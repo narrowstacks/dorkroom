@@ -10,6 +10,7 @@ import { GlassCard } from '@/components/glass-card';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import { AspectPreview } from '@/components/resize/aspect-preview';
 import { convertResizeLengths } from '@/components/resize/units';
+import { ResponsiveRow } from '@/components/responsive-row';
 import { ResultCard } from '@/components/result-card';
 import { ResultRow } from '@/components/result-row';
 import { ResultStat } from '@/components/result-stat';
@@ -17,7 +18,9 @@ import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
 import { SegmentedControl } from '@/components/segmented-control';
 import { ShareButton } from '@/components/share-button';
+import { useAnnounceResult } from '@/hooks/use-announce-result';
 import { useMeasurementUnit } from '@/hooks/use-measurement-unit';
+import { resizeAnnouncement } from '@/lib/announce-result';
 import { buildResizeShare } from '@/lib/share-text';
 
 const num = (s: string) => parseDecimalInput(s) || 0;
@@ -85,6 +88,8 @@ export function ResizeScreen() {
     return diff > 0 ? 'larger — add exposure' : 'smaller — remove exposure';
   })();
 
+  useAnnounceResult(resizeAnnouncement(newTime));
+
   return (
     <Screen>
       <GlassCard className="gap-4">
@@ -112,62 +117,50 @@ export function ResizeScreen() {
         </View>
 
         {isEnlargerHeightMode ? (
-          <View className="flex-row gap-3">
-            <View className="flex-1">
-              <LabeledTextField
-                label={`Orig. height (${unit})`}
-                value={originalHeight}
-                onChangeText={setOriginalHeight}
-                keyboardType="decimal-pad"
-              />
-            </View>
-            <View className="flex-1">
-              <LabeledTextField
-                label={`New height (${unit})`}
-                value={newHeight}
-                onChangeText={setNewHeight}
-                keyboardType="decimal-pad"
-              />
-            </View>
-          </View>
+          <ResponsiveRow>
+            <LabeledTextField
+              label={`Orig. height (${unit})`}
+              value={originalHeight}
+              onChangeText={setOriginalHeight}
+              keyboardType="decimal-pad"
+            />
+            <LabeledTextField
+              label={`New height (${unit})`}
+              value={newHeight}
+              onChangeText={setNewHeight}
+              keyboardType="decimal-pad"
+            />
+          </ResponsiveRow>
         ) : (
           <>
-            <View className="flex-row gap-3">
-              <View className="flex-1">
-                <LabeledTextField
-                  label={`Orig. width (${unit})`}
-                  value={originalWidth}
-                  onChangeText={setOriginalWidth}
-                  keyboardType="decimal-pad"
-                />
-              </View>
-              <View className="flex-1">
-                <LabeledTextField
-                  label={`Orig. length (${unit})`}
-                  value={originalLength}
-                  onChangeText={setOriginalLength}
-                  keyboardType="decimal-pad"
-                />
-              </View>
-            </View>
-            <View className="flex-row gap-3">
-              <View className="flex-1">
-                <LabeledTextField
-                  label={`New width (${unit})`}
-                  value={newWidth}
-                  onChangeText={setNewWidth}
-                  keyboardType="decimal-pad"
-                />
-              </View>
-              <View className="flex-1">
-                <LabeledTextField
-                  label={`New length (${unit})`}
-                  value={newLength}
-                  onChangeText={setNewLength}
-                  keyboardType="decimal-pad"
-                />
-              </View>
-            </View>
+            <ResponsiveRow>
+              <LabeledTextField
+                label={`Orig. width (${unit})`}
+                value={originalWidth}
+                onChangeText={setOriginalWidth}
+                keyboardType="decimal-pad"
+              />
+              <LabeledTextField
+                label={`Orig. length (${unit})`}
+                value={originalLength}
+                onChangeText={setOriginalLength}
+                keyboardType="decimal-pad"
+              />
+            </ResponsiveRow>
+            <ResponsiveRow>
+              <LabeledTextField
+                label={`New width (${unit})`}
+                value={newWidth}
+                onChangeText={setNewWidth}
+                keyboardType="decimal-pad"
+              />
+              <LabeledTextField
+                label={`New length (${unit})`}
+                value={newLength}
+                onChangeText={setNewLength}
+                keyboardType="decimal-pad"
+              />
+            </ResponsiveRow>
             <AspectPreview
               origW={num(originalWidth)}
               origL={num(originalLength)}

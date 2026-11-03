@@ -116,6 +116,7 @@ function StatBody({
   return (
     <View style={[styles.statCell, style, hardLocked && styles.statCellLocked]}>
       <Text
+        maxFontSizeMultiplier={READOUT_TEXT_SCALE}
         style={[MONO, SHADOW, styles.caption]}
         className="uppercase text-white/55"
       >
@@ -124,6 +125,7 @@ function StatBody({
       <View style={styles.valueLine}>
         <Text
           numberOfLines={1}
+          maxFontSizeMultiplier={READOUT_VALUE_SCALE}
           adjustsFontSizeToFit
           minimumFontScale={0.72}
           style={[MONO, SHADOW, styles.value]}
@@ -135,6 +137,7 @@ function StatBody({
         </Text>
       </View>
       <Text
+        maxFontSizeMultiplier={READOUT_TEXT_SCALE}
         style={[MONO, SHADOW, styles.errorText, !error && styles.hiddenText]}
         className={error?.tone ?? 'text-white/45'}
       >
@@ -156,6 +159,7 @@ function StatBody({
       ) : null}
       {draggable && !disabled ? (
         <Text
+          maxFontSizeMultiplier={READOUT_TEXT_SCALE}
           style={[MONO, SHADOW, styles.dragHint, styles.affordance]}
           className="text-white/45"
         >
@@ -417,6 +421,7 @@ export function MeterReadout({
     <View style={{ gap: 8 }}>
       {priorityLabel ? (
         <Text
+          maxFontSizeMultiplier={READOUT_TEXT_SCALE}
           style={[MONO, SHADOW, styles.priorityLabel]}
           className="uppercase text-white/55"
         >
@@ -462,6 +467,16 @@ export function MeterReadout({
     </View>
   );
 }
+
+/**
+ * Dynamic Type caps for the viewfinder HUD. The readout sits over the live
+ * camera in a fixed three-cell row, so it cannot reflow or scroll; letting the
+ * digits grow with the system size would clip them (1/4000 at AX5 is wider
+ * than its cell). The cap keeps them legible and the Large Content Viewer
+ * still serves larger sizes on long-press.
+ */
+const READOUT_VALUE_SCALE = 1.2;
+const READOUT_TEXT_SCALE = 1.3;
 
 const styles = StyleSheet.create({
   row: {

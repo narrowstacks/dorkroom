@@ -1,9 +1,10 @@
 import { useCallback, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, useWindowDimensions, View } from 'react-native';
 import {
   OptionPickerSheet,
   type PickerOption,
 } from '@/components/development/option-picker-sheet';
+import { isLargeTextScale } from '@/lib/dynamic-type';
 
 interface PickerFieldProps<T extends string | number> {
   /** Field name, shown above the trigger and used as the sheet title. */
@@ -28,6 +29,8 @@ export function PickerField<T extends string | number>({
   placeholder = 'Select',
 }: PickerFieldProps<T>) {
   const [open, setOpen] = useState(false);
+  // Let the selection wrap at large text sizes instead of truncating it.
+  const wrapLines = isLargeTextScale(useWindowDimensions().fontScale);
   const selected = options.find((option) => option.value === value);
   const close = useCallback(() => setOpen(false), []);
   const handleChange = useCallback(
@@ -49,11 +52,17 @@ export function PickerField<T extends string | number>({
         className="min-h-11 flex-row items-center justify-between gap-3 rounded-xl bg-white/10 px-4 py-3"
       >
         <View className="flex-1">
-          <Text className="text-base text-white" numberOfLines={1}>
+          <Text
+            className="text-base text-white"
+            numberOfLines={wrapLines ? undefined : 1}
+          >
             {selected?.label ?? placeholder}
           </Text>
           {selected?.sublabel ? (
-            <Text className="text-sm text-white/50" numberOfLines={1}>
+            <Text
+              className="text-sm text-white/50"
+              numberOfLines={wrapLines ? undefined : 1}
+            >
               {selected.sublabel}
             </Text>
           ) : null}
