@@ -73,24 +73,26 @@ export function TimerRunEffects() {
       void cancelCueAlerts();
       return;
     }
+    // Catch the store up and adopt the result as the cue baseline. Stage ends
+    // and agitation starts that pass while the app is not in front are
+    // announced by notifications (or not at all while merely inactive), so
+    // they must never replay as late beeps once it is.
+    const adoptBaseline = () => {
+      timerStore.sync();
+      const { timer: now } = timerStore.getSnapshot();
+      prevStageRef.current = now.currentStageIndex;
+      prevStatusRef.current = now.status;
+      prevAgitationStageRef.current = now.currentStageIndex;
+      prevAgitatingRef.current = isAgitating(now);
+      return now;
+    };
     const subscription = AppState.addEventListener('change', (next) => {
+      const now = adoptBaseline();
       if (next === 'active') {
         void cancelCueAlerts();
-        // JS was suspended, so the stage ends and agitation starts that passed
-        // meanwhile were already announced by notifications. Catch the store
-        // up and adopt the result as the cue baseline, so returning to the app
-        // doesn't replay them as late beeps.
-        timerStore.sync();
-        const { timer: now } = timerStore.getSnapshot();
-        prevStageRef.current = now.currentStageIndex;
-        prevStatusRef.current = now.status;
-        prevAgitationStageRef.current = now.currentStageIndex;
-        prevAgitatingRef.current = isAgitating(now);
         return;
       }
-      timerStore.sync();
-      const { timer: current } = timerStore.getSnapshot();
-      void scheduleCueAlerts(upcomingCues(current), Date.now());
+      void scheduleCueAlerts(upcomingCues(now), Date.now());
     });
     return () => subscription.remove();
   }, [status]);
@@ -103,6 +105,9 @@ export function TimerRunEffects() {
       status === 'completed' && prevStatusRef.current !== 'completed';
     prevStageRef.current = currentStageIndex;
     prevStatusRef.current = status;
+
+    // Out of the foreground the cue is the notification's job.
+    if (AppState.currentState !== 'active') return;
 
     if (justCompleted) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -132,6 +137,11 @@ export function TimerRunEffects() {
     const { agitating } = agitationStateAt(windows, elapsed);
 
     if (stageChanged) {
+      prevAgitatingRef.current = agitating;
+      return;
+    }
+
+    if (AppState.currentState !== 'active') {
       prevAgitatingRef.current = agitating;
       return;
     }
