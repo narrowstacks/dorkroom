@@ -7,6 +7,7 @@ import {
 import { View } from 'react-native';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import { PresetChipRow } from '@/components/preset-chip-row';
+import { ResponsiveRow } from '@/components/responsive-row';
 import { SectionLabel } from '@/components/section-label';
 import { FlipButton } from './flip-button';
 
@@ -24,31 +25,30 @@ export function OuterMatSection({ values, set }: OuterMatSectionProps) {
 
   return (
     <View className="gap-4">
-      <View className="flex-row items-end gap-3">
-        <View className="flex-1">
-          <LabeledTextField
-            label="Width (in)"
-            value={values.outerW}
-            onChangeText={(value) => set('outerW', value)}
-            keyboardType="default"
+      <ResponsiveRow
+        trailing={
+          <FlipButton
+            accessibilityLabel="Flip outer mat orientation"
+            onPress={() => {
+              set('outerW', values.outerH);
+              set('outerH', values.outerW);
+            }}
           />
-        </View>
-        <View className="flex-1">
-          <LabeledTextField
-            label="Height (in)"
-            value={values.outerH}
-            onChangeText={(value) => set('outerH', value)}
-            keyboardType="default"
-          />
-        </View>
-        <FlipButton
-          accessibilityLabel="Flip outer mat orientation"
-          onPress={() => {
-            set('outerW', values.outerH);
-            set('outerH', values.outerW);
-          }}
+        }
+      >
+        <LabeledTextField
+          label="Width (in)"
+          value={values.outerW}
+          onChangeText={(value) => set('outerW', value)}
+          keyboardType="default"
         />
-      </View>
+        <LabeledTextField
+          label="Height (in)"
+          value={values.outerH}
+          onChangeText={(value) => set('outerH', value)}
+          keyboardType="default"
+        />
+      </ResponsiveRow>
       <SectionLabel>Common sizes</SectionLabel>
       <PresetChipRow
         accent="cyan"

@@ -26,6 +26,8 @@ import { ResultStat } from '@/components/result-stat';
 import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
 import { ShareButton } from '@/components/share-button';
+import { useAnnounceResult } from '@/hooks/use-announce-result';
+import { lensAnnouncement } from '@/lib/announce-result';
 import { buildLensShare } from '@/lib/share-text';
 import { tokens } from '@/theme/tokens';
 
@@ -63,6 +65,16 @@ export function LensScreen() {
   const labels = calculation
     ? formatPairLabels(calculation.sourceFormat, calculation.targetFormat)
     : null;
+
+  useAnnounceResult(
+    calculation && labels
+      ? lensAnnouncement(
+          calculation.equivalentFocalLength,
+          formatFocalLength,
+          labels.target
+        )
+      : null
+  );
 
   const onSwap = () => {
     Haptics.selectionAsync();

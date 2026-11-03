@@ -17,6 +17,8 @@ import { OuterMatSection } from '@/components/mat/outer-mat-section';
 import { NavRow } from '@/components/nav-row';
 import { Screen } from '@/components/screen';
 import { WarningsCard } from '@/components/warnings-card';
+import { useAnnounceResult } from '@/hooks/use-announce-result';
+import { matAnnouncement } from '@/lib/announce-result';
 
 type SheetId = 'outer' | 'borders' | 'artwork' | null;
 
@@ -25,6 +27,10 @@ export function MatScreen() {
   const [sheet, setSheet] = useState<SheetId>(null);
   const closeSheet = () => setSheet(null);
   const warnings = buildMatWarnings(calc);
+
+  useAnnounceResult(
+    matAnnouncement(calc.valid, calc.fmt(calc.windowW), calc.fmt(calc.windowH))
+  );
 
   const resetToDefaults = () => {
     calc.set('outerW', MAT_CALCULATOR_DEFAULTS.outerW);
@@ -96,9 +102,11 @@ export function MatScreen() {
         onPress={resetToDefaults}
         accessibilityRole="button"
         accessibilityLabel="Reset mat calculator to defaults"
-        className="items-center rounded-full border border-white/15 py-3"
+        className="items-center rounded-3xl border border-white/15 px-4 py-3"
       >
-        <Text className="font-semibold text-rose-400">Reset to defaults</Text>
+        <Text className="text-center font-semibold text-rose-400">
+          Reset to defaults
+        </Text>
       </Pressable>
 
       <BottomSheet

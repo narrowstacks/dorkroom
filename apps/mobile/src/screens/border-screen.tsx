@@ -1,6 +1,6 @@
 import { useStandaloneBorderCalculator } from '@dorkroom/logic';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text } from 'react-native';
 import { BorderPreview } from '@/components/border/border-preview';
 import {
   formatLength,
@@ -13,9 +13,12 @@ import { PositionSection } from '@/components/border/sections/position-section';
 import { BottomSheet } from '@/components/bottom-sheet';
 import { GlassCard } from '@/components/glass-card';
 import { NavRow } from '@/components/nav-row';
+import { ResponsiveRow } from '@/components/responsive-row';
 import { Screen } from '@/components/screen';
 import { WarningsCard } from '@/components/warnings-card';
+import { useAnnounceResult } from '@/hooks/use-announce-result';
 import { useMeasurementUnit } from '@/hooks/use-measurement-unit';
+import { borderAnnouncement } from '@/lib/announce-result';
 
 type SheetId = 'paperImage' | 'borderSize' | 'position' | null;
 
@@ -33,7 +36,7 @@ function ToggleButton({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
-      className={`flex-1 items-center rounded-xl py-3 ${active ? 'bg-white/20' : 'bg-white/10'}`}
+      className={`min-h-11 items-center justify-center rounded-xl px-2 py-3 ${active ? 'bg-white/20' : 'bg-white/10'}`}
     >
       <Text className={active ? 'font-semibold text-white' : 'text-white/70'}>
         {label}
@@ -58,6 +61,14 @@ export function BorderScreen() {
     calc.paperSizeWarning,
     calc.offsetWarning,
   ].filter((w): w is string => Boolean(w));
+
+  useAnnounceResult(
+    borderAnnouncement(
+      formatLength(calculation.printWidth, unit),
+      formatLength(calculation.printHeight, unit),
+      paperLabel
+    )
+  );
 
   return (
     <Screen>
@@ -96,7 +107,7 @@ export function BorderScreen() {
           )}
           onPress={() => setSheet('position')}
         />
-        <View className="flex-row gap-3">
+        <ResponsiveRow>
           <ToggleButton
             label={calc.showBlades ? 'Hide blades' : 'Show blades'}
             active={calc.showBlades}
@@ -107,15 +118,17 @@ export function BorderScreen() {
             active={calc.showBladeReadings}
             onPress={() => calc.setShowBladeReadings(!calc.showBladeReadings)}
           />
-        </View>
+        </ResponsiveRow>
       </GlassCard>
 
       <Pressable
         onPress={calc.resetToDefaults}
         accessibilityRole="button"
-        className="items-center rounded-full border border-white/15 py-3"
+        className="items-center rounded-3xl border border-white/15 px-4 py-3"
       >
-        <Text className="font-semibold text-rose-400">Reset to defaults</Text>
+        <Text className="text-center font-semibold text-rose-400">
+          Reset to defaults
+        </Text>
       </Pressable>
 
       <BottomSheet

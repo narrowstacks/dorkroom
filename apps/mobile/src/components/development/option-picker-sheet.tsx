@@ -119,7 +119,12 @@ export function OptionPickerSheet<T extends string | number>({
   );
 
   return (
-    <BottomSheet visible={visible} title={title} onClose={onClose}>
+    <BottomSheet
+      scrollable={false}
+      visible={visible}
+      title={title}
+      onClose={onClose}
+    >
       {searchable ? (
         <View className="mb-3">
           <SearchBar

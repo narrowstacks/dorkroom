@@ -14,7 +14,7 @@ export function NavRow({ label, value, onPress }: NavRowProps) {
       accessibilityRole="button"
       className="flex-row items-center justify-between rounded-xl bg-white/10 px-4 py-3"
     >
-      <View className="gap-0.5">
+      <View className="flex-1 gap-0.5">
         <Text className="text-xs text-white/50">{label}</Text>
         <Text className="text-base font-semibold text-white">{value}</Text>
       </View>

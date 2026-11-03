@@ -11,6 +11,8 @@ import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
 import { ShareButton } from '@/components/share-button';
 import { Stepper } from '@/components/stepper';
+import { useAnnounceResult } from '@/hooks/use-announce-result';
+import { exposureAnnouncement } from '@/lib/announce-result';
 import { buildExposureShare } from '@/lib/share-text';
 
 const signed = (n: number) => `${n >= 0 ? '+' : ''}${n.toFixed(2)}`;
@@ -32,6 +34,12 @@ export function ExposureScreen() {
   const multiplier = calculation
     ? calculation.newTimeValue / calculation.originalTimeValue
     : 1;
+
+  useAnnounceResult(
+    calculation
+      ? exposureAnnouncement(calculation.newTimeValue, formatTime)
+      : null
+  );
 
   return (
     <Screen>

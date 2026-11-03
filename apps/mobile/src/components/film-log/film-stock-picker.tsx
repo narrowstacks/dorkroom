@@ -89,7 +89,12 @@ export function FilmStockPicker({
         <Text className="text-white/70">▾</Text>
       </Pressable>
 
-      <BottomSheet visible={open} title={label} onClose={close}>
+      <BottomSheet
+        scrollable={false}
+        visible={open}
+        title={label}
+        onClose={close}
+      >
         <View className="mb-3">
           <SearchBar
             value={query}

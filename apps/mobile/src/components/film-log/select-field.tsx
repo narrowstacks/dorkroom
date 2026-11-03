@@ -47,7 +47,12 @@ export function SelectField<T extends string | number>({
         <Text className="text-white/70">▾</Text>
       </Pressable>
 
-      <BottomSheet visible={open} title={label} onClose={() => setOpen(false)}>
+      <BottomSheet
+        scrollable={false}
+        visible={open}
+        title={label}
+        onClose={() => setOpen(false)}
+      >
         <ScrollView style={{ maxHeight: 360 }}>
           <View className="gap-1">
             {options.map((option) => {
