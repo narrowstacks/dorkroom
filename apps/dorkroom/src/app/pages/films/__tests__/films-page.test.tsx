@@ -984,6 +984,19 @@ describe('FilmsPage sort in the URL', () => {
     expect(cardOrder()[0]).toMatch(/^Store Brand/);
   });
 
+  it('restores the sort in the URL after navigating to plain /films', async () => {
+    const { router } = await renderSorted('/films?sort=iso');
+    await waitFor(() => expect(cardOrder()[0]).toMatch(/^Store Brand/));
+    await new Promise((resolve) => setTimeout(resolve, 700));
+
+    await act(() => router.navigate({ to: '/films', search: {} }));
+    await waitFor(
+      () => expect(urlSearch(router)).toMatchObject({ sort: 'iso' }),
+      URL_SYNC
+    );
+    expect(cardOrder()[0]).toMatch(/^Store Brand/);
+  });
+
   it('omits sort from the URL by default', async () => {
     const { router } = await renderSorted('/films?search=ilford');
     await waitFor(

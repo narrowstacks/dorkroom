@@ -141,6 +141,7 @@ export default function FilmsPage() {
     db,
     selectedFilm,
     urlFilmSlug,
+    urlSort: searchParams.sort,
     lastProcessedFilmSlug,
     navigate,
   });

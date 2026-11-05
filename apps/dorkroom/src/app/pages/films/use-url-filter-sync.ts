@@ -127,6 +127,8 @@ interface DebouncedUrlWriteInput {
   db: FilmDatabase;
   selectedFilm: Film | null;
   urlFilmSlug: string | undefined;
+  /** The URL's own sort, so a navigation that drops it re-triggers the write. */
+  urlSort: FilmSort | undefined;
   lastProcessedFilmSlug: RefObject<string | null>;
   navigate: ReturnType<typeof useNavigate>;
 }
@@ -136,6 +138,7 @@ export function useDebouncedUrlWrite({
   db,
   selectedFilm,
   urlFilmSlug,
+  urlSort,
   lastProcessedFilmSlug,
   navigate,
 }: DebouncedUrlWriteInput) {
@@ -182,6 +185,7 @@ export function useDebouncedUrlWrite({
     brandFilter,
     discontinuedFilter,
     sort,
+    urlSort,
     selectedFilm,
     urlFilmSlug,
     // The selection effect marks the slug processed in a ref (no render), so
