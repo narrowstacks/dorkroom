@@ -461,9 +461,9 @@ describe.each([
     await click(await findFilmRow('Brand 400'));
 
     const page = getFilmPage('Store Brand 400');
-    expect(
-      within(page).getByText('Repackaged Ilford HP5 Plus')
-    ).toBeInTheDocument();
+    expect(within(page).getByText(/^Repackaged/)).toHaveTextContent(
+      'Repackaged Ilford HP5 Plus'
+    );
     expect(
       within(page).queryByText('Repackaged Hp5 Plus')
     ).not.toBeInTheDocument();
@@ -523,9 +523,9 @@ describe.each([
     });
 
     const page = await waitFor(() => getFilmPage('Store Brand 400'));
-    expect(
-      within(page).getByText('Repackaged Ilford HP5 Plus')
-    ).toBeInTheDocument();
+    expect(within(page).getByText(/^Repackaged/)).toHaveTextContent(
+      'Repackaged Ilford HP5 Plus'
+    );
     expect(within(page).getByRole('heading', { level: 2 })).not.toHaveFocus();
 
     // Outlast the debounced sync, then check it wrote the slug back.

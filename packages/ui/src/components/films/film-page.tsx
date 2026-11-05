@@ -240,7 +240,14 @@ export const FilmPage: FC<FilmPageProps> = ({
         ))}
       </dl>
 
-      <FilmRebrandInfo film={film} baseFilm={baseFilm} />
+      <FilmRebrandInfo
+        film={film}
+        baseFilm={baseFilm}
+        onSelectFilm={(base) => {
+          pendingFocusRef.current = true;
+          onSelectFilm(base);
+        }}
+      />
 
       {supportsRecipes && recipes.status === 'loading' && (
         <output

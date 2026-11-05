@@ -50,7 +50,7 @@ const SortableHeader: FC<SortableHeaderProps> = ({
         type="button"
         onClick={() => onSortChange(sortKey)}
         className={cn(
-          'inline-flex min-h-11 items-center gap-3 uppercase tracking-wide transition-colors',
+          'inline-flex min-h-11 min-w-11 items-center gap-3 uppercase tracking-wide transition-colors',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]',
           align === 'right' && 'flex-row-reverse',
           active

@@ -5,6 +5,8 @@ interface FilmRebrandInfoProps {
   film: Film;
   /** Null when the film is not a rebrand or its base is not in the catalog. */
   baseFilm: Film | null;
+  /** When given, the base film's name is a button that opens it. */
+  onSelectFilm?: (film: Film) => void;
 }
 
 /**
@@ -20,6 +22,7 @@ const slugToTitle = (slug: string): string =>
 export const FilmRebrandInfo: FC<FilmRebrandInfoProps> = ({
   film,
   baseFilm,
+  onSelectFilm,
 }) => {
   const baseSlug = film.baseFilmSlug;
   const hasRebrand = Boolean(baseFilm || baseSlug);
@@ -41,11 +44,21 @@ export const FilmRebrandInfo: FC<FilmRebrandInfoProps> = ({
           style={{ color: 'var(--color-text-muted)' }}
         >
           Repackaged{' '}
-          {baseFilm
-            ? `${baseFilm.brand} ${baseFilm.name}`
-            : baseSlug
-              ? slugToTitle(baseSlug)
-              : ''}
+          {baseFilm && onSelectFilm ? (
+            <button
+              type="button"
+              onClick={() => onSelectFilm(baseFilm)}
+              className="min-h-11 italic underline transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
+            >
+              {baseFilm.brand} {baseFilm.name}
+            </button>
+          ) : baseFilm ? (
+            `${baseFilm.brand} ${baseFilm.name}`
+          ) : baseSlug ? (
+            slugToTitle(baseSlug)
+          ) : (
+            ''
+          )}
         </p>
       )}
     </>

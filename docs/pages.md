@@ -499,9 +499,10 @@ loaded, `q` included, so if loading fails the URL keeps what the link carried.
   only values the film has, never `0` or a dash. Recipes are grouped into tabs
   by shooting ISO, default to the box speed, show five rows with a See all
   control, and each row links to `/development?recipe=<uuid>`
-- Darkroom theme shows no film photos (a text tile replaces them), because
-  white packshots are too bright on its red-only screen. E-ink devices and the
-  films with no photo get the same tile
+- Darkroom theme shows no film photos, because white packshots are too bright
+  on its red-only screen: rows show the film icon, and the film page shows no
+  photo or tile. E-ink devices and the films with no photo get the icon tile
+  in rows
 - E-ink devices (`isEInkDevice()`) do not load the combinations list (#636):
   they hide recipe counts and the Recipes section, and keep a plain link to
   `/development?film=<slug>`

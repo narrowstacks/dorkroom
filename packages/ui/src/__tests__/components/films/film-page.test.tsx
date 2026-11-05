@@ -437,7 +437,24 @@ describe('FilmPage sections', () => {
         name: 'Base',
       }),
     });
-    expect(screen.getByText('Repackaged Ilford Base')).toBeVisible();
+    expect(screen.getByText(/^Repackaged/)).toHaveTextContent(
+      'Repackaged Ilford Base'
+    );
+  });
+
+  it('opens the base film from the rebrand line', () => {
+    const base = film({
+      slug: 'base',
+      uuid: 'b',
+      brand: 'Ilford',
+      name: 'Base',
+    });
+    const { props } = renderPage({
+      film: film({ baseFilmSlug: 'base' }),
+      baseFilm: base,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Ilford Base' }));
+    expect(props.onSelectFilm).toHaveBeenCalledWith(base);
   });
 });
 

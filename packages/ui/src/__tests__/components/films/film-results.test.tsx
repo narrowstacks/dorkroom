@@ -318,7 +318,7 @@ describe('FilmResults', () => {
       renderResults({ view: 'list', selectedFilmId: 'film-2' });
       const selected = screen.getByRole('button', { name: /Portra 400/ });
       expect(selected).toHaveAttribute('aria-current', 'true');
-      expect(selected.querySelector('.font-bold')).not.toBeNull();
+      expect(selected.querySelector('.font-semibold')).not.toBeNull();
       expect(
         screen.getByRole('button', { name: /Stock 1/ })
       ).not.toHaveAttribute('aria-current');
@@ -514,6 +514,13 @@ describe('FilmResults', () => {
       expect(document.activeElement).toBe(
         screen.getByRole('button', { name: /Portra 400/ })
       );
+    });
+
+    it('falls back to the empty state when the list has no films', () => {
+      const handle = createRef<VirtualListFocusHandle>();
+      renderResults({ films: [], focusHandleRef: handle });
+      handle.current?.focusItem('film-1');
+      expect(document.activeElement).toHaveTextContent('No films found');
     });
 
     it('writes the scroll position to scrollOffsetRef', () => {
