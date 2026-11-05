@@ -5,6 +5,7 @@ import {
   filmSupportsRecipes,
   filmTypeFilterSupportsRecipes,
   getFilmRecipeCount,
+  getRelatedFilms,
   groupRecipesByShootingIso,
   pickDefaultRecipeIso,
   resolveFilmRecipes,
@@ -354,5 +355,39 @@ describe('sortFilms', () => {
     const input = [...byName];
     sortFilms(input, 'iso');
     expect(input).toEqual(byName);
+  });
+});
+
+describe('getRelatedFilms', () => {
+  const subject = film('hp5', 'Ilford', 'HP5', 'bw', 400);
+  const catalog = [
+    film('a', 'A', 'One', 'bw', 400),
+    subject,
+    film('b', 'B', 'Two', 'color', 100),
+    film('c', 'C', 'Three', 'color', 400),
+    film('d', 'D', 'Four', 'slide', 400),
+    film('e', 'E', 'Five', 'bw', 400),
+    film('f', 'F', 'Six', 'bw', 400),
+  ];
+
+  it('returns same-ISO films in catalog order without the film itself', () => {
+    expect(getRelatedFilms(subject, catalog).map((f) => f.slug)).toEqual([
+      'a',
+      'c',
+      'd',
+      'e',
+    ]);
+  });
+
+  it('honors the limit', () => {
+    expect(getRelatedFilms(subject, catalog, 2).map((f) => f.slug)).toEqual([
+      'a',
+      'c',
+    ]);
+  });
+
+  it('is empty when nothing else shares the ISO', () => {
+    const lone = film('lone', 'L', 'Lone', 'bw', 3200);
+    expect(getRelatedFilms(lone, [...catalog, lone])).toEqual([]);
   });
 });

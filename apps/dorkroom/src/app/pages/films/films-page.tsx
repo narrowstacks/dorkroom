@@ -2,13 +2,16 @@ import type { Film } from '@dorkroom/api';
 import {
   buildFilmSlugIndex,
   getBaseFilm,
+  getRelatedFilms,
   SHARED_LINK_MARKER,
   useFilmDatabase,
+  useFilmRecipes,
 } from '@dorkroom/logic';
 import {
   ErrorFallback,
   getRouteAccent,
   getRouteIcon,
+  isEInkDevice,
   useIsMobile,
 } from '@dorkroom/ui';
 import { CalculatorPageHeader } from '@dorkroom/ui/calculator';
@@ -22,6 +25,7 @@ import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useSearchDeadEndAnalytics } from '../../lib/analytics/use-search-analytics';
 import { useShareOpened } from '../../lib/analytics/use-share-analytics';
 import { FilmsPageBody } from './films-page-body';
+import { useFilmPageRecipes } from './use-film-page-recipes';
 import { useUrlFilterSync } from './use-url-filter-sync';
 
 /**
@@ -38,12 +42,26 @@ function pendingFilm(
   return slug && processedSlug.current !== slug ? slug : undefined;
 }
 
+/**
+ * Recipes come from the combinations list, which e-ink devices do not load
+ * (#636); they keep the plain link to /development.
+ */
+const recipesEnabled = !isEInkDevice();
+
 export default function FilmsPage() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const searchParams = useSearch({ from: '/films' });
 
-  const db = useFilmDatabase();
+  const [selectedFilm, setSelectedFilm] = useState<Film | null>(null);
+
+  const recipeData = useFilmRecipes({
+    enabled: recipesEnabled,
+    detailsEnabled: Boolean(selectedFilm),
+  });
+  const db = useFilmDatabase({
+    recipeCounts: recipesEnabled ? recipeData.recipeCounts : undefined,
+  });
   const {
     films,
     filteredFilms,
@@ -56,7 +74,6 @@ export default function FilmsPage() {
     discontinuedFilter,
   } = db;
 
-  const [selectedFilm, setSelectedFilm] = useState<Film | null>(null);
   const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(false);
   const [resultCountAnnouncement, setResultCountAnnouncement] =
     useState<string>('');
@@ -188,6 +205,17 @@ export default function FilmsPage() {
     [selectedFilm, filmSlugIndex]
   );
 
+  const filmPageRecipes = useFilmPageRecipes(
+    selectedFilm,
+    recipesEnabled,
+    recipeData
+  );
+
+  const relatedFilms = useMemo(
+    () => (selectedFilm ? getRelatedFilms(selectedFilm, films) : []),
+    [selectedFilm, films]
+  );
+
   const activeFilterCount = [
     colorTypeFilter,
     isoSpeedFilter,
@@ -301,6 +329,8 @@ export default function FilmsPage() {
             isMobile={isMobile}
             selectedFilm={selectedFilm}
             baseFilm={baseFilm}
+            recipes={filmPageRecipes}
+            relatedFilms={relatedFilms}
             shouldShowDetailSkeleton={shouldShowDetailSkeleton}
             onSelectFilm={handleSelectFilm}
             onClosePanel={handleClosePanel}

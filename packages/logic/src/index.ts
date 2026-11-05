@@ -196,6 +196,7 @@ export {
   type FilmRecipe,
   type FilmSort,
   filmSupportsRecipes,
+  getRelatedFilms,
   type RecipeIsoGroup,
 } from './utils/film-recipes';
 export * from './utils/combination-factory';

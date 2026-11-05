@@ -1,6 +1,10 @@
 import type { Film } from '@dorkroom/api';
 import type { UseFilmDatabaseReturn } from '@dorkroom/logic';
-import { isEInkDevice, type VirtualListFocusHandle } from '@dorkroom/ui';
+import {
+  isEInkDevice,
+  TemperatureProvider,
+  type VirtualListFocusHandle,
+} from '@dorkroom/ui';
 import { VirtualizedErrorBoundary } from '@dorkroom/ui/development-recipes';
 import {
   FilmDetailPanel,
@@ -9,6 +13,7 @@ import {
   FilmFiltersPanel,
   FilmImageLoaderContext,
   FilmImageModeContext,
+  type FilmPageRecipes,
   FilmResultsVirtualized,
 } from '@dorkroom/ui/films';
 import { useRef } from 'react';
@@ -34,6 +39,9 @@ interface FilmsPageBodyProps {
   isMobile: boolean;
   selectedFilm: Film | null;
   baseFilm: Film | null;
+  /** The selected film's recipes; null while no film is selected. */
+  recipes: FilmPageRecipes | null;
+  relatedFilms: Film[];
   shouldShowDetailSkeleton: boolean;
   onSelectFilm: (film: Film) => void;
   onClosePanel: () => void;
@@ -52,6 +60,8 @@ export function FilmsPageBody({
   isMobile,
   selectedFilm,
   baseFilm,
+  recipes,
+  relatedFilms,
   shouldShowDetailSkeleton,
   onSelectFilm,
   onClosePanel,
@@ -135,22 +145,27 @@ export function FilmsPageBody({
           {shouldShowDetailSkeleton ? (
             <FilmDetailPanelSkeleton isMobile={isMobile} />
           ) : (
-            <FilmDetailPanel
-              key={isMobile ? 'mobile' : 'desktop'}
-              film={selectedFilm}
-              baseFilm={baseFilm}
-              isOpen={!!selectedFilm}
-              onClose={onClosePanel}
-              returnFocus={() => {
-                if (selectedFilm) {
-                  resultsFocusRef.current?.focusItem(selectedFilm.uuid);
+            <TemperatureProvider>
+              <FilmDetailPanel
+                key={isMobile ? 'mobile' : 'desktop'}
+                film={selectedFilm}
+                baseFilm={baseFilm}
+                recipes={recipes ?? { status: 'unavailable' }}
+                relatedFilms={relatedFilms}
+                onSelectFilm={onSelectFilm}
+                isOpen={!!selectedFilm}
+                onClose={onClosePanel}
+                returnFocus={() => {
+                  if (selectedFilm) {
+                    resultsFocusRef.current?.focusItem(selectedFilm.uuid);
+                  }
+                }}
+                isMobile={isMobile}
+                onShare={(film) =>
+                  share({ film: film.slug }, `${film.brand} ${film.name}`)
                 }
-              }}
-              isMobile={isMobile}
-              onShare={(film) =>
-                share({ film: film.slug }, `${film.brand} ${film.name}`)
-              }
-            />
+              />
+            </TemperatureProvider>
           )}
           {manualCopyDialog}
         </div>

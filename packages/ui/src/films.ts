@@ -10,10 +10,13 @@ export {
   FilmImage,
   FilmImageLoaderContext,
   FilmImageModeContext,
+  FilmPage,
   FilmResultsVirtualized,
 } from './components/films';
 export type {
   FilmImageLoader,
   FilmImageMode,
   FilmImageWidth,
+  FilmPageProps,
+  FilmPageRecipes,
 } from './components/films';
