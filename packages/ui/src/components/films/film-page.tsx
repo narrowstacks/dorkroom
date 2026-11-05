@@ -43,6 +43,8 @@ export interface FilmPageProps {
   onSelectFilm: (film: Film) => void;
   /** Share a link to this film; omitted, no Share button renders. */
   onShare?: (film: Film) => void;
+  /** A recipe row was clicked; the app uses it to count the arrival. */
+  onRecipeOpen?: () => void;
   /**
    * `narrow` stacks the photo above the header (sidebar, drawer); `wide` puts
    * it beside the header. A prop rather than a container query: the legacy
@@ -90,6 +92,7 @@ export const FilmPage: FC<FilmPageProps> = ({
   relatedFilms,
   onSelectFilm,
   onShare,
+  onRecipeOpen,
   layout,
   onClose,
   focusHeadingOnMount = false,
@@ -265,6 +268,7 @@ export const FilmPage: FC<FilmPageProps> = ({
           groups={readyRecipes.groups}
           defaultIso={readyRecipes.defaultIso}
           developersReady={readyRecipes.developersReady}
+          onRecipeOpen={onRecipeOpen}
         />
       )}
 

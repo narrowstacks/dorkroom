@@ -535,3 +535,29 @@ describe('FilmPage with no photos', () => {
     ).toBeVisible();
   });
 });
+
+describe('FilmPage photo in detail-only mode', () => {
+  it('still shows the opened film photo and its credit', () => {
+    const credited = film({
+      staticImageUrl: 'https://example.com/hp5.jpg',
+      imageCredit: 'Photo by A. Photographer, CC BY 4.0',
+      imageSourceUrl: 'https://example.com/source',
+    });
+    render(
+      <FilmImageModeContext value="detail-only">
+        <TemperatureProvider>
+          <FilmPage
+            film={credited}
+            baseFilm={null}
+            recipes={{ status: 'unavailable' }}
+            relatedFilms={[]}
+            onSelectFilm={vi.fn()}
+            layout="wide"
+          />
+        </TemperatureProvider>
+      </FilmImageModeContext>
+    );
+    expect(document.querySelector('img')).not.toBeNull();
+    expect(screen.getByText(/A\. Photographer/)).toBeInTheDocument();
+  });
+});

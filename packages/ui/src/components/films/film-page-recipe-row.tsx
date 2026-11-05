@@ -8,12 +8,15 @@ interface FilmPageRecipeRowProps {
   recipe: FilmRecipe;
   /** Developer names and dilutions are resolved; false shows a skeleton in their place. */
   developersReady: boolean;
+  /** Called when the row is clicked, before the browser follows the link. */
+  onOpen?: () => void;
 }
 
 /** One recipe on a film page: a real link to it on /development. */
 export const FilmPageRecipeRow: FC<FilmPageRecipeRowProps> = ({
   recipe,
   developersReady,
+  onOpen,
 }) => {
   const { unit } = useTemperature();
   const { combination, developerName, dilution } = recipe;
@@ -25,6 +28,7 @@ export const FilmPageRecipeRow: FC<FilmPageRecipeRowProps> = ({
 
   return (
     <a
+      onClick={onOpen}
       href={`/development?recipe=${encodeURIComponent(combination.uuid)}`}
       className="grid min-h-11 grid-cols-[minmax(0,1fr)_4.5rem_4.5rem] items-center gap-x-3 border-t border-[color:var(--color-border-muted)] px-1 py-2 text-sm text-primary transition-colors hover:bg-[color:var(--color-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-focus-ring)]"
     >

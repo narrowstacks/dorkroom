@@ -5,6 +5,7 @@ import {
   type FilmPageRecipes,
   FilmPageSkeleton,
 } from '@dorkroom/ui/films';
+import { trackEvent } from '../../lib/analytics/tracked-events';
 
 interface FilmPageSlotProps {
   layout: 'narrow' | 'wide';
@@ -44,6 +45,7 @@ export function FilmPageSlot({
         onSelectFilm={onSelectFilm}
         onClose={onClose}
         onShare={onShare}
+        onRecipeOpen={() => trackEvent('film_recipe_opened', {})}
       />
     </TemperatureProvider>
   );

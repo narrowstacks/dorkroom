@@ -48,6 +48,7 @@ The catalog below is generated from, and must stay in sync with,
 | `home_search` | A search on the home page settles (once per search, not per keystroke). | What kind of answer it showed (a recipe, a calculator, a list of matches, or nothing) and how many matches it listed. Never the search text. |
 | `nav_search` | A search from the search button in the navigation bar settles (once per search, not per keystroke). | What kind of answer it showed (a recipe, a calculator, a list of matches, or nothing) and how many matches it listed. Never the search text. |
 | `detail_opened` | You open a film or recipe detail view. | Whether it was a film or a recipe. |
+| `film_recipe_opened` | You click a development recipe on a film's page. | Nothing else; which film or recipe is not sent. |
 | `filter_applied` | You apply a filter. | Which page, and which filter control. Never the value you chose. |
 | `app_error` | Something crashes. | Which of Dorkroom's pages you were on, chosen from a fixed list. Never the error message, and never a path you typed. |
 | `route_not_found` | You land on a page that does not exist. | Whether you arrived from inside Dorkroom, from elsewhere, or directly. |

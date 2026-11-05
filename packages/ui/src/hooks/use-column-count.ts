@@ -2,16 +2,6 @@ import { columnCountForWidth } from '@dorkroom/logic';
 import { type RefObject, useEffect, useState } from 'react';
 import { RESIZE_DEBOUNCE_MS } from '../lib/resize-debounce';
 
-interface UseColumnCountOptions {
-  /**
-   * Fixed column count for the mobile layout. When set, the mobile layout
-   * skips measuring the container and always uses this many columns; when
-   * omitted, mobile follows `columnCountForWidth` (1 column below 480px,
-   * 2 from it).
-   */
-  mobileColumns?: number;
-}
-
 /**
  * Card-grid column count from the container's width (not the viewport's),
  * stepping at the Tailwind breakpoints via `columnCountForWidth`.
@@ -24,15 +14,11 @@ interface UseColumnCountOptions {
  */
 export function useColumnCount(
   containerRef: RefObject<HTMLDivElement | null>,
-  isMobile: boolean,
-  { mobileColumns }: UseColumnCountOptions = {}
+  isMobile: boolean
 ): number {
   const [observedColumnCount, setColumnCount] = useState(isMobile ? 2 : 3);
-  const isFixed = isMobile && mobileColumns !== undefined;
 
   useEffect(() => {
-    if (isFixed) return;
-
     const container = containerRef.current;
     if (!container) return;
 
@@ -81,7 +67,7 @@ export function useColumnCount(
       }
       observer.disconnect();
     };
-  }, [containerRef, isMobile, isFixed]);
+  }, [containerRef, isMobile]);
 
-  return isFixed ? mobileColumns : observedColumnCount;
+  return observedColumnCount;
 }

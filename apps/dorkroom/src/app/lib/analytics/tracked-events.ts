@@ -138,6 +138,11 @@ export interface AnalyticsEvents {
    *  The query itself is deliberately not sent. */
   search_no_results: { tool: BrowseTool; filters: number };
   detail_opened: { type: 'film' | 'recipe' };
+  /** A recipe row on a film's page was clicked, on its way to /development.
+   *  `detail_opened` cannot tell this apart: /development fires it only from
+   *  its own list, never on arrival from a link. Carries no properties, so no
+   *  recipe or film identifier can reach the wire. */
+  film_recipe_opened: Record<string, never>;
   /** A home-page search settled. `count` is how many matches the result
    *  lists (recipes, films, developers and tools). The query itself is
    *  deliberately not sent. */

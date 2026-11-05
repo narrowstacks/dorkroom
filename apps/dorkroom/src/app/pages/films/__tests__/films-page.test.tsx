@@ -549,6 +549,30 @@ describe.each([
     ).toBeInTheDocument();
   });
 
+  it('counts a click on a recipe row once, with no properties', async () => {
+    const va = vi.fn();
+    window.va = va;
+    try {
+      await renderFilmsPage({ width, url: '/films?film=hp5-plus' });
+      const page = await waitFor(() => getFilmPage('Ilford HP5 Plus'));
+      const link = await within(page).findByRole('link', {
+        name: /Kodak D-76/,
+      });
+      // happy-dom does not navigate, but stop the click in case it ever does.
+      link.addEventListener('click', (event) => event.preventDefault());
+
+      fireEvent.click(link);
+
+      const recipeCalls = va.mock.calls.filter(
+        ([, payload]) => payload?.name === 'film_recipe_opened'
+      );
+      expect(recipeCalls).toHaveLength(1);
+      expect(recipeCalls[0]?.[1].data).toEqual({});
+    } finally {
+      delete window.va;
+    }
+  });
+
   it('never mentions recipes on a color film, even with a recipe row for it', async () => {
     await renderFilmsPage({ width, url: '/films?film=portra-400' });
     const page = await waitFor(() => getFilmPage('Kodak Portra 400'));
