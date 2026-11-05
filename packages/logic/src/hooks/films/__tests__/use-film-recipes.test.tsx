@@ -255,6 +255,26 @@ describe('useFilmRecipes', () => {
     ).toBe('idle');
   });
 
+  it('keeps cached recipes and reports no error when a refetch fails', async () => {
+    const client = seededClient();
+    const { result } = renderHook(() => useFilmRecipes(), {
+      wrapper: makeWrapper(client),
+    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.reject(new Error('refetch down')))
+    );
+    await act(() => client.refetchQueries());
+
+    await waitFor(() =>
+      expect(client.getQueryState(queryKeys.combinations.list())?.status).toBe(
+        'error'
+      )
+    );
+    expect(result.current.error).toBeNull();
+    expect(result.current.getRecipeCount(hp5)).toBe(2);
+  });
+
   it('does not fetch when disabled', () => {
     const client = new QueryClient({
       defaultOptions: { queries: { retry: false } },

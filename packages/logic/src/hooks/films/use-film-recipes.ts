@@ -122,7 +122,11 @@ export function useFilmRecipes({
     getRecipeGroups,
     isLoading: enabled && !films.isError && combinations.isPending,
     error: enabled
-      ? (combinations.error?.message ?? films.error?.message ?? null)
+      ? ((combinations.data === undefined
+          ? combinations.error?.message
+          : undefined) ??
+        (films.data === undefined ? films.error?.message : undefined) ??
+        null)
       : null,
     developersReady: developerList !== undefined,
     developersError: developers.error?.message ?? null,
