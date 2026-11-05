@@ -9,12 +9,11 @@ import { VirtualizedErrorBoundary } from '@dorkroom/ui/development-recipes';
 import {
   FilmDetailPanel,
   FilmDetailPanelSkeleton,
-  FilmFiltersMobile,
-  FilmFiltersPanel,
   FilmImageLoaderContext,
   FilmImageModeContext,
   type FilmPageRecipes,
   FilmResultsVirtualized,
+  FilmToolbar,
 } from '@dorkroom/ui/films';
 import { useRef } from 'react';
 import { vercelFilmImageLoader } from '../../lib/film-image-loader';
@@ -45,15 +44,11 @@ interface FilmsPageBodyProps {
   shouldShowDetailSkeleton: boolean;
   onSelectFilm: (film: Film) => void;
   onClosePanel: () => void;
-  isFiltersCollapsed: boolean;
-  onCollapsedChange: (collapsed: boolean) => void;
 }
 
 /**
- * The films page below its header, for both breakpoints. Only the filter
- * module (and the desktop aside/main landmarks around it) swaps by
- * breakpoint; the results list and the detail panel are one tree, and the
- * panel handles drawer vs sidebar itself through `isMobile` (#380).
+ * The films page below its header, for both breakpoints: one toolbar above the
+ * results list and the detail panel, which are one tree. The panel handles drawer vs sidebar itself through `isMobile` (#380).
  */
 export function FilmsPageBody({
   db,
@@ -65,15 +60,12 @@ export function FilmsPageBody({
   shouldShowDetailSkeleton,
   onSelectFilm,
   onClosePanel,
-  isFiltersCollapsed,
-  onCollapsedChange,
 }: FilmsPageBodyProps) {
   const { share, manualCopyDialog } = useShareLink('film');
   // Closing the desktop sidebar from inside it puts focus back on the card
   // that opened it (#604).
   const resultsFocusRef = useRef<VirtualListFocusHandle>(null);
 
-  // One props object for whichever filter module the breakpoint mounts.
   const filterProps = {
     searchQuery: db.searchQuery,
     onSearchChange: db.setSearchQuery,
@@ -99,8 +91,8 @@ export function FilmsPageBody({
         onSelectFilm={onSelectFilm}
         isMobile={isMobile}
         isLoading={db.isLoading}
+        height={isMobile ? undefined : 'calc(100dvh - 400px)'}
         isDetailOpen={!!selectedFilm || shouldShowDetailSkeleton}
-        isFiltersCollapsed={!isMobile && isFiltersCollapsed}
         onClearFilters={db.clearFilters}
         hasActiveFilters={db.hasActiveFilters}
         focusHandleRef={resultsFocusRef}
@@ -112,62 +104,55 @@ export function FilmsPageBody({
     // Resized thumbnails for every FilmImage below (cards and detail panel).
     <FilmImageLoaderContext value={filmImageLoader}>
       <FilmImageModeContext value={filmImageMode}>
-        <div className={isMobile ? 'space-y-4' : 'mt-6 flex gap-6'}>
-          {isMobile ? (
-            <FilmFiltersMobile
-              {...filterProps}
-              resultCount={db.filteredFilms.length}
-            />
-          ) : (
-            <aside className="flex-shrink-0 transition-[width] duration-300">
-              <FilmFiltersPanel
-                {...filterProps}
-                onCollapsedChange={onCollapsedChange}
-              />
-            </aside>
-          )}
+        <div className="mt-4 space-y-4 md:mt-6">
+          <FilmToolbar
+            {...filterProps}
+            resultCount={db.isLoading ? null : db.filteredFilms.length}
+            sort={db.effectiveSort}
+            onSortChange={db.setSort}
+            recipesSortAvailable={db.recipesSortAvailable}
+            showSortSelect={isMobile}
+          />
 
-          {isMobile ? (
-            results
-          ) : (
-            <main id="film-results" className="flex-1 min-w-0">
+          <div className="flex gap-6">
+            <div id="film-results" tabIndex={-1} className="min-w-0 flex-1">
               {results}
-            </main>
-          )}
+            </div>
 
-          {/* Rendered unconditionally: the panel owns its own visibility. It
+            {/* Rendered unconditionally: the panel owns its own visibility. It
           renders nothing without a film, and its stateful inner DetailPanel
           only exists while one is selected, so closing still discards drag
           and expanded state, and there is no exit animation a conditional
           mount could cut short. Keyed by breakpoint so crossing it starts the
           panel fresh (an expanded desktop modal drops back to the mobile
           drawer). */}
-          {shouldShowDetailSkeleton ? (
-            <FilmDetailPanelSkeleton isMobile={isMobile} />
-          ) : (
-            <TemperatureProvider>
-              <FilmDetailPanel
-                key={isMobile ? 'mobile' : 'desktop'}
-                film={selectedFilm}
-                baseFilm={baseFilm}
-                recipes={recipes ?? { status: 'unavailable' }}
-                relatedFilms={relatedFilms}
-                onSelectFilm={onSelectFilm}
-                isOpen={!!selectedFilm}
-                onClose={onClosePanel}
-                returnFocus={() => {
-                  if (selectedFilm) {
-                    resultsFocusRef.current?.focusItem(selectedFilm.uuid);
+            {shouldShowDetailSkeleton ? (
+              <FilmDetailPanelSkeleton isMobile={isMobile} />
+            ) : (
+              <TemperatureProvider>
+                <FilmDetailPanel
+                  key={isMobile ? 'mobile' : 'desktop'}
+                  film={selectedFilm}
+                  baseFilm={baseFilm}
+                  recipes={recipes ?? { status: 'unavailable' }}
+                  relatedFilms={relatedFilms}
+                  onSelectFilm={onSelectFilm}
+                  isOpen={!!selectedFilm}
+                  onClose={onClosePanel}
+                  returnFocus={() => {
+                    if (selectedFilm) {
+                      resultsFocusRef.current?.focusItem(selectedFilm.uuid);
+                    }
+                  }}
+                  isMobile={isMobile}
+                  onShare={(film) =>
+                    share({ film: film.slug }, `${film.brand} ${film.name}`)
                   }
-                }}
-                isMobile={isMobile}
-                onShare={(film) =>
-                  share({ film: film.slug }, `${film.brand} ${film.name}`)
-                }
-              />
-            </TemperatureProvider>
-          )}
-          {manualCopyDialog}
+                />
+              </TemperatureProvider>
+            )}
+            {manualCopyDialog}
+          </div>
         </div>
       </FilmImageModeContext>
     </FilmImageLoaderContext>

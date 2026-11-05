@@ -12,6 +12,7 @@ export {
   FilmImageModeContext,
   FilmPage,
   FilmResultsVirtualized,
+  FilmToolbar,
 } from './components/films';
 export type {
   FilmImageLoader,
@@ -19,4 +20,5 @@ export type {
   FilmImageWidth,
   FilmPageProps,
   FilmPageRecipes,
+  FilmToolbarProps,
 } from './components/films';

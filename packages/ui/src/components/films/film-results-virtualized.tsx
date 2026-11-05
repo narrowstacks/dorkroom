@@ -44,8 +44,6 @@ interface FilmResultsVirtualizedProps {
   isLoading?: boolean;
   /** Whether a detail panel is open (affects column count on desktop) */
   isDetailOpen?: boolean;
-  /** Whether filters are collapsed (affects column count on desktop) */
-  isFiltersCollapsed?: boolean;
   /** Height of the virtualized container. Defaults to calc(100dvh - 280px) */
   height?: string;
   className?: string;
@@ -71,7 +69,6 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
   isMobile = false,
   isLoading = false,
   isDetailOpen = false,
-  isFiltersCollapsed = false,
   height = DEFAULT_CONTAINER_HEIGHT,
   className,
   onClearFilters,
@@ -87,15 +84,11 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
     mobileColumns: 2,
   });
 
-  // Calculate final column count based on layout state (detail panel, filters)
+  // The results span the full width (the filters live in a toolbar above), so
+  // an open detail panel only takes some of it.
   const getColumnCount = () => {
     if (isMobile) return baseColumnCount;
-    if (isFiltersCollapsed) {
-      // More space available when filters collapsed
-      return isDetailOpen ? 2 : 3;
-    }
-    // Filters expanded
-    return isDetailOpen ? 1 : baseColumnCount;
+    return isDetailOpen ? 2 : baseColumnCount;
   };
   const columnCount = getColumnCount();
 
@@ -140,16 +133,14 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
 
   // Show loading skeletons
   if (isLoading) {
-    // When detail panel is open on desktop, show fewer skeleton columns
-    const skeletonColumns = isDetailOpen && !isMobile ? 1 : columnCount;
     return (
       <div
         className={cn('grid gap-2', className)}
         style={{
-          gridTemplateColumns: `repeat(${skeletonColumns}, minmax(0, 1fr))`,
+          gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))`,
         }}
       >
-        {SKELETON_KEYS.slice(0, skeletonColumns * 3).map((key) => (
+        {SKELETON_KEYS.slice(0, columnCount * 3).map((key) => (
           <FilmCardSkeleton key={key} />
         ))}
       </div>
