@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+import { ThemeProvider } from '@dorkroom/ui';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   createMemoryHistory,
@@ -107,17 +108,19 @@ describe('FilmsPage on an e-ink device', () => {
       }),
     });
     render(
-      <QueryClientProvider
-        client={
-          new QueryClient({ defaultOptions: { queries: { retry: false } } })
-        }
-      >
-        <RouterProvider router={router} />
-      </QueryClientProvider>
+      <ThemeProvider>
+        <QueryClientProvider
+          client={
+            new QueryClient({ defaultOptions: { queries: { retry: false } } })
+          }
+        >
+          <RouterProvider router={router} />
+        </QueryClientProvider>
+      </ThemeProvider>
     );
 
     const panel = await waitFor(() =>
-      screen.getByRole('region', { name: 'Ilford HP5 Plus details' })
+      screen.getByRole('article', { name: 'Ilford HP5 Plus' })
     );
     expect(
       within(panel).getByRole('link', { name: 'View Development Recipes' })

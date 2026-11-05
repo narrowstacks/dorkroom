@@ -4,7 +4,7 @@ import {
   filmSupportsRecipes,
   type RecipeIsoGroup,
 } from '@dorkroom/logic';
-import { ExternalLink, Share2 } from 'lucide-react';
+import { ChevronLeft, ExternalLink, Share2 } from 'lucide-react';
 import { type FC, use, useEffect, useRef } from 'react';
 import { cn } from '../../lib/cn';
 import { Skeleton } from '../ui/skeleton';
@@ -49,6 +49,13 @@ export interface FilmPageProps {
    * build has no container queries.
    */
   layout: 'narrow' | 'wide';
+  /** When set, a "Back to films" button renders at the top and calls this. */
+  onClose?: () => void;
+  /**
+   * Focus the heading when the page mounts (#604), for a page opened by a
+   * user action. Deep links leave focus alone.
+   */
+  focusHeadingOnMount?: boolean;
   className?: string;
 }
 
@@ -84,6 +91,8 @@ export const FilmPage: FC<FilmPageProps> = ({
   onSelectFilm,
   onShare,
   layout,
+  onClose,
+  focusHeadingOnMount = false,
   className,
 }) => {
   const wide = layout === 'wide';
@@ -91,6 +100,10 @@ export const FilmPage: FC<FilmPageProps> = ({
   // Set by a tap on a related film so focus follows the page it opened; any
   // other change of film (Back, a link) leaves focus alone.
   const pendingFocusRef = useRef(false);
+  const focusOnMountRef = useRef(focusHeadingOnMount);
+  useEffect(() => {
+    if (focusOnMountRef.current) headingRef.current?.focus();
+  }, []);
   useEffect(() => {
     if (pendingFocusRef.current) {
       pendingFocusRef.current = false;
@@ -123,6 +136,16 @@ export const FilmPage: FC<FilmPageProps> = ({
 
   return (
     <div className={cn('space-y-6', className)}>
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          className="-ml-2 inline-flex min-h-11 items-center gap-1 rounded-xl px-2 text-sm font-medium text-secondary transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
+        >
+          <ChevronLeft className="size-4" aria-hidden="true" />
+          Back to films
+        </button>
+      )}
       <header
         className={cn(
           'flex gap-5',
