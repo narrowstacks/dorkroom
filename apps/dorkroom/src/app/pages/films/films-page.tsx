@@ -31,6 +31,7 @@ import { FilmsPageBody } from './films-page-body';
 import { useFilmPageRecipes } from './use-film-page-recipes';
 import {
   buildFilmFilterSearch,
+  serializeFilmFilters,
   useDebouncedUrlWrite,
   useUrlFilterSync,
 } from './use-url-filter-sync';
@@ -43,6 +44,11 @@ declare module '@tanstack/react-router' {
      * all of them in one go.
      */
     filmDepth?: number;
+    /**
+     * The filters the list entry under the films was left with, serialized.
+     * Closing goes back to that entry only while the live filters still match.
+     */
+    filmBaseFilters?: string;
   }
 }
 
@@ -62,6 +68,9 @@ export default function FilmsPage() {
   // stays 0 when a film is picked from one: the deep link's own entry is a
   // film, so Back to films must not step onto it.
   const filmDepth = useLocation({ select: (l) => l.state.filmDepth ?? 0 });
+  const filmBaseFilters = useLocation({
+    select: (l) => l.state.filmBaseFilters,
+  });
 
   // Get the film slug from URL params (stable reference). The URL owns the
   // selected film, so Back, Forward and links all drive the page through it.
@@ -137,7 +146,7 @@ export default function FilmsPage() {
 
   useDebouncedUrlWrite({
     db,
-    urlSort: searchParams.sort,
+    urlFilters: serializeFilmFilters(searchParams),
     navigate,
   });
 
@@ -219,34 +228,56 @@ export default function FilmsPage() {
     [db]
   );
 
-  // A push, so Back returns to the previous film or the list. The filters come
-  // from live state so one still inside the debounce window is not lost.
-  const handleSelectFilm = (film: Film) => {
+  // A push, so Back returns to the previous film or the list. The list entry
+  // behind the first film is first brought up to the live filters (a replace),
+  // so a filter typed just before opening is not lost on Back.
+  const handleSelectFilm = async (film: Film) => {
     if (film.slug === urlFilmSlug) return;
     trackEvent('detail_opened', { type: 'film' });
-    void navigate({
+    const live = buildFilmFilterSearch(db);
+    const fromList = !urlFilmSlug;
+    if (
+      fromList &&
+      serializeFilmFilters(live) !== serializeFilmFilters(searchParams)
+    ) {
+      await navigate({
+        to: '/films',
+        search: live,
+        replace: true,
+        state: true,
+        resetScroll: false,
+      });
+    }
+    // A deep link's own entry is a film, so it stays at depth 0.
+    const fromDeepLink = filmDepth === 0 && !fromList;
+    await navigate({
       to: '/films',
-      search: { ...buildFilmFilterSearch(db), film: film.slug },
+      search: { ...live, film: film.slug },
       state: {
-        filmDepth: filmDepth === 0 && urlFilmSlug ? 0 : filmDepth + 1,
+        filmDepth: fromDeepLink ? 0 : filmDepth + 1,
+        // Set when leaving a list entry, then carried unchanged.
+        filmBaseFilters: fromList
+          ? serializeFilmFilters(live)
+          : filmBaseFilters,
       },
       resetScroll: false,
     });
   };
 
-  // A phone shows one thing at a time and no filter can change while a film is
-  // open, so the list entry below the films is still accurate: go back to it.
-  // Wide layouts keep the toolbar usable beside the film, so an older list
-  // entry can hold stale filters: push the current ones instead. A deep link
+  // Back to the list entry under the films, in one step at any width, while
+  // the live filters still match what that entry was left with. If a filter
+  // changed while the film was open (the toolbar stays usable on wide layouts),
+  // that entry is stale: push the current filters instead. A deep link
   // (depth 0) replaces its entry so the close does not leave a film to return to.
   const handleClosePanel = () => {
-    if (isMobile && filmDepth > 0) {
+    const live = buildFilmFilterSearch(db);
+    if (filmDepth > 0 && filmBaseFilters === serializeFilmFilters(live)) {
       router.history.go(-filmDepth);
       return;
     }
     void navigate({
       to: '/films',
-      search: { ...buildFilmFilterSearch(db), film: undefined },
+      search: { ...live, film: undefined },
       replace: filmDepth === 0,
       resetScroll: false,
     });

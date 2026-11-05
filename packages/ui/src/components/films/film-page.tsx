@@ -199,7 +199,10 @@ export const FilmPage: FC<FilmPageProps> = ({
             {onShare && (
               <button
                 type="button"
-                onClick={() => onShare(film)}
+                onClick={(event) => {
+                  // The second click of a double-click on a row can land here.
+                  if (event.detail < 2) onShare(film);
+                }}
                 aria-label="Share this film"
                 title="Share this film"
                 className="inline-flex min-h-11 items-center gap-2 rounded-full bg-border-muted px-4 py-1 text-sm font-medium text-secondary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] hoverable-action-btn"

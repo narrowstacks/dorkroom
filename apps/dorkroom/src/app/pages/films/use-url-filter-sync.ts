@@ -1,5 +1,9 @@
 import type { FilmSort, useFilmDatabase } from '@dorkroom/logic';
-import { type useNavigate, useRouter } from '@tanstack/react-router';
+import {
+  useLocation,
+  type useNavigate,
+  useRouter,
+} from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
 import {
   filmColorFilterSchema,
@@ -25,7 +29,9 @@ interface FilmUrlFilters {
  * clearing user input before the debounced state-to-URL sync fires. State is not
  * cleared when a URL param is undefined (a plain link to /films keeps it),
  * except after a history traversal (Back, Forward, go): an absent param then
- * means the entry has that filter at its default, so state follows it.
+ * means the entry has that filter at its default, so state follows it. The
+ * effects also rerun on every change of history entry, so a traversal between
+ * two entries that both lack a param still resets it.
  */
 export function useUrlFilterSync(
   searchParams: FilmUrlFilters,
@@ -47,6 +53,10 @@ export function useUrlFilterSync(
   } = db;
 
   const router = useRouter();
+  // Which history entry the page is on. Every move to another entry reruns the
+  // effects below, so a traversal between entries whose params are equal (both
+  // absent) still resets state to the entry's values.
+  const entryIndex = useLocation({ select: (l) => l.state.__TSR_index });
   // Whether the latest history move was a traversal. Set by the router's
   // history before the location update renders, so the effects below see it.
   const traversed = useRef(false);
@@ -66,7 +76,7 @@ export function useUrlFilterSync(
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
     // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-  }, [searchParams.search]);
+  }, [searchParams.search, entryIndex]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
   useEffect(() => {
@@ -76,7 +86,7 @@ export function useUrlFilterSync(
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
     // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-  }, [searchParams.color]);
+  }, [searchParams.color, entryIndex]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
   useEffect(() => {
@@ -86,7 +96,7 @@ export function useUrlFilterSync(
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
     // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-  }, [searchParams.iso]);
+  }, [searchParams.iso, entryIndex]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
   useEffect(() => {
@@ -96,7 +106,7 @@ export function useUrlFilterSync(
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
     // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-  }, [searchParams.brand]);
+  }, [searchParams.brand, entryIndex]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
   useEffect(() => {
@@ -106,7 +116,7 @@ export function useUrlFilterSync(
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
     // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-  }, [searchParams.status]);
+  }, [searchParams.status, entryIndex]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
   useEffect(() => {
@@ -116,7 +126,7 @@ export function useUrlFilterSync(
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
     // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-  }, [searchParams.sort]);
+  }, [searchParams.sort, entryIndex]);
 }
 
 type FilmFilterSearch = Omit<FilmsSearchParams, 'film' | 'source'>;
@@ -150,10 +160,29 @@ export function buildFilmFilterSearch(
   };
 }
 
+/**
+ * A stable string for the filter and sort half of a /films search, in a fixed
+ * key order. Compares live filters with the URL's, or with those recorded in
+ * history state.
+ */
+export function serializeFilmFilters(
+  search: Partial<FilmFilterSearch>
+): string {
+  return JSON.stringify([
+    search.search,
+    search.color,
+    search.iso,
+    search.brand,
+    search.status,
+    search.sort,
+  ]);
+}
+
 interface DebouncedUrlWriteInput {
   db: FilmDatabase;
-  /** The URL's own sort, so a navigation that drops it re-triggers the write. */
-  urlSort: FilmSort | undefined;
+  /** The URL's own filters (see `serializeFilmFilters`), so a navigation that
+   *  changes or drops one re-triggers the write. */
+  urlFilters: string;
   navigate: ReturnType<typeof useNavigate>;
 }
 
@@ -165,7 +194,7 @@ interface DebouncedUrlWriteInput {
  */
 export function useDebouncedUrlWrite({
   db,
-  urlSort,
+  urlFilters,
   navigate,
 }: DebouncedUrlWriteInput) {
   const {
@@ -209,6 +238,6 @@ export function useDebouncedUrlWrite({
     brandFilter,
     discontinuedFilter,
     sort,
-    urlSort,
+    urlFilters,
   ]);
 }

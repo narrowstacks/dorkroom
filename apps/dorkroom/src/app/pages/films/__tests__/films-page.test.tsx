@@ -1656,3 +1656,71 @@ describe('FilmsPage history keeps state right (#669)', () => {
     }
   );
 });
+
+describe('FilmsPage list entry stays in step with live filters (#669)', () => {
+  it('on a wide layout, closing with unchanged filters goes back instead of pushing', async () => {
+    const { router } = await renderFilmsPage({ width: DESKTOP });
+    await click(await findFilmRow('HP5 Plus'));
+    getFilmPage('Ilford HP5 Plus');
+    const length = router.history.length;
+    const index = router.state.location.state.__TSR_index;
+
+    await click(
+      within(getFilmPage('Ilford HP5 Plus')).getByRole('button', {
+        name: 'Back to films',
+      })
+    );
+
+    await waitFor(() => expect(queryFilmPage('Ilford HP5 Plus')).toBeNull());
+    expect(router.history.length).toBe(length);
+    expect(router.state.location.state.__TSR_index).toBe(index - 1);
+  });
+
+  it('keeps a filter typed just before opening a film, through Back', async () => {
+    const { router } = await renderFilmsPage({ width: DESKTOP });
+    await findFilmRow('HP5 Plus');
+    await act(async () => {
+      fireEvent.change(searchInput(), { target: { value: 'ilford' } });
+    });
+    await click(await findFilmRow('HP5 Plus'));
+    getFilmPage('Ilford HP5 Plus');
+
+    await historyBack(router);
+
+    await waitFor(() => expect(queryFilmPage('Ilford HP5 Plus')).toBeNull());
+    expect(searchInput()).toHaveValue('ilford');
+    expect(urlSearch(router)).toMatchObject({ search: 'ilford' });
+    await pastDebounce();
+    expect(urlSearch(router)).toMatchObject({ search: 'ilford' });
+  });
+
+  it('resets a search typed inside the debounce window when Back lands on an entry without one', async () => {
+    const { router } = await renderFilmsPage({ width: DESKTOP });
+    await click(await findFilmRow('HP5 Plus'));
+    getFilmPage('Ilford HP5 Plus');
+    await act(async () => {
+      fireEvent.change(searchInput(), { target: { value: 'portra' } });
+    });
+
+    await historyBack(router);
+
+    await waitFor(() => expect(searchInput()).toHaveValue(''));
+    await pastDebounce();
+    expect(searchInput()).toHaveValue('');
+    expect(urlSearch(router).search).toBeUndefined();
+    expect(filmRow('HP5 Plus')).toBeInTheDocument();
+  });
+
+  it('restores a filter in the URL when a plain link drops it', async () => {
+    const { router } = await renderFilmsPage({
+      width: DESKTOP,
+      url: '/films?color=slide',
+    });
+    await findFilmRow('HP5 Plus').catch(() => undefined);
+
+    await act(() => router.navigate({ to: '/films', search: {} }));
+    await pastDebounce();
+
+    expect(urlSearch(router).color).toBe('slide');
+  });
+});
