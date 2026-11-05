@@ -132,6 +132,18 @@ describe('FilmResults', () => {
       expect(container.textContent).not.toMatch(/recipe/i);
     });
 
+    it('omits recipe counts from the list and rows views with showRecipes off', () => {
+      for (const view of ['list', 'rows'] as const) {
+        const { container, unmount } = renderResults({
+          view,
+          showRecipes: false,
+          getRecipeCount: () => 12,
+        });
+        expect(container.textContent).not.toMatch(/recipe/i);
+        unmount();
+      }
+    });
+
     it('has no header in the list and rows views, and uses a list', () => {
       for (const view of ['list', 'rows'] as const) {
         const { unmount } = renderResults({ view });

@@ -226,7 +226,7 @@ export const FilmResults: FC<FilmResultsProps> = ({
       <FilmListRow
         key={film.uuid}
         film={film}
-        recipeCount={getRecipeCount(film)}
+        recipeCount={showRecipes ? getRecipeCount(film) : 0}
         isSelected={film.uuid === selectedFilmId}
         onSelect={onSelectFilm}
         height={rowHeight}

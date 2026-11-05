@@ -140,7 +140,7 @@ export const FilmPage: FC<FilmPageProps> = ({
         <button
           type="button"
           onClick={onClose}
-          className="-ml-2 inline-flex min-h-11 items-center gap-1 rounded-xl px-2 text-sm font-medium text-secondary transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
+          className="-ml-2 inline-flex min-h-11 items-center gap-3 rounded-xl px-2 text-sm font-medium text-secondary transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
         >
           <ChevronLeft className="size-4" aria-hidden="true" />
           Back to films
