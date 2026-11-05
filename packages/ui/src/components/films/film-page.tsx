@@ -135,7 +135,7 @@ export const FilmPage: FC<FilmPageProps> = ({
   const notes = film.manufacturerNotes ?? [];
 
   return (
-    <div className={cn('space-y-6', className)}>
+    <div className={cn(wide ? 'space-y-4' : 'space-y-6', className)}>
       {onClose && (
         <button
           type="button"
@@ -166,14 +166,14 @@ export const FilmPage: FC<FilmPageProps> = ({
               alt={`${film.brand} ${film.name}`}
               size="lg"
               loading="eager"
-              renderedSize={wide ? 160 : 128}
-              className={wide ? '!w-40 !h-40' : '!w-32 !h-32'}
+              renderedSize={wide ? 112 : 128}
+              className={wide ? '!w-28 !h-28' : '!w-32 !h-32'}
             />
             {photoUrl && (
               <FilmImageCredit
                 credit={film.imageCredit}
                 sourceUrl={film.imageSourceUrl}
-                className={wide ? 'max-w-40' : undefined}
+                className={wide ? 'max-w-28' : undefined}
               />
             )}
           </div>
@@ -196,19 +196,19 @@ export const FilmPage: FC<FilmPageProps> = ({
                 Discontinued
               </Tag>
             )}
+            {onShare && (
+              <button
+                type="button"
+                onClick={() => onShare(film)}
+                aria-label="Share this film"
+                title="Share this film"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-border-muted px-4 py-1 text-sm font-medium text-secondary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] hoverable-action-btn"
+              >
+                <Share2 className="size-4" aria-hidden="true" />
+                Share
+              </button>
+            )}
           </div>
-          {onShare && (
-            <button
-              type="button"
-              onClick={() => onShare(film)}
-              aria-label="Share this film"
-              title="Share this film"
-              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-border-muted px-4 py-1 text-sm font-medium text-secondary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] hoverable-action-btn"
-            >
-              <Share2 className="size-4" aria-hidden="true" />
-              Share
-            </button>
-          )}
         </div>
       </header>
 

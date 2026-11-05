@@ -134,32 +134,31 @@ export const FilmResults: FC<FilmResultsProps> = ({
   });
 
   // A view change swaps the row height, and the virtualizer caches sizes, so
-  // re-measure. Entering the list (or mounting in it, for a deep link) brings
-  // the selected row into view; returning to a table restores its position.
+  // re-measure. Returning to a table restores its position.
   useLayoutEffect(() => {
     const previous = previousView.current;
     previousView.current = view;
     if (previous !== null && previous !== view) rowVirtualizer.measure();
-    if (view === 'list' && previous !== 'list') {
-      if (selectedIndexRef.current >= 0) {
-        rowVirtualizer.scrollToIndex(selectedIndexRef.current, {
-          align: 'center',
-        });
-      }
-    } else if (previous === 'list' && isTableView(view)) {
+    if (previous === 'list' && isTableView(view)) {
       const scroller = parentRef.current;
       if (scroller) scroller.scrollTop = tableScrollTop.current;
     }
   }, [view, rowVirtualizer]);
 
-  // Another film picked in the side list (a related film on the page) can be
-  // off screen; bring its row into view without recentering it.
+  // Entering the list (or mounting in it, for a deep link) centers the
+  // selected row once; a later selection (a related film on the page) only
+  // scrolls it into view.
+  const listPositioned = useRef(false);
   useLayoutEffect(() => {
-    if (view === 'list' && selectedIndexRef.current >= 0) {
-      rowVirtualizer.scrollToIndex(selectedIndexRef.current, {
-        align: 'auto',
-      });
+    if (view !== 'list') {
+      listPositioned.current = false;
+      return;
     }
+    if (selectedIndexRef.current < 0) return;
+    rowVirtualizer.scrollToIndex(selectedIndexRef.current, {
+      align: listPositioned.current ? 'auto' : 'center',
+    });
+    listPositioned.current = true;
   }, [selectedFilmId, view, rowVirtualizer]);
 
   if (isLoading) {
@@ -248,7 +247,7 @@ export const FilmResults: FC<FilmResultsProps> = ({
         if (scrollOffsetRef) scrollOffsetRef.current = scrollTop;
       }}
       className={cn(
-        table && 'scroll-pt-11',
+        table && 'scroll-pt-[60px]',
         'relative overflow-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--color-focus-ring)]',
         className
       )}

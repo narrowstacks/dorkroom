@@ -195,6 +195,23 @@ describe('FilmResults', () => {
       expect(button).toHaveClass('focus-visible:underline');
     });
 
+    it('does not select a film when the click ends a text selection', () => {
+      const onSelectFilm = vi.fn();
+      renderResults({ onSelectFilm });
+      const row = closestOrThrow(
+        screen.getByRole('button', { name: /Stock 1/ }),
+        'tr'
+      );
+      const spy = vi
+        .spyOn(window, 'getSelection')
+        .mockReturnValue(Object.create({}, { isCollapsed: { value: false } }));
+      fireEvent.click(row);
+      expect(onSelectFilm).not.toHaveBeenCalled();
+      spy.mockRestore();
+      fireEvent.click(row);
+      expect(onSelectFilm).toHaveBeenCalledTimes(1);
+    });
+
     it('right-aligns the Reciprocity and Recipes columns, header and cells', () => {
       renderResults();
       for (const name of ['Reciprocity', 'Recipes']) {
@@ -353,11 +370,11 @@ describe('FilmResults', () => {
 
     it('positions the scroller and offsets the sticky head', () => {
       const { container } = renderResults();
-      expect(scrollerOf(container)).toHaveClass('relative', 'scroll-pt-11');
+      expect(scrollerOf(container)).toHaveClass('relative', 'scroll-pt-[60px]');
       cleanup();
       const rows = renderResults({ view: 'rows' });
       expect(scrollerOf(rows.container)).toHaveClass('relative');
-      expect(scrollerOf(rows.container)).not.toHaveClass('scroll-pt-11');
+      expect(scrollerOf(rows.container)).not.toHaveClass('scroll-pt-[60px]');
     });
 
     it('fills the hole before the rest of the window when a focused row is kept far above it', () => {

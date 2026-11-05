@@ -463,7 +463,7 @@ describe('FilmPage layout', () => {
     expect(stat('ISO')?.parentElement).toHaveClass(
       'grid-cols-[repeat(auto-fit,minmax(8rem,1fr))]'
     );
-    expect(document.querySelector('.\\!w-40')).not.toBeNull();
+    expect(document.querySelector('.\\!w-28')).not.toBeNull();
   });
 
   it('keeps the narrow stats grid and photo size', () => {

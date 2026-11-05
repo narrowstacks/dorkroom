@@ -33,7 +33,11 @@ const FilmTableRowComponent: FC<FilmTableRowProps> = ({
     <tr
       data-list-item-key={film.uuid}
       style={{ height: TABLE_ROW_HEIGHT }}
-      onClick={() => onSelect(film)}
+      onClick={() => {
+        // Dragging across the row's text is a selection, not a click.
+        if (window.getSelection()?.isCollapsed === false) return;
+        onSelect(film);
+      }}
       // The row is the pointer target; the Film cell button is the keyboard
       // one. The row shows the focus indicator when :has() is supported, and
       // the button underlines on focus where it is not.

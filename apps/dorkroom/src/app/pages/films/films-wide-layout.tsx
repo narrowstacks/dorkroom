@@ -61,7 +61,7 @@ export function FilmsWideLayout({
           <article
             ref={articleRef}
             aria-label={pageLabel}
-            className="h-[calc(100dvh-453px)] max-h-[calc(100dvh-120px)] min-h-[300px] min-w-0 flex-1 overflow-auto p-6"
+            className="h-[calc(100dvh-453px)] max-h-[calc(100dvh-120px)] min-h-[300px] min-w-0 flex-1 overflow-auto bg-[color:var(--color-surface)] p-6"
           >
             {page}
           </article>
