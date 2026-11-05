@@ -103,7 +103,10 @@ describe('FilmToolbar', () => {
     // user-event's radio walk needs CSS.escape, which happy-dom lacks.
     vi.stubGlobal('CSS', { escape: (value: string) => value });
     const user = userEvent.setup();
-    const { onColorTypeChange } = setup({ colorTypeFilter: 'bw' });
+    const { onColorTypeChange } = setup({
+      colorTypeFilter: 'bw',
+      showSortSelect: false,
+    });
     await user.tab();
     await user.tab();
     expect(screen.getByRole('radio', { name: 'Black & White' })).toHaveFocus();
@@ -176,19 +179,18 @@ describe('FilmToolbar', () => {
       within(sort)
         .getAllByRole('option')
         .map((option) => option.textContent)
-    ).toEqual(['Name', 'ISO', 'Most recipes']);
+    ).toEqual(['Sort: Name', 'Sort: ISO', 'Sort: Recipes']);
     fireEvent.change(sort, { target: { value: 'recipes' } });
     expect(onSortChange).toHaveBeenCalledWith('recipes');
   });
 
   it('never mentions recipes when the recipes sort is unavailable', () => {
     const { container } = setup({ recipesSortAvailable: false });
-    expect(screen.queryByText('Most recipes')).not.toBeInTheDocument();
     expect(container).not.toHaveTextContent(/recipe/i);
     expect(
       within(screen.getByLabelText('Sort'))
         .getAllByRole('option')
         .map((option) => option.textContent)
-    ).toEqual(['Name', 'ISO']);
+    ).toEqual(['Sort: Name', 'Sort: ISO']);
   });
 });

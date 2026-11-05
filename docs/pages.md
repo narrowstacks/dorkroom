@@ -473,8 +473,9 @@ loaded, `q` included, so if loading fails the URL keeps what the link carried.
 **Features:**
 
 - Toolbar above the results (no sidebar): fuzzy search, a type segmented
-  control (All, B&W, Color, Slide), then ISO, brand and status. Clear filters
-  appears once anything is applied. On phones the toolbar also has a Sort menu
+  control (All, B&W, Color, Slide), then ISO, brand and status, with no
+  visible labels since the dropdowns name themselves. Clear filters appears once
+  anything is applied. On phones the toolbar also has a Sort menu
 - Sortable by name (default), ISO or most recipes. The table sorts from its
   column headers (`aria-sort`); the Recipes sort and column exist only for
   black and white films, and the sort falls back to name when the type filter
@@ -485,9 +486,9 @@ loaded, `q` included, so if loading fails the URL keeps what the link carried.
     columns are photo, film, type, ISO, reciprocity, recipes and status;
     tablet drops reciprocity and status
   - Film open on tablet or desktop: the table narrows to a side list (320px
-    desktop, 260px tablet) with the open film highlighted, beside the film page
-  - Phone (768px and below): rows with name, brand, type and recipe count, then
-    ISO. An open film replaces the list; Back returns to it
+    desktop, 260px tablet) with thumbnails and the open film highlighted, beside the film page
+  - Phone (768px and below): rows with thumbnail, name, brand, type and recipe
+    count, then ISO. An open film replaces the list; Back returns to it
 - Film page (not a dialog; `?film=<slug>`, no per-film route): brand, name,
   tags, photo with credit, Share, stats, rebrand link, Recipes, About,
   manufacturer notes, then up to four other films at the same ISO. Focus moves

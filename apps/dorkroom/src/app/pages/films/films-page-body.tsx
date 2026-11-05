@@ -18,7 +18,8 @@ import { vercelFilmImageLoader } from '../../lib/film-image-loader';
 import { useShareLink } from '../../lib/use-share-link';
 import { FilmPageSlot } from './film-page-slot';
 import { FilmsPhoneLayout, PHONE_RESULTS_HEIGHT } from './films-phone-layout';
-import { FilmsWideLayout, WIDE_RESULTS_HEIGHT } from './films-wide-layout';
+import { FilmsWideLayout } from './films-wide-layout';
+import { wideResultsHeight } from './wide-results-height';
 
 /**
  * Resized thumbnails only in a Vercel build, the one place `/_vercel/image`
@@ -228,7 +229,7 @@ export function FilmsPageBody({
                 results={{
                   ...resultsProps,
                   view: getWideView(),
-                  height: WIDE_RESULTS_HEIGHT,
+                  height: wideResultsHeight(isDesktop),
                 }}
               />
             </>

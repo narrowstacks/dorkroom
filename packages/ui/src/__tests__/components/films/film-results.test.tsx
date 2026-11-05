@@ -17,6 +17,7 @@ import {
 import {
   FilmResults,
   type FilmResultsProps,
+  type FilmResultsView,
 } from '../../../components/films/film-results';
 import type { VirtualListFocusHandle } from '../../../hooks/use-virtual-list-focus';
 
@@ -543,13 +544,13 @@ describe('FilmResults', () => {
         (img) => img.getAttribute('src') === PHOTO
       );
 
-    function renderMode(mode?: FilmImageMode) {
+    function renderMode(mode?: FilmImageMode, view: FilmResultsView = 'table') {
       const results = (
         <FilmResults
           films={[photoFilm]}
           selectedFilmId={null}
           onSelectFilm={noop}
-          view="table"
+          view={view}
           sort="name"
           onSortChange={noop}
           showRecipes
@@ -569,6 +570,23 @@ describe('FilmResults', () => {
       renderMode();
       expect(photos()).toHaveLength(1);
     });
+
+    it.each<FilmResultsView>(['list', 'rows'])(
+      'keeps the thumbnail in the %s view',
+      (view) => {
+        renderMode(undefined, view);
+        expect(photos()).toHaveLength(1);
+      }
+    );
+
+    it.each<FilmImageMode>(['detail-only', 'none'])(
+      'shows the film icon on a list row in %s mode',
+      (mode) => {
+        const { container } = renderMode(mode, 'list');
+        expect(container.querySelector('img')).toBeNull();
+        expect(container.querySelector('svg.lucide-film')).not.toBeNull();
+      }
+    );
 
     it.each<FilmImageMode>(['detail-only', 'none'])(
       'shows the film icon and mounts no <img> on a row in %s mode',
