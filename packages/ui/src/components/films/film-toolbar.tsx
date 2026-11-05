@@ -13,15 +13,19 @@ const DISCONTINUED_OPTIONS = [
   { label: 'Discontinued only', value: 'discontinued' },
 ] as const;
 
+// "Sort:" stands in for a visible label, which a bare "Name" would need.
 const BASE_SORT_OPTIONS: { label: string; value: FilmSort }[] = [
-  { label: 'Name', value: 'name' },
-  { label: 'ISO', value: 'iso' },
+  { label: 'Sort: Name', value: 'name' },
+  { label: 'Sort: ISO', value: 'iso' },
 ];
 
 const RECIPES_SORT_OPTION = {
-  label: 'Most recipes',
+  label: 'Sort: Recipes',
   value: 'recipes',
 } as const satisfies { label: string; value: FilmSort };
+
+/** 44px on touch layouts, a slimmer bar from `lg` up. */
+const CONTROL_CLASS = 'min-h-11 rounded-xl lg:min-h-9';
 
 const TYPE_GROUP_LABEL_ID = 'film-toolbar-type-label';
 const TYPE_GROUP_NAME = 'film-toolbar-type';
@@ -94,15 +98,15 @@ export const FilmToolbar: FC<FilmToolbarProps> = ({
     // otherwise render behind them (#596).
     <div
       className={cn(
-        'relative z-10 flex flex-col gap-2 rounded-2xl md:gap-4 border border-[color:var(--color-border-secondary)] bg-surface p-3 sm:p-4 md:flex-row md:flex-wrap md:items-end',
+        'relative z-10 flex flex-col gap-2 rounded-2xl border border-[color:var(--color-border-secondary)] bg-surface p-2 md:flex-row md:flex-wrap md:items-center',
         className
       )}
     >
-      <div className="min-w-0 md:min-w-56 md:flex-1">
-        <label htmlFor="film-search" className="sr-only">
-          Search films
-        </label>
-        <div className="group relative">
+      <div className="flex min-w-0 gap-2 md:min-w-40 md:flex-1">
+        <div className="group relative min-w-0 flex-1">
+          <label htmlFor="film-search" className="sr-only">
+            Search films
+          </label>
           <Search className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted transition-colors group-focus-within:text-brand" />
           <input
             id="film-search"
@@ -111,9 +115,22 @@ export const FilmToolbar: FC<FilmToolbarProps> = ({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={searchPlaceholder}
-            className="min-h-11 w-full rounded-xl border border-secondary bg-surface-muted px-3 py-2 pl-10 text-sm font-medium text-primary transition-colors focus:border-brand focus:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
+            className={cn(
+              CONTROL_CLASS,
+              'w-full border border-secondary bg-surface-muted px-3 py-1.5 pl-10 text-sm font-medium text-primary transition-colors focus:border-brand focus:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]'
+            )}
           />
         </div>
+        {showSortSelect && (
+          <Select
+            ariaLabel="Sort"
+            selectedValue={sort}
+            onValueChange={optionChangeHandler(sortOptions, onSortChange)}
+            items={sortOptions}
+            selectClassName={CONTROL_CLASS}
+            className="w-32 shrink-0"
+          />
+        )}
       </div>
 
       <div className="min-w-0">
@@ -123,7 +140,7 @@ export const FilmToolbar: FC<FilmToolbarProps> = ({
         <div
           role="radiogroup"
           aria-labelledby={TYPE_GROUP_LABEL_ID}
-          className="grid grid-cols-4 gap-1 rounded-xl border border-[color:var(--color-border-secondary)] p-1 md:inline-flex"
+          className="grid grid-cols-4 gap-0.5 rounded-xl border border-[color:var(--color-border-secondary)] p-0.5 md:inline-flex"
         >
           {FILM_TYPE_OPTIONS.map((option) => (
             <label key={option.value} className="flex min-w-0">
@@ -135,7 +152,7 @@ export const FilmToolbar: FC<FilmToolbarProps> = ({
                 onChange={() => onColorTypeChange(option.value)}
                 className="peer sr-only"
               />
-              <span className="flex min-h-11 w-full cursor-pointer items-center justify-center rounded-lg px-1 text-center text-xs font-normal leading-tight text-secondary transition-colors hover:bg-hover-surface hover:text-on-hover-surface peer-checked:bg-text-primary peer-checked:font-semibold peer-checked:text-background peer-checked:hover:bg-text-primary peer-checked:hover:text-background peer-focus-visible:ring-2 peer-focus-visible:ring-[color:var(--color-focus-ring)] peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-[color:var(--color-surface)] sm:px-2 sm:text-sm md:px-3">
+              <span className="flex min-h-11 w-full cursor-pointer items-center justify-center rounded-lg px-1 text-center text-xs font-normal leading-tight text-secondary transition-colors hover:bg-hover-surface hover:text-on-hover-surface peer-checked:bg-text-primary peer-checked:font-semibold peer-checked:text-background peer-checked:hover:bg-text-primary peer-checked:hover:text-background peer-focus-visible:ring-2 peer-focus-visible:ring-[color:var(--color-focus-ring)] peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-[color:var(--color-surface)] sm:px-2 sm:text-sm md:px-3 lg:min-h-[30px]">
                 {option.label}
               </span>
             </label>
@@ -143,57 +160,48 @@ export const FilmToolbar: FC<FilmToolbarProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 md:contents">
+      <div className="grid w-full grid-cols-[1fr_1.15fr_1fr] gap-2 lg:contents">
         <SearchableSelect
-          label="ISO speed"
           selectedValue={isoSpeedFilter}
           onValueChange={onIsoSpeedChange}
           items={isoOptions}
-          placeholder="Select ISO..."
-          triggerClassName="min-h-11"
-          className="min-w-0 md:w-36"
+          // No visible label: this also names the input.
+          placeholder="ISO speed"
+          allowClear={false}
+          triggerClassName={cn(CONTROL_CLASS, 'py-1.5 pl-2.5 pr-6 text-sm')}
+          className="min-w-0 lg:w-28 xl:w-36"
         />
         <SearchableSelect
-          label="Brand"
           selectedValue={brandFilter}
           onValueChange={onBrandChange}
           items={brandOptions}
-          placeholder="Select brand..."
-          triggerClassName="min-h-11"
-          className="min-w-0 md:w-44"
+          placeholder="Brand"
+          allowClear={false}
+          triggerClassName={cn(CONTROL_CLASS, 'py-1.5 pl-2.5 pr-6 text-sm')}
+          className="min-w-0 lg:w-36 xl:w-44"
         />
         <Select
-          label="Status"
+          ariaLabel="Status"
           selectedValue={discontinuedFilter}
           onValueChange={optionChangeHandler(
             DISCONTINUED_OPTIONS,
             onDiscontinuedChange
           )}
           items={DISCONTINUED_OPTIONS}
-          selectClassName="min-h-11"
-          className="min-w-0 md:w-44"
+          selectClassName={cn(CONTROL_CLASS, 'pl-2.5 pr-6')}
+          className="min-w-0 lg:w-36 xl:w-44"
         />
-        {showSortSelect && (
-          <Select
-            label="Sort"
-            selectedValue={sort}
-            onValueChange={optionChangeHandler(sortOptions, onSortChange)}
-            items={sortOptions}
-            selectClassName="min-h-11"
-            className="min-w-0 md:w-40"
-          />
-        )}
       </div>
 
       {hasActiveFilters && (
-        <div className="flex items-center justify-end gap-3 md:ml-auto">
+        <div className="flex items-center justify-end gap-3">
           <button
             type="button"
             onClick={() => {
               onClearFilters();
               searchRef.current?.focus();
             }}
-            className="min-h-11 rounded-full border border-secondary px-3 text-sm font-medium text-secondary transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
+            className="min-h-11 rounded-full border border-secondary px-3 text-sm lg:min-h-9 font-medium text-secondary transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
           >
             Clear filters
           </button>

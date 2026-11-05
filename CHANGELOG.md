@@ -13,7 +13,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - **Film photos credit their source.** A film's page now shows who took the packaging photo and its licence, linked to where it came from.
 - **A sortable films table.** /films lists films in a full-width table. Click the Film, ISO or Recipes heading to sort; the sort is kept in the link. Opening a film narrows the table to a list beside the film's page, and on phones each film is a row that opens as its own page. The Darkroom theme shows no film photos, since they were too bright for its red-only screen. (#669)
 - **Recipes on the film page.** A black and white film's page now shows its development recipes, grouped by ISO and opening on the box speed. Each row links to that recipe on /development. Films with no recipes skip the section, color and slide films never mention recipes, and Kindle and other e-ink devices keep the plain link to /development. The page also ends with up to four other films at the same ISO. (#669)
-- **Filters sit in a toolbar on /films.** Search, film type, ISO, brand and status run along the top instead of a sidebar. On phones the toolbar also has a Sort menu. (#669)
+- **Filters sit in a toolbar on /films.** Search, film type, ISO, brand and status run along the top in a slim bar instead of a sidebar. On phones the toolbar also has a Sort menu. /films now uses more of a wide screen, with taller results. (#669)
 - **Back works on the films page.** Opening a film adds a step to your browser history, so Back closes it, or returns to the previous film, with your search and filters as you left them. (#669)
 
 ### Changed

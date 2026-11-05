@@ -40,7 +40,7 @@ export const FilmResultsSkeleton: FC<FilmResultsSkeletonProps> = ({
           style={{ height }}
           className="flex items-center gap-4 border-b border-[color:var(--color-border-secondary)] px-3"
         >
-          {table && <Skeleton className="size-10 shrink-0" />}
+          <Skeleton className="size-10 shrink-0" />
           <div className="min-w-0 flex-1 space-y-1.5">
             <Skeleton className="h-4 w-1/2" />
             {!table && <Skeleton className="h-3 w-1/3" />}

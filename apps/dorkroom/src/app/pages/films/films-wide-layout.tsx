@@ -4,6 +4,7 @@ import {
   FilmsResultsPane,
   type FilmsResultsPaneProps,
 } from './films-results-pane';
+import { wideResultsHeight } from './wide-results-height';
 
 interface FilmsWideLayoutProps {
   results: FilmsResultsPaneProps;
@@ -15,9 +16,6 @@ interface FilmsWideLayoutProps {
   /** The film page or its skeleton; rendered only while a film is open. */
   page: ReactNode;
 }
-
-// One height for the list and the page beside it.
-export const WIDE_RESULTS_HEIGHT = 'calc(100dvh - 453px)';
 
 /**
  * Desktop and tablet: the table at full width, narrowing to a side list with
@@ -61,9 +59,11 @@ export function FilmsWideLayout({
           <article
             ref={articleRef}
             aria-label={pageLabel}
-            className="h-[calc(100dvh-453px)] max-h-[calc(100dvh-120px)] min-h-[300px] min-w-0 flex-1 overflow-auto bg-[color:var(--color-surface)] p-6"
+            style={{ height: wideResultsHeight(isDesktop) }}
+            className="max-h-[calc(100dvh-120px)] min-h-[300px] min-w-0 flex-1 overflow-auto bg-[color:var(--color-surface)] p-6"
           >
-            {page}
+            {/* The table takes the full width; a film's text and rows read better capped. */}
+            <div className="mx-auto max-w-5xl">{page}</div>
           </article>
         )}
       </div>

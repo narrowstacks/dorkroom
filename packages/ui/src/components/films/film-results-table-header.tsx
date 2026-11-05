@@ -65,7 +65,11 @@ const SortableHeader: FC<SortableHeaderProps> = ({
   );
 };
 
-/** The sticky head of the films table; `view` decides which columns it has. */
+/**
+ * The sticky head of the films table; `view` decides which columns it has.
+ * Percent widths from `2xl` spread the columns, so a very wide table does not
+ * put a long gap between a film's name and its details.
+ */
 export const FilmResultsTableHeader: FC<FilmResultsTableHeaderProps> = ({
   view,
   sort,
@@ -86,7 +90,7 @@ export const FilmResultsTableHeader: FC<FilmResultsTableHeaderProps> = ({
           sortKey="name"
           direction="ascending"
         />
-        <th scope="col" className={cn(headClass, 'w-28')}>
+        <th scope="col" className={cn(headClass, 'w-28 2xl:w-[14%]')}>
           Type
         </th>
         <SortableHeader
@@ -95,10 +99,13 @@ export const FilmResultsTableHeader: FC<FilmResultsTableHeaderProps> = ({
           sortKey="iso"
           direction="ascending"
           align="right"
-          className="w-20"
+          className="w-20 2xl:w-[10%]"
         />
         {full && (
-          <th scope="col" className={cn(headClass, 'w-36 text-right')}>
+          <th
+            scope="col"
+            className={cn(headClass, 'w-36 text-right 2xl:w-[14%]')}
+          >
             Reciprocity
           </th>
         )}
@@ -109,11 +116,11 @@ export const FilmResultsTableHeader: FC<FilmResultsTableHeaderProps> = ({
             sortKey="recipes"
             direction="descending"
             align="right"
-            className="w-24"
+            className="w-24 2xl:w-[12%]"
           />
         )}
         {full && (
-          <th scope="col" className={cn(headClass, 'w-32')}>
+          <th scope="col" className={cn(headClass, 'w-32 2xl:w-[16%]')}>
             Status
           </th>
         )}

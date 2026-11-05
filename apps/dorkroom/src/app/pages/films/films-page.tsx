@@ -295,7 +295,7 @@ export default function FilmsPage() {
   const filmOpen = Boolean(urlFilm) || shouldShowDetailSkeleton;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-[1920px] px-4 py-6 sm:px-6 lg:px-8">
       {/* Skip link for accessibility */}
       {/* A phone with a film open has no results to skip to. */}
       {!(isMobile && filmOpen) && (
