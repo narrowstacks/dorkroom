@@ -26,7 +26,11 @@ const FilmListRowComponent: FC<FilmListRowProps> = ({
     <button
       type="button"
       aria-current={isSelected ? 'true' : undefined}
-      onClick={() => onSelect(film)}
+      onClick={(event) => {
+        // The list moves under the pointer, so a double-click's second click
+        // would land on another film. Keyboard clicks have detail 0.
+        if (event.detail < 2) onSelect(film);
+      }}
       className={cn(
         'group flex h-full w-full items-center gap-3 px-3 text-left transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-focus-ring)]',

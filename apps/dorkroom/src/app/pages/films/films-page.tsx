@@ -22,7 +22,7 @@ import {
   useRouter,
   useSearch,
 } from '@tanstack/react-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FilmsSearchParams } from '../../../routes/search-schemas';
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useSearchDeadEndAnalytics } from '../../lib/analytics/use-search-analytics';
@@ -97,6 +97,7 @@ export default function FilmsPage() {
     discontinuedFilter,
   } = db;
 
+  const selectToken = useRef(0);
   const [resultCountAnnouncement, setResultCountAnnouncement] =
     useState<string>('');
 
@@ -233,6 +234,7 @@ export default function FilmsPage() {
   // so a filter typed just before opening is not lost on Back.
   const handleSelectFilm = async (film: Film) => {
     if (film.slug === urlFilmSlug) return;
+    const token = ++selectToken.current;
     trackEvent('detail_opened', { type: 'film' });
     const live = buildFilmFilterSearch(db);
     const fromList = !urlFilmSlug;
@@ -247,6 +249,8 @@ export default function FilmsPage() {
         state: true,
         resetScroll: false,
       });
+      // A later selection made during the replace wins.
+      if (token !== selectToken.current) return;
     }
     // A deep link's own entry is a film, so it stays at depth 0.
     const fromDeepLink = filmDepth === 0 && !fromList;

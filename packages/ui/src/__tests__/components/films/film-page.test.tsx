@@ -403,6 +403,18 @@ describe('FilmPage sections', () => {
     ).toBeNull();
   });
 
+  it('ignores the second click of a double-click on Back to films', () => {
+    const onClose = vi.fn();
+    renderPage({ onClose });
+    const back = screen.getByRole('button', { name: /back to films/i });
+
+    fireEvent.click(back, { detail: 2 });
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.click(back, { detail: 1 });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
   it('ignores the second click of a double-click on Share', () => {
     const onShare = vi.fn();
     renderPage({ onShare });
