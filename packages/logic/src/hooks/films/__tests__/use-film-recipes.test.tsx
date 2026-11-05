@@ -237,6 +237,24 @@ describe('useFilmRecipes', () => {
     );
   });
 
+  it('stops loading and reports the error when the catalog fails', async () => {
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.reject(new Error('catalog down')))
+    );
+    const { result } = renderHook(() => useFilmRecipes(), {
+      wrapper: makeWrapper(client),
+    });
+    await waitFor(() => expect(result.current.error).not.toBeNull());
+    expect(result.current.isLoading).toBe(false);
+    expect(
+      client.getQueryState(queryKeys.combinations.list())?.fetchStatus
+    ).toBe('idle');
+  });
+
   it('does not fetch when disabled', () => {
     const client = new QueryClient({
       defaultOptions: { queries: { retry: false } },

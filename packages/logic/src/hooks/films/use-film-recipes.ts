@@ -60,6 +60,7 @@ export interface UseFilmRecipesReturn {
 }
 
 const EMPTY_COMBINATIONS: Combination[] = [];
+const EMPTY_FILMS: Film[] = [];
 const NO_GROUPS: FilmRecipeGroups = { groups: [], defaultIso: undefined };
 
 /**
@@ -82,9 +83,12 @@ export function useFilmRecipes({
   const index = useMemo(
     () =>
       buildFilmRecipeIndex(
-        enabled ? (combinations.data ?? EMPTY_COMBINATIONS) : EMPTY_COMBINATIONS
+        enabled
+          ? (combinations.data ?? EMPTY_COMBINATIONS)
+          : EMPTY_COMBINATIONS,
+        films.data ?? EMPTY_FILMS
       ),
-    [enabled, combinations.data]
+    [enabled, combinations.data, films.data]
   );
 
   const getRecipeCount = useCallback(
@@ -116,8 +120,10 @@ export function useFilmRecipes({
     recipeCounts: index.counts,
     getRecipeCount,
     getRecipeGroups,
-    isLoading: enabled && combinations.isPending,
-    error: combinations.error?.message ?? null,
+    isLoading: enabled && !films.isError && combinations.isPending,
+    error: enabled
+      ? (combinations.error?.message ?? films.error?.message ?? null)
+      : null,
     developersReady: developerList !== undefined,
     developersError: developers.error?.message ?? null,
   };

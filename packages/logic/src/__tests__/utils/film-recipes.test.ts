@@ -16,7 +16,8 @@ const film = (
   brand: string,
   name: string,
   colorType: string,
-  isoSpeed: number
+  isoSpeed: number,
+  overrides: Partial<Film> = {}
 ): Film => ({
   id: 0,
   uuid: slug,
@@ -38,6 +39,7 @@ const film = (
   dateAdded: '2023-01-01',
   createdAt: '2023-01-01',
   updatedAt: '2023-01-01',
+  ...overrides,
 });
 
 const recipe = (
@@ -75,6 +77,7 @@ const triX = film('tri-x-400', 'Kodak', 'Tri-X 400', 'bw', 400);
 const panF = film('pan-f-plus', 'Ilford', 'Pan F Plus', 'bw', 50);
 const portra = film('portra-400', 'Kodak', 'Portra 400', 'color', 400);
 const velvia = film('velvia-50', 'Fujifilm', 'Velvia 50', 'slide', 50);
+const allFilms = [hp5, triX, panF, portra, velvia];
 
 const combinations = [
   recipe('hp5-plus', 'ilford-ddx', 400),
@@ -97,7 +100,7 @@ describe('filmSupportsRecipes', () => {
   });
 
   it('does not depend on whether recipes exist', () => {
-    const index = buildFilmRecipeIndex(combinations);
+    const index = buildFilmRecipeIndex(combinations, allFilms);
     expect(getFilmRecipeCount(index, portra.slug)).toBe(1);
     expect(filmSupportsRecipes(portra)).toBe(false);
   });
@@ -113,7 +116,7 @@ describe('filmTypeFilterSupportsRecipes', () => {
 });
 
 describe('buildFilmRecipeIndex', () => {
-  const index = buildFilmRecipeIndex(combinations);
+  const index = buildFilmRecipeIndex(combinations, allFilms);
 
   it('counts recipes per film slug', () => {
     expect(getFilmRecipeCount(index, 'hp5-plus')).toBe(4);
@@ -132,10 +135,71 @@ describe('buildFilmRecipeIndex', () => {
   });
 
   it('skips combinations without a film slug and handles empty input', () => {
-    expect(buildFilmRecipeIndex([recipe('', 'rodinal', 100)]).counts.size).toBe(
-      0
+    expect(
+      buildFilmRecipeIndex([recipe('', 'rodinal', 100)], allFilms).counts.size
+    ).toBe(0);
+    expect(buildFilmRecipeIndex([], allFilms).counts.size).toBe(0);
+  });
+});
+
+describe('buildFilmRecipeIndex film and rebrand semantics', () => {
+  const alias = (slug: string) => ({ slug, name: slug });
+  const base = film('hp5-plus', 'Ilford', 'HP5 Plus', 'bw', 400, {
+    aliases: [alias('ilford-hp5')],
+  });
+  const rebrandA = film('foma-400', 'Fomapan', 'Fomapan 400', 'bw', 400, {
+    baseFilmSlug: 'hp5-plus',
+  });
+  const rebrandB = film('lomo-400', 'Lomography', 'Lomo 400', 'bw', 400, {
+    baseFilmSlug: 'hp5-plus',
+  });
+  const films = [base, rebrandA, rebrandB, panF];
+  const slugs = (index: ReturnType<typeof buildFilmRecipeIndex>, s: string) =>
+    index.recipesBySlug.get(s)?.map((c) => c.uuid);
+
+  it('counts a recipe under an alias slug for the canonical film', () => {
+    const index = buildFilmRecipeIndex(
+      [recipe('ilford-hp5', 'rodinal', 400)],
+      films
     );
-    expect(buildFilmRecipeIndex([]).counts.size).toBe(0);
+    expect(getFilmRecipeCount(index, 'hp5-plus')).toBe(1);
+    expect(index.counts.has('ilford-hp5')).toBe(false);
+  });
+
+  it('counts a recipe stored with only a filmStockId', () => {
+    const index = buildFilmRecipeIndex(
+      [recipe('', 'rodinal', 100, { filmStockId: 'pan-f-plus' })],
+      films
+    );
+    expect(getFilmRecipeCount(index, 'pan-f-plus')).toBe(1);
+  });
+
+  it('shares recipes between a rebrand and its base film', () => {
+    const own = recipe('hp5-plus', 'rodinal', 400);
+    const rebrandOwn = recipe('foma-400', 'kodak-d-76', 400);
+    const index = buildFilmRecipeIndex([own, rebrandOwn], films);
+    expect(slugs(index, 'foma-400')).toEqual([own.uuid, rebrandOwn.uuid]);
+    expect(slugs(index, 'hp5-plus')).toEqual([own.uuid, rebrandOwn.uuid]);
+  });
+
+  it('does not share one rebrand own recipes with a sibling rebrand', () => {
+    const a = recipe('foma-400', 'rodinal', 400);
+    const b = recipe('lomo-400', 'kodak-d-76', 400);
+    const index = buildFilmRecipeIndex([a, b], films);
+    expect(slugs(index, 'foma-400')).toEqual([a.uuid]);
+    expect(slugs(index, 'lomo-400')).toEqual([b.uuid]);
+    expect(slugs(index, 'hp5-plus')).toEqual([a.uuid, b.uuid]);
+  });
+
+  it('counts a recipe once and ignores recipes for unknown films', () => {
+    const own = recipe('hp5-plus', 'rodinal', 400);
+    const aliased = { ...own };
+    const index = buildFilmRecipeIndex(
+      [own, aliased, recipe('mystery-film', 'rodinal', 400)],
+      films
+    );
+    expect(getFilmRecipeCount(index, 'hp5-plus')).toBe(1);
+    expect(index.counts.has('mystery-film')).toBe(false);
   });
 });
 
@@ -247,7 +311,7 @@ describe('resolveFilmRecipes', () => {
 
 describe('sortFilms', () => {
   const byName = [panF, hp5, triX, portra, velvia];
-  const counts = buildFilmRecipeIndex(combinations).counts;
+  const counts = buildFilmRecipeIndex(combinations, allFilms).counts;
 
   it('name returns the input order', () => {
     expect(sortFilms(byName, 'name')).toEqual(byName);

@@ -1,5 +1,6 @@
 import type { Combination, Developer, Film } from '@dorkroom/api';
 import { getCombinationDilution } from './combination-dilution';
+import { buildFilmSlugIndex } from './film-alias-resolver';
 
 const BLACK_AND_WHITE_TYPES = new Set(['bw', 'b&w', 'b & w']);
 
@@ -31,20 +32,71 @@ export interface FilmRecipeIndex {
   recipesBySlug: ReadonlyMap<string, readonly Combination[]>;
 }
 
-/** Index combinations by `filmSlug`. Pure; safe to memoize on the array. */
+/**
+ * Index combinations by canonical film slug, with the same film-to-recipe
+ * semantics as /development: a recipe stored under an alias slug (or only a
+ * `filmStockId`) counts for the canonical film, and a film shares recipes with
+ * its base film and with the films rebranded from it (one level, no siblings).
+ * Combinations whose film is not in `films` are ignored; films without recipes
+ * are absent. Pure; safe to memoize on both arrays.
+ */
 export function buildFilmRecipeIndex(
-  combinations: readonly Combination[]
+  combinations: readonly Combination[],
+  films: Film[]
 ): FilmRecipeIndex {
-  const recipesBySlug = new Map<string, Combination[]>();
-  for (const combination of combinations) {
-    const slug = combination.filmSlug;
-    if (!slug) continue;
-    const list = recipesBySlug.get(slug);
-    if (list) list.push(combination);
-    else recipesBySlug.set(slug, [combination]);
+  const slugIndex = buildFilmSlugIndex(films);
+
+  const buckets = new Map<
+    string,
+    Array<{ position: number; recipe: Combination }>
+  >();
+  combinations.forEach((combination, position) => {
+    const slug = combination.filmSlug || combination.filmStockId;
+    const film = slug ? slugIndex.get(slug) : undefined;
+    if (!film) return;
+    const bucket = buckets.get(film.slug);
+    if (bucket) bucket.push({ position, recipe: combination });
+    else buckets.set(film.slug, [{ position, recipe: combination }]);
+  });
+
+  const rebrandsByBase = new Map<string, Film[]>();
+  for (const film of slugIndex.values()) {
+    if (!film.baseFilmSlug) continue;
+    const list = rebrandsByBase.get(film.baseFilmSlug);
+    if (list) {
+      if (!list.includes(film)) list.push(film);
+    } else rebrandsByBase.set(film.baseFilmSlug, [film]);
   }
+
+  const recipesBySlug = new Map<string, Combination[]>();
   const counts = new Map<string, number>();
-  for (const [slug, list] of recipesBySlug) counts.set(slug, list.length);
+  for (const film of new Set(slugIndex.values())) {
+    const sources = [film.slug];
+    const base = film.baseFilmSlug
+      ? slugIndex.get(film.baseFilmSlug)
+      : undefined;
+    if (base) sources.push(base.slug);
+    for (const rebrand of rebrandsByBase.get(film.slug) ?? []) {
+      sources.push(rebrand.slug);
+    }
+
+    const seen = new Set<string>();
+    const merged: Array<{ position: number; recipe: Combination }> = [];
+    for (const source of new Set(sources)) {
+      for (const entry of buckets.get(source) ?? []) {
+        if (seen.has(entry.recipe.uuid)) continue;
+        seen.add(entry.recipe.uuid);
+        merged.push(entry);
+      }
+    }
+    if (merged.length === 0) continue;
+    merged.sort((a, b) => a.position - b.position);
+    recipesBySlug.set(
+      film.slug,
+      merged.map((entry) => entry.recipe)
+    );
+    counts.set(film.slug, merged.length);
+  }
   return { counts, recipesBySlug };
 }
 
