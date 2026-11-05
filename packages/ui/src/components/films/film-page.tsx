@@ -110,8 +110,8 @@ export const FilmPage: FC<FilmPageProps> = ({
       headingRef.current?.focus();
     }
   });
-  const photoUrl =
-    use(FilmImageModeContext) === 'none' ? null : film.staticImageUrl;
+  const noPhotos = use(FilmImageModeContext) === 'none';
+  const photoUrl = noPhotos ? null : film.staticImageUrl;
   const supportsRecipes = filmSupportsRecipes(film);
   const readyRecipes =
     supportsRecipes && recipes.status === 'ready' && recipes.count > 0
@@ -152,29 +152,32 @@ export const FilmPage: FC<FilmPageProps> = ({
           wide ? 'flex-row items-start' : 'flex-col items-center'
         )}
       >
-        <div
-          className={cn(
-            'flex flex-col gap-3',
-            wide ? 'items-start' : 'items-center'
-          )}
-        >
-          {/* Eager: already in the viewport the moment the page opens. */}
-          <FilmImage
-            src={photoUrl}
-            alt={`${film.brand} ${film.name}`}
-            size="lg"
-            loading="eager"
-            renderedSize={wide ? 224 : 128}
-            className={wide ? '!w-48 !h-48 md:!w-56 md:!h-56' : '!w-32 !h-32'}
-          />
-          {photoUrl && (
-            <FilmImageCredit
-              credit={film.imageCredit}
-              sourceUrl={film.imageSourceUrl}
-              className={wide ? 'max-w-48 md:max-w-56' : undefined}
+        {/* No photos at all (darkroom): no tile either. */}
+        {!noPhotos && (
+          <div
+            className={cn(
+              'flex flex-col gap-3',
+              wide ? 'items-start' : 'items-center'
+            )}
+          >
+            {/* Eager: already in the viewport the moment the page opens. */}
+            <FilmImage
+              src={photoUrl}
+              alt={`${film.brand} ${film.name}`}
+              size="lg"
+              loading="eager"
+              renderedSize={wide ? 160 : 128}
+              className={wide ? '!w-40 !h-40' : '!w-32 !h-32'}
             />
-          )}
-        </div>
+            {photoUrl && (
+              <FilmImageCredit
+                credit={film.imageCredit}
+                sourceUrl={film.imageSourceUrl}
+                className={wide ? 'max-w-40' : undefined}
+              />
+            )}
+          </div>
+        )}
         <div className={cn('min-w-0 space-y-3', !wide && 'w-full')}>
           <div>
             <p className="text-sm text-tertiary">{film.brand}</p>
@@ -209,7 +212,14 @@ export const FilmPage: FC<FilmPageProps> = ({
         </div>
       </header>
 
-      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <dl
+        className={cn(
+          'grid gap-3',
+          wide
+            ? 'grid-cols-[repeat(auto-fit,minmax(8rem,1fr))]'
+            : 'grid-cols-2 sm:grid-cols-3'
+        )}
+      >
         {stats.map(({ label, value }) => (
           <div
             key={label}

@@ -117,10 +117,13 @@ describe('FilmToolbar', () => {
     expect(screen.getByLabelText('Brand')).toBeInTheDocument();
   });
 
-  it('shows the result count as plain text, not a live region', () => {
+  it('puts the result count in the search placeholder, not as visible text', () => {
     setup({ resultCount: 225 });
-    const count = screen.getByText('225 films');
-    expect(count.closest('[aria-live], [role="status"], output')).toBeNull();
+    expect(screen.getByPlaceholderText('Search 225 films...')).toBeVisible();
+    expect(screen.queryByText('225 films')).not.toBeInTheDocument();
+    cleanup();
+    setup({ resultCount: 1 });
+    expect(screen.getByPlaceholderText('Search 1 film...')).toBeVisible();
   });
 
   it('shows Clear filters only with active filters', () => {
@@ -142,7 +145,14 @@ describe('FilmToolbar', () => {
 
   it('shows no count while the catalog is loading', () => {
     setup({ resultCount: null });
-    expect(screen.queryByText(/^\d+ films?$/)).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search films...')).toBeVisible();
+  });
+
+  it('keeps the visually hidden search label', () => {
+    setup();
+    expect(screen.getByText('Search films', { selector: 'label' })).toHaveClass(
+      'sr-only'
+    );
   });
 
   it('hides the sort select unless asked', () => {

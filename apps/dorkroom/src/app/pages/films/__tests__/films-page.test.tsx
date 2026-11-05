@@ -372,7 +372,7 @@ describe.each([
     expect(
       screen.getByRole('radiogroup', { name: 'Film type' })
     ).toBeInTheDocument();
-    expect(screen.getByText('3 films')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search 3 films...')).toBeVisible();
     expect(
       screen.queryByRole('button', { name: /^Filters/ })
     ).not.toBeInTheDocument();
@@ -933,6 +933,24 @@ describe('FilmsPage at wide widths', () => {
     expect(filmRow('Portra 400')).toHaveAttribute('aria-current', 'true');
   });
 
+  it('starts the film page at the top when another film is picked in the side list', async () => {
+    await renderFilmsPage({ width: DESKTOP, url: '/films?film=hp5-plus' });
+    const page = await waitFor(() => getFilmPage('Ilford HP5 Plus'));
+    page.scrollTop = 120;
+
+    fireEvent.click(filmRow('Portra 400'));
+    await waitFor(() => getFilmPage('Kodak Portra 400'));
+
+    expect(getFilmPage('Kodak Portra 400')).toBe(page);
+    expect(page.scrollTop).toBe(0);
+  });
+
+  it('puts the results and the film page on a solid surface', async () => {
+    await renderFilmsPage({ width: DESKTOP });
+    await findFilmRow('Portra 400');
+    expect(results()).toHaveClass('bg-[color:var(--color-surface)]');
+  });
+
   it('keeps the results mounted when a film opens and closes', async () => {
     await renderFilmsPage({ width: DESKTOP });
     await findFilmRow('Portra 400');
@@ -1030,6 +1048,14 @@ describe('FilmsPage on a phone', () => {
     expect(filmRow('Portra 400')).toBeInTheDocument();
     expect(searchInput()).toBeVisible();
     expect(screen.getByRole('link', { name: /skip to/i })).toBeVisible();
+  });
+
+  it('puts the rows and the phone film page on a solid surface', async () => {
+    await renderFilmsPage({ width: PHONE });
+    fireEvent.click(await findFilmRow('Portra 400'));
+    expect(getFilmPage('Kodak Portra 400')).toHaveClass(
+      'bg-[color:var(--color-surface)]'
+    );
   });
 
   it('restores the page scroll position when Back returns to the list', async () => {

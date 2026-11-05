@@ -28,7 +28,7 @@ const FilmListRowComponent: FC<FilmListRowProps> = ({
       aria-current={isSelected ? 'true' : undefined}
       onClick={() => onSelect(film)}
       className={cn(
-        'flex h-full w-full items-center gap-3 px-3 text-left transition-colors',
+        'group flex h-full w-full items-center gap-3 px-3 text-left transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-focus-ring)]',
         isSelected
           ? 'bg-surface-muted shadow-[inset_3px_0_0_var(--color-brand)]'
@@ -38,7 +38,7 @@ const FilmListRowComponent: FC<FilmListRowProps> = ({
       <span className="min-w-0 flex-1">
         <span
           className={cn(
-            'block truncate text-sm text-primary',
+            'block truncate text-sm text-primary group-hover:underline',
             isSelected ? 'font-bold' : 'font-medium'
           )}
         >

@@ -1,5 +1,5 @@
 import { cn } from '@dorkroom/ui';
-import type { ReactNode } from 'react';
+import { type ReactNode, useLayoutEffect, useRef } from 'react';
 import {
   FilmsResultsPane,
   type FilmsResultsPaneProps,
@@ -17,7 +17,7 @@ interface FilmsWideLayoutProps {
 }
 
 // One height for the list and the page beside it.
-export const WIDE_RESULTS_HEIGHT = 'calc(100dvh - 400px)';
+export const WIDE_RESULTS_HEIGHT = 'calc(100dvh - 453px)';
 
 /**
  * Desktop and tablet: the table at full width, narrowing to a side list with
@@ -32,11 +32,16 @@ export function FilmsWideLayout({
   page,
 }: FilmsWideLayoutProps) {
   const open = filmOpen;
+  const articleRef = useRef<HTMLElement>(null);
+  // Switching films in the side list starts the new page at its top.
+  useLayoutEffect(() => {
+    if (articleRef.current && pageLabel) articleRef.current.scrollTop = 0;
+  }, [pageLabel]);
   return (
     <div
       id="film-results"
       tabIndex={-1}
-      className="overflow-hidden rounded-2xl border border-[color:var(--color-border-secondary)]"
+      className="overflow-hidden rounded-2xl border border-[color:var(--color-border-secondary)] bg-[color:var(--color-surface)]"
     >
       <div className="flex">
         <div
@@ -54,8 +59,9 @@ export function FilmsWideLayout({
         </div>
         {open && (
           <article
+            ref={articleRef}
             aria-label={pageLabel}
-            className="h-[calc(100dvh-400px)] max-h-[calc(100dvh-120px)] min-h-[400px] min-w-0 flex-1 overflow-auto p-6"
+            className="h-[calc(100dvh-453px)] max-h-[calc(100dvh-120px)] min-h-[300px] min-w-0 flex-1 overflow-auto p-6"
           >
             {page}
           </article>

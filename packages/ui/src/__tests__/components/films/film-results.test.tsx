@@ -1,6 +1,7 @@
 import type { Film } from '@dorkroom/api';
 import type { FilmSort } from '@dorkroom/logic';
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -182,15 +183,40 @@ describe('FilmResults', () => {
       expect(screen.getByText('Rebrand')).toBeInTheDocument();
     });
 
-    it('stretches the film button over its row', () => {
-      renderResults();
+    it('selects once from the Film button and once from the row', () => {
+      const onSelectFilm = vi.fn();
+      renderResults({ onSelectFilm });
       const button = screen.getByRole('button', { name: /Stock 1/ });
-      expect(button).toHaveClass('after:absolute', 'after:inset-0');
-      expect(button.closest('tr')).toHaveClass('relative');
-      expect(button.closest('tr')).toHaveAttribute(
-        'data-list-item-key',
-        'film-1'
+      fireEvent.click(button);
+      expect(onSelectFilm).toHaveBeenCalledTimes(1);
+      fireEvent.click(closestOrThrow(button, 'tr'));
+      expect(onSelectFilm).toHaveBeenCalledTimes(2);
+      expect(closestOrThrow(button, 'tr')).not.toHaveClass('relative');
+      expect(button).toHaveClass('focus-visible:underline');
+    });
+
+    it('right-aligns the Reciprocity and Recipes columns, header and cells', () => {
+      renderResults();
+      for (const name of ['Reciprocity', 'Recipes']) {
+        expect(screen.getByRole('columnheader', { name })).toHaveClass(
+          'text-right'
+        );
+      }
+      const cells = within(
+        closestOrThrow(screen.getByRole('button', { name: /Stock 1/ }), 'tr')
+      ).getAllByRole('cell');
+      expect(cells[4]).toHaveClass('text-right', 'tabular-nums');
+      expect(cells[5]).toHaveClass('text-right', 'tabular-nums');
+    });
+
+    it('underlines the film name on hover through the row group', () => {
+      renderResults();
+      const row = closestOrThrow(
+        screen.getByRole('button', { name: /Stock 1/ }),
+        'tr'
       );
+      expect(row).toHaveClass('group');
+      expect(screen.getByText('Stock 1')).toHaveClass('group-hover:underline');
     });
   });
 
@@ -314,6 +340,82 @@ describe('FilmResults', () => {
       expect(screen.getByText('No films found')).toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
       expect(onClearFilters).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('scrolling', () => {
+    const many = Array.from({ length: 60 }, (_, i) => makeFilm(i + 1));
+    const scrollerOf = (container: HTMLElement) => {
+      const scroller = container.firstElementChild;
+      if (!(scroller instanceof HTMLElement)) throw new Error('no scroller');
+      return scroller;
+    };
+
+    it('positions the scroller and offsets the sticky head', () => {
+      const { container } = renderResults();
+      expect(scrollerOf(container)).toHaveClass('relative', 'scroll-pt-11');
+      cleanup();
+      const rows = renderResults({ view: 'rows' });
+      expect(scrollerOf(rows.container)).toHaveClass('relative');
+      expect(scrollerOf(rows.container)).not.toHaveClass('scroll-pt-11');
+    });
+
+    it('fills the hole before the rest of the window when a focused row is kept far above it', () => {
+      for (const view of ['table', 'list'] as const) {
+        const { container, unmount } = renderResults({ films: many, view });
+        const firstButton = container
+          .querySelector('[data-list-item-key="film-1"]')
+          ?.querySelector('button');
+        firstButton?.focus();
+        const scroller = scrollerOf(container);
+        act(() => {
+          scroller.scrollTop = 50_000;
+          scroller.dispatchEvent(new Event('scroll'));
+        });
+        if (!firstButton) throw new Error('no first button');
+        const focused = closestOrThrow(
+          firstButton,
+          view === 'table' ? 'tr' : 'li'
+        );
+        expect(focused.dataset.listItemKey).toBe('film-1');
+        const gap = focused.nextElementSibling;
+        expect(gap).toHaveAttribute('aria-hidden', 'true');
+        expect(gap).not.toHaveAttribute('data-list-item-key');
+        unmount();
+      }
+    });
+
+    it('leaves room under phone rows for the floating buttons', () => {
+      const { container } = renderResults({ view: 'rows' });
+      const list = scrollerOf(container).querySelector('ul');
+      expect(
+        Number.parseInt(list?.style.paddingBottom ?? '0', 10)
+      ).toBeGreaterThanOrEqual(80);
+    });
+
+    it('scrolls the selected row into view when another film is selected in the list', () => {
+      const { container, rerender } = renderResults({
+        films: many,
+        view: 'list',
+        selectedFilmId: 'film-1',
+      });
+      const scroller = scrollerOf(container);
+      const scrollTo = vi.fn();
+      scroller.scrollTo = scrollTo;
+      rerender(
+        <FilmResults
+          films={many}
+          selectedFilmId="film-55"
+          onSelectFilm={noop}
+          view="list"
+          sort="name"
+          onSortChange={noop}
+          showRecipes
+          getRecipeCount={getRecipeCount}
+        />
+      );
+      // happy-dom has no scroll extent, so the clamped offset is not asserted.
+      expect(scrollTo).toHaveBeenCalled();
     });
   });
 

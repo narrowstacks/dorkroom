@@ -33,7 +33,7 @@ export function FilmsPhoneLayout({
     return (
       <article
         aria-label={pageLabel}
-        className="rounded-2xl border border-[color:var(--color-border-secondary)] p-4"
+        className="rounded-2xl border border-[color:var(--color-border-secondary)] bg-[color:var(--color-surface)] p-4"
       >
         {page}
       </article>
@@ -45,7 +45,7 @@ export function FilmsPhoneLayout({
       <div
         id="film-results"
         tabIndex={-1}
-        className="overflow-hidden rounded-2xl border border-[color:var(--color-border-secondary)]"
+        className="overflow-hidden rounded-2xl border border-[color:var(--color-border-secondary)] bg-[color:var(--color-surface)]"
       >
         <FilmsResultsPane {...results} />
       </div>

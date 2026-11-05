@@ -172,6 +172,7 @@ export function useDebouncedUrlWrite({
             pendingFilm(urlFilmSlug, lastProcessedFilmSlug),
         },
         replace: true,
+        resetScroll: false,
       });
     }, 500);
 

@@ -457,6 +457,30 @@ describe('FilmPage back button and focus', () => {
   });
 });
 
+describe('FilmPage layout', () => {
+  it('uses a smaller photo and a one-row auto-fit stats grid when wide', () => {
+    renderPage({ layout: 'wide' });
+    expect(stat('ISO')?.parentElement).toHaveClass(
+      'grid-cols-[repeat(auto-fit,minmax(8rem,1fr))]'
+    );
+    expect(document.querySelector('.\\!w-40')).not.toBeNull();
+  });
+
+  it('keeps the narrow stats grid and photo size', () => {
+    renderPage({ layout: 'narrow' });
+    expect(stat('ISO')?.parentElement).toHaveClass(
+      'grid-cols-2',
+      'sm:grid-cols-3'
+    );
+    expect(document.querySelector('.\\!w-32')).not.toBeNull();
+  });
+
+  it('keeps the text tile for a film with no photo outside none mode', () => {
+    renderPage();
+    expect(document.querySelector('.lucide-film')).not.toBeNull();
+  });
+});
+
 describe('FilmPage with no photos', () => {
   it('shows no photo and no credit in none mode', () => {
     const credited = film({
@@ -479,6 +503,8 @@ describe('FilmPage with no photos', () => {
       </FilmImageModeContext>
     );
     expect(document.querySelector('img')).toBeNull();
+    // No empty tile either.
+    expect(document.querySelector('.lucide-film')).toBeNull();
     expect(screen.queryByText(/A\. Photographer/)).toBeNull();
     expect(
       screen.getByRole('heading', { level: 2, name: 'HP5 Plus' })

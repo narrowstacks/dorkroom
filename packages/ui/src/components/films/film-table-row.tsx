@@ -29,11 +29,15 @@ const FilmTableRowComponent: FC<FilmTableRowProps> = ({
   const full = view === 'table';
 
   return (
+    // eslint-disable-next-line react-doctor/click-events-have-key-events -- pointer-only convenience: the Film cell button is the keyboard control for the same action, so the row itself takes no focus or key handler
     <tr
       data-list-item-key={film.uuid}
       style={{ height: TABLE_ROW_HEIGHT }}
-      // The row shows the focus indicator, since the button is stretched over it.
-      className="relative border-b border-[color:var(--color-border-secondary)] transition-colors hover:bg-surface-muted has-[:focus-visible]:outline-2 has-[:focus-visible]:-outline-offset-2 has-[:focus-visible]:outline-[color:var(--color-focus-ring)]"
+      onClick={() => onSelect(film)}
+      // The row is the pointer target; the Film cell button is the keyboard
+      // one. The row shows the focus indicator when :has() is supported, and
+      // the button underlines on focus where it is not.
+      className="group cursor-pointer border-b border-[color:var(--color-border-secondary)] transition-colors hover:bg-surface-muted has-[:focus-visible]:outline-2 has-[:focus-visible]:-outline-offset-2 has-[:focus-visible]:outline-[color:var(--color-focus-ring)]"
     >
       <td className={cn(cellClass, 'w-16')}>
         <FilmImage
@@ -46,11 +50,17 @@ const FilmTableRowComponent: FC<FilmTableRowProps> = ({
         <div className="flex min-w-0 items-center gap-2">
           <button
             type="button"
-            onClick={() => onSelect(film)}
-            className="min-w-0 truncate text-left text-sm after:absolute after:inset-0 after:content-[''] focus-visible:outline-none"
+            onClick={(event) => {
+              // The row handles the click too; this keeps it to one call.
+              event.stopPropagation();
+              onSelect(film);
+            }}
+            className="min-w-0 truncate text-left text-sm focus-visible:underline focus-visible:outline-none"
           >
             <span className="text-tertiary">{film.brand}</span>{' '}
-            <span className="font-semibold text-primary">{film.name}</span>
+            <span className="font-semibold text-primary group-hover:underline">
+              {film.name}
+            </span>
           </button>
           {film.baseFilmSlug && (
             <span className="hidden shrink-0 xl:inline-flex">
@@ -66,12 +76,17 @@ const FilmTableRowComponent: FC<FilmTableRowProps> = ({
         {film.isoSpeed}
       </td>
       {full && (
-        <td className={cn(cellClass, 'w-36 truncate text-sm text-secondary')}>
+        <td
+          className={cn(
+            cellClass,
+            'w-36 truncate text-right text-sm tabular-nums text-secondary'
+          )}
+        >
           {film.reciprocityFailure ?? '-'}
         </td>
       )}
       {showRecipes && (
-        <td className={cn(cellClass, 'w-24 text-sm tabular-nums')}>
+        <td className={cn(cellClass, 'w-24 text-right text-sm tabular-nums')}>
           {filmSupportsRecipes(film)
             ? recipeCount > 0
               ? recipeCount

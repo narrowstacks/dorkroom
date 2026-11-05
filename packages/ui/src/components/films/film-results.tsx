@@ -19,7 +19,6 @@ import {
   createDebouncedObserveElementRect,
   DEFAULT_CONTAINER_HEIGHT,
   MAX_CONTAINER_HEIGHT,
-  MIN_CONTAINER_HEIGHT,
 } from '../development-recipes/virtualization-constants';
 import { FilmListRow } from './film-list-row';
 import { FilmResultsEmpty } from './film-results-empty';
@@ -144,7 +143,7 @@ export const FilmResults: FC<FilmResultsProps> = ({
     if (view === 'list' && previous !== 'list') {
       if (selectedIndexRef.current >= 0) {
         rowVirtualizer.scrollToIndex(selectedIndexRef.current, {
-          align: 'auto',
+          align: 'center',
         });
       }
     } else if (previous === 'list' && isTableView(view)) {
@@ -152,6 +151,16 @@ export const FilmResults: FC<FilmResultsProps> = ({
       if (scroller) scroller.scrollTop = tableScrollTop.current;
     }
   }, [view, rowVirtualizer]);
+
+  // Another film picked in the side list (a related film on the page) can be
+  // off screen; bring its row into view without recentering it.
+  useLayoutEffect(() => {
+    if (view === 'list' && selectedIndexRef.current >= 0) {
+      rowVirtualizer.scrollToIndex(selectedIndexRef.current, {
+        align: 'auto',
+      });
+    }
+  }, [selectedFilmId, view, rowVirtualizer]);
 
   if (isLoading) {
     return (
@@ -183,30 +192,48 @@ export const FilmResults: FC<FilmResultsProps> = ({
       : 0;
   const columnCount = 4 + (view === 'table' ? 2 : 0) + (showRecipes ? 1 : 0);
 
-  const rows = virtualRows.flatMap((virtualRow) => {
+  const rows = virtualRows.flatMap((virtualRow, index) => {
     const film = films[virtualRow.index];
     if (!film) return [];
-    return [
-      table ? (
-        <FilmTableRow
-          key={film.uuid}
-          film={film}
-          view={view}
-          showRecipes={showRecipes}
-          recipeCount={getRecipeCount(film)}
-          onSelect={onSelectFilm}
-        />
+    // keepFocusedInRange can leave the window non-contiguous: fill the hole
+    // so the rows after it keep their place.
+    const gap =
+      virtualRow.start - (virtualRows[index - 1]?.end ?? virtualRow.start);
+    const gapKey = `gap-${film.uuid}`;
+    let gapRow = null;
+    if (gap > 0) {
+      gapRow = table ? (
+        <tr key={gapKey} aria-hidden="true">
+          <td
+            aria-hidden="true"
+            colSpan={columnCount}
+            style={{ height: gap }}
+          />
+        </tr>
       ) : (
-        <FilmListRow
-          key={film.uuid}
-          film={film}
-          recipeCount={getRecipeCount(film)}
-          isSelected={film.uuid === selectedFilmId}
-          onSelect={onSelectFilm}
-          height={rowHeight}
-        />
-      ),
-    ];
+        <li key={gapKey} aria-hidden="true" style={{ height: gap }} />
+      );
+    }
+    const row = table ? (
+      <FilmTableRow
+        key={film.uuid}
+        film={film}
+        view={view}
+        showRecipes={showRecipes}
+        recipeCount={getRecipeCount(film)}
+        onSelect={onSelectFilm}
+      />
+    ) : (
+      <FilmListRow
+        key={film.uuid}
+        film={film}
+        recipeCount={getRecipeCount(film)}
+        isSelected={film.uuid === selectedFilmId}
+        onSelect={onSelectFilm}
+        height={rowHeight}
+      />
+    );
+    return gapRow ? [gapRow, row] : [row];
   });
 
   return (
@@ -221,12 +248,13 @@ export const FilmResults: FC<FilmResultsProps> = ({
         if (scrollOffsetRef) scrollOffsetRef.current = scrollTop;
       }}
       className={cn(
-        'overflow-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--color-focus-ring)]',
+        table && 'scroll-pt-11',
+        'relative overflow-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--color-focus-ring)]',
         className
       )}
       style={{
         height,
-        minHeight: MIN_CONTAINER_HEIGHT,
+        minHeight: '300px',
         maxHeight: MAX_CONTAINER_HEIGHT,
       }}
     >
@@ -261,7 +289,15 @@ export const FilmResults: FC<FilmResultsProps> = ({
           </tbody>
         </table>
       ) : (
-        <ul style={{ paddingTop, paddingBottom }}>{rows}</ul>
+        // Rows leave room under them for the floating buttons on a phone.
+        <ul
+          style={{
+            paddingTop,
+            paddingBottom: paddingBottom + (view === 'rows' ? 80 : 0),
+          }}
+        >
+          {rows}
+        </ul>
       )}
     </div>
   );

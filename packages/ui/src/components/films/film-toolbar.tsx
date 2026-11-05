@@ -55,7 +55,7 @@ export interface FilmToolbarProps {
 
 /**
  * Search, type, ISO, brand and status above the film results, replacing the
- * filter sidebar. The count is plain text: the page's live region announces it.
+ * filter sidebar. The count lives in the search placeholder: the page's live region announces it.
  */
 export const FilmToolbar: FC<FilmToolbarProps> = ({
   searchQuery,
@@ -83,6 +83,10 @@ export const FilmToolbar: FC<FilmToolbarProps> = ({
     ? [...BASE_SORT_OPTIONS, RECIPES_SORT_OPTION]
     : BASE_SORT_OPTIONS;
   const searchRef = useRef<HTMLInputElement>(null);
+  const searchPlaceholder =
+    resultCount === null
+      ? 'Search films...'
+      : `Search ${resultCount} ${resultCount === 1 ? 'film' : 'films'}...`;
 
   return (
     // z-10: the results below are absolutely positioned, transformed rows that
@@ -106,7 +110,7 @@ export const FilmToolbar: FC<FilmToolbarProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search films..."
+            placeholder={searchPlaceholder}
             className="min-h-11 w-full rounded-xl border border-secondary bg-surface-muted px-3 py-2 pl-10 text-sm font-medium text-primary transition-colors focus:border-brand focus:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
           />
         </div>
@@ -181,13 +185,8 @@ export const FilmToolbar: FC<FilmToolbarProps> = ({
         )}
       </div>
 
-      <div className="flex items-center justify-between gap-3 md:ml-auto md:justify-end">
-        {resultCount !== null && (
-          <p className="text-sm text-[color:var(--color-text-tertiary)]">
-            {resultCount} {resultCount === 1 ? 'film' : 'films'}
-          </p>
-        )}
-        {hasActiveFilters && (
+      {hasActiveFilters && (
+        <div className="flex items-center justify-end gap-3 md:ml-auto">
           <button
             type="button"
             onClick={() => {
@@ -198,8 +197,8 @@ export const FilmToolbar: FC<FilmToolbarProps> = ({
           >
             Clear filters
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

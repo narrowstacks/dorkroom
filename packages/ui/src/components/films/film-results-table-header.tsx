@@ -98,7 +98,7 @@ export const FilmResultsTableHeader: FC<FilmResultsTableHeaderProps> = ({
           className="w-20"
         />
         {full && (
-          <th scope="col" className={cn(headClass, 'w-36')}>
+          <th scope="col" className={cn(headClass, 'w-36 text-right')}>
             Reciprocity
           </th>
         )}
@@ -108,6 +108,7 @@ export const FilmResultsTableHeader: FC<FilmResultsTableHeaderProps> = ({
             label="Recipes"
             sortKey="recipes"
             direction="descending"
+            align="right"
             className="w-24"
           />
         )}
