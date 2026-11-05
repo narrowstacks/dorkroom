@@ -4,7 +4,6 @@ import {
   useVirtualizer,
   type VirtualItem,
 } from '@tanstack/react-virtual';
-import { Film as FilmIcon } from 'lucide-react';
 import { type FC, type Ref, useMemo, useRef } from 'react';
 import { useColumnCount } from '../../hooks/use-column-count';
 import {
@@ -21,6 +20,7 @@ import {
 } from '../development-recipes/virtualization-constants';
 import { FilmCard } from './film-card';
 import { FilmCardSkeleton } from './film-card-skeleton';
+import { FilmResultsEmpty } from './film-results-empty';
 
 /** Card height constants for virtualization */
 const CARD_ROW_ESTIMATED_HEIGHT = 110; // Card height + small gap
@@ -150,54 +150,12 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
   // Show empty state
   if (films.length === 0) {
     return (
-      <div
-        ref={emptyStateRef}
-        tabIndex={-1}
-        className={cn(
-          'flex flex-col items-center justify-center rounded-2xl border p-12 text-center focus-visible:outline-2 focus-visible:outline-[color:var(--color-focus-ring)]',
-          className
-        )}
-        style={{
-          borderColor: 'var(--color-border-secondary)',
-          backgroundColor: 'rgba(var(--color-background-rgb), 0.15)',
-        }}
-      >
-        <div
-          className="mb-4 flex size-16 items-center justify-center rounded-full border-2 border-dashed"
-          style={{
-            borderColor: 'var(--color-border-secondary)',
-            backgroundColor: 'rgba(var(--color-background-rgb), 0.3)',
-          }}
-        >
-          <FilmIcon
-            className="size-8"
-            style={{ color: 'var(--color-text-tertiary)' }}
-          />
-        </div>
-        <p
-          className="mb-1 text-base font-medium"
-          style={{ color: 'var(--color-text-primary)' }}
-        >
-          No films found
-        </p>
-        <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
-          Try adjusting your filters or search query
-        </p>
-        {onClearFilters && hasActiveFilters && (
-          <button
-            type="button"
-            onClick={onClearFilters}
-            className="mt-4 rounded-xl px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-focus-ring)]"
-            style={{
-              backgroundColor: 'var(--color-surface-muted)',
-              color: 'var(--color-text-secondary)',
-              border: '1px solid var(--color-border-secondary)',
-            }}
-          >
-            Clear filters
-          </button>
-        )}
-      </div>
+      <FilmResultsEmpty
+        emptyRef={emptyStateRef}
+        onClearFilters={onClearFilters}
+        hasActiveFilters={hasActiveFilters}
+        className={className}
+      />
     );
   }
 

@@ -8,6 +8,7 @@ import {
   within,
 } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { FilmImageModeContext } from '../../../components/films/film-image-mode-context';
 import {
   FilmPage,
   type FilmPageProps,
@@ -413,5 +414,100 @@ describe('FilmPage sections', () => {
       }),
     });
     expect(screen.getByText('Repackaged Ilford Base')).toBeVisible();
+  });
+});
+
+describe('FilmPage back button and focus', () => {
+  it('renders Back to films only when onClose is given, and calls it', () => {
+    const onClose = vi.fn();
+    renderPage({ onClose });
+    const back = screen.getByRole('button', { name: 'Back to films' });
+    expect(back).toHaveClass('min-h-11');
+    fireEvent.click(back);
+    expect(onClose).toHaveBeenCalledTimes(1);
+    cleanup();
+    renderPage();
+    expect(screen.queryByRole('button', { name: 'Back to films' })).toBeNull();
+  });
+
+  it('focuses the heading on mount only when asked', () => {
+    renderPage({ focusHeadingOnMount: true });
+    expect(screen.getByRole('heading', { level: 2 })).toHaveFocus();
+    cleanup();
+    renderPage();
+    expect(screen.getByRole('heading', { level: 2 })).not.toHaveFocus();
+  });
+
+  it('does not refocus the heading when the film changes', () => {
+    const { rerender, props } = renderPage({ focusHeadingOnMount: true });
+    const button = document.createElement('button');
+    document.body.append(button);
+    button.focus();
+    rerender(
+      <TemperatureProvider>
+        <FilmPage
+          {...props}
+          focusHeadingOnMount
+          film={film({ uuid: 'other', slug: 'other', name: 'Other' })}
+        />
+      </TemperatureProvider>
+    );
+    expect(button).toHaveFocus();
+    button.remove();
+  });
+});
+
+describe('FilmPage layout', () => {
+  it('uses a smaller photo and a one-row auto-fit stats grid when wide', () => {
+    renderPage({ layout: 'wide' });
+    expect(stat('ISO')?.parentElement).toHaveClass(
+      'grid-cols-[repeat(auto-fit,minmax(8rem,1fr))]'
+    );
+    expect(document.querySelector('.\\!w-28')).not.toBeNull();
+  });
+
+  it('keeps the narrow stats grid and photo size', () => {
+    renderPage({ layout: 'narrow' });
+    expect(stat('ISO')?.parentElement).toHaveClass(
+      'grid-cols-2',
+      'sm:grid-cols-3'
+    );
+    expect(document.querySelector('.\\!w-32')).not.toBeNull();
+  });
+
+  it('keeps the text tile for a film with no photo outside none mode', () => {
+    renderPage();
+    expect(document.querySelector('.lucide-film')).not.toBeNull();
+  });
+});
+
+describe('FilmPage with no photos', () => {
+  it('shows no photo and no credit in none mode', () => {
+    const credited = film({
+      staticImageUrl: 'https://example.com/hp5.jpg',
+      imageCredit: 'A. Photographer',
+      imageSourceUrl: 'https://example.com',
+    });
+    render(
+      <FilmImageModeContext value="none">
+        <TemperatureProvider>
+          <FilmPage
+            film={credited}
+            baseFilm={null}
+            recipes={{ status: 'unavailable' }}
+            relatedFilms={[]}
+            onSelectFilm={vi.fn()}
+            layout="wide"
+          />
+        </TemperatureProvider>
+      </FilmImageModeContext>
+    );
+    expect(document.querySelector('img')).toBeNull();
+    // No empty tile either.
+    expect(document.querySelector('.lucide-film')).toBeNull();
+    expect(screen.queryByText(/A\. Photographer/)).toBeNull();
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'HP5 Plus' })
+    ).toBeVisible();
   });
 });

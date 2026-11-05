@@ -4,7 +4,7 @@ import {
   filmSupportsRecipes,
   type RecipeIsoGroup,
 } from '@dorkroom/logic';
-import { ExternalLink, Share2 } from 'lucide-react';
+import { ChevronLeft, ExternalLink, Share2 } from 'lucide-react';
 import { type FC, use, useEffect, useRef } from 'react';
 import { cn } from '../../lib/cn';
 import { Skeleton } from '../ui/skeleton';
@@ -49,6 +49,13 @@ export interface FilmPageProps {
    * build has no container queries.
    */
   layout: 'narrow' | 'wide';
+  /** When set, a "Back to films" button renders at the top and calls this. */
+  onClose?: () => void;
+  /**
+   * Focus the heading when the page mounts (#604), for a page opened by a
+   * user action. Deep links leave focus alone.
+   */
+  focusHeadingOnMount?: boolean;
   className?: string;
 }
 
@@ -84,6 +91,8 @@ export const FilmPage: FC<FilmPageProps> = ({
   onSelectFilm,
   onShare,
   layout,
+  onClose,
+  focusHeadingOnMount = false,
   className,
 }) => {
   const wide = layout === 'wide';
@@ -91,14 +100,18 @@ export const FilmPage: FC<FilmPageProps> = ({
   // Set by a tap on a related film so focus follows the page it opened; any
   // other change of film (Back, a link) leaves focus alone.
   const pendingFocusRef = useRef(false);
+  const focusOnMountRef = useRef(focusHeadingOnMount);
+  useEffect(() => {
+    if (focusOnMountRef.current) headingRef.current?.focus();
+  }, []);
   useEffect(() => {
     if (pendingFocusRef.current) {
       pendingFocusRef.current = false;
       headingRef.current?.focus();
     }
   });
-  const photoUrl =
-    use(FilmImageModeContext) === 'none' ? null : film.staticImageUrl;
+  const noPhotos = use(FilmImageModeContext) === 'none';
+  const photoUrl = noPhotos ? null : film.staticImageUrl;
   const supportsRecipes = filmSupportsRecipes(film);
   const readyRecipes =
     supportsRecipes && recipes.status === 'ready' && recipes.count > 0
@@ -122,36 +135,49 @@ export const FilmPage: FC<FilmPageProps> = ({
   const notes = film.manufacturerNotes ?? [];
 
   return (
-    <div className={cn('space-y-6', className)}>
+    <div className={cn(wide ? 'space-y-4' : 'space-y-6', className)}>
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          className="-ml-2 inline-flex min-h-11 items-center gap-3 rounded-xl px-2 text-sm font-medium text-secondary transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
+        >
+          <ChevronLeft className="size-4" aria-hidden="true" />
+          Back to films
+        </button>
+      )}
       <header
         className={cn(
           'flex gap-5',
           wide ? 'flex-row items-start' : 'flex-col items-center'
         )}
       >
-        <div
-          className={cn(
-            'flex flex-col gap-3',
-            wide ? 'items-start' : 'items-center'
-          )}
-        >
-          {/* Eager: already in the viewport the moment the page opens. */}
-          <FilmImage
-            src={photoUrl}
-            alt={`${film.brand} ${film.name}`}
-            size="lg"
-            loading="eager"
-            renderedSize={wide ? 224 : 128}
-            className={wide ? '!w-48 !h-48 md:!w-56 md:!h-56' : '!w-32 !h-32'}
-          />
-          {photoUrl && (
-            <FilmImageCredit
-              credit={film.imageCredit}
-              sourceUrl={film.imageSourceUrl}
-              className={wide ? 'max-w-48 md:max-w-56' : undefined}
+        {/* No photos at all (darkroom): no tile either. */}
+        {!noPhotos && (
+          <div
+            className={cn(
+              'flex flex-col gap-3',
+              wide ? 'items-start' : 'items-center'
+            )}
+          >
+            {/* Eager: already in the viewport the moment the page opens. */}
+            <FilmImage
+              src={photoUrl}
+              alt={`${film.brand} ${film.name}`}
+              size="lg"
+              loading="eager"
+              renderedSize={wide ? 112 : 128}
+              className={wide ? '!w-28 !h-28' : '!w-32 !h-32'}
             />
-          )}
-        </div>
+            {photoUrl && (
+              <FilmImageCredit
+                credit={film.imageCredit}
+                sourceUrl={film.imageSourceUrl}
+                className={wide ? 'max-w-28' : undefined}
+              />
+            )}
+          </div>
+        )}
         <div className={cn('min-w-0 space-y-3', !wide && 'w-full')}>
           <div>
             <p className="text-sm text-tertiary">{film.brand}</p>
@@ -170,23 +196,30 @@ export const FilmPage: FC<FilmPageProps> = ({
                 Discontinued
               </Tag>
             )}
+            {onShare && (
+              <button
+                type="button"
+                onClick={() => onShare(film)}
+                aria-label="Share this film"
+                title="Share this film"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-border-muted px-4 py-1 text-sm font-medium text-secondary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] hoverable-action-btn"
+              >
+                <Share2 className="size-4" aria-hidden="true" />
+                Share
+              </button>
+            )}
           </div>
-          {onShare && (
-            <button
-              type="button"
-              onClick={() => onShare(film)}
-              aria-label="Share this film"
-              title="Share this film"
-              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-border-muted px-4 py-1 text-sm font-medium text-secondary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] hoverable-action-btn"
-            >
-              <Share2 className="size-4" aria-hidden="true" />
-              Share
-            </button>
-          )}
         </div>
       </header>
 
-      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <dl
+        className={cn(
+          'grid gap-3',
+          wide
+            ? 'grid-cols-[repeat(auto-fit,minmax(8rem,1fr))]'
+            : 'grid-cols-2 sm:grid-cols-3'
+        )}
+      >
         {stats.map(({ label, value }) => (
           <div
             key={label}

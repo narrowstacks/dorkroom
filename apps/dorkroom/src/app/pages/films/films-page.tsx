@@ -242,19 +242,24 @@ export default function FilmsPage() {
     lastProcessedFilmSlug.current !== urlFilmSlug
   );
 
+  const filmOpen = Boolean(selectedFilm) || shouldShowDetailSkeleton;
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
       {/* Skip link for accessibility */}
-      <a
-        href="#film-results"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[color:var(--color-focus-ring)] transition"
-        style={{
-          backgroundColor: 'var(--color-brand)',
-          color: 'white',
-        }}
-      >
-        Skip to film results
-      </a>
+      {/* A phone with a film open has no results to skip to. */}
+      {!(isMobile && filmOpen) && (
+        <a
+          href="#film-results"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[color:var(--color-focus-ring)] transition"
+          style={{
+            backgroundColor: 'var(--color-brand)',
+            color: 'white',
+          }}
+        >
+          Skip to film results
+        </a>
+      )}
 
       {/* ARIA live region for result count announcements */}
       <output aria-live="polite" aria-atomic="true" className="sr-only">
@@ -293,7 +298,8 @@ export default function FilmsPage() {
             baseFilm={baseFilm}
             recipes={filmPageRecipes}
             relatedFilms={relatedFilms}
-            shouldShowDetailSkeleton={shouldShowDetailSkeleton}
+            filmOpen={filmOpen}
+            getRecipeCount={recipeData.getRecipeCount}
             onSelectFilm={handleSelectFilm}
             onClosePanel={handleClosePanel}
           />
