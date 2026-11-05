@@ -3,9 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 import {
   type FilmSort,
   filmTypeFilterSupportsRecipes,
-  isBlackAndWhiteColorType,
-  isColorColorType,
-  isSlideColorType,
+  filmSupportsRecipes,
   resolveFilmSort,
   sortFilms,
 } from '../../utils/film-recipes';
@@ -141,14 +139,15 @@ export function useFilmDatabase({
     // Filter by film type
     if (colorTypeFilter) {
       result = result.filter((film) => {
+        const ct = film.colorType.toLowerCase();
         if (colorTypeFilter === 'bw') {
-          return isBlackAndWhiteColorType(film.colorType);
+          return filmSupportsRecipes(film);
         }
         if (colorTypeFilter === 'color') {
-          return isColorColorType(film.colorType);
+          return ct === 'color' || ct === 'colour';
         }
         if (colorTypeFilter === 'slide') {
-          return isSlideColorType(film.colorType);
+          return ct === 'slide';
         }
         return true;
       });

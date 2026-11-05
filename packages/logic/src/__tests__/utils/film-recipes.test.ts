@@ -212,11 +212,25 @@ describe('resolveFilmRecipes', () => {
     expect(custom.dilution).toBe('1+9');
   });
 
-  it('falls back to the slug while developers are unavailable', () => {
+  it('falls back to the slug when the developer is not in the list', () => {
     const [only] = resolveFilmRecipes([recipe('hp5-plus', 'rodinal', 200)], []);
-    expect(only.developer).toBeNull();
     expect(only.developerName).toBe('rodinal');
     expect(only.dilution).toBe('Stock');
+  });
+
+  it('expresses unknown, not Stock, when developers are unavailable', () => {
+    const [byId, byCustom, none] = resolveFilmRecipes(
+      [
+        recipe('hp5-plus', 'ilford-ddx', 400, { dilutionId: '2' }),
+        recipe('hp5-plus', 'ilford-ddx', 400, { customDilution: ' 1+9 ' }),
+        recipe('hp5-plus', 'ilford-ddx', 400),
+      ],
+      undefined
+    );
+    expect(byId.dilution).toBeNull();
+    expect(byId.developerName).toBeNull();
+    expect(byCustom.dilution).toBe('1+9');
+    expect(none.dilution).toBe('Stock');
   });
 });
 

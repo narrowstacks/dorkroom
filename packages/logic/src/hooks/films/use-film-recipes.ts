@@ -1,9 +1,9 @@
-import type { Combination } from '@dorkroom/api';
+import type { Combination, Film } from '@dorkroom/api';
 import { useCallback, useMemo } from 'react';
 import {
   buildFilmRecipeIndex,
   type FilmRecipe,
-  type FilmRecipeIndex,
+  filmSupportsRecipes,
   getFilmRecipeCount,
   groupRecipesByShootingIso,
   pickDefaultRecipeIso,
@@ -20,6 +20,11 @@ export interface UseFilmRecipesOptions {
    * check). Defaults to true.
    */
   enabled?: boolean;
+  /**
+   * Also fetch developers, which only the recipe rows on a film page need
+   * (developer names and dilution labels). Counts do not. Defaults to false.
+   */
+  detailsEnabled?: boolean;
 }
 
 export interface FilmRecipeGroups {
@@ -29,29 +34,44 @@ export interface FilmRecipeGroups {
 }
 
 export interface UseFilmRecipesReturn {
-  /** Per-slug counts, ready for `useFilmDatabase({ recipeCounts })`. */
+  /**
+   * Recipe count per film slug, the input to `useFilmDatabase({ recipeCounts })`.
+   * Raw: it can hold slugs of films that must not show recipes, which
+   * `sortFilms` ignores. For display use `getRecipeCount`.
+   */
   recipeCounts: ReadonlyMap<string, number>;
-  index: FilmRecipeIndex;
-  getRecipeCount: (filmSlug: string) => number;
-  /** Recipes for a film grouped by shooting ISO, dilutions resolved. */
-  getRecipeGroups: (filmSlug: string, boxIso: number) => FilmRecipeGroups;
+  /** Recipe count for a film; 0 unless `filmSupportsRecipes(film)`. */
+  getRecipeCount: (film: Pick<Film, 'slug' | 'colorType'>) => number;
+  /**
+   * A film's recipes grouped by shooting ISO; empty unless
+   * `filmSupportsRecipes(film)`. Developer names and dilutions are null until
+   * `developersReady`.
+   */
+  getRecipeGroups: (
+    film: Pick<Film, 'slug' | 'colorType' | 'isoSpeed'>
+  ) => FilmRecipeGroups;
+  /** Combinations request in flight. Does not wait on developers. */
   isLoading: boolean;
   error: string | null;
+  /** Developers loaded, so names and dilution labels are resolved. */
+  developersReady: boolean;
+  developersError: string | null;
 }
 
 const EMPTY_COMBINATIONS: Combination[] = [];
+const NO_GROUPS: FilmRecipeGroups = { groups: [], defaultIso: undefined };
 
 /**
  * Recipe data for the film pages, built from the same combinations (and
  * developers) queries that `/development` and site search use, so the cache is
- * shared. Callers must not show recipes for films where `filmSupportsRecipes`
- * is false; this hook indexes every combination it receives.
+ * shared.
  */
 export function useFilmRecipes({
   enabled = true,
+  detailsEnabled = false,
 }: UseFilmRecipesOptions = {}): UseFilmRecipesReturn {
   const combinations = useCombinations({ enabled });
-  const developers = useDevelopers({ enabled });
+  const developers = useDevelopers({ enabled: enabled && detailsEnabled });
 
   const index = useMemo(
     () => buildFilmRecipeIndex(combinations.data ?? EMPTY_COMBINATIONS),
@@ -59,30 +79,36 @@ export function useFilmRecipes({
   );
 
   const getRecipeCount = useCallback(
-    (filmSlug: string) => getFilmRecipeCount(index, filmSlug),
+    (film: Pick<Film, 'slug' | 'colorType'>) =>
+      filmSupportsRecipes(film) ? getFilmRecipeCount(index, film.slug) : 0,
     [index]
   );
 
   const developerList = developers.data;
   const getRecipeGroups = useCallback(
-    (filmSlug: string, boxIso: number): FilmRecipeGroups => {
+    (film: Pick<Film, 'slug' | 'colorType' | 'isoSpeed'>): FilmRecipeGroups => {
+      if (!filmSupportsRecipes(film)) return NO_GROUPS;
       const groups = groupRecipesByShootingIso(
-        index.recipesBySlug.get(filmSlug) ?? []
+        index.recipesBySlug.get(film.slug) ?? []
       ).map(({ shootingIso, recipes }) => ({
         shootingIso,
-        recipes: resolveFilmRecipes(recipes, developerList ?? []),
+        recipes: resolveFilmRecipes(recipes, developerList),
       }));
-      return { groups, defaultIso: pickDefaultRecipeIso(groups, boxIso) };
+      return {
+        groups,
+        defaultIso: pickDefaultRecipeIso(groups, film.isoSpeed),
+      };
     },
     [index, developerList]
   );
 
   return {
     recipeCounts: index.counts,
-    index,
     getRecipeCount,
     getRecipeGroups,
-    isLoading: enabled && (combinations.isPending || developers.isPending),
+    isLoading: enabled && combinations.isPending,
     error: combinations.error?.message ?? null,
+    developersReady: developerList !== undefined,
+    developersError: developers.error?.message ?? null,
   };
 }

@@ -2,22 +2,6 @@ import type { Combination, Developer, Film } from '@dorkroom/api';
 import { getCombinationDilution } from './combination-dilution';
 
 const BLACK_AND_WHITE_TYPES = new Set(['bw', 'b&w', 'b & w']);
-const COLOR_TYPES = new Set(['color', 'colour']);
-
-/** True for the catalog's spellings of black and white. */
-export function isBlackAndWhiteColorType(colorType: string): boolean {
-  return BLACK_AND_WHITE_TYPES.has(colorType.toLowerCase());
-}
-
-/** True for the catalog's spellings of color negative. */
-export function isColorColorType(colorType: string): boolean {
-  return COLOR_TYPES.has(colorType.toLowerCase());
-}
-
-/** True for slide (reversal) film. */
-export function isSlideColorType(colorType: string): boolean {
-  return colorType.toLowerCase() === 'slide';
-}
 
 /**
  * Display rule 1: only black and white films show development recipes. Decided
@@ -25,7 +9,7 @@ export function isSlideColorType(colorType: string): boolean {
  * if a recipe row for it ever exists.
  */
 export function filmSupportsRecipes(film: Pick<Film, 'colorType'>): boolean {
-  return isBlackAndWhiteColorType(film.colorType);
+  return BLACK_AND_WHITE_TYPES.has(film.colorType.toLowerCase());
 }
 
 /**
@@ -120,40 +104,41 @@ export function pickDefaultRecipeIso(
   return best;
 }
 
-/** A recipe with its developer and dilution resolved for display. */
+/**
+ * A recipe with its developer and dilution resolved for display. A null field
+ * means "unknown" (the developers list has not loaded, or failed): show
+ * nothing rather than a guess.
+ */
 export interface FilmRecipe {
   combination: Combination;
-  /** Matched by uuid, slug or id; null while developers load or when absent. */
-  developer: Developer | null;
-  developerName: string;
-  /** Dilution as people read it, via `getCombinationDilution`. */
-  dilution: string;
+  /** Developer name; null when the developers list is unavailable. */
+  developerName: string | null;
+  /** Dilution as people read it, via `getCombinationDilution`; null when unknown. */
+  dilution: string | null;
 }
 
-function findDeveloper(
-  developers: readonly Developer[],
-  combination: Combination
-): Developer | null {
-  return (
-    developers.find(
-      (d) =>
-        d.slug === combination.developerSlug ||
-        d.uuid === combination.developerId ||
-        String(d.id) === combination.developerId
-    ) ?? null
-  );
-}
-
-/** Attach developer name and dilution label to each of a film's recipes. */
+/**
+ * Attach developer name and dilution label to each of a film's recipes.
+ * Pass `undefined` for `developers` while they are unavailable. Recipes are
+ * matched on `developerSlug` (the API sends the slug in both developer fields).
+ * "Stock" is returned only when the recipe has no dilution of its own and no
+ * dilution id, or when the developer resolved.
+ */
 export function resolveFilmRecipes(
   recipes: readonly Combination[],
-  developers: readonly Developer[]
+  developers: readonly Developer[] | undefined
 ): FilmRecipe[] {
   return recipes.map((combination) => {
-    const developer = findDeveloper(developers, combination);
+    if (!developers) {
+      const custom = combination.customDilution?.trim();
+      let dilution: string | null = custom || null;
+      if (!custom && !combination.dilutionId) dilution = 'Stock';
+      return { combination, developerName: null, dilution };
+    }
+    const developer =
+      developers.find((d) => d.slug === combination.developerSlug) ?? null;
     return {
       combination,
-      developer,
       developerName: developer?.name ?? combination.developerSlug,
       dilution: getCombinationDilution(combination, developer),
     };
