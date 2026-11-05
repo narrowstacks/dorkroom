@@ -1,5 +1,14 @@
 import type { Film } from '@dorkroom/api';
 import { useCallback, useMemo, useState } from 'react';
+import {
+  type FilmSort,
+  filmTypeFilterSupportsRecipes,
+  isBlackAndWhiteColorType,
+  isColorColorType,
+  isSlideColorType,
+  resolveFilmSort,
+  sortFilms,
+} from '../../utils/film-recipes';
 import { createFilmSearcher, searchFilms } from '../../utils/fuzzy-search';
 import { useFilms } from '../api/use-films';
 import { useDebounce } from '../use-debounce';
@@ -42,9 +51,26 @@ export interface UseFilmDatabaseReturn {
   brandOptions: Array<{ label: string; value: string }>;
   isoOptions: Array<{ label: string; value: string }>;
 
+  // Sorting
+  /** The sort the caller asked for. */
+  sort: FilmSort;
+  setSort: (value: FilmSort) => void;
+  /**
+   * The sort actually applied. Differs from `sort` only when a recipes sort is
+   * requested while filtered to color or slide, which falls back to 'name'.
+   */
+  effectiveSort: FilmSort;
+  /** False when the type filter is color or slide: hide the recipes sort. */
+  recipesSortAvailable: boolean;
+
   // Actions
   clearFilters: () => void;
   hasActiveFilters: boolean;
+}
+
+export interface UseFilmDatabaseOptions {
+  /** Recipe count per film slug, the input to the 'recipes' sort. */
+  recipeCounts?: ReadonlyMap<string, number>;
 }
 
 /**
@@ -76,7 +102,9 @@ export interface UseFilmDatabaseReturn {
  * } = useFilmDatabase();
  * ```
  */
-export function useFilmDatabase(): UseFilmDatabaseReturn {
+export function useFilmDatabase({
+  recipeCounts,
+}: UseFilmDatabaseOptions = {}): UseFilmDatabaseReturn {
   // Fetch all films
   const { data: films = [], isPending, error, refetch } = useFilms();
   const retry = useCallback(() => {
@@ -91,6 +119,8 @@ export function useFilmDatabase(): UseFilmDatabaseReturn {
   const [discontinuedFilter, setDiscontinuedFilter] = useState<
     'all' | 'active' | 'discontinued'
   >('all');
+  const [sort, setSort] = useState<FilmSort>('name');
+  const effectiveSort = resolveFilmSort(sort, colorTypeFilter);
 
   // Debounce search query to avoid excessive filtering
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -111,15 +141,14 @@ export function useFilmDatabase(): UseFilmDatabaseReturn {
     // Filter by film type
     if (colorTypeFilter) {
       result = result.filter((film) => {
-        const ct = film.colorType.toLowerCase();
         if (colorTypeFilter === 'bw') {
-          return ct === 'bw' || ct === 'b&w' || ct === 'b & w';
+          return isBlackAndWhiteColorType(film.colorType);
         }
         if (colorTypeFilter === 'color') {
-          return ct === 'color' || ct === 'colour';
+          return isColorColorType(film.colorType);
         }
         if (colorTypeFilter === 'slide') {
-          return ct === 'slide';
+          return isSlideColorType(film.colorType);
         }
         return true;
       });
@@ -160,7 +189,7 @@ export function useFilmDatabase(): UseFilmDatabaseReturn {
   );
 
   // Apply fuzzy search with normalization and tokenization
-  const filteredFilms = useMemo(() => {
+  const searched = useMemo(() => {
     if (!debouncedSearchQuery) {
       return preSearchFiltered;
     }
@@ -171,6 +200,16 @@ export function useFilmDatabase(): UseFilmDatabaseReturn {
     );
     return searchResults.map((r) => r.item);
   }, [preSearchFiltered, debouncedSearchQuery, searcher]);
+
+  // 'name' keeps the order above (brand and name, or search relevance); the
+  // other sorts reorder it and break ties by that order.
+  const filteredFilms = useMemo(
+    () =>
+      effectiveSort === 'name'
+        ? searched
+        : sortFilms(searched, effectiveSort, recipeCounts),
+    [searched, effectiveSort, recipeCounts]
+  );
 
   // Derive brand options from actual data
   const brandOptions = useMemo(() => {
@@ -264,6 +303,12 @@ export function useFilmDatabase(): UseFilmDatabaseReturn {
     // Derived options
     brandOptions,
     isoOptions,
+
+    // Sorting
+    sort,
+    setSort,
+    effectiveSort,
+    recipesSortAvailable: filmTypeFilterSupportsRecipes(colorTypeFilter),
 
     // Actions
     clearFilters,
