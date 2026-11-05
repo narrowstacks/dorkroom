@@ -94,11 +94,71 @@ const serverFailure = () =>
     new Response('down', { status: 500, statusText: 'Server Error' })
   );
 
+const listResponse = (rows: unknown[]) =>
+  Promise.resolve(
+    new Response(JSON.stringify({ data: rows, count: rows.length }), {
+      headers: { 'content-type': 'application/json' },
+    })
+  );
+
+const DEVELOPER = {
+  id: 1,
+  uuid: 'dev-uuid',
+  slug: 'kodak-d-76',
+  name: 'Kodak D-76',
+  manufacturer: 'Kodak',
+  type: 'powder',
+  description: '',
+  film_or_paper: true,
+  dilutions: [{ id: '1', name: '1+1', dilution: '1+1' }],
+  mixing_instructions: null,
+  storage_requirements: null,
+  safety_notes: null,
+  image_credit: null,
+  image_source_url: null,
+  created_at: '2023-01-01T00:00:00Z',
+  updated_at: '2023-01-01T00:00:00Z',
+};
+
+const combinationRow = (id: number, filmSlug: string) => ({
+  id,
+  uuid: `recipe-${id}`,
+  name: '',
+  film_stock: filmSlug,
+  developer: 'kodak-d-76',
+  shooting_iso: 400,
+  dilution_id: '1',
+  custom_dilution: null,
+  temperature_celsius: 20,
+  time_minutes: 9.5,
+  agitation_method: 'Inversion',
+  push_pull: 0,
+  tags: null,
+  notes: null,
+  info_source: null,
+  created_at: '2023-01-01T00:00:00Z',
+  updated_at: '2023-01-01T00:00:00Z',
+});
+
+// One HP5 Plus recipe, plus a row for a color film that must never show.
+const COMBINATIONS = [
+  combinationRow(1, 'hp5-plus'),
+  combinationRow(2, 'portra-400'),
+];
+
 let respond: () => Promise<Response> = () => catalogResponse(CATALOG);
+let combinationsRespond: () => Promise<Response> = () =>
+  listResponse(COMBINATIONS);
+let combinationFetches = 0;
 
 function stubFetch() {
   vi.stubGlobal('fetch', (input: string | URL | Request) => {
     const url = input instanceof Request ? input.url : String(input);
+    if (url.endsWith('/api/combinations')) {
+      combinationFetches += 1;
+      return combinationsRespond();
+    }
+    if (url.endsWith('/api/developers')) return listResponse([DEVELOPER]);
     if (!url.endsWith('/api/films')) {
       throw new Error(`FilmsPage requested something unexpected: ${url}`);
     }
@@ -238,6 +298,8 @@ const URL_SYNC = { timeout: 2000 };
 
 beforeEach(() => {
   respond = () => catalogResponse(CATALOG);
+  combinationsRespond = () => listResponse(COMBINATIONS);
+  combinationFetches = 0;
   stubFetch();
   stubMatchMedia();
   stubLayout();
@@ -410,6 +472,56 @@ describe.each([
     await new Promise((resolve) => setTimeout(resolve, 700));
     expect(urlSearch(router)).toMatchObject({ film: 'store-brand-400' });
     expect(getDetailPanel('Store Brand 400 details', mobile)).toBeVisible();
+  });
+
+  it('shows recipes on an opened black and white film, linked to /development', async () => {
+    await renderFilmsPage({ mobile, url: '/films?film=hp5-plus' });
+    const panel = await waitFor(() =>
+      getDetailPanel('Ilford HP5 Plus details', mobile)
+    );
+
+    const link = await within(panel).findByRole('link', {
+      name: /Kodak D-76/,
+    });
+    expect(link).toHaveAttribute('href', '/development?recipe=recipe-1');
+    expect(link).toHaveTextContent('1+1');
+    expect(link).toHaveTextContent('9m 30s');
+    expect(
+      within(panel).getByRole('heading', { name: 'Recipes' })
+    ).toBeInTheDocument();
+  });
+
+  it('never mentions recipes on a color film, even with a recipe row for it', async () => {
+    await renderFilmsPage({ mobile, url: '/films?film=portra-400' });
+    const panel = await waitFor(() =>
+      getDetailPanel('Kodak Portra 400 details', mobile)
+    );
+    await waitFor(() => expect(combinationFetches).toBeGreaterThan(0));
+    expect(panel.textContent).not.toMatch(/recipe/i);
+  });
+
+  it('keeps the plain link to /development when the combinations request fails', async () => {
+    combinationsRespond = serverFailure;
+    await renderFilmsPage({ mobile, url: '/films?film=hp5-plus' });
+    const panel = await waitFor(() =>
+      getDetailPanel('Ilford HP5 Plus details', mobile)
+    );
+    expect(
+      await within(panel).findByRole('link', {
+        name: 'View Development Recipes',
+      })
+    ).toHaveAttribute('href', '/development?film=hp5-plus');
+  });
+
+  it('opens a related film from the film page', async () => {
+    await renderFilmsPage({ mobile, url: '/films?film=hp5-plus' });
+    const panel = await waitFor(() =>
+      getDetailPanel('Ilford HP5 Plus details', mobile)
+    );
+    fireEvent.click(
+      within(panel).getByRole('button', { name: /Store Brand 400/ })
+    );
+    await waitFor(() => getDetailPanel('Store Brand 400 details', mobile));
   });
 
   it('shares the open film as its ?film= deep link', async () => {

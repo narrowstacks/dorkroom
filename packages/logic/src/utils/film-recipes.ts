@@ -223,3 +223,23 @@ export function sortFilms(
   }
   return [...films];
 }
+
+/**
+ * Other films sold at the same box speed, for the "also at this ISO" list on a
+ * film page: every film in `films` with the same `isoSpeed` except the film
+ * itself, in the order given, at most `limit`.
+ */
+export function getRelatedFilms(
+  film: Pick<Film, 'slug' | 'isoSpeed'>,
+  films: readonly Film[],
+  limit = 4
+): Film[] {
+  const related: Film[] = [];
+  for (const candidate of films) {
+    if (related.length >= limit) break;
+    if (candidate.slug === film.slug || candidate.isoSpeed !== film.isoSpeed)
+      continue;
+    related.push(candidate);
+  }
+  return related;
+}

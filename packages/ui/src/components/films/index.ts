@@ -10,5 +10,7 @@ export type { FilmImageMode } from './film-image-mode-context';
 export { FilmImageModeContext } from './film-image-mode-context';
 export type { FilmImageLoader, FilmImageWidth } from './film-image-sources';
 export { FILM_IMAGE_WIDTHS } from './film-image-sources';
+export { FilmPage } from './film-page';
+export type { FilmPageProps, FilmPageRecipes } from './film-page';
 export { FilmRebrandInfo } from './film-rebrand-info';
 export { FilmResultsVirtualized } from './film-results-virtualized';

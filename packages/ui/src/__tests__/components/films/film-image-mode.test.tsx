@@ -57,6 +57,9 @@ function renderPanel(mode: FilmImageMode) {
       <FilmDetailPanel
         film={film}
         baseFilm={null}
+        recipes={{ status: 'unavailable' }}
+        relatedFilms={[]}
+        onSelectFilm={noop}
         isOpen
         onClose={noop}
         isMobile={false}
