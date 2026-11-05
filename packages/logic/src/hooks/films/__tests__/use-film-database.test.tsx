@@ -798,4 +798,73 @@ describe('useFilmDatabase', () => {
       expect(isoValues).toEqual(sortedValues);
     });
   });
+
+  describe('Sorting', () => {
+    const slugs = (films: Film[]) => films.map((f) => f.slug);
+
+    it('defaults to name order and leaves it unchanged', () => {
+      const { result } = renderHook(() => useFilmDatabase(), { wrapper });
+      expect(result.current.sort).toBe('name');
+      expect(result.current.effectiveSort).toBe('name');
+      expect(slugs(result.current.filteredFilms)).toEqual(
+        slugs(result.current.films)
+      );
+    });
+
+    it('sorts by ISO ascending, ties in name order', () => {
+      const { result } = renderHook(() => useFilmDatabase(), { wrapper });
+      act(() => result.current.setSort('iso'));
+      const isos = result.current.filteredFilms.map((f) => f.isoSpeed);
+      expect(isos).toEqual(isos.toSorted((a, b) => a - b));
+      const at400 = result.current.filteredFilms.filter(
+        (f) => f.isoSpeed === 400
+      );
+      expect(slugs(at400)).toEqual(
+        slugs(result.current.films.filter((f) => f.isoSpeed === 400))
+      );
+    });
+
+    it('sorts by recipe count, most first', () => {
+      const recipeCounts = new Map([
+        ['tri-x-400', 6],
+        ['hp5-plus', 11],
+      ]);
+      const { result } = renderHook(() => useFilmDatabase({ recipeCounts }), {
+        wrapper,
+      });
+      act(() => result.current.setSort('recipes'));
+      expect(slugs(result.current.filteredFilms).slice(0, 2)).toEqual([
+        'hp5-plus',
+        'tri-x-400',
+      ]);
+    });
+
+    it('falls back to name when a recipes sort has no counts', () => {
+      const { result } = renderHook(() => useFilmDatabase(), { wrapper });
+      act(() => result.current.setSort('recipes'));
+      expect(result.current.effectiveSort).toBe('name');
+      expect(result.current.recipesSortAvailable).toBe(false);
+    });
+
+    it('falls back to name when a recipes sort meets the color filter', () => {
+      const recipeCounts = new Map([['hp5-plus', 11]]);
+      const { result } = renderHook(() => useFilmDatabase({ recipeCounts }), {
+        wrapper,
+      });
+      act(() => {
+        result.current.setSort('recipes');
+        result.current.setColorTypeFilter('color');
+      });
+      expect(result.current.sort).toBe('recipes');
+      expect(result.current.effectiveSort).toBe('name');
+      expect(result.current.recipesSortAvailable).toBe(false);
+      expect(slugs(result.current.filteredFilms)).toEqual(
+        slugs(result.current.films.filter((f) => f.colorType === 'color'))
+      );
+
+      act(() => result.current.setColorTypeFilter('bw'));
+      expect(result.current.effectiveSort).toBe('recipes');
+      expect(result.current.recipesSortAvailable).toBe(true);
+    });
+  });
 });

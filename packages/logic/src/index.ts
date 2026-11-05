@@ -93,7 +93,15 @@ export {
   type ViewMode,
 } from './hooks/development-recipes/use-view-preference';
 // Film hooks
-export { type UseFilmDatabaseReturn, useFilmDatabase } from './hooks/films';
+export {
+  type FilmRecipeGroups,
+  type UseFilmDatabaseOptions,
+  type UseFilmDatabaseReturn,
+  type UseFilmRecipesOptions,
+  type UseFilmRecipesReturn,
+  useFilmDatabase,
+  useFilmRecipes,
+} from './hooks/films';
 export { useBorderPresets } from './hooks/use-border-presets';
 export {
   type UseCameraExposureCalculatorReturn,
@@ -183,6 +191,13 @@ export * from './utils/border-layout';
 export * from './utils/calculator-url-params';
 export * from './utils/camera-exposure-calculations';
 export * from './utils/combination-dilution';
+export {
+  FILM_SORTS,
+  type FilmRecipe,
+  type FilmSort,
+  filmSupportsRecipes,
+  type RecipeIsoGroup,
+} from './utils/film-recipes';
 export * from './utils/combination-factory';
 export * from './utils/custom-recipe-helpers';
 export { debugError, debugLog, debugWarn } from './utils/debug-logger';
