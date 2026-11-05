@@ -11,6 +11,7 @@ interface FilmPageRecipesProps {
   groups: Array<RecipeIsoGroup<FilmRecipe>>;
   defaultIso: number | undefined;
   developersReady: boolean;
+  onRecipeOpen?: () => void;
 }
 
 /**
@@ -22,6 +23,7 @@ export const FilmPageRecipes: FC<FilmPageRecipesProps> = ({
   groups,
   defaultIso,
   developersReady,
+  onRecipeOpen,
 }) => {
   const baseId = useId();
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -122,6 +124,7 @@ export const FilmPageRecipes: FC<FilmPageRecipesProps> = ({
             key={recipe.combination.uuid}
             recipe={recipe}
             developersReady={developersReady}
+            onOpen={onRecipeOpen}
           />
         ))}
         {hasMore && (

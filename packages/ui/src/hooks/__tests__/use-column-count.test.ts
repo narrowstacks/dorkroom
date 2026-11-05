@@ -63,14 +63,6 @@ class MockResizeObserver implements ResizeObserver {
   }
 }
 
-/** The films grid: a fixed two columns on mobile. */
-function useFixedMobileColumnCount(
-  containerRef: React.RefObject<HTMLDivElement | null>,
-  isMobile: boolean
-): number {
-  return useColumnCount(containerRef, isMobile, { mobileColumns: 2 });
-}
-
 /** Pushes a resize through the observer and past the debounce. */
 function resizeTo(width: number) {
   act(() => {
@@ -99,16 +91,6 @@ describe('useColumnCount', () => {
   });
 
   describe('initial column count', () => {
-    it('returns 2 columns for mobile layout', () => {
-      const containerRef = { current: document.createElement('div') };
-
-      const { result } = renderHook(() =>
-        useFixedMobileColumnCount(containerRef, true)
-      );
-
-      expect(result.current).toBe(2);
-    });
-
     it('returns 3 columns for desktop layout as default', () => {
       const container = document.createElement('div');
       Object.defineProperty(container, 'clientWidth', { value: 1100 });
@@ -204,15 +186,6 @@ describe('useColumnCount', () => {
       expect(MockResizeObserver.instances.length).toBe(1);
     });
 
-    it('does not create ResizeObserver in mobile mode', () => {
-      const containerRef = { current: document.createElement('div') };
-
-      renderHook(() => useFixedMobileColumnCount(containerRef, true));
-
-      // No ResizeObserver should be created for mobile
-      expect(MockResizeObserver.instances.length).toBe(0);
-    });
-
     it('updates column count when container is resized', () => {
       const container = document.createElement('div');
       Object.defineProperty(container, 'clientWidth', { value: 1100 });
@@ -270,54 +243,6 @@ describe('useColumnCount', () => {
       expect(
         MockResizeObserver.getLatest().observedElements.has(container)
       ).toBe(true);
-    });
-  });
-
-  describe('mobile/desktop mode switching', () => {
-    it('always returns 2 columns in mobile mode regardless of container width', () => {
-      const container = document.createElement('div');
-      Object.defineProperty(container, 'clientWidth', { value: 1400 }); // xl width
-      const containerRef = { current: container };
-
-      const { result } = renderHook(() =>
-        useFixedMobileColumnCount(containerRef, true)
-      );
-
-      expect(result.current).toBe(2);
-    });
-
-    it('switches from responsive to fixed columns when isMobile changes to true', () => {
-      const container = document.createElement('div');
-      Object.defineProperty(container, 'clientWidth', { value: 1400 });
-      const containerRef = { current: container };
-
-      const { result, rerender } = renderHook(
-        ({ isMobile }) => useFixedMobileColumnCount(containerRef, isMobile),
-        { initialProps: { isMobile: false } }
-      );
-
-      expect(result.current).toBe(4); // xl breakpoint
-
-      rerender({ isMobile: true });
-
-      expect(result.current).toBe(2); // Fixed mobile columns
-    });
-
-    it('switches from fixed to responsive columns when isMobile changes to false', () => {
-      const container = document.createElement('div');
-      Object.defineProperty(container, 'clientWidth', { value: 1400 });
-      const containerRef = { current: container };
-
-      const { result, rerender } = renderHook(
-        ({ isMobile }) => useFixedMobileColumnCount(containerRef, isMobile),
-        { initialProps: { isMobile: true } }
-      );
-
-      expect(result.current).toBe(2); // Fixed mobile columns
-
-      rerender({ isMobile: false });
-
-      expect(result.current).toBe(4); // xl breakpoint based on container width
     });
   });
 
@@ -388,14 +313,6 @@ describe('useColumnCount', () => {
       const containerRef = containerOf(width);
       const { result } = renderHook(() => useColumnCount(containerRef, true));
       expect(result.current).toBe(columns);
-    });
-
-    it('fixed mobile columns ignore the container width', () => {
-      const containerRef = containerOf(320);
-      const { result } = renderHook(() =>
-        useFixedMobileColumnCount(containerRef, true)
-      );
-      expect(result.current).toBe(2);
     });
 
     it('fluid mobile follows resizes across 480px', () => {

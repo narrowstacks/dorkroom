@@ -94,6 +94,11 @@ const TRACKED_EVENTS: TrackedEvent[] = [
     records: 'Whether it was a film or a recipe.',
   },
   {
+    name: 'film_recipe_opened',
+    fires: "You click a development recipe on a film's page.",
+    records: 'Nothing else; which film or recipe is not sent.',
+  },
+  {
     name: 'filter_applied',
     fires: 'You apply a filter.',
     records: 'Which page, and which filter control. Never the value you chose.',

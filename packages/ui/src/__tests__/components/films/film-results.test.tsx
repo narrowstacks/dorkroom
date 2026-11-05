@@ -11,6 +11,10 @@ import {
 import { createRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  type FilmImageMode,
+  FilmImageModeContext,
+} from '../../../components/films/film-image-mode-context';
+import {
   FilmResults,
   type FilmResultsProps,
 } from '../../../components/films/film-results';
@@ -314,7 +318,7 @@ describe('FilmResults', () => {
       renderResults({ view: 'list', selectedFilmId: 'film-2' });
       const selected = screen.getByRole('button', { name: /Portra 400/ });
       expect(selected).toHaveAttribute('aria-current', 'true');
-      expect(selected.querySelector('.font-bold')).not.toBeNull();
+      expect(selected.querySelector('.font-semibold')).not.toBeNull();
       expect(
         screen.getByRole('button', { name: /Stock 1/ })
       ).not.toHaveAttribute('aria-current');
@@ -512,6 +516,13 @@ describe('FilmResults', () => {
       );
     });
 
+    it('falls back to the empty state when the list has no films', () => {
+      const handle = createRef<VirtualListFocusHandle>();
+      renderResults({ films: [], focusHandleRef: handle });
+      handle.current?.focusItem('film-1');
+      expect(document.activeElement).toHaveTextContent('No films found');
+    });
+
     it('writes the scroll position to scrollOffsetRef', () => {
       const scrollOffsetRef = { current: 0 };
       const { container } = renderResults({ view: 'rows', scrollOffsetRef });
@@ -521,5 +532,51 @@ describe('FilmResults', () => {
       fireEvent.scroll(scroller);
       expect(scrollOffsetRef.current).toBe(120);
     });
+  });
+
+  describe('photo modes (#636)', () => {
+    const PHOTO = 'https://example.com/hp5.jpeg';
+    const photoFilm = makeFilm(9, { staticImageUrl: PHOTO });
+
+    const photos = () =>
+      Array.from(document.querySelectorAll('img')).filter(
+        (img) => img.getAttribute('src') === PHOTO
+      );
+
+    function renderMode(mode?: FilmImageMode) {
+      const results = (
+        <FilmResults
+          films={[photoFilm]}
+          selectedFilmId={null}
+          onSelectFilm={noop}
+          view="table"
+          sort="name"
+          onSortChange={noop}
+          showRecipes
+          getRecipeCount={getRecipeCount}
+        />
+      );
+      return render(
+        mode ? (
+          <FilmImageModeContext value={mode}>{results}</FilmImageModeContext>
+        ) : (
+          results
+        )
+      );
+    }
+
+    it('loads the row thumbnail without a provider', () => {
+      renderMode();
+      expect(photos()).toHaveLength(1);
+    });
+
+    it.each<FilmImageMode>(['detail-only', 'none'])(
+      'shows the film icon and mounts no <img> on a row in %s mode',
+      (mode) => {
+        const { container } = renderMode(mode);
+        expect(container.querySelector('img')).toBeNull();
+        expect(container.querySelector('svg.lucide-film')).not.toBeNull();
+      }
+    );
   });
 });

@@ -472,15 +472,47 @@ loaded, `q` included, so if loading fails the URL keeps what the link carried.
 
 **Features:**
 
-- Full-text search across film names
-- Filters: color type (B&W, color, slide), ISO, brand, discontinued status
-- Collapsible filter panel (desktop) / mobile filter layout
-- Virtualized film results list (TanStack Virtual)
-- Film detail panel with expandable info, and a Share button that hands on
-  the film's `?film=slug` link
-- Direct-link support via URL `?film=slug` parameter
-- Debounced URL sync for all filter state (500ms)
-- Accessibility: skip-to-results link, ARIA live region for result counts
+- Toolbar above the results (no sidebar): fuzzy search, a type segmented
+  control (All, B&W, Color, Slide), then ISO, brand and status. Clear filters
+  appears once anything is applied. On phones the toolbar also has a Sort menu
+- Sortable by name (default), ISO or most recipes. The table sorts from its
+  column headers (`aria-sort`); the Recipes sort and column exist only for
+  black and white films, and the sort falls back to name when the type filter
+  moves to color or slide
+- Layout follows width and whether a film is open (`useIsMobile` plus the
+  breakpoint module):
+  - No film open: a full-width virtualized table (TanStack Virtual). Desktop
+    columns are photo, film, type, ISO, reciprocity, recipes and status;
+    tablet drops reciprocity and status
+  - Film open on tablet or desktop: the table narrows to a side list (320px
+    desktop, 260px tablet) with the open film highlighted, beside the film page
+  - Phone (768px and below): rows with name, brand, type and recipe count, then
+    ISO. An open film replaces the list; Back returns to it
+- Film page (not a dialog; `?film=<slug>`, no per-film route): brand, name,
+  tags, photo with credit, Share, stats, rebrand link, Recipes, About,
+  manufacturer notes, then up to four other films at the same ISO. Focus moves
+  to the heading on open and returns to the originating row on close
+- Recipe display rules: recipes appear only for black and white films, decided
+  by film type through `filmSupportsRecipes`, so color and slide films never
+  mention recipes (list rows, stats or page). A black and white film with no
+  recipes has no Recipes section and the page leads with About. Stats show
+  only values the film has, never `0` or a dash. Recipes are grouped into tabs
+  by shooting ISO, default to the box speed, show five rows with a See all
+  control, and each row links to `/development?recipe=<uuid>`
+- Darkroom theme shows no film photos, because white packshots are too bright
+  on its red-only screen: rows show the film icon, and the film page shows no
+  photo or tile. E-ink devices and the films with no photo get the icon tile
+  in rows
+- E-ink devices (`isEInkDevice()`) do not load the combinations list (#636):
+  they hide recipe counts and the Recipes section, and keep a plain link to
+  `/development?film=<slug>`
+- History: opening a film pushes a history entry, so browser Back closes it
+  and steps back through related films, restoring the filters and scroll
+  position. Filter and sort changes are debounced (500ms) `replace` writes
+- Direct-link support via `?film=slug`; shared links and invalid slugs keep
+  their skeleton and not-found behavior
+- Accessibility: skip-to-results link, ARIA live region for result counts,
+  keyboard support and 44px targets on touch layouts
 
 **URL search params:**
 
@@ -491,13 +523,16 @@ loaded, `q` included, so if loading fails the URL keeps what the link carried.
   iso?: string;            // ISO filter
   brand?: string;          // Brand filter
   status?: 'all' | 'active' | 'discontinued';
+  sort?: 'name' | 'iso' | 'recipes';  // Omitted when 'name'
   film?: string;           // Film slug for direct link
 }
 ```
 
 **Data dependencies:**
 
-- `useFilmDatabase()` - Main data hook with filtering logic
+- `useFilmDatabase()` - Main data hook with filtering and sorting logic
+- `useFilmRecipes()` - Recipe counts and groups per film, from the shared
+  combinations query (started after the catalog loads, skipped on e-ink)
 
 ---
 

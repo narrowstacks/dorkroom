@@ -140,7 +140,7 @@ function FilmList() {
   if (isLoading) return <Loading />;
   if (error) return <Error message={error.message} />;
 
-  return films.map(film => <FilmCard key={film.id} film={film} />);
+  return films.map(film => <li key={film.id}>{film.name}</li>);
 }
 ```
 

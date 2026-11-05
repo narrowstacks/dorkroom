@@ -38,7 +38,7 @@ from apps:
 | `@dorkroom/ui/calculator` | Calculator shell and layout pieces |
 | `@dorkroom/ui/border-calculator` | Border-calculator-specific components |
 | `@dorkroom/ui/development-recipes` | Recipe table, filters, detail views |
-| `@dorkroom/ui/films` | Film cards, detail panel, skeletons |
+| `@dorkroom/ui/films` | Film toolbar, results table and list, film page, photos |
 
 The split keeps route-specific bundles out of the root barrel. A component used
 by exactly one feature belongs on that feature's entry point, not in

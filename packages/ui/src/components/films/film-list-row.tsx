@@ -43,7 +43,7 @@ const FilmListRowComponent: FC<FilmListRowProps> = ({
         <span
           className={cn(
             'block truncate text-sm text-primary group-hover:underline',
-            isSelected ? 'font-bold' : 'font-medium'
+            isSelected ? 'font-semibold' : 'font-medium'
           )}
         >
           {film.name}

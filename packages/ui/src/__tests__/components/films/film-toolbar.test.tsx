@@ -55,6 +55,14 @@ afterEach(() => {
 });
 
 describe('FilmToolbar', () => {
+  // The results below are absolutely positioned, transformed rows, each its
+  // own stacking context at layer 0. The toolbar must sit on a higher layer,
+  // or an open SearchableSelect list inside it renders behind them (#596).
+  it('sits on a layer above the results', () => {
+    const { container } = setup();
+    expect(container.firstElementChild).toHaveClass('relative', 'z-10');
+  });
+
   it('reports search text', () => {
     const { onSearchChange } = setup();
     fireEvent.change(screen.getByRole('textbox', { name: 'Search films' }), {

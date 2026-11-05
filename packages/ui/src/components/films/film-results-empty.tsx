@@ -59,7 +59,7 @@ export const FilmResultsEmpty: FC<FilmResultsEmptyProps> = ({
       <button
         type="button"
         onClick={onClearFilters}
-        className="mt-4 rounded-xl px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-focus-ring)]"
+        className="mt-4 min-h-11 rounded-xl px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-focus-ring)]"
         style={{
           backgroundColor: 'var(--color-surface-muted)',
           color: 'var(--color-text-secondary)',

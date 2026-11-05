@@ -81,7 +81,8 @@ export function FilmsPageBody({
   const { share, manualCopyDialog } = useShareLink('film');
   const isDesktop = useBreakpoint('lg');
   // Packshots render at full brightness, which breaks the red-only darkroom
-  // theme, so that theme shows the text tile instead.
+  // theme, so that theme shows no photos: rows keep the film icon and the
+  // film page shows neither a photo nor a tile.
   const { resolvedTheme } = useTheme();
   let filmImageMode: 'none' | 'detail-only' | 'all' = 'all';
   if (resolvedTheme === 'darkroom') filmImageMode = 'none';
