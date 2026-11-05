@@ -99,16 +99,13 @@ export function useUrlFilterSync(
     // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
   }, [searchParams.status]);
 
-  // Unlike the filters above, an absent param DOES reset: absent means the
-  // default sort, so Back from ?sort=iso must return to name order. This does
-  // not race the debounced URL write, because the effect reruns only when the
-  // URL's value changes, never when the state does.
   // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
   useEffect(() => {
-    const next = searchParams.sort ?? 'name';
-    if (next !== sort) setSort(next);
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded so the effect reruns only when the URL's sort changes, never on a state change the debounced URL write has not caught up with
-    // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded so the effect reruns only when the URL's sort changes, never on a state change the debounced URL write has not caught up with
+    if (searchParams.sort !== undefined && searchParams.sort !== sort) {
+      setSort(searchParams.sort);
+    }
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
+    // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
   }, [searchParams.sort]);
 }
 

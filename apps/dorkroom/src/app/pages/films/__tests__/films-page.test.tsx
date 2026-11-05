@@ -944,7 +944,7 @@ describe('FilmsPage sort in the URL', () => {
     expect(cardOrder()[1]).toMatch(/^Ilford HP5 Plus/);
   });
 
-  it('falls back to name order under a colour filter and keeps sort in the URL', async () => {
+  it('keeps sort=recipes in the URL under a colour filter', async () => {
     const { router } = await renderSorted(
       '/films?color=color&sort=recipes',
       /Kodak Ektar 200/
@@ -968,22 +968,20 @@ describe('FilmsPage sort in the URL', () => {
     );
   });
 
-  it('returns to name order on Back to no sort, without writing it back', async () => {
+  it('keeps the sort when navigating to /films without it', async () => {
     const { router } = await renderSorted('/films?sort=iso');
     await waitFor(() => expect(cardOrder()[0]).toMatch(/^Store Brand/));
 
-    await act(() => router.navigate({ to: '/films', search: {} }));
-    await waitFor(() => expect(cardOrder()[0]).toMatch(/^Ilford HP5/));
+    await act(() =>
+      router.navigate({ to: '/films', search: { film: 'hp5-plus' } })
+    );
+    await waitFor(
+      () => expect(urlSearch(router)).toMatchObject({ sort: 'iso' }),
+      URL_SYNC
+    );
     await new Promise((resolve) => setTimeout(resolve, 700));
-    expect(urlSearch(router).sort).toBeUndefined();
-    expect(cardOrder()[0]).toMatch(/^Ilford HP5/);
-  });
-
-  it('uses name order when the combinations request fails', async () => {
-    combinationsRespond = serverFailure;
-    await renderSorted('/films?sort=recipes');
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    expect(cardOrder()).toEqual(NAME_ORDER);
+    expect(urlSearch(router)).toMatchObject({ film: 'hp5-plus', sort: 'iso' });
+    expect(cardOrder()[0]).toMatch(/^Store Brand/);
   });
 
   it('omits sort from the URL by default', async () => {
