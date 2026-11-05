@@ -132,6 +132,19 @@ describe('FilmResults', () => {
       expect(container.textContent).not.toMatch(/recipe/i);
     });
 
+    it('ignores the second click of a double-click on a list row', () => {
+      const onSelectFilm = vi.fn();
+      renderResults({ view: 'list', onSelectFilm });
+      const row = screen.getAllByRole('listitem')[0]?.querySelector('button');
+      if (!row) throw new Error('no list row button');
+
+      fireEvent.click(row, { detail: 2 });
+      expect(onSelectFilm).not.toHaveBeenCalled();
+
+      fireEvent.click(row, { detail: 0 });
+      expect(onSelectFilm).toHaveBeenCalledTimes(1);
+    });
+
     it('omits recipe counts from the list and rows views with showRecipes off', () => {
       for (const view of ['list', 'rows'] as const) {
         const { container, unmount } = renderResults({

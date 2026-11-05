@@ -63,6 +63,8 @@ const router = createRouter({
     queryClient,
   },
   ...routerPreloadOptionsFor(isLegacyBrowser()),
+  // Restores each history entry's window scroll on Back and Forward.
+  scrollRestoration: true,
   // Keep search params as plain strings instead of JSON-parsing them; see
   // ./routes/search-params for why.
   parseSearch,

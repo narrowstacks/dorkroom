@@ -50,19 +50,13 @@ interface FilmsPageBodyProps {
 }
 
 /**
- * Phone: while a film is open the page's scroll position is parked and the
- * page starts at the top, then it comes back when the film closes.
+ * Phone: opening a film starts the page at the top. Coming back, the router's
+ * scroll restoration puts the list's position back.
  */
-function usePhoneScrollRestore(phoneFilmOpen: boolean) {
-  const savedScrollY = useRef(0);
+function usePhoneScrollToTop(phoneFilmOpen: boolean) {
   const wasOpen = useRef(false);
   useLayoutEffect(() => {
-    if (phoneFilmOpen && !wasOpen.current) {
-      savedScrollY.current = window.scrollY;
-      window.scrollTo(0, 0);
-    } else if (!phoneFilmOpen && wasOpen.current) {
-      window.scrollTo(0, savedScrollY.current);
-    }
+    if (phoneFilmOpen && !wasOpen.current) window.scrollTo(0, 0);
     wasOpen.current = phoneFilmOpen;
   }, [phoneFilmOpen]);
 }
@@ -96,34 +90,48 @@ export function FilmsPageBody({
   // Closing the film puts focus back on its row (#604).
   const resultsFocusRef = useRef<VirtualListFocusHandle>(null);
   const rowsScrollRef = useRef(0);
+  // The row the open film was picked from, so closing returns to it even after
+  // a trip through related films.
+  const originRow = useRef<string | null>(null);
   // Only a film opened from closed by the user takes focus; a deep link and a
   // switch in the side list leave it where it is.
-  const [focusHeadingOnOpen, setFocusHeadingOnOpen] = useState(false);
+  const [focusHeadingFor, setFocusHeadingFor] = useState<string | null>(null);
 
-  usePhoneScrollRestore(isMobile && filmOpen);
+  usePhoneScrollToTop(isMobile && filmOpen);
 
   const handleSelectFilm = (film: Film) => {
-    setFocusHeadingOnOpen(!filmOpen);
+    setFocusHeadingFor(filmOpen ? null : film.slug);
+    if (!filmOpen) originRow.current = film.uuid;
     onSelectFilm(film);
   };
 
-  // Set on close, applied once the list is back (a layout effect rather than
-  // flushSync, which react-doctor flags in the app).
-  const returnFocusTo = useRef<string | null>(null);
+  // Driven by the selection changing, however it changed: the Close button,
+  // Escape, or browser Back and Forward. Applied once the list is back (a
+  // layout effect rather than flushSync, which react-doctor flags in the app).
+  const selectedUuid = selectedFilm?.uuid ?? null;
+  const previousUuid = useRef<string | null>(null);
   useLayoutEffect(() => {
-    const uuid = returnFocusTo.current;
-    if (uuid && !filmOpen) {
-      returnFocusTo.current = null;
-      resultsFocusRef.current?.focusItem(uuid);
+    const previous = previousUuid.current;
+    previousUuid.current = selectedUuid;
+    if (!previous) return;
+    if (!selectedUuid) {
+      if (!filmOpen) {
+        resultsFocusRef.current?.focusItem(originRow.current ?? previous);
+        originRow.current = null;
+        // Dropped so a Forward to the film does not take focus.
+        setFocusHeadingFor(null);
+      }
+      return;
     }
-  }, [filmOpen]);
+    // History moved between films. If the control that was focused (a related
+    // film button) unmounted, focus fell to the body: put it on the heading.
+    // A row in the side list keeps its own focus.
+    if (previous !== selectedUuid && document.activeElement === document.body) {
+      document.querySelector<HTMLElement>('article[aria-label] h2')?.focus();
+    }
+  }, [selectedUuid, filmOpen]);
 
-  const handleClose = () => {
-    returnFocusTo.current = selectedFilm?.uuid ?? null;
-    setFocusHeadingOnOpen(false);
-    onClosePanel();
-  };
-  useEscapeKey(Boolean(selectedFilm), handleClose);
+  useEscapeKey(Boolean(selectedFilm), onClosePanel);
 
   const toolbar = (
     <FilmToolbar
@@ -170,9 +178,11 @@ export function FilmsPageBody({
       baseFilm={baseFilm}
       recipes={recipes}
       relatedFilms={relatedFilms}
-      focusHeadingOnMount={focusHeadingOnOpen}
+      focusHeadingOnMount={
+        selectedFilm !== null && selectedFilm.slug === focusHeadingFor
+      }
       onSelectFilm={handleSelectFilm}
-      onClose={handleClose}
+      onClose={onClosePanel}
       onShare={(film) =>
         share({ film: film.slug }, `${film.brand} ${film.name}`)
       }

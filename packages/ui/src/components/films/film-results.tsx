@@ -141,7 +141,17 @@ export const FilmResults: FC<FilmResultsProps> = ({
     if (previous !== null && previous !== view) rowVirtualizer.measure();
     if (previous === 'list' && isTableView(view)) {
       const scroller = parentRef.current;
-      if (scroller) scroller.scrollTop = tableScrollTop.current;
+      const top = tableScrollTop.current;
+      if (scroller) {
+        scroller.scrollTop = top;
+        // Focus returning to a row scrolls the container first; set it again
+        // after that has happened.
+        if (top > 0) {
+          requestAnimationFrame(() => {
+            scroller.scrollTop = top;
+          });
+        }
+      }
     }
   }, [view, rowVirtualizer]);
 
@@ -238,6 +248,8 @@ export const FilmResults: FC<FilmResultsProps> = ({
   return (
     <div
       ref={parentRef}
+      // Lets the router restore the rows on Back from another route.
+      data-scroll-restoration-id="film-results"
       // Focus lands here when the row it was meant for is gone (#604).
       tabIndex={-1}
       {...listFocus.containerProps}

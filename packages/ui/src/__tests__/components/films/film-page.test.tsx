@@ -403,6 +403,30 @@ describe('FilmPage sections', () => {
     ).toBeNull();
   });
 
+  it('ignores the second click of a double-click on Back to films', () => {
+    const onClose = vi.fn();
+    renderPage({ onClose });
+    const back = screen.getByRole('button', { name: /back to films/i });
+
+    fireEvent.click(back, { detail: 2 });
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.click(back, { detail: 1 });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores the second click of a double-click on Share', () => {
+    const onShare = vi.fn();
+    renderPage({ onShare });
+    const share = screen.getByRole('button', { name: 'Share this film' });
+
+    fireEvent.click(share, { detail: 2 });
+    expect(onShare).not.toHaveBeenCalled();
+
+    fireEvent.click(share, { detail: 1 });
+    expect(onShare).toHaveBeenCalledTimes(1);
+  });
+
   it('shows the rebrand line from the base film', () => {
     renderPage({
       film: film({ baseFilmSlug: 'base' }),
