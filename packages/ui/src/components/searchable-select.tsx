@@ -21,6 +21,8 @@ interface SearchableSelectProps {
   items: SelectItem[];
   placeholder?: string;
   className?: string;
+  /** Extra classes for the text input that doubles as the trigger. */
+  triggerClassName?: string;
   allowClear?: boolean;
 }
 
@@ -247,6 +249,7 @@ export function SearchableSelect({
   items,
   placeholder = 'Search...',
   className,
+  triggerClassName,
   allowClear = true,
 }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -461,7 +464,10 @@ export function SearchableSelect({
           }}
           placeholder={selectedValue ? displayValue : placeholder}
           aria-label={label ?? placeholder}
-          className="w-full rounded-lg border px-3 py-2 pr-16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
+          className={cn(
+            'w-full rounded-lg border px-3 py-2 pr-16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]',
+            triggerClassName
+          )}
           style={cssVars({
             borderColor: focused
               ? 'var(--color-border-primary)'

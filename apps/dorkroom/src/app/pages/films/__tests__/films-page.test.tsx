@@ -339,12 +339,13 @@ describe.each([
     expect(live).toHaveAttribute('aria-live', 'polite');
   });
 
-  it('keeps the results landmark and skip link target at every width', async () => {
+  it('keeps a focusable skip link target at every width', async () => {
     await renderFilmsPage({ mobile });
     await findFilmCard(/Ilford HP5 Plus/);
 
     const results = document.getElementById('film-results');
-    expect(results?.tagName).toBe('MAIN');
+    expect(results?.tagName).toBe('DIV');
+    expect(results).toHaveAttribute('tabindex', '-1');
     expect(screen.getByRole('link', { name: /skip to/i })).toHaveAttribute(
       'href',
       '#film-results'

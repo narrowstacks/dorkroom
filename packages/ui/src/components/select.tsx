@@ -11,6 +11,8 @@ interface SelectProps {
   items: readonly SelectItem[];
   placeholder?: string;
   className?: string;
+  /** Extra classes for the native `<select>`. */
+  selectClassName?: string;
   ariaLabel?: string;
 }
 
@@ -21,6 +23,7 @@ export function Select({
   items,
   placeholder,
   className,
+  selectClassName,
   ariaLabel,
 }: SelectProps) {
   const selectId = useId();
@@ -41,7 +44,10 @@ export function Select({
           id={selectId}
           value={selectedValue}
           onChange={(e) => onValueChange(e.target.value)}
-          className="w-full appearance-none rounded-lg border border-secondary px-3 py-1.5 pr-8 text-sm focus:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
+          className={cn(
+            'w-full appearance-none rounded-lg border border-secondary px-3 py-1.5 pr-8 text-sm focus:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]',
+            selectClassName
+          )}
           aria-label={ariaLabel}
           style={cssVars({
             backgroundColor: 'var(--color-surface-muted)',

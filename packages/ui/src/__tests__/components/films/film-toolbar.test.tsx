@@ -134,6 +134,17 @@ describe('FilmToolbar', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('returns focus to the search box after Clear filters', () => {
+    setup({ hasActiveFilters: true });
+    fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
+    expect(screen.getByRole('textbox', { name: 'Search films' })).toHaveFocus();
+  });
+
+  it('shows no count while the catalog is loading', () => {
+    setup({ resultCount: null });
+    expect(screen.queryByText(/^\d+ films?$/)).not.toBeInTheDocument();
+  });
+
   it('hides the sort select unless asked', () => {
     setup({ showSortSelect: false });
     expect(screen.queryByLabelText('Sort')).not.toBeInTheDocument();

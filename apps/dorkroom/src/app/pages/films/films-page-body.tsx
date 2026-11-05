@@ -91,6 +91,7 @@ export function FilmsPageBody({
         onSelectFilm={onSelectFilm}
         isMobile={isMobile}
         isLoading={db.isLoading}
+        height={isMobile ? undefined : 'calc(100dvh - 400px)'}
         isDetailOpen={!!selectedFilm || shouldShowDetailSkeleton}
         onClearFilters={db.clearFilters}
         hasActiveFilters={db.hasActiveFilters}
@@ -103,10 +104,10 @@ export function FilmsPageBody({
     // Resized thumbnails for every FilmImage below (cards and detail panel).
     <FilmImageLoaderContext value={filmImageLoader}>
       <FilmImageModeContext value={filmImageMode}>
-        <div className="space-y-4 md:mt-6">
+        <div className="mt-4 space-y-4 md:mt-6">
           <FilmToolbar
             {...filterProps}
-            resultCount={db.filteredFilms.length}
+            resultCount={db.isLoading ? null : db.filteredFilms.length}
             sort={db.effectiveSort}
             onSortChange={db.setSort}
             recipesSortAvailable={db.recipesSortAvailable}
@@ -114,9 +115,9 @@ export function FilmsPageBody({
           />
 
           <div className="flex gap-6">
-            <main id="film-results" className="min-w-0 flex-1">
+            <div id="film-results" tabIndex={-1} className="min-w-0 flex-1">
               {results}
-            </main>
+            </div>
 
             {/* Rendered unconditionally: the panel owns its own visibility. It
           renders nothing without a film, and its stateful inner DetailPanel

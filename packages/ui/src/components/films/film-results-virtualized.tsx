@@ -133,16 +133,14 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
 
   // Show loading skeletons
   if (isLoading) {
-    // When detail panel is open on desktop, show fewer skeleton columns
-    const skeletonColumns = isDetailOpen && !isMobile ? 1 : columnCount;
     return (
       <div
         className={cn('grid gap-2', className)}
         style={{
-          gridTemplateColumns: `repeat(${skeletonColumns}, minmax(0, 1fr))`,
+          gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))`,
         }}
       >
-        {SKELETON_KEYS.slice(0, skeletonColumns * 3).map((key) => (
+        {SKELETON_KEYS.slice(0, columnCount * 3).map((key) => (
           <FilmCardSkeleton key={key} />
         ))}
       </div>

@@ -96,7 +96,7 @@ export const FilmPage: FC<FilmPageProps> = ({
       pendingFocusRef.current = false;
       headingRef.current?.focus();
     }
-  }, [film.uuid]);
+  });
   const photoUrl =
     use(FilmImageModeContext) === 'none' ? null : film.staticImageUrl;
   const supportsRecipes = filmSupportsRecipes(film);
