@@ -1,6 +1,7 @@
 import type { Film } from '@dorkroom/api';
 import {
   buildFilmSlugIndex,
+  type FilmSort,
   getBaseFilm,
   getRelatedFilms,
   SHARED_LINK_MARKER,
@@ -17,30 +18,13 @@ import {
 import { CalculatorPageHeader } from '@dorkroom/ui/calculator';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  filmColorFilterSchema,
-  type FilmsSearchParams,
-} from '../../../routes/search-schemas';
+import type { FilmsSearchParams } from '../../../routes/search-schemas';
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useSearchDeadEndAnalytics } from '../../lib/analytics/use-search-analytics';
 import { useShareOpened } from '../../lib/analytics/use-share-analytics';
 import { FilmsPageBody } from './films-page-body';
 import { useFilmPageRecipes } from './use-film-page-recipes';
-import { useUrlFilterSync } from './use-url-filter-sync';
-
-/**
- * Keeps an incoming ?film= slug in the URL until the selection effect has
- * processed it. The effect leaves a slug unprocessed while the catalog request
- * has failed with no match, so a failed load keeps the deep link too. Without
- * this, a catalog slower than the 500ms URL sync would write film: undefined
- * and strip the deep link.
- */
-function pendingFilm(
-  slug: string | undefined,
-  processedSlug: { current: string | null }
-): string | undefined {
-  return slug && processedSlug.current !== slug ? slug : undefined;
-}
+import { useDebouncedUrlWrite, useUrlFilterSync } from './use-url-filter-sync';
 
 /**
  * Recipes come from the combinations list, which e-ink devices do not load
@@ -60,14 +44,16 @@ export default function FilmsPage() {
     detailsEnabled: Boolean(selectedFilm),
   });
   const db = useFilmDatabase({
-    recipeCounts: recipesEnabled ? recipeData.recipeCounts : undefined,
+    // A failed combinations request means no counts, so a recipes sort does not
+    // report as active while every film shows zero recipes.
+    recipeCounts:
+      recipesEnabled && !recipeData.error ? recipeData.recipeCounts : undefined,
   });
   const {
     films,
     filteredFilms,
     isLoading,
     error,
-    searchQuery,
     colorTypeFilter,
     isoSpeedFilter,
     brandFilter,
@@ -151,42 +137,13 @@ export default function FilmsPage() {
     // eslint-disable-next-line react-doctor/exhaustive-deps -- same alias-tracing false positive as the urlFilm useMemo above: urlFilmSlug already IS searchParams.film re-derived every render, so it's already covered
   }, [urlFilm, urlFilmSlug, isLoading, error]);
 
-  // Debounced URL sync (500ms)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: navigate is stable from TanStack Router
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      navigate({
-        to: '/films',
-        search: {
-          search: searchQuery || undefined,
-          color: filmColorFilterSchema.parse(colorTypeFilter),
-          iso: isoSpeedFilter || undefined,
-          brand: brandFilter || undefined,
-          status: discontinuedFilter !== 'all' ? discontinuedFilter : undefined,
-          film:
-            selectedFilm?.slug ||
-            pendingFilm(urlFilmSlug, lastProcessedFilmSlug),
-        },
-        replace: true,
-      });
-    }, 500);
-
-    return () => clearTimeout(timeout);
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- navigate is stable from TanStack Router
-    // eslint-disable-next-line react-doctor/exhaustive-deps -- navigate is stable from TanStack Router
-  }, [
-    searchQuery,
-    colorTypeFilter,
-    isoSpeedFilter,
-    brandFilter,
-    discontinuedFilter,
+  useDebouncedUrlWrite({
+    db,
     selectedFilm,
     urlFilmSlug,
-    // The selection effect marks the slug processed in a ref (no render), so
-    // re-run when the lookup settles to let pendingFilm strip an invalid slug.
-    isLoading,
-    error,
-  ]);
+    lastProcessedFilmSlug,
+    navigate,
+  });
 
   // Update ARIA live region when filteredFilms changes
   useEffect(() => {
@@ -256,6 +213,11 @@ export default function FilmsPage() {
         if (value !== 'all')
           trackEvent('filter_applied', { tool: 'films', filter: 'status' });
         db.setDiscontinuedFilter(value);
+      },
+      // Every change counts, the 'name' default included: it is a real choice.
+      setSort: (value: FilmSort) => {
+        trackEvent('filter_applied', { tool: 'films', filter: 'sort' });
+        db.setSort(value);
       },
     }),
     [db]

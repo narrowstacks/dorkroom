@@ -1,4 +1,4 @@
-import { SHARED_LINK_MARKER } from '@dorkroom/logic';
+import { FILM_SORTS, SHARED_LINK_MARKER } from '@dorkroom/logic';
 
 /**
  * Search param schemas for the routes.
@@ -148,6 +148,7 @@ export const filmsSearchSchema = searchSchema({
   iso: stringParam,
   brand: stringParam,
   status: oneOf(['all', 'active', 'discontinued']),
+  sort: oneOf(FILM_SORTS),
   film: stringParam, // direct link to expanded film
   /** The shared-link marker (`SHARED_LINK_MARKER`): a film's Share button
    *  adds it. Any other value is treated as absent. */

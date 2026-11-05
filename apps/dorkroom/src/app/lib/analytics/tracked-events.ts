@@ -37,7 +37,7 @@ export type CalculatorMode =
   | 'aperture'
   | 'iso';
 
-export type FilmsFilter = 'color' | 'iso' | 'brand' | 'status';
+export type FilmsFilter = 'color' | 'iso' | 'brand' | 'status' | 'sort';
 
 export type DevelopmentFilter =
   'developer_type' | 'dilution' | 'iso' | 'recipe_type' | 'favorites';
