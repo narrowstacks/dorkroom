@@ -129,18 +129,18 @@ export function resolveFilmRecipes(
   developers: readonly Developer[] | undefined
 ): FilmRecipe[] {
   return recipes.map((combination) => {
-    if (!developers) {
-      const custom = combination.customDilution?.trim();
-      let dilution: string | null = custom || null;
-      if (!custom && !combination.dilutionId) dilution = 'Stock';
-      return { combination, developerName: null, dilution };
-    }
     const developer =
-      developers.find((d) => d.slug === combination.developerSlug) ?? null;
+      developers?.find((d) => d.slug === combination.developerSlug) ?? null;
+    const unknown =
+      !developer &&
+      !combination.customDilution?.trim() &&
+      !!combination.dilutionId;
     return {
       combination,
-      developerName: developer?.name ?? combination.developerSlug,
-      dilution: getCombinationDilution(combination, developer),
+      developerName: developers
+        ? (developer?.name ?? combination.developerSlug)
+        : null,
+      dilution: unknown ? null : getCombinationDilution(combination, developer),
     };
   });
 }
@@ -149,20 +149,6 @@ export function resolveFilmRecipes(
 export type FilmSort = 'name' | 'iso' | 'recipes';
 
 export const FILM_SORTS: readonly FilmSort[] = ['name', 'iso', 'recipes'];
-
-/**
- * Display rule 3: a recipes sort falls back to name when the type filter is
- * color or slide, where recipes are never shown.
- */
-export function resolveFilmSort(
-  sort: FilmSort,
-  colorTypeFilter: string
-): FilmSort {
-  if (sort === 'recipes' && !filmTypeFilterSupportsRecipes(colorTypeFilter)) {
-    return 'name';
-  }
-  return sort;
-}
 
 /**
  * Sort films. 'name' returns the input order untouched (callers pass films

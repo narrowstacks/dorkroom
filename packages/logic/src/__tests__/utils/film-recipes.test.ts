@@ -8,7 +8,6 @@ import {
   groupRecipesByShootingIso,
   pickDefaultRecipeIso,
   resolveFilmRecipes,
-  resolveFilmSort,
   sortFilms,
 } from '../../utils/film-recipes';
 
@@ -167,6 +166,9 @@ describe('pickDefaultRecipeIso', () => {
     expect(pickDefaultRecipeIso(groups, 800)).toBe(400);
     expect(pickDefaultRecipeIso(groups, 100)).toBe(200);
     expect(
+      pickDefaultRecipeIso([{ shootingIso: 400 }, { shootingIso: 100 }], 250)
+    ).toBe(100);
+    expect(
       pickDefaultRecipeIso([{ shootingIso: 100 }, { shootingIso: 400 }], 250)
     ).toBe(100);
   });
@@ -212,6 +214,15 @@ describe('resolveFilmRecipes', () => {
     expect(custom.dilution).toBe('1+9');
   });
 
+  it('shows unknown for a dilution id when the developer is missing from a loaded list', () => {
+    const [missing] = resolveFilmRecipes(
+      [recipe('hp5-plus', 'rodinal', 200, { dilutionId: '3' })],
+      [ddx]
+    );
+    expect(missing.developerName).toBe('rodinal');
+    expect(missing.dilution).toBeNull();
+  });
+
   it('falls back to the slug when the developer is not in the list', () => {
     const [only] = resolveFilmRecipes([recipe('hp5-plus', 'rodinal', 200)], []);
     expect(only.developerName).toBe('rodinal');
@@ -231,20 +242,6 @@ describe('resolveFilmRecipes', () => {
     expect(byId.developerName).toBeNull();
     expect(byCustom.dilution).toBe('1+9');
     expect(none.dilution).toBe('Stock');
-  });
-});
-
-describe('resolveFilmSort', () => {
-  it('keeps the recipes sort unless filtered to color or slide', () => {
-    expect(resolveFilmSort('recipes', '')).toBe('recipes');
-    expect(resolveFilmSort('recipes', 'bw')).toBe('recipes');
-    expect(resolveFilmSort('recipes', 'color')).toBe('name');
-    expect(resolveFilmSort('recipes', 'slide')).toBe('name');
-  });
-
-  it('never changes name or iso', () => {
-    expect(resolveFilmSort('iso', 'color')).toBe('iso');
-    expect(resolveFilmSort('name', 'slide')).toBe('name');
   });
 });
 

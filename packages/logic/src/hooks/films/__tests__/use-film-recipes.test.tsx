@@ -1,6 +1,6 @@
 import type { Combination, Developer, Film } from '@dorkroom/api';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { queryKeys } from '../../../queries/query-keys';
@@ -92,12 +92,13 @@ const portra: Film = {
   colorType: 'color',
 };
 
-const seededClient = () => {
+const seededClient = ({ withFilms = true } = {}) => {
   const client = new QueryClient({
     defaultOptions: {
       queries: { retry: false, staleTime: Number.POSITIVE_INFINITY },
     },
   });
+  if (withFilms) client.setQueryData(queryKeys.films.list(), [hp5, portra]);
   client.setQueryData(queryKeys.combinations.list(), [
     combo('hp5-plus', 'ilford-ddx', 400, { dilutionId: '2' }),
     combo('hp5-plus', 'ilford-ddx', 1600),
@@ -193,6 +194,49 @@ describe('useFilmRecipes', () => {
     expect(tab1600.recipes[0].dilution).toBe('Stock');
   });
 
+  it('reports no recipes when disabled, even with a warm cache', () => {
+    const client = seededClient();
+    client.setQueryData(queryKeys.developers.list(), [ddx]);
+    const { result } = renderHook(
+      () => useFilmRecipes({ enabled: false, detailsEnabled: true }),
+      { wrapper: makeWrapper(client) }
+    );
+    expect(result.current.getRecipeCount(hp5)).toBe(0);
+    expect(result.current.recipeCounts.size).toBe(0);
+    expect(result.current.getRecipeGroups(hp5).groups).toEqual([]);
+    expect(result.current.developersReady).toBe(false);
+  });
+
+  it('keeps combinations idle until the catalog has loaded', async () => {
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const calls: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: string | URL | Request) => {
+        calls.push(String(input instanceof Request ? input.url : input));
+        return new Promise(() => {});
+      })
+    );
+    const { result } = renderHook(() => useFilmRecipes(), {
+      wrapper: makeWrapper(client),
+    });
+    expect(result.current.isLoading).toBe(true);
+    expect(
+      client.getQueryState(queryKeys.combinations.list())?.fetchStatus
+    ).toBe('idle');
+
+    act(() => {
+      client.setQueryData(queryKeys.films.list(), [hp5]);
+    });
+    await waitFor(() =>
+      expect(
+        client.getQueryState(queryKeys.combinations.list())?.fetchStatus
+      ).toBe('fetching')
+    );
+  });
+
   it('does not fetch when disabled', () => {
     const client = new QueryClient({
       defaultOptions: { queries: { retry: false } },
@@ -204,7 +248,13 @@ describe('useFilmRecipes', () => {
 
     expect(result.current.isLoading).toBe(false);
     expect(result.current.recipeCounts.size).toBe(0);
-    expect(client.isFetching()).toBe(0);
+    // The catalog query is not ours to gate; recipe queries must stay idle.
+    expect(
+      client.getQueryState(queryKeys.combinations.list())?.fetchStatus
+    ).toBe('idle');
+    expect(client.getQueryState(queryKeys.developers.list())?.fetchStatus).toBe(
+      'idle'
+    );
     expect(result.current.getRecipeGroups(hp5)).toEqual({
       groups: [],
       defaultIso: undefined,

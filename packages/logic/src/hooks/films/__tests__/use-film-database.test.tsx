@@ -839,6 +839,13 @@ describe('useFilmDatabase', () => {
       ]);
     });
 
+    it('falls back to name when a recipes sort has no counts', () => {
+      const { result } = renderHook(() => useFilmDatabase(), { wrapper });
+      act(() => result.current.setSort('recipes'));
+      expect(result.current.effectiveSort).toBe('name');
+      expect(result.current.recipesSortAvailable).toBe(false);
+    });
+
     it('falls back to name when a recipes sort meets the color filter', () => {
       const recipeCounts = new Map([['hp5-plus', 11]]);
       const { result } = renderHook(() => useFilmDatabase({ recipeCounts }), {

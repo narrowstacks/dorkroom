@@ -12,6 +12,7 @@ import {
 } from '../../utils/film-recipes';
 import { useCombinations } from '../api/use-combinations';
 import { useDevelopers } from '../api/use-developers';
+import { useFilms } from '../api/use-films';
 
 export interface UseFilmRecipesOptions {
   /**
@@ -70,12 +71,20 @@ export function useFilmRecipes({
   enabled = true,
   detailsEnabled = false,
 }: UseFilmRecipesOptions = {}): UseFilmRecipesReturn {
-  const combinations = useCombinations({ enabled });
-  const developers = useDevelopers({ enabled: enabled && detailsEnabled });
+  // Combinations wait for the catalog so they never delay the film table.
+  const films = useFilms();
+  const catalogReady = films.data !== undefined;
+  const combinations = useCombinations({ enabled: enabled && catalogReady });
+  const developers = useDevelopers({
+    enabled: enabled && catalogReady && detailsEnabled,
+  });
 
   const index = useMemo(
-    () => buildFilmRecipeIndex(combinations.data ?? EMPTY_COMBINATIONS),
-    [combinations.data]
+    () =>
+      buildFilmRecipeIndex(
+        enabled ? (combinations.data ?? EMPTY_COMBINATIONS) : EMPTY_COMBINATIONS
+      ),
+    [enabled, combinations.data]
   );
 
   const getRecipeCount = useCallback(
@@ -84,7 +93,8 @@ export function useFilmRecipes({
     [index]
   );
 
-  const developerList = developers.data;
+  // A disabled observer still returns cached data, so gate on the options.
+  const developerList = enabled && detailsEnabled ? developers.data : undefined;
   const getRecipeGroups = useCallback(
     (film: Pick<Film, 'slug' | 'colorType' | 'isoSpeed'>): FilmRecipeGroups => {
       if (!filmSupportsRecipes(film)) return NO_GROUPS;

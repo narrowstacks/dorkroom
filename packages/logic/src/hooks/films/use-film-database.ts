@@ -4,7 +4,6 @@ import {
   type FilmSort,
   filmSupportsRecipes,
   filmTypeFilterSupportsRecipes,
-  resolveFilmSort,
   sortFilms,
 } from '../../utils/film-recipes';
 import { createFilmSearcher, searchFilms } from '../../utils/fuzzy-search';
@@ -55,10 +54,11 @@ export interface UseFilmDatabaseReturn {
   setSort: (value: FilmSort) => void;
   /**
    * The sort actually applied. Differs from `sort` only when a recipes sort is
-   * requested while filtered to color or slide, which falls back to 'name'.
+   * requested while filtered to color or slide, or without recipe counts,
+   * which falls back to 'name'.
    */
   effectiveSort: FilmSort;
-  /** False when the type filter is color or slide: hide the recipes sort. */
+  /** False when the type filter is color or slide, or no counts were given: hide the recipes sort. */
   recipesSortAvailable: boolean;
 
   // Actions
@@ -118,7 +118,11 @@ export function useFilmDatabase({
     'all' | 'active' | 'discontinued'
   >('all');
   const [sort, setSort] = useState<FilmSort>('name');
-  const effectiveSort = resolveFilmSort(sort, colorTypeFilter);
+  const recipesSortAvailable =
+    recipeCounts !== undefined &&
+    filmTypeFilterSupportsRecipes(colorTypeFilter);
+  const effectiveSort: FilmSort =
+    sort === 'recipes' && !recipesSortAvailable ? 'name' : sort;
 
   // Debounce search query to avoid excessive filtering
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -307,7 +311,7 @@ export function useFilmDatabase({
     sort,
     setSort,
     effectiveSort,
-    recipesSortAvailable: filmTypeFilterSupportsRecipes(colorTypeFilter),
+    recipesSortAvailable,
 
     // Actions
     clearFilters,
