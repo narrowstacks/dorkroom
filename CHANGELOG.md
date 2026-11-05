@@ -15,6 +15,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - **Other films at the same ISO.** A film's page ends with up to four other films at the same speed, one tap away.
 - **Filters sit in a toolbar on /films.** Search, film type, ISO, brand and status now run along the top of the results instead of a sidebar, so the film list gets the full width. Film type is a single row of buttons, and Clear filters appears once anything is applied. On phones the toolbar also has a Sort menu (name, ISO, or most recipes, unless filtered to color or slide). (#669)
 - **A sortable films table.** /films now lists films in a full-width table with photo, type, ISO, reciprocity, recipes and status. Click the Film, ISO or Recipes heading to sort, and the sort is kept in the link. Opening a film narrows the table to a list beside the film's page, with the open film highlighted and a Back to films button above it, and closing puts you back where you were. On tablets the table drops reciprocity and status, and on phones each film is a row with its name, brand, type and recipe count, and a film opens as its own page. The Darkroom theme shows no film photos, since they were too bright for its red-only screen. (#669)
+- **Back works on the films page.** Opening a film now adds a step to your browser history, so Back closes it, and Back through related films returns one film at a time with your search and filters as you left them. On a phone, Back to films returns to the list in one step. (#669)
 
 ### Changed
 

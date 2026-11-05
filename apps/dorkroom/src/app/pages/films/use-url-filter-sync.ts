@@ -1,8 +1,10 @@
-import type { Film } from '@dorkroom/api';
 import type { FilmSort, useFilmDatabase } from '@dorkroom/logic';
 import type { useNavigate } from '@tanstack/react-router';
-import { type RefObject, useEffect } from 'react';
-import { filmColorFilterSchema } from '../../../routes/search-schemas';
+import { useEffect } from 'react';
+import {
+  filmColorFilterSchema,
+  type FilmsSearchParams,
+} from '../../../routes/search-schemas';
 
 type FilmDatabase = ReturnType<typeof useFilmDatabase>;
 
@@ -109,37 +111,53 @@ export function useUrlFilterSync(
   }, [searchParams.sort]);
 }
 
+type FilmFilterSearch = Omit<FilmsSearchParams, 'film' | 'source'>;
+
 /**
- * Keeps an incoming ?film= slug in the URL until the selection effect has
- * processed it. The effect leaves a slug unprocessed while the catalog request
- * has failed with no match, so a failed load keeps the deep link too. Without
- * this, a catalog slower than the 500ms URL sync would write film: undefined
- * and strip the deep link.
+ * The filter and sort half of the /films URL, built from the live filter state
+ * (not from the URL, which can lag it by the 500ms debounce). Shared by the
+ * debounced write and the film open and close navigations, so a filter still
+ * inside the debounce window is not lost when a film opens.
  */
-function pendingFilm(
-  slug: string | undefined,
-  processedSlug: { current: string | null }
-): string | undefined {
-  return slug && processedSlug.current !== slug ? slug : undefined;
+export function buildFilmFilterSearch(
+  db: Pick<
+    FilmDatabase,
+    | 'searchQuery'
+    | 'colorTypeFilter'
+    | 'isoSpeedFilter'
+    | 'brandFilter'
+    | 'discontinuedFilter'
+    | 'sort'
+  >
+): FilmFilterSearch {
+  return {
+    search: db.searchQuery || undefined,
+    color: filmColorFilterSchema.parse(db.colorTypeFilter),
+    iso: db.isoSpeedFilter || undefined,
+    brand: db.brandFilter || undefined,
+    status: db.discontinuedFilter !== 'all' ? db.discontinuedFilter : undefined,
+    // The requested sort, not effectiveSort: a recipes sort that a colour
+    // filter overrides stays in the URL for when it is cleared.
+    sort: db.sort !== 'name' ? db.sort : undefined,
+  };
 }
 
 interface DebouncedUrlWriteInput {
   db: FilmDatabase;
-  selectedFilm: Film | null;
-  urlFilmSlug: string | undefined;
   /** The URL's own sort, so a navigation that drops it re-triggers the write. */
   urlSort: FilmSort | undefined;
-  lastProcessedFilmSlug: RefObject<string | null>;
   navigate: ReturnType<typeof useNavigate>;
 }
 
-/** Debounced (500ms) write of the filter state, sort and selected film to the URL. */
+/**
+ * Debounced (500ms) write of the filter state and sort to the URL. The film
+ * comes from the URL at write time, never from component state, so a write
+ * can neither restore a film that was closed nor keep a slug that was removed.
+ * The entry is replaced and its history state kept (the film depth).
+ */
 export function useDebouncedUrlWrite({
   db,
-  selectedFilm,
-  urlFilmSlug,
   urlSort,
-  lastProcessedFilmSlug,
   navigate,
 }: DebouncedUrlWriteInput) {
   const {
@@ -149,8 +167,6 @@ export function useDebouncedUrlWrite({
     brandFilter,
     discontinuedFilter,
     sort,
-    isLoading,
-    error,
   } = db;
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: navigate is stable from TanStack Router
@@ -158,19 +174,18 @@ export function useDebouncedUrlWrite({
     const timeout = setTimeout(() => {
       navigate({
         to: '/films',
-        search: {
-          search: searchQuery || undefined,
-          color: filmColorFilterSchema.parse(colorTypeFilter),
-          iso: isoSpeedFilter || undefined,
-          brand: brandFilter || undefined,
-          status: discontinuedFilter !== 'all' ? discontinuedFilter : undefined,
-          // The requested sort, not effectiveSort: a recipes sort that a
-          // colour filter overrides stays in the URL for when it is cleared.
-          sort: sort !== 'name' ? sort : undefined,
-          film:
-            selectedFilm?.slug ||
-            pendingFilm(urlFilmSlug, lastProcessedFilmSlug),
-        },
+        search: (prev: FilmsSearchParams) => ({
+          ...buildFilmFilterSearch({
+            searchQuery,
+            colorTypeFilter,
+            isoSpeedFilter,
+            brandFilter,
+            discontinuedFilter,
+            sort,
+          }),
+          film: prev.film,
+        }),
+        state: true,
         replace: true,
         resetScroll: false,
       });
@@ -187,11 +202,5 @@ export function useDebouncedUrlWrite({
     discontinuedFilter,
     sort,
     urlSort,
-    selectedFilm,
-    urlFilmSlug,
-    // The selection effect marks the slug processed in a ref (no render), so
-    // re-run when the lookup settles to let pendingFilm strip an invalid slug.
-    isLoading,
-    error,
   ]);
 }

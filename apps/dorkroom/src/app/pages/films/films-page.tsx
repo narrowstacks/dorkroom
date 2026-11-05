@@ -16,15 +16,35 @@ import {
   useIsMobile,
 } from '@dorkroom/ui';
 import { CalculatorPageHeader } from '@dorkroom/ui/calculator';
-import { useNavigate, useSearch } from '@tanstack/react-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useLocation,
+  useNavigate,
+  useRouter,
+  useSearch,
+} from '@tanstack/react-router';
+import { useEffect, useMemo, useState } from 'react';
 import type { FilmsSearchParams } from '../../../routes/search-schemas';
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useSearchDeadEndAnalytics } from '../../lib/analytics/use-search-analytics';
 import { useShareOpened } from '../../lib/analytics/use-share-analytics';
 import { FilmsPageBody } from './films-page-body';
 import { useFilmPageRecipes } from './use-film-page-recipes';
-import { useDebouncedUrlWrite, useUrlFilterSync } from './use-url-filter-sync';
+import {
+  buildFilmFilterSearch,
+  useDebouncedUrlWrite,
+  useUrlFilterSync,
+} from './use-url-filter-sync';
+
+declare module '@tanstack/react-router' {
+  interface HistoryState {
+    /**
+     * Film entries pushed above the list entry (or the deep link) in this
+     * session of browsing films. Lets the phone's Back to films step over
+     * all of them in one go.
+     */
+    filmDepth?: number;
+  }
+}
 
 /**
  * Recipes come from the combinations list, which e-ink devices do not load
@@ -37,11 +57,17 @@ export default function FilmsPage() {
   const navigate = useNavigate();
   const searchParams = useSearch({ from: '/films' });
 
-  const [selectedFilm, setSelectedFilm] = useState<Film | null>(null);
+  const router = useRouter();
+  // How many film entries sit above the list entry: 0 on a deep link.
+  const filmDepth = useLocation({ select: (l) => l.state.filmDepth ?? 0 });
+
+  // Get the film slug from URL params (stable reference). The URL owns the
+  // selected film, so Back, Forward and links all drive the page through it.
+  const urlFilmSlug = searchParams.film;
 
   const recipeData = useFilmRecipes({
     enabled: recipesEnabled,
-    detailsEnabled: Boolean(selectedFilm),
+    detailsEnabled: Boolean(urlFilmSlug),
   });
   const db = useFilmDatabase({
     // A failed combinations request means no counts, so a recipes sort does not
@@ -63,12 +89,6 @@ export default function FilmsPage() {
   const [resultCountAnnouncement, setResultCountAnnouncement] =
     useState<string>('');
 
-  // Track the last processed URL film slug to avoid reprocessing the same one
-  const lastProcessedFilmSlug = useRef<string | null>(null);
-
-  // Get the film slug from URL params (stable reference)
-  const urlFilmSlug = searchParams.film;
-
   // Find the film matching the URL slug from ALL films (not filtered)
   // This ensures we can find the film even if filters would hide it
   const urlFilm = useMemo(() => {
@@ -76,6 +96,7 @@ export default function FilmsPage() {
     return films.find((f) => f.slug === urlFilmSlug) ?? null;
     // eslint-disable-next-line react-doctor/exhaustive-deps -- react-doctor reports "stale searchParams.film" via alias tracing through urlFilmSlug, but urlFilmSlug IS searchParams.film re-derived every render (line 189, not memoized); adding searchParams.film directly is flagged as a redundant dep by react-hooks/exhaustive-deps
   }, [films, urlFilmSlug]);
+  const selectedFilm = urlFilm;
 
   useUrlFilterSync(searchParams, db);
 
@@ -92,56 +113,30 @@ export default function FilmsPage() {
     void navigate({
       to: '/films',
       search: (prev: FilmsSearchParams) => ({ ...prev, source: undefined }),
+      state: true,
       replace: true,
       resetScroll: false,
     });
   }, [sharedArrival, navigate]);
 
-  // Select film from URL param when data loads or URL changes
+  // A slug that matches no film is dropped from the URL (a replace, so no
+  // history entry) once the catalog has loaded. A failed request says nothing
+  // about whether the slug exists, so it keeps the slug and a later successful
+  // refetch can still open it.
   useEffect(() => {
-    // Skip if no URL film param
-    if (!urlFilmSlug) {
-      // The film param disappeared after being processed (Back, link to
-      // /films): drop the stale selection so the debounced sync does not
-      // write the removed param back. A null ref means the URL never had a
-      // film, so a selection made through the UI is left alone.
-      if (lastProcessedFilmSlug.current !== null) {
-        lastProcessedFilmSlug.current = null;
-        setSelectedFilm(null);
-      }
-      return;
-    }
-
-    // Skip if we already processed this same slug
-    if (lastProcessedFilmSlug.current === urlFilmSlug) return;
-
-    // Wait until loading is complete
-    if (isLoading) return;
-
-    // The URL moved to a slug that matches no film: drop the previous
-    // selection so the debounced sync cannot write the old slug back over it.
-    if (!urlFilm) setSelectedFilm(null);
-
-    // A failed request says nothing about whether the slug exists. Leave it
-    // unprocessed so a later successful refetch (reconnect) can still open it.
-    if (error && !urlFilm) return;
-
-    // Mark this slug as processed
-    lastProcessedFilmSlug.current = urlFilmSlug;
-
-    // Select the film if found
-    if (urlFilm) {
-      setSelectedFilm(urlFilm);
-    }
-    // eslint-disable-next-line react-doctor/exhaustive-deps -- same alias-tracing false positive as the urlFilm useMemo above: urlFilmSlug already IS searchParams.film re-derived every render, so it's already covered
-  }, [urlFilm, urlFilmSlug, isLoading, error]);
+    if (isLoading || error || !urlFilmSlug || urlFilm) return;
+    void navigate({
+      to: '/films',
+      search: (prev: FilmsSearchParams) => ({ ...prev, film: undefined }),
+      state: true,
+      replace: true,
+      resetScroll: false,
+    });
+  }, [isLoading, error, urlFilmSlug, urlFilm, navigate]);
 
   useDebouncedUrlWrite({
     db,
-    selectedFilm,
-    urlFilmSlug,
     urlSort: searchParams.sort,
-    lastProcessedFilmSlug,
     navigate,
   });
 
@@ -223,23 +218,40 @@ export default function FilmsPage() {
     [db]
   );
 
+  // A push, so Back returns to the previous film or the list. The filters come
+  // from live state so one still inside the debounce window is not lost.
   const handleSelectFilm = (film: Film) => {
+    if (film.slug === urlFilmSlug) return;
     trackEvent('detail_opened', { type: 'film' });
-    setSelectedFilm(film);
+    void navigate({
+      to: '/films',
+      search: { ...buildFilmFilterSearch(db), film: film.slug },
+      state: { filmDepth: filmDepth + 1 },
+      resetScroll: false,
+    });
   };
 
+  // A phone shows one thing at a time and no filter can change while a film is
+  // open, so the list entry below the films is still accurate: go back to it.
+  // Wide layouts keep the toolbar usable beside the film, so an older list
+  // entry can hold stale filters: push the current ones instead. A deep link
+  // (depth 0) replaces its entry so the close does not leave a film to return to.
   const handleClosePanel = () => {
-    setSelectedFilm(null);
+    if (isMobile && filmDepth > 0) {
+      router.history.go(-filmDepth);
+      return;
+    }
+    void navigate({
+      to: '/films',
+      search: { ...buildFilmFilterSearch(db), film: undefined },
+      replace: filmDepth === 0,
+      resetScroll: false,
+    });
   };
 
-  // Determine if we should show the loading skeleton in the detail panel position
-  // Show when: URL has a film slug, but we haven't found/loaded the film yet, and general loading is done
+  // Skeleton in the film's place while a deep-linked film waits for the catalog.
   const shouldShowDetailSkeleton = Boolean(
-    !isLoading &&
-    !error &&
-    urlFilmSlug &&
-    !urlFilm &&
-    lastProcessedFilmSlug.current !== urlFilmSlug
+    urlFilmSlug && !urlFilm && isLoading
   );
 
   const filmOpen = Boolean(selectedFilm) || shouldShowDetailSkeleton;

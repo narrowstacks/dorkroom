@@ -61,7 +61,12 @@ function usePhoneScrollRestore(phoneFilmOpen: boolean) {
       savedScrollY.current = window.scrollY;
       window.scrollTo(0, 0);
     } else if (!phoneFilmOpen && wasOpen.current) {
-      window.scrollTo(0, savedScrollY.current);
+      const y = savedScrollY.current;
+      window.scrollTo(0, y);
+      // Browser Back is a router navigation, and the router scrolls the window
+      // to the top once it has rendered (no scroll restoration is configured),
+      // which lands after this effect. Apply the position again after it.
+      requestAnimationFrame(() => window.scrollTo(0, y));
     }
     wasOpen.current = phoneFilmOpen;
   }, [phoneFilmOpen]);
@@ -98,29 +103,41 @@ export function FilmsPageBody({
   const rowsScrollRef = useRef(0);
   // Only a film opened from closed by the user takes focus; a deep link and a
   // switch in the side list leave it where it is.
-  const [focusHeadingOnOpen, setFocusHeadingOnOpen] = useState(false);
+  const [focusHeadingFor, setFocusHeadingFor] = useState<string | null>(null);
 
   usePhoneScrollRestore(isMobile && filmOpen);
 
   const handleSelectFilm = (film: Film) => {
-    setFocusHeadingOnOpen(!filmOpen);
+    setFocusHeadingFor(filmOpen ? null : film.slug);
     onSelectFilm(film);
   };
 
-  // Set on close, applied once the list is back (a layout effect rather than
-  // flushSync, which react-doctor flags in the app).
-  const returnFocusTo = useRef<string | null>(null);
+  // Driven by the selection changing, however it changed: the Close button,
+  // Escape, or browser Back and Forward. Applied once the list is back (a
+  // layout effect rather than flushSync, which react-doctor flags in the app).
+  const selectedUuid = selectedFilm?.uuid ?? null;
+  const previousUuid = useRef<string | null>(null);
   useLayoutEffect(() => {
-    const uuid = returnFocusTo.current;
-    if (uuid && !filmOpen) {
-      returnFocusTo.current = null;
-      resultsFocusRef.current?.focusItem(uuid);
+    const previous = previousUuid.current;
+    previousUuid.current = selectedUuid;
+    if (!previous) return;
+    if (!selectedUuid) {
+      if (!filmOpen) {
+        resultsFocusRef.current?.focusItem(previous);
+        // Dropped so a Forward to the film does not take focus.
+        setFocusHeadingFor(null);
+      }
+      return;
     }
-  }, [filmOpen]);
+    // History moved between films. If the control that was focused (a related
+    // film button) unmounted, focus fell to the body: put it on the heading.
+    // A row in the side list keeps its own focus.
+    if (previous !== selectedUuid && document.activeElement === document.body) {
+      document.querySelector<HTMLElement>('article[aria-label] h2')?.focus();
+    }
+  }, [selectedUuid, filmOpen]);
 
   const handleClose = () => {
-    returnFocusTo.current = selectedFilm?.uuid ?? null;
-    setFocusHeadingOnOpen(false);
     onClosePanel();
   };
   useEscapeKey(Boolean(selectedFilm), handleClose);
@@ -170,7 +187,9 @@ export function FilmsPageBody({
       baseFilm={baseFilm}
       recipes={recipes}
       relatedFilms={relatedFilms}
-      focusHeadingOnMount={focusHeadingOnOpen}
+      focusHeadingOnMount={
+        selectedFilm !== null && selectedFilm.slug === focusHeadingFor
+      }
       onSelectFilm={handleSelectFilm}
       onClose={handleClose}
       onShare={(film) =>
