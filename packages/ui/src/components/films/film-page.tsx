@@ -49,6 +49,7 @@ export interface FilmPageProps {
    * build has no container queries.
    */
   layout: 'narrow' | 'wide';
+  className?: string;
 }
 
 const TYPE_LABELS = new Map([
@@ -83,6 +84,7 @@ export const FilmPage: FC<FilmPageProps> = ({
   onSelectFilm,
   onShare,
   layout,
+  className,
 }) => {
   const wide = layout === 'wide';
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -120,7 +122,7 @@ export const FilmPage: FC<FilmPageProps> = ({
   const notes = film.manufacturerNotes ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className={cn('space-y-6', className)}>
       <header
         className={cn(
           'flex gap-5',
