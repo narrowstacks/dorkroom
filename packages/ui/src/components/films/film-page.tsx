@@ -5,7 +5,7 @@ import {
   type RecipeIsoGroup,
 } from '@dorkroom/logic';
 import { ExternalLink, Share2 } from 'lucide-react';
-import { type FC, use } from 'react';
+import { type FC, use, useEffect, useRef } from 'react';
 import { cn } from '../../lib/cn';
 import { Skeleton } from '../ui/skeleton';
 import { Tag } from '../ui/tag';
@@ -85,6 +85,16 @@ export const FilmPage: FC<FilmPageProps> = ({
   layout,
 }) => {
   const wide = layout === 'wide';
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  // Set by a tap on a related film so focus follows the page it opened; any
+  // other change of film (Back, a link) leaves focus alone.
+  const pendingFocusRef = useRef(false);
+  useEffect(() => {
+    if (pendingFocusRef.current) {
+      pendingFocusRef.current = false;
+      headingRef.current?.focus();
+    }
+  }, [film.uuid]);
   const photoUrl =
     use(FilmImageModeContext) === 'none' ? null : film.staticImageUrl;
   const supportsRecipes = filmSupportsRecipes(film);
@@ -143,7 +153,11 @@ export const FilmPage: FC<FilmPageProps> = ({
         <div className={cn('min-w-0 space-y-3', !wide && 'w-full')}>
           <div>
             <p className="text-sm text-tertiary">{film.brand}</p>
-            <h2 className="text-2xl font-semibold text-primary md:text-3xl">
+            <h2
+              ref={headingRef}
+              tabIndex={-1}
+              className="text-2xl font-semibold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] md:text-3xl"
+            >
               {film.name}
             </h2>
           </div>
@@ -245,7 +259,10 @@ export const FilmPage: FC<FilmPageProps> = ({
               <li key={related.uuid}>
                 <button
                   type="button"
-                  onClick={() => onSelectFilm(related)}
+                  onClick={() => {
+                    pendingFocusRef.current = true;
+                    onSelectFilm(related);
+                  }}
                   className="flex min-h-11 w-full flex-col items-start rounded-xl border border-[color:var(--color-border-secondary)] px-3 py-2 text-left text-sm text-primary transition-colors hover:bg-[color:var(--color-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
                 >
                   <span className="text-xs text-tertiary">{related.brand}</span>

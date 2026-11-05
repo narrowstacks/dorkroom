@@ -209,6 +209,7 @@ describe('FilmPage recipes', () => {
       within(panel).getByRole('button', { name: 'See all 7 at ISO 400' })
     );
     expect(within(panel).getAllByRole('link')).toHaveLength(7);
+    expect(within(panel).getAllByRole('link')[5]).toHaveFocus();
     expect(within(panel).queryByRole('button')).toBeNull();
   });
 
@@ -347,6 +348,43 @@ describe('FilmPage sections', () => {
     ).toEqual(['Recipes', 'About', 'Manufacturer notes', 'Also ISO 400']);
     fireEvent.click(screen.getByRole('button', { name: /Tri-X 400/ }));
     expect(props.onSelectFilm).toHaveBeenCalledWith(other);
+  });
+
+  it('moves focus to the heading after a related film is opened, never otherwise', () => {
+    const other = film({
+      uuid: 'o',
+      slug: 'o',
+      brand: 'Kodak',
+      name: 'Tri-X 400',
+    });
+    const { rerender, props } = renderPage({ relatedFilms: [other] });
+    const heading = screen.getByRole('heading', { level: 2 });
+    expect(heading).not.toHaveFocus();
+
+    fireEvent.click(screen.getByRole('button', { name: /Tri-X 400/ }));
+    rerender(
+      <TemperatureProvider>
+        <FilmPage {...props} film={other} />
+      </TemperatureProvider>
+    );
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Tri-X 400' })
+    ).toHaveFocus();
+
+    // A change of film without a tap (Back, a link) does not take focus.
+    // (The heading is the same element, so drop its focus first.)
+    screen.getByRole('heading', { level: 2 }).blur();
+    rerender(
+      <TemperatureProvider>
+        <FilmPage
+          {...props}
+          film={film({ uuid: 'third', slug: 'third', name: 'Third' })}
+        />
+      </TemperatureProvider>
+    );
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Third' })
+    ).not.toHaveFocus();
   });
 
   it('renders the title as an h2 and Share only when onShare is given', () => {

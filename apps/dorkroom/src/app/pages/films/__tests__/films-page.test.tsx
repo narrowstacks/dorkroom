@@ -149,6 +149,8 @@ const COMBINATIONS = [
 let respond: () => Promise<Response> = () => catalogResponse(CATALOG);
 let combinationsRespond: () => Promise<Response> = () =>
   listResponse(COMBINATIONS);
+let developersRespond: () => Promise<Response> = () =>
+  listResponse([DEVELOPER]);
 let combinationFetches = 0;
 
 function stubFetch() {
@@ -158,7 +160,7 @@ function stubFetch() {
       combinationFetches += 1;
       return combinationsRespond();
     }
-    if (url.endsWith('/api/developers')) return listResponse([DEVELOPER]);
+    if (url.endsWith('/api/developers')) return developersRespond();
     if (!url.endsWith('/api/films')) {
       throw new Error(`FilmsPage requested something unexpected: ${url}`);
     }
@@ -299,6 +301,7 @@ const URL_SYNC = { timeout: 2000 };
 beforeEach(() => {
   respond = () => catalogResponse(CATALOG);
   combinationsRespond = () => listResponse(COMBINATIONS);
+  developersRespond = () => listResponse([DEVELOPER]);
   combinationFetches = 0;
   stubFetch();
   stubMatchMedia();
@@ -502,6 +505,19 @@ describe.each([
 
   it('keeps the plain link to /development when the combinations request fails', async () => {
     combinationsRespond = serverFailure;
+    await renderFilmsPage({ mobile, url: '/films?film=hp5-plus' });
+    const panel = await waitFor(() =>
+      getDetailPanel('Ilford HP5 Plus details', mobile)
+    );
+    expect(
+      await within(panel).findByRole('link', {
+        name: 'View Development Recipes',
+      })
+    ).toHaveAttribute('href', '/development?film=hp5-plus');
+  });
+
+  it('falls back to the plain link when developers fail to load', async () => {
+    developersRespond = serverFailure;
     await renderFilmsPage({ mobile, url: '/films?film=hp5-plus' });
     const panel = await waitFor(() =>
       getDetailPanel('Ilford HP5 Plus details', mobile)

@@ -18,10 +18,21 @@ export function buildFilmPageRecipes(
     | 'getRecipeGroups'
     | 'getRecipeCount'
     | 'developersReady'
+    | 'developersError'
   >
 ): FilmPageRecipes {
   if (!recipesEnabled || data.error) return { status: 'unavailable' };
   if (data.isLoading) return { status: 'loading' };
+  // Without developer names the rows have nothing to show but a skeleton, so
+  // fall back to the plain link. Only for films that have recipes: a film
+  // without any must still render nothing (display rule 2).
+  if (
+    data.developersError &&
+    !data.developersReady &&
+    data.getRecipeCount(film) > 0
+  ) {
+    return { status: 'unavailable' };
+  }
   const { groups, defaultIso } = data.getRecipeGroups(film);
   return {
     status: 'ready',

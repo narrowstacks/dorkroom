@@ -24,8 +24,8 @@ import {
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useSearchDeadEndAnalytics } from '../../lib/analytics/use-search-analytics';
 import { useShareOpened } from '../../lib/analytics/use-share-analytics';
-import { buildFilmPageRecipes } from './build-film-page-recipes';
 import { FilmsPageBody } from './films-page-body';
+import { useFilmPageRecipes } from './use-film-page-recipes';
 import { useUrlFilterSync } from './use-url-filter-sync';
 
 /**
@@ -205,12 +205,10 @@ export default function FilmsPage() {
     [selectedFilm, filmSlugIndex]
   );
 
-  const filmPageRecipes = useMemo(
-    () =>
-      selectedFilm
-        ? buildFilmPageRecipes(selectedFilm, recipesEnabled, recipeData)
-        : null,
-    [selectedFilm, recipeData]
+  const filmPageRecipes = useFilmPageRecipes(
+    selectedFilm,
+    recipesEnabled,
+    recipeData
   );
 
   const relatedFilms = useMemo(

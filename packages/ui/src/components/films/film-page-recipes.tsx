@@ -1,5 +1,6 @@
 import type { FilmRecipe, RecipeIsoGroup } from '@dorkroom/logic';
 import { type FC, type KeyboardEvent, useId, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { cn } from '../../lib/cn';
 import { FilmPageRecipeRow } from './film-page-recipe-row';
 
@@ -24,6 +25,7 @@ export const FilmPageRecipes: FC<FilmPageRecipesProps> = ({
 }) => {
   const baseId = useId();
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const panelRef = useRef<HTMLDivElement>(null);
   const [selectedIso, setSelectedIso] = useState(defaultIso);
   const [expanded, setExpanded] = useState(false);
 
@@ -99,8 +101,8 @@ export const FilmPageRecipes: FC<FilmPageRecipesProps> = ({
                 className={cn(
                   'min-h-11 min-w-11 rounded-full border px-3.5 text-sm tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]',
                   isActive
-                    ? 'border-[color:var(--color-border-primary)] bg-[color:var(--color-surface-muted)] font-semibold text-primary'
-                    : 'border-[color:var(--color-border-secondary)] font-normal text-secondary hover:bg-[color:var(--color-surface-muted)]'
+                    ? 'border-[color:var(--color-text-primary)] bg-text-primary font-semibold text-background'
+                    : 'border-[color:var(--color-border-secondary)] font-normal text-secondary hover:bg-hover-surface hover:text-on-hover-surface'
                 )}
               >
                 {group.shootingIso}
@@ -110,6 +112,7 @@ export const FilmPageRecipes: FC<FilmPageRecipesProps> = ({
         </div>
       </div>
       <div
+        ref={panelRef}
         role="tabpanel"
         id={`${baseId}-panel`}
         aria-labelledby={`${baseId}-tab-${active.shootingIso}`}
@@ -124,7 +127,12 @@ export const FilmPageRecipes: FC<FilmPageRecipesProps> = ({
         {hasMore && (
           <button
             type="button"
-            onClick={() => setExpanded(true)}
+            onClick={() => {
+              // Rows are about to replace this button's place in the list:
+              // render them first, then keep focus on the first new one.
+              flushSync(() => setExpanded(true));
+              panelRef.current?.querySelectorAll('a')[VISIBLE_ROWS]?.focus();
+            }}
             className="min-h-11 w-full border-t border-[color:var(--color-border-muted)] text-sm font-medium text-primary transition-colors hover:bg-[color:var(--color-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-focus-ring)]"
           >
             See all {active.recipes.length} at ISO {active.shootingIso}
