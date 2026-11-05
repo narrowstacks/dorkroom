@@ -7,14 +7,7 @@ import { optionChangeHandler } from '../../lib/select-options';
 import { SearchableSelect } from '../searchable-select';
 import { Select } from '../select';
 import { countActiveFilmFilters } from './count-active-film-filters';
-
-/** Static filter options - defined outside component to prevent recreation on each render */
-const FILM_TYPE_OPTIONS: SelectItem[] = [
-  { label: 'All types', value: '' },
-  { label: 'Black & White', value: 'bw' },
-  { label: 'Color', value: 'color' },
-  { label: 'Slide', value: 'slide' },
-];
+import { FILM_TYPE_OPTIONS } from './film-type-options';
 
 const DISCONTINUED_OPTIONS = [
   { label: 'All films', value: 'all' },

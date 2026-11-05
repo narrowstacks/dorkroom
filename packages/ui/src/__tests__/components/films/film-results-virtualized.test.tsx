@@ -136,15 +136,13 @@ describe('FilmResultsVirtualized focus (#604)', () => {
   const cardFor = (name: string) =>
     screen.getByRole('button', { name: new RegExp(`^Ilford ${name}`) });
 
-  // With the filters collapsed the grid goes from three columns to two when
-  // the panel opens, which moves the third card into the second row.
+  // The grid goes from three columns to two when the panel opens, which moves the third card into the second row.
   it('keeps focus on the card when opening the detail panel remounts it', () => {
     const { rerender } = render(
       <FilmResultsVirtualized
         films={films}
         selectedFilmId={null}
         onSelectFilm={noop}
-        isFiltersCollapsed
       />
     );
     const before = cardFor('Stock 3');
@@ -155,7 +153,6 @@ describe('FilmResultsVirtualized focus (#604)', () => {
         films={films}
         selectedFilmId="film-3"
         onSelectFilm={noop}
-        isFiltersCollapsed
         isDetailOpen
       />
     );
@@ -170,7 +167,6 @@ describe('FilmResultsVirtualized focus (#604)', () => {
         films={films}
         selectedFilmId={null}
         onSelectFilm={noop}
-        isFiltersCollapsed
       />
     );
     const card = cardFor('Stock 3');
@@ -184,7 +180,6 @@ describe('FilmResultsVirtualized focus (#604)', () => {
         films={films}
         selectedFilmId="film-3"
         onSelectFilm={noop}
-        isFiltersCollapsed
         isDetailOpen
       />
     );

@@ -277,16 +277,9 @@ function queryDetailPanel(name: string): HTMLElement | null {
   );
 }
 
-/**
- * The search box of whichever filter module is mounted. The mobile module
- * starts collapsed behind its "Filters" toggle, so open that first.
- */
-function searchInput(mobile: boolean): HTMLElement {
-  if (!mobile) return screen.getByPlaceholderText('Type to search...');
-  const existing = screen.queryByPlaceholderText('Search films...');
-  if (existing) return existing;
-  fireEvent.click(screen.getByRole('button', { name: /^Filters/ }));
-  return screen.getByPlaceholderText('Search films...');
+/** The toolbar's search box, the same at every width. */
+function searchInput(): HTMLElement {
+  return screen.getByRole('textbox', { name: 'Search films' });
 }
 
 type Router = ReturnType<typeof renderPage>['router'];
@@ -320,43 +313,42 @@ describe.each([
   { width: 'mobile', mobile: true },
   { width: 'desktop', mobile: false },
 ])('FilmsPage at $width width', ({ mobile }) => {
-  it('renders the breakpoint filter module and no other', async () => {
+  it('renders the toolbar at every width, with the sort select on mobile only', async () => {
     await renderFilmsPage({ mobile });
     await findFilmCard(/Ilford HP5 Plus/);
 
-    if (mobile) {
-      expect(
-        screen.getByRole('button', { name: /^Filters\s*3 films found/ })
-      ).toBeInTheDocument();
-      expect(searchInput(mobile)).toBeVisible();
-      expect(
-        screen.queryByPlaceholderText('Type to search...')
-      ).not.toBeInTheDocument();
-      expect(
-        screen.queryByRole('button', { name: 'Collapse filters' })
-      ).not.toBeInTheDocument();
-    } else {
-      expect(searchInput(mobile)).toBeVisible();
-      expect(
-        screen.queryByPlaceholderText('Search films...')
-      ).not.toBeInTheDocument();
-      expect(
-        screen.getByRole('button', { name: 'Collapse filters' })
-      ).toBeInTheDocument();
-    }
+    expect(searchInput()).toBeVisible();
+    expect(
+      screen.getByRole('radiogroup', { name: 'Film type' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('3 films')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /^Filters/ })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Sort')).toBe(
+      mobile ? screen.getByLabelText('Sort') : null
+    );
   });
 
-  it('keeps the results landmark where it was (desktop main#film-results only)', async () => {
+  it('announces the result count in the page live region', async () => {
+    await renderFilmsPage({ mobile });
+    await findFilmCard(/Ilford HP5 Plus/);
+
+    const live = screen.getByText('3 films found');
+    expect(live.tagName).toBe('OUTPUT');
+    expect(live).toHaveAttribute('aria-live', 'polite');
+  });
+
+  it('keeps the results landmark and skip link target at every width', async () => {
     await renderFilmsPage({ mobile });
     await findFilmCard(/Ilford HP5 Plus/);
 
     const results = document.getElementById('film-results');
-    if (mobile) {
-      expect(results).toBeNull();
-      expect(screen.queryByRole('main')).not.toBeInTheDocument();
-    } else {
-      expect(results?.tagName).toBe('MAIN');
-    }
+    expect(results?.tagName).toBe('MAIN');
+    expect(screen.getByRole('link', { name: /skip to/i })).toHaveAttribute(
+      'href',
+      '#film-results'
+    );
   });
 
   it('lists every film in a two-column grid on mobile and the measured grid on desktop', async () => {
@@ -379,7 +371,7 @@ describe.each([
     const { router } = await renderFilmsPage({ mobile });
     await findFilmCard(/Ilford HP5 Plus/);
 
-    fireEvent.change(searchInput(mobile), { target: { value: 'portra' } });
+    fireEvent.change(searchInput(), { target: { value: 'portra' } });
 
     await waitFor(() =>
       expect(
@@ -445,7 +437,7 @@ describe.each([
     expect(document.activeElement).toBe(filmCard(/Kodak Portra 400/));
   });
 
-  it('narrows the desktop grid to one column while the panel is open', async () => {
+  it('narrows the desktop grid to two columns while the panel is open', async () => {
     await renderFilmsPage({ mobile });
     fireEvent.click(await findFilmCard(/Kodak Portra 400/));
 
@@ -454,7 +446,7 @@ describe.each([
       pressed: true,
     });
     expect(selected.parentElement?.style.gridTemplateColumns).toBe(
-      mobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(1, minmax(0, 1fr))'
+      'repeat(2, minmax(0, 1fr))'
     );
   });
 
@@ -679,7 +671,7 @@ describe.each([
     await renderFilmsPage({ mobile, url: '/films?search=ilford' });
     await findFilmCard(/Ilford HP5 Plus/);
 
-    expect(searchInput(mobile)).toHaveValue('ilford');
+    expect(searchInput()).toHaveValue('ilford');
     await waitFor(() =>
       expect(
         screen.queryByRole('button', { name: /Kodak Portra 400/ })
@@ -740,10 +732,7 @@ describe.each([
       await screen.findByText(/We couldn't load the film database/)
     ).toBeInTheDocument();
     expect(
-      screen.queryByPlaceholderText('Type to search...')
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: /^Filters/ })
+      screen.queryByRole('textbox', { name: 'Search films' })
     ).not.toBeInTheDocument();
   });
 
@@ -805,14 +794,14 @@ describe('FilmsPage across a breakpoint change', () => {
     expect(
       screen.getByRole('region', { name: 'Ilford HP5 Plus details' })
     ).toBeVisible();
-    expect(searchInput(false)).toBeVisible();
+    expect(searchInput()).toBeVisible();
     expect(document.body.style.overflow).toBe('');
 
     act(() => setViewport(true));
     expect(
       screen.getByRole('dialog', { name: 'Ilford HP5 Plus details' })
     ).toBeVisible();
-    expect(searchInput(true)).toBeVisible();
+    expect(searchInput()).toBeVisible();
   });
 
   it('drops an expanded panel back to the drawer when crossing to mobile', async () => {
@@ -846,10 +835,10 @@ describe('FilmsPage across a breakpoint change', () => {
     await renderFilmsPage({ mobile: false });
     await findFilmCard(/Ilford HP5 Plus/);
 
-    fireEvent.change(searchInput(false), { target: { value: 'kodak' } });
+    fireEvent.change(searchInput(), { target: { value: 'kodak' } });
     act(() => setViewport(true));
 
-    expect(searchInput(true)).toHaveValue('kodak');
+    expect(searchInput()).toHaveValue('kodak');
     expect(await findFilmCard(/Kodak Portra 400/)).toBeInTheDocument();
   });
 });
@@ -920,8 +909,12 @@ describe('FilmsPage sort in the URL', () => {
       );
   }
 
-  async function renderSorted(url: string, first = /Ilford HP5 Plus/) {
-    const rendered = await renderFilmsPage({ mobile: false, url });
+  async function renderSorted(
+    url: string,
+    first = /Ilford HP5 Plus/,
+    mobile = false
+  ) {
+    const rendered = await renderFilmsPage({ mobile, url });
     await findFilmCard(first);
     return rendered;
   }
@@ -1004,5 +997,25 @@ describe('FilmsPage sort in the URL', () => {
       URL_SYNC
     );
     expect(urlSearch(router).sort).toBeUndefined();
+  });
+
+  it('sorts from the toolbar select on mobile and writes sort=iso to the URL', async () => {
+    const { router } = await renderSorted('/films', /Ilford HP5 Plus/, true);
+
+    const sortSelect = screen.getByLabelText('Sort');
+    expect(sortSelect).toHaveValue('name');
+    fireEvent.change(sortSelect, { target: { value: 'iso' } });
+
+    await waitFor(() => expect(cardOrder()[0]).toMatch(/^Store Brand/));
+    expect(sortSelect).toHaveValue('iso');
+    await waitFor(
+      () => expect(urlSearch(router)).toMatchObject({ sort: 'iso' }),
+      URL_SYNC
+    );
+  });
+
+  it('offers no sort select on desktop until header sorting lands', async () => {
+    await renderSorted('/films');
+    expect(screen.queryByLabelText('Sort')).not.toBeInTheDocument();
   });
 });

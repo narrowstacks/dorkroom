@@ -60,7 +60,6 @@ export default function FilmsPage() {
     discontinuedFilter,
   } = db;
 
-  const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(false);
   const [resultCountAnnouncement, setResultCountAnnouncement] =
     useState<string>('');
 
@@ -297,8 +296,6 @@ export default function FilmsPage() {
             shouldShowDetailSkeleton={shouldShowDetailSkeleton}
             onSelectFilm={handleSelectFilm}
             onClosePanel={handleClosePanel}
-            isFiltersCollapsed={isFiltersCollapsed}
-            onCollapsedChange={setIsFiltersCollapsed}
           />
         </>
       )}

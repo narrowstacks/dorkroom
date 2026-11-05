@@ -13,6 +13,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - **Film photos credit their source.** A film's detail panel now shows who took the packaging photo and its licence, linked to where it came from.
 - **Development recipes on a film's page.** Opening a black and white film on /films now shows its recipes, grouped by the ISO they were shot at and opening on the film's box speed. Each row gives the developer, dilution, time and temperature, and links to that recipe on /development. Films with no recipes simply don't show the section, and colour and slide films never mention recipes. Kindle and other e-ink devices keep the plain link to /development. (#669)
 - **Other films at the same ISO.** A film's page ends with up to four other films at the same speed, one tap away.
+- **Filters sit in a toolbar on /films.** Search, film type, ISO, brand and status now run along the top of the results instead of a sidebar, so the film list gets the full width. Film type is a single row of buttons, and Clear filters appears once anything is applied. On phones the toolbar also has a Sort menu (name, ISO, or most recipes for black and white films). (#669)
 
 ### Changed
 
