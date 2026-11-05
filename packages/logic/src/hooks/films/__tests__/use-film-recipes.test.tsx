@@ -148,9 +148,9 @@ describe('useFilmRecipes', () => {
     expect(result.current.isLoading).toBe(false);
     expect(result.current.getRecipeCount(hp5)).toBe(2);
     expect(result.current.developersReady).toBe(false);
-    expect(
-      client.getQueryState(queryKeys.developers.list())?.fetchStatus
-    ).toBeUndefined();
+    expect(client.getQueryState(queryKeys.developers.list())?.fetchStatus).toBe(
+      'idle'
+    );
     // Dilution is unknown, not Stock, for a recipe with a dilution id.
     const [tab400] = result.current.getRecipeGroups(hp5).groups;
     expect(tab400.recipes[0].dilution).toBeNull();
@@ -159,7 +159,10 @@ describe('useFilmRecipes', () => {
 
   it('fetches developers once details are enabled', () => {
     const client = seededClient();
-    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise(() => {}))
+    );
     renderHook(() => useFilmRecipes({ detailsEnabled: true }), {
       wrapper: makeWrapper(client),
     });

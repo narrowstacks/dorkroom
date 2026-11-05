@@ -2,8 +2,8 @@ import type { Film } from '@dorkroom/api';
 import { useCallback, useMemo, useState } from 'react';
 import {
   type FilmSort,
-  filmTypeFilterSupportsRecipes,
   filmSupportsRecipes,
+  filmTypeFilterSupportsRecipes,
   resolveFilmSort,
   sortFilms,
 } from '../../utils/film-recipes';
