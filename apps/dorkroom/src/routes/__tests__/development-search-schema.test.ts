@@ -138,6 +138,18 @@ describe('filmsSearchSchema', () => {
     ).toEqual({ color: undefined, status: undefined, iso: '50' });
   });
 
+  it('keeps a known sort and recovers anything else to undefined', () => {
+    expect(filmsSearchSchema.parse(parseSearch('?sort=recipes'))).toEqual({
+      sort: 'recipes',
+    });
+    expect(filmsSearchSchema.parse(parseSearch('?sort=iso'))).toEqual({
+      sort: 'iso',
+    });
+    expect(filmsSearchSchema.parse(parseSearch('?sort=bogus'))).toEqual({
+      sort: undefined,
+    });
+  });
+
   it('keeps only the shared-link marker as source', () => {
     expect(
       filmsSearchSchema.parse({ source: SHARED_LINK_MARKER.value })

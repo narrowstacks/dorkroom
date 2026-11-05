@@ -853,3 +853,156 @@ describe('FilmsPage across a breakpoint change', () => {
     expect(await findFilmCard(/Kodak Portra 400/)).toBeInTheDocument();
   });
 });
+
+describe('FilmsPage sort in the URL', () => {
+  const SORT_CATALOG: RawFilm[] = [
+    rawFilm({
+      id: 1,
+      slug: 'hp5-plus',
+      brand: 'Ilford',
+      name: 'HP5 Plus',
+      iso_speed: 400,
+    }),
+    rawFilm({
+      id: 2,
+      slug: 'store-brand-100',
+      brand: 'Store',
+      name: 'Brand 100',
+      iso_speed: 100,
+    }),
+    rawFilm({
+      id: 3,
+      slug: 'portra-160',
+      brand: 'Kodak',
+      name: 'Portra 160',
+      color_type: 'color',
+      iso_speed: 160,
+    }),
+    rawFilm({
+      id: 4,
+      slug: 'ektar-200',
+      brand: 'Kodak',
+      name: 'Ektar 200',
+      color_type: 'color',
+      iso_speed: 200,
+    }),
+  ];
+  // Store has two recipes and HP5 one, so most-recipes-first reads Store, HP5.
+  const SORT_COMBINATIONS = [
+    combinationRow(1, 'hp5-plus'),
+    combinationRow(2, 'store-brand-100'),
+    combinationRow(3, 'store-brand-100'),
+  ];
+
+  const NAME_ORDER = [
+    'Ilford HP5 Plus',
+    'Kodak Ektar 200',
+    'Kodak Portra 160',
+    'Store Brand 100',
+  ];
+
+  beforeEach(() => {
+    respond = () => catalogResponse(SORT_CATALOG);
+    combinationsRespond = () => listResponse(SORT_COMBINATIONS);
+  });
+
+  /** The film cards in rendered order, as the known film names. */
+  function cardOrder(): string[] {
+    return screen
+      .getAllByRole('button', {
+        name: /^(Ilford|Kodak|Store) /,
+        pressed: false,
+      })
+      .map(
+        (card) =>
+          NAME_ORDER.find((name) => card.textContent?.includes(name)) ??
+          `unknown: ${card.textContent}`
+      );
+  }
+
+  async function renderSorted(url: string, first = /Ilford HP5 Plus/) {
+    const rendered = await renderFilmsPage({ mobile: false, url });
+    await findFilmCard(first);
+    return rendered;
+  }
+
+  it('orders by ISO for ?sort=iso', async () => {
+    await renderSorted('/films?sort=iso');
+    await waitFor(() =>
+      expect(cardOrder()).toEqual([
+        'Store Brand 100',
+        'Kodak Portra 160',
+        'Kodak Ektar 200',
+        'Ilford HP5 Plus',
+      ])
+    );
+  });
+
+  it('puts the film with the most recipes first for ?sort=recipes', async () => {
+    await renderSorted('/films?sort=recipes');
+    await waitFor(() => expect(cardOrder()[0]).toMatch(/^Store Brand 100/));
+    expect(cardOrder()[1]).toMatch(/^Ilford HP5 Plus/);
+  });
+
+  it('keeps sort=recipes in the URL under a colour filter', async () => {
+    const { router } = await renderSorted(
+      '/films?color=color&sort=recipes',
+      /Kodak Ektar 200/
+    );
+    await waitFor(() =>
+      expect(cardOrder()).toEqual(['Kodak Ektar 200', 'Kodak Portra 160'])
+    );
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    expect(urlSearch(router)).toMatchObject({
+      color: 'color',
+      sort: 'recipes',
+    });
+  });
+
+  it('treats an invalid sort as name order and drops it from the URL', async () => {
+    const { router } = await renderSorted('/films?sort=bogus');
+    expect(cardOrder()).toEqual(NAME_ORDER);
+    await waitFor(
+      () => expect(urlSearch(router).sort).toBeUndefined(),
+      URL_SYNC
+    );
+  });
+
+  it('keeps the sort when navigating to /films without it', async () => {
+    const { router } = await renderSorted('/films?sort=iso');
+    await waitFor(() => expect(cardOrder()[0]).toMatch(/^Store Brand/));
+
+    await act(() =>
+      router.navigate({ to: '/films', search: { film: 'hp5-plus' } })
+    );
+    await waitFor(
+      () => expect(urlSearch(router)).toMatchObject({ sort: 'iso' }),
+      URL_SYNC
+    );
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    expect(urlSearch(router)).toMatchObject({ film: 'hp5-plus', sort: 'iso' });
+    expect(cardOrder()[0]).toMatch(/^Store Brand/);
+  });
+
+  it('restores the sort in the URL after navigating to plain /films', async () => {
+    const { router } = await renderSorted('/films?sort=iso');
+    await waitFor(() => expect(cardOrder()[0]).toMatch(/^Store Brand/));
+    await new Promise((resolve) => setTimeout(resolve, 700));
+
+    await act(() => router.navigate({ to: '/films', search: {} }));
+    await waitFor(
+      () => expect(urlSearch(router)).toMatchObject({ sort: 'iso' }),
+      URL_SYNC
+    );
+    expect(cardOrder()[0]).toMatch(/^Store Brand/);
+  });
+
+  it('omits sort from the URL by default', async () => {
+    const { router } = await renderSorted('/films?search=ilford');
+    await waitFor(
+      () => expect(urlSearch(router)).toMatchObject({ search: 'ilford' }),
+      URL_SYNC
+    );
+    expect(urlSearch(router).sort).toBeUndefined();
+  });
+});
