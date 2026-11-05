@@ -50,24 +50,13 @@ interface FilmsPageBodyProps {
 }
 
 /**
- * Phone: while a film is open the page's scroll position is parked and the
- * page starts at the top, then it comes back when the film closes.
+ * Phone: opening a film starts the page at the top. Coming back, the router's
+ * scroll restoration puts the list's position back.
  */
-function usePhoneScrollRestore(phoneFilmOpen: boolean) {
-  const savedScrollY = useRef(0);
+function usePhoneScrollToTop(phoneFilmOpen: boolean) {
   const wasOpen = useRef(false);
   useLayoutEffect(() => {
-    if (phoneFilmOpen && !wasOpen.current) {
-      savedScrollY.current = window.scrollY;
-      window.scrollTo(0, 0);
-    } else if (!phoneFilmOpen && wasOpen.current) {
-      const y = savedScrollY.current;
-      window.scrollTo(0, y);
-      // Browser Back is a router navigation, and the router scrolls the window
-      // to the top once it has rendered (no scroll restoration is configured),
-      // which lands after this effect. Apply the position again after it.
-      requestAnimationFrame(() => window.scrollTo(0, y));
-    }
+    if (phoneFilmOpen && !wasOpen.current) window.scrollTo(0, 0);
     wasOpen.current = phoneFilmOpen;
   }, [phoneFilmOpen]);
 }
@@ -101,14 +90,18 @@ export function FilmsPageBody({
   // Closing the film puts focus back on its row (#604).
   const resultsFocusRef = useRef<VirtualListFocusHandle>(null);
   const rowsScrollRef = useRef(0);
+  // The row the open film was picked from, so closing returns to it even after
+  // a trip through related films.
+  const originRow = useRef<string | null>(null);
   // Only a film opened from closed by the user takes focus; a deep link and a
   // switch in the side list leave it where it is.
   const [focusHeadingFor, setFocusHeadingFor] = useState<string | null>(null);
 
-  usePhoneScrollRestore(isMobile && filmOpen);
+  usePhoneScrollToTop(isMobile && filmOpen);
 
   const handleSelectFilm = (film: Film) => {
     setFocusHeadingFor(filmOpen ? null : film.slug);
+    if (!filmOpen) originRow.current = film.uuid;
     onSelectFilm(film);
   };
 
@@ -123,7 +116,8 @@ export function FilmsPageBody({
     if (!previous) return;
     if (!selectedUuid) {
       if (!filmOpen) {
-        resultsFocusRef.current?.focusItem(previous);
+        resultsFocusRef.current?.focusItem(originRow.current ?? previous);
+        originRow.current = null;
         // Dropped so a Forward to the film does not take focus.
         setFocusHeadingFor(null);
       }
@@ -137,10 +131,7 @@ export function FilmsPageBody({
     }
   }, [selectedUuid, filmOpen]);
 
-  const handleClose = () => {
-    onClosePanel();
-  };
-  useEscapeKey(Boolean(selectedFilm), handleClose);
+  useEscapeKey(Boolean(selectedFilm), onClosePanel);
 
   const toolbar = (
     <FilmToolbar
@@ -191,7 +182,7 @@ export function FilmsPageBody({
         selectedFilm !== null && selectedFilm.slug === focusHeadingFor
       }
       onSelectFilm={handleSelectFilm}
-      onClose={handleClose}
+      onClose={onClosePanel}
       onShare={(film) =>
         share({ film: film.slug }, `${film.brand} ${film.name}`)
       }

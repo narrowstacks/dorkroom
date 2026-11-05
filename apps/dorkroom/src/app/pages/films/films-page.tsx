@@ -58,7 +58,9 @@ export default function FilmsPage() {
   const searchParams = useSearch({ from: '/films' });
 
   const router = useRouter();
-  // How many film entries sit above the list entry: 0 on a deep link.
+  // How many film entries sit above the list entry. 0 on a deep link, and
+  // stays 0 when a film is picked from one: the deep link's own entry is a
+  // film, so Back to films must not step onto it.
   const filmDepth = useLocation({ select: (l) => l.state.filmDepth ?? 0 });
 
   // Get the film slug from URL params (stable reference). The URL owns the
@@ -96,7 +98,6 @@ export default function FilmsPage() {
     return films.find((f) => f.slug === urlFilmSlug) ?? null;
     // eslint-disable-next-line react-doctor/exhaustive-deps -- react-doctor reports "stale searchParams.film" via alias tracing through urlFilmSlug, but urlFilmSlug IS searchParams.film re-derived every render (line 189, not memoized); adding searchParams.film directly is flagged as a redundant dep by react-hooks/exhaustive-deps
   }, [films, urlFilmSlug]);
-  const selectedFilm = urlFilm;
 
   useUrlFilterSync(searchParams, db);
 
@@ -153,19 +154,19 @@ export default function FilmsPage() {
   const filmSlugIndex = useMemo(() => buildFilmSlugIndex(films), [films]);
 
   const baseFilm = useMemo(
-    () => (selectedFilm && getBaseFilm(selectedFilm, filmSlugIndex)) ?? null,
-    [selectedFilm, filmSlugIndex]
+    () => (urlFilm && getBaseFilm(urlFilm, filmSlugIndex)) ?? null,
+    [urlFilm, filmSlugIndex]
   );
 
   const filmPageRecipes = useFilmPageRecipes(
-    selectedFilm,
+    urlFilm,
     recipesEnabled,
     recipeData
   );
 
   const relatedFilms = useMemo(
-    () => (selectedFilm ? getRelatedFilms(selectedFilm, films) : []),
-    [selectedFilm, films]
+    () => (urlFilm ? getRelatedFilms(urlFilm, films) : []),
+    [urlFilm, films]
   );
 
   const activeFilterCount = [
@@ -226,7 +227,9 @@ export default function FilmsPage() {
     void navigate({
       to: '/films',
       search: { ...buildFilmFilterSearch(db), film: film.slug },
-      state: { filmDepth: filmDepth + 1 },
+      state: {
+        filmDepth: filmDepth === 0 && urlFilmSlug ? 0 : filmDepth + 1,
+      },
       resetScroll: false,
     });
   };
@@ -254,7 +257,7 @@ export default function FilmsPage() {
     urlFilmSlug && !urlFilm && isLoading
   );
 
-  const filmOpen = Boolean(selectedFilm) || shouldShowDetailSkeleton;
+  const filmOpen = Boolean(urlFilm) || shouldShowDetailSkeleton;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -306,7 +309,7 @@ export default function FilmsPage() {
           <FilmsPageBody
             db={trackedDb}
             isMobile={isMobile}
-            selectedFilm={selectedFilm}
+            selectedFilm={urlFilm}
             baseFilm={baseFilm}
             recipes={filmPageRecipes}
             relatedFilms={relatedFilms}

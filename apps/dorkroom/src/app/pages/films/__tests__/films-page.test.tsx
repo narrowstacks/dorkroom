@@ -1062,16 +1062,14 @@ describe('FilmsPage on a phone', () => {
     );
   });
 
-  it('restores the page scroll position when Back returns to the list', async () => {
+  it('starts the film page at the top of the window when it opens', async () => {
     const scrollTo = vi.fn();
     vi.stubGlobal('scrollTo', scrollTo);
-    vi.spyOn(window, 'scrollY', 'get').mockReturnValue(240);
     await renderFilmsPage({ width: PHONE });
     await click(await findFilmRow('Portra 400'));
-    expect(scrollTo).toHaveBeenLastCalledWith(0, 0);
 
-    await click(screen.getByRole('button', { name: 'Back to films' }));
-    await waitFor(() => expect(scrollTo).toHaveBeenLastCalledWith(0, 240));
+    getFilmPage('Kodak Portra 400');
+    expect(scrollTo).toHaveBeenLastCalledWith(0, 0);
   });
 });
 
@@ -1575,4 +1573,86 @@ describe.each([
     expect(router.history.length).toBe(length + 1);
     expect(urlSearch(router)).toEqual({ search: 'ilford' });
   });
+});
+
+describe('FilmsPage history keeps state right (#669)', () => {
+  it('follows the entry on Back: a filter set after opening a film is gone from both URL and list', async () => {
+    const { router } = await renderFilmsPage({ width: DESKTOP });
+    await click(await findFilmRow('HP5 Plus'));
+    getFilmPage('Ilford HP5 Plus');
+    await act(async () => {
+      fireEvent.change(searchInput(), { target: { value: 'portra' } });
+    });
+    await pastDebounce();
+    expect(urlSearch(router)).toMatchObject({ search: 'portra' });
+
+    await historyBack(router);
+
+    await waitFor(() => expect(searchInput()).toHaveValue(''));
+    await pastDebounce();
+    expect(urlSearch(router).search).toBeUndefined();
+    expect(filmRow('HP5 Plus')).toBeInTheDocument();
+    expect(filmRow('Portra 400')).toBeInTheDocument();
+  });
+
+  it('keeps the sort across a plain link to /films', async () => {
+    const { router } = await renderFilmsPage({
+      width: DESKTOP,
+      url: '/films?sort=iso',
+    });
+    await findFilmRow('HP5 Plus');
+
+    await act(() => router.navigate({ to: '/films', search: {} }));
+    await pastDebounce();
+
+    expect(urlSearch(router).sort).toBe('iso');
+  });
+
+  it('on a phone, a deep link then a related film: Back to films shows the list, and Back then shows the deep-linked film', async () => {
+    const { router } = await renderFilmsPage({
+      width: PHONE,
+      url: '/films?film=hp5-plus',
+    });
+    await waitFor(() => getFilmPage('Ilford HP5 Plus'));
+    await click(
+      within(getFilmPage('Ilford HP5 Plus')).getByRole('button', {
+        name: /Store Brand 400/,
+      })
+    );
+    getFilmPage('Store Brand 400');
+
+    await click(screen.getByRole('button', { name: 'Back to films' }));
+    await waitFor(() => expect(queryFilmPage('Store Brand 400')).toBeNull());
+    expect(urlSearch(router).film).toBeUndefined();
+    expect(queryFilmPage('Ilford HP5 Plus')).toBeNull();
+
+    await historyBack(router);
+    await waitFor(() => getFilmPage('Ilford HP5 Plus'));
+  });
+
+  it.each([
+    { name: 'phone', width: PHONE },
+    { name: 'desktop', width: DESKTOP },
+  ])(
+    'at $name width, closing after related films focuses the row the first film was picked from',
+    async ({ width }) => {
+      await renderFilmsPage({ width });
+      await click(await findFilmRow('HP5 Plus'));
+      await click(
+        within(getFilmPage('Ilford HP5 Plus')).getByRole('button', {
+          name: /Store Brand 400/,
+        })
+      );
+      getFilmPage('Store Brand 400');
+
+      await click(
+        within(getFilmPage('Store Brand 400')).getByRole('button', {
+          name: 'Back to films',
+        })
+      );
+
+      await waitFor(() => expect(queryFilmPage('Store Brand 400')).toBeNull());
+      expect(document.activeElement).toBe(filmRow('HP5 Plus'));
+    }
+  );
 });

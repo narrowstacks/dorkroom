@@ -1,6 +1,6 @@
 import type { FilmSort, useFilmDatabase } from '@dorkroom/logic';
-import type { useNavigate } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { type useNavigate, useRouter } from '@tanstack/react-router';
+import { useEffect, useRef } from 'react';
 import {
   filmColorFilterSchema,
   type FilmsSearchParams,
@@ -23,7 +23,9 @@ interface FilmUrlFilters {
  * never performs multiple state updates. Effects only run when their URL param
  * changes: they do NOT include the matching state value in deps, to avoid
  * clearing user input before the debounced state-to-URL sync fires. State is not
- * cleared when a URL param is undefined; the debounced sync handles that.
+ * cleared when a URL param is undefined (a plain link to /films keeps it),
+ * except after a history traversal (Back, Forward, go): an absent param then
+ * means the entry has that filter at its default, so state follows it.
  */
 export function useUrlFilterSync(
   searchParams: FilmUrlFilters,
@@ -44,13 +46,23 @@ export function useUrlFilterSync(
     setSort,
   } = db;
 
+  const router = useRouter();
+  // Whether the latest history move was a traversal. Set by the router's
+  // history before the location update renders, so the effects below see it.
+  const traversed = useRef(false);
+  useEffect(
+    () =>
+      router.history.subscribe(({ action }: { action: { type: string } }) => {
+        traversed.current = ['BACK', 'FORWARD', 'GO'].includes(action.type);
+      }),
+    [router]
+  );
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
   useEffect(() => {
-    if (
-      searchParams.search !== undefined &&
-      searchParams.search !== searchQuery
-    ) {
-      setSearchQuery(searchParams.search);
+    const v = searchParams.search ?? (traversed.current ? '' : undefined);
+    if (v !== undefined && v !== searchQuery) {
+      setSearchQuery(v);
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
     // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
@@ -58,11 +70,9 @@ export function useUrlFilterSync(
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
   useEffect(() => {
-    if (
-      searchParams.color !== undefined &&
-      searchParams.color !== colorTypeFilter
-    ) {
-      setColorTypeFilter(searchParams.color);
+    const v = searchParams.color ?? (traversed.current ? '' : undefined);
+    if (v !== undefined && v !== colorTypeFilter) {
+      setColorTypeFilter(v);
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
     // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
@@ -70,8 +80,9 @@ export function useUrlFilterSync(
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
   useEffect(() => {
-    if (searchParams.iso !== undefined && searchParams.iso !== isoSpeedFilter) {
-      setIsoSpeedFilter(searchParams.iso);
+    const v = searchParams.iso ?? (traversed.current ? '' : undefined);
+    if (v !== undefined && v !== isoSpeedFilter) {
+      setIsoSpeedFilter(v);
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
     // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
@@ -79,11 +90,9 @@ export function useUrlFilterSync(
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
   useEffect(() => {
-    if (
-      searchParams.brand !== undefined &&
-      searchParams.brand !== brandFilter
-    ) {
-      setBrandFilter(searchParams.brand);
+    const v = searchParams.brand ?? (traversed.current ? '' : undefined);
+    if (v !== undefined && v !== brandFilter) {
+      setBrandFilter(v);
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
     // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
@@ -91,11 +100,9 @@ export function useUrlFilterSync(
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
   useEffect(() => {
-    if (
-      searchParams.status !== undefined &&
-      searchParams.status !== discontinuedFilter
-    ) {
-      setDiscontinuedFilter(searchParams.status);
+    const v = searchParams.status ?? (traversed.current ? 'all' : undefined);
+    if (v !== undefined && v !== discontinuedFilter) {
+      setDiscontinuedFilter(v);
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
     // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
@@ -103,8 +110,9 @@ export function useUrlFilterSync(
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
   useEffect(() => {
-    if (searchParams.sort !== undefined && searchParams.sort !== sort) {
-      setSort(searchParams.sort);
+    const v = searchParams.sort ?? (traversed.current ? 'name' : undefined);
+    if (v !== undefined && v !== sort) {
+      setSort(v);
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
     // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
