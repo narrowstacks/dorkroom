@@ -14,12 +14,10 @@ type DismissHandlerRef = { current: () => void };
  * layers enabled within the *same* commit would register in React tree order
  * instead, which has no relationship to z-order; that situation doesn't occur
  * in this codebase, so the simpler last-enabled rule is sufficient. Two
- * dialogs really are open at once on the recipes page:
- * `development-recipes-page.tsx` renders `ConfirmModal` as a sibling of the
- * recipe-detail dialog, and `useCustomRecipeCrud.ts`'s
- * `handleDeleteCustomRecipe` only opens the confirm without closing the
- * detail, each in its own commit. One plain `document` listener per
- * component would close both layers on a single keypress.
+ * layers really are open at once: the phone menu with the search dialog
+ * opened over it, or the theme dropdown inside the menu, each in its own
+ * commit. One plain `document` listener per component would close both
+ * layers on a single keypress.
  */
 const dismissStack: DismissHandlerRef[] = [];
 

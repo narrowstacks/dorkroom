@@ -41,7 +41,7 @@ Separate from domain docs, this repo already keeps architectural instructions
 next to the code. Read the one covering the package you're touching before
 changing it:
 
-- `packages/logic/CLAUDE.md` — TanStack Query/Form/Table patterns, mutations, schemas
+- `packages/logic/CLAUDE.md` - TanStack Query/Form patterns, mutations, schemas
 - `packages/ui/CLAUDE.md` — component patterns, Tailwind, accessibility
 - `packages/api/CLAUDE.md` — Raw vs Transformed types, error handling
 - `api/CLAUDE.md` — Vercel serverless functions, Supabase proxy endpoints

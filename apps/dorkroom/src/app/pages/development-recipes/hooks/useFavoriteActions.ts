@@ -1,21 +1,11 @@
+import { recipeIdOf } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
-import {
-  type Dispatch,
-  type SetStateAction,
-  useCallback,
-  useEffect,
-  useRef,
-} from 'react';
+import { useCallback } from 'react';
 import { trackEvent } from '../../../lib/analytics/tracked-events';
 
 export interface UseFavoriteActionsProps {
   isFavorite: (id: string) => boolean;
   toggleFavorite: (id: string) => void;
-  animationsEnabled: boolean;
-  pageIndex: number;
-  setFavoriteTransitions: Dispatch<
-    SetStateAction<Map<string, 'adding' | 'removing'>>
-  >;
 }
 
 export interface UseFavoriteActionsReturn {
@@ -24,110 +14,26 @@ export interface UseFavoriteActionsReturn {
 }
 
 /**
- * Hook for managing favorite actions with animation support.
- * Extracts favorites logic from the main useRecipeActions hook.
- *
- * Memory management: The favoriteTransitions Map passed to this hook is
- * automatically cleaned up after animations complete. Each entry is:
- * 1. Added when a toggle starts (with 'adding' or 'removing' state)
- * 2. Removed after animation completes via setTimeout (500ms for toggle, +2000ms for message display)
- * 3. All pending timeouts are cleared on unmount to prevent stale state updates
- *
- * This ensures the Map never grows unbounded, even with frequent favorite toggling.
+ * Save and unsave a recipe, reporting `favorite_toggled`. The toggle applies
+ * at once.
  */
 export function useFavoriteActions({
   isFavorite,
   toggleFavorite,
-  animationsEnabled,
-  pageIndex,
-  setFavoriteTransitions,
 }: UseFavoriteActionsProps): UseFavoriteActionsReturn {
-  const transitionTimeoutRefs = useRef<
-    Map<string, ReturnType<typeof setTimeout>>
-  >(new Map());
-
-  // Cleanup pending timeouts on unmount to prevent stale state updates
-  useEffect(() => {
-    const timeouts = transitionTimeoutRefs.current;
-    return () => {
-      for (const timeout of timeouts.values()) {
-        clearTimeout(timeout);
-      }
-      timeouts.clear();
-    };
-  }, []);
-
-  // Memoize favorite callbacks to prevent column recreation on every render
   const handleCheckFavorite = useCallback(
-    (view: DevelopmentCombinationView) =>
-      isFavorite(String(view.combination.uuid || view.combination.id)),
+    (view: DevelopmentCombinationView) => isFavorite(recipeIdOf(view)),
     [isFavorite]
   );
 
   const handleToggleFavorite = useCallback(
     (view: DevelopmentCombinationView) => {
-      const id = String(view.combination.uuid || view.combination.id);
-      const isCurrentlyFavorite = isFavorite(id);
-
-      // Report on click rather than after the animation settles: the intent is
-      // expressed here, and the animated path defers the actual toggle by 500ms.
-      trackEvent('favorite_toggled', { added: !isCurrentlyFavorite });
-
-      if (!animationsEnabled) {
-        toggleFavorite(id);
-        return;
-      }
-
-      const transitionType = isCurrentlyFavorite ? 'removing' : 'adding';
-
-      // Add to transition state
-      setFavoriteTransitions((prev) => new Map(prev).set(id, transitionType));
-
-      // Clear any existing timeout for this ID
-      const existingTimeout = transitionTimeoutRefs.current.get(id);
-      if (existingTimeout) {
-        clearTimeout(existingTimeout);
-      }
-
-      // Set timeout for skeleton animation duration (500ms)
-      const timeout = setTimeout(() => {
-        toggleFavorite(id);
-
-        // For off-page items, show message skeleton for 2 seconds after toggle
-        if (transitionType === 'adding' && pageIndex > 0) {
-          const messageTimeout = setTimeout(() => {
-            setFavoriteTransitions((prev) => {
-              const newMap = new Map(prev);
-              newMap.delete(id);
-              return newMap;
-            });
-            transitionTimeoutRefs.current.delete(id);
-          }, 2000);
-          transitionTimeoutRefs.current.set(id, messageTimeout);
-        } else {
-          // Remove from transition state after animation completes
-          setFavoriteTransitions((prev) => {
-            const newMap = new Map(prev);
-            newMap.delete(id);
-            return newMap;
-          });
-          transitionTimeoutRefs.current.delete(id);
-        }
-      }, 500);
-
-      transitionTimeoutRefs.current.set(id, timeout);
+      const id = recipeIdOf(view);
+      trackEvent('favorite_toggled', { added: !isFavorite(id) });
+      toggleFavorite(id);
     },
-    [
-      toggleFavorite,
-      isFavorite,
-      animationsEnabled,
-      pageIndex,
-      setFavoriteTransitions,
-    ]
+    [toggleFavorite, isFavorite]
   );
 
-  return {
-    handleCheckFavorite,
-    handleToggleFavorite,
-  };
+  return { handleCheckFavorite, handleToggleFavorite };
 }

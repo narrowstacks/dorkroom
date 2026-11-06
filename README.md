@@ -142,7 +142,6 @@ turbo run test --filter=@dorkroom/logic
 - **State Management**: TanStack Query v5 for server state
 - **Routing**: TanStack Router v1 with file-based routing
 - **Forms**: TanStack Form v1 with Zod validation
-- **Tables**: TanStack Table v8 for data tables
 - **Virtualization**: TanStack Virtual v3 for performant list rendering
 - **Schema Validation**: Zod 4
 - **Monorepo**: Turborepo with Bun workspaces
@@ -168,7 +167,6 @@ api/                  # Serverless API endpoints (Vercel functions)
 - **File-Based Routing**: TanStack Router with automatic route tree generation
 - **Type-Safe State**: TanStack Query for server state with query key structure
 - **Form Validation**: TanStack Form with Zod schemas for runtime validation
-- **Data Tables**: TanStack Table for sorting, filtering, and pagination
 
 ## Features
 
@@ -265,7 +263,6 @@ This project maintains high code quality standards with package-specific tooling
 - All data fetching uses TanStack Query v5 with proper query key structure
 - File-based routing with TanStack Router v1 for type-safe navigation
 - Form handling with TanStack Form v1 and Zod schema validation
-- Data tables with TanStack Table v8 for sorting, filtering, pagination
 - Virtualized lists with TanStack Virtual v3 for performant rendering of large datasets
 
 **Type Safety:**

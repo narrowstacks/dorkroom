@@ -14,7 +14,6 @@ import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { type Dispatch, type SetStateAction, useCallback } from 'react';
 import { useCustomRecipeCrud } from './useCustomRecipeCrud';
 import { useFavoriteActions } from './useFavoriteActions';
-import { useRecipeDetailActions } from './useRecipeDetailActions';
 import { useRecipeImportActions } from './useRecipeImportActions';
 import { useRecipeSharingActions } from './useRecipeSharingActions';
 
@@ -47,12 +46,8 @@ interface UseRecipeActionsProps {
 
   // UI state
   showToast: (message: string, type: 'success' | 'error') => void;
-  animationsEnabled: boolean;
-  pageIndex: number;
 
   // Modal state setters
-  setIsDetailOpen: Dispatch<SetStateAction<boolean>>;
-  setDetailView: Dispatch<SetStateAction<DevelopmentCombinationView | null>>;
   setIsCustomModalOpen: Dispatch<SetStateAction<boolean>>;
   setEditingRecipe: Dispatch<SetStateAction<DevelopmentCombinationView | null>>;
   setIsSubmittingRecipe: Dispatch<SetStateAction<boolean>>;
@@ -78,21 +73,13 @@ interface UseRecipeActionsProps {
 
   // Current state values
   editingRecipe: DevelopmentCombinationView | null;
-  detailView: DevelopmentCombinationView | null;
   sharedRecipeView: DevelopmentCombinationView | null;
   sharedRecipeSource: 'shared' | 'custom';
   filmdevPreviewData: FilmdevMappingResult | null;
-  favoriteTransitions: Map<string, 'adding' | 'removing'>;
-  setFavoriteTransitions: Dispatch<
-    SetStateAction<Map<string, 'adding' | 'removing'>>
-  >;
 
   // Data refresh
   forceRefresh: () => Promise<void>;
   setIsRefreshingData: Dispatch<SetStateAction<boolean>>;
-
-  // Sidebar collapse
-  setIsFiltersSidebarCollapsed?: Dispatch<SetStateAction<boolean>>;
 
   // Film/Developer data
   getFilmById: (id: string) => Film | undefined;
@@ -120,10 +107,6 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
     toggleFavorite,
     addFavorite,
     showToast,
-    animationsEnabled,
-    pageIndex,
-    setIsDetailOpen,
-    setDetailView,
     setIsCustomModalOpen,
     setEditingRecipe,
     setIsSubmittingRecipe,
@@ -141,26 +124,16 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
     closeDeleteConfirm,
     setIsDeleting,
     editingRecipe,
-    detailView,
     sharedRecipeView,
     sharedRecipeSource,
     filmdevPreviewData,
-    setFavoriteTransitions,
     forceRefresh,
     setIsRefreshingData,
     getFilmById,
     getDeveloperById,
     allFilms,
     allDevelopers,
-    setIsFiltersSidebarCollapsed,
   } = props;
-
-  // Detail drawer actions
-  const { handleOpenDetail } = useRecipeDetailActions({
-    setDetailView,
-    setIsDetailOpen,
-    setIsFiltersSidebarCollapsed,
-  });
 
   // Sharing actions
   const { handleShareCombination, handleCopyCombination } =
@@ -187,27 +160,19 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
     addFavorite,
     showToast,
     editingRecipe,
-    detailView,
     setIsCustomModalOpen,
     setEditingRecipe,
     setIsSubmittingRecipe,
-    setIsDetailOpen,
-    setDetailView,
     deleteConfirmRecipe,
     openDeleteConfirm,
     closeDeleteConfirm,
     setIsDeleting,
-    getFilmById,
-    getDeveloperById,
   });
 
   // Favorite actions
   const { handleCheckFavorite, handleToggleFavorite } = useFavoriteActions({
     isFavorite,
     toggleFavorite,
-    animationsEnabled,
-    pageIndex,
-    setFavoriteTransitions,
   });
 
   // Import actions
@@ -257,7 +222,6 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
   }, [forceRefresh, setIsRefreshingData]);
 
   return {
-    handleOpenDetail,
     handleShareCombination,
     handleCopyCombination,
     handleCustomRecipeSubmit,

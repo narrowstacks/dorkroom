@@ -564,6 +564,27 @@ describe('custom recipes', () => {
     );
   });
 
+  it('the form offers the whole catalogue, including films and developers with no recipes', async () => {
+    renderWorkbench();
+    await prompt();
+    fireEvent.click(button('Add custom recipe'));
+    await screen.findByText('Add custom recipe', { selector: 'h2,h3' });
+    const [film, developer] = within(screen.getByRole('dialog')).getAllByRole(
+      'combobox'
+    );
+    const values = (select: HTMLElement) =>
+      within(select)
+        .getAllByRole('option')
+        .map((option) => option.getAttribute('value'));
+    // Pan F Plus and Rodinal have no recipe in this catalogue.
+    expect(values(film)).toEqual(
+      expect.arrayContaining(Object.values(FILMS).map((f) => f.uuid))
+    );
+    expect(values(developer)).toEqual(
+      expect.arrayContaining(Object.values(DEVELOPERS).map((d) => d.uuid))
+    );
+  });
+
   it('creating one opens it, and counts the save', async () => {
     renderWorkbench();
     await prompt();

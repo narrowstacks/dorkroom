@@ -7,11 +7,6 @@ import { useState } from 'react';
  * Extracts modal state management from the main component
  */
 export function useRecipeModals() {
-  // Detail drawer state
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [detailView, setDetailView] =
-    useState<DevelopmentCombinationView | null>(null);
-
   // Custom recipe modal state
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [editingRecipe, setEditingRecipe] =
@@ -46,16 +41,6 @@ export function useRecipeModals() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Helper functions to open modals with data
-  const openDetailDrawer = (view: DevelopmentCombinationView) => {
-    setDetailView(view);
-    setIsDetailOpen(true);
-  };
-
-  const closeDetailDrawer = () => {
-    setIsDetailOpen(false);
-    setDetailView(null);
-  };
-
   const openCustomRecipeModal = (recipe?: DevelopmentCombinationView) => {
     setEditingRecipe(recipe || null);
     setIsCustomModalOpen(true);
@@ -121,12 +106,6 @@ export function useRecipeModals() {
 
   return {
     // Detail drawer
-    isDetailOpen,
-    setIsDetailOpen,
-    detailView,
-    setDetailView,
-    openDetailDrawer,
-    closeDetailDrawer,
 
     // Custom recipe modal
     isCustomModalOpen,

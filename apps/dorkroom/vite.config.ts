@@ -515,11 +515,8 @@ export default defineConfig(() => ({
           if (id.includes('node_modules/@tanstack/react-form/')) {
             return 'tanstack-form';
           }
-          if (
-            id.includes('node_modules/@tanstack/react-table/') ||
-            id.includes('node_modules/@tanstack/react-virtual/')
-          ) {
-            return 'tanstack-table-virtual';
+          if (id.includes('node_modules/@tanstack/react-virtual/')) {
+            return 'tanstack-virtual';
           }
           // No manual chunk for zod: a forced chunk holding every zod file
           // makes any small zod import in the entry preload all of it (issue

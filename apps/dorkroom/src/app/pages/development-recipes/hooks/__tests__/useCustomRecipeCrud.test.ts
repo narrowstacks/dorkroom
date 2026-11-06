@@ -80,9 +80,7 @@ const createMockCustomRecipe = (
   ...overrides,
 });
 
-const createMockDetailView = (
-  recipe: CustomRecipe
-): DevelopmentCombinationView => ({
+const createMockView = (recipe: CustomRecipe): DevelopmentCombinationView => ({
   combination: {
     id: -1,
     uuid: recipe.id,
@@ -145,15 +143,6 @@ const deleteConfirmProps = {
   | 'setIsDeleting'
 >;
 
-/** The first value passed to setDetailView. */
-function firstDetailViewArg(
-  setDetailView: Mock<UseCustomRecipeCrudProps['setDetailView']>
-): DevelopmentCombinationView {
-  // SAFETY: the hook calls `setDetailView(updatedView)` with a concrete view,
-  // never an updater function or null, on the paths these tests exercise.
-  return setDetailView.mock.calls[0][0] as DevelopmentCombinationView;
-}
-
 describe('useCustomRecipeCrud', () => {
   let mockSetIsCustomModalOpen: Mock<
     UseCustomRecipeCrudProps['setIsCustomModalOpen']
@@ -162,8 +151,6 @@ describe('useCustomRecipeCrud', () => {
   let mockSetIsSubmittingRecipe: Mock<
     UseCustomRecipeCrudProps['setIsSubmittingRecipe']
   >;
-  let mockSetIsDetailOpen: Mock<UseCustomRecipeCrudProps['setIsDetailOpen']>;
-  let mockSetDetailView: Mock<UseCustomRecipeCrudProps['setDetailView']>;
   let mockAddCustomRecipe: Mock<UseCustomRecipeCrudProps['addCustomRecipe']>;
   let mockUpdateCustomRecipe: Mock<
     UseCustomRecipeCrudProps['updateCustomRecipe']
@@ -173,15 +160,11 @@ describe('useCustomRecipeCrud', () => {
   >;
   let mockAddFavorite: Mock<UseCustomRecipeCrudProps['addFavorite']>;
   let mockShowToast: Mock<UseCustomRecipeCrudProps['showToast']>;
-  let mockGetFilmById: Mock<UseCustomRecipeCrudProps['getFilmById']>;
-  let mockGetDeveloperById: Mock<UseCustomRecipeCrudProps['getDeveloperById']>;
 
   beforeEach(() => {
     mockSetIsCustomModalOpen = vi.fn();
     mockSetEditingRecipe = vi.fn();
     mockSetIsSubmittingRecipe = vi.fn();
-    mockSetIsDetailOpen = vi.fn();
-    mockSetDetailView = vi.fn();
     mockAddCustomRecipe = vi.fn().mockReturnValue('new-recipe-id');
     mockUpdateCustomRecipe = vi
       .fn()
@@ -189,153 +172,13 @@ describe('useCustomRecipeCrud', () => {
     mockDeleteCustomRecipe = vi.fn();
     mockAddFavorite = vi.fn();
     mockShowToast = vi.fn();
-    mockGetFilmById = vi.fn().mockReturnValue(mockFilm);
-    mockGetDeveloperById = vi.fn().mockReturnValue(mockDeveloper);
   });
 
   describe('handleCustomRecipeSubmit', () => {
-    it('updates detailView after editing a recipe that is currently displayed', async () => {
-      const originalRecipe = createMockCustomRecipe({
-        id: 'recipe-to-edit',
-        name: 'Original Name',
-      });
-
-      const updatedRecipe = createMockCustomRecipe({
-        id: 'recipe-to-edit',
-        name: 'Updated Recipe',
-        temperatureF: 70,
-        timeMinutes: 10,
-        shootingIso: 800,
-      });
-
-      // Detail view is showing the recipe being edited
-      const currentDetailView = createMockDetailView(originalRecipe);
-
-      // The store returns the saved recipe
-      mockUpdateCustomRecipe.mockReturnValue(updatedRecipe);
-
-      const { result } = renderHook(() =>
-        useCustomRecipeCrud({
-          customRecipes: [originalRecipe],
-          addCustomRecipe: mockAddCustomRecipe,
-          updateCustomRecipe: mockUpdateCustomRecipe,
-          deleteCustomRecipe: mockDeleteCustomRecipe,
-          addFavorite: mockAddFavorite,
-          showToast: mockShowToast,
-          editingRecipe: currentDetailView, // Editing the same recipe shown in detail
-          detailView: currentDetailView,
-          setIsCustomModalOpen: mockSetIsCustomModalOpen,
-          setEditingRecipe: mockSetEditingRecipe,
-          setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
-          setIsDetailOpen: mockSetIsDetailOpen,
-          setDetailView: mockSetDetailView,
-          ...deleteConfirmProps,
-          getFilmById: mockGetFilmById,
-          getDeveloperById: mockGetDeveloperById,
-        })
-      );
-
-      await act(async () => {
-        await result.current.handleCustomRecipeSubmit(baseFormData);
-      });
-
-      // Verify detailView was updated with fresh data
-      expect(mockSetDetailView).toHaveBeenCalled();
-      const updatedDetailView = firstDetailViewArg(mockSetDetailView);
-      expect(updatedDetailView.combination.name).toBe('Updated Recipe');
-      expect(updatedDetailView.combination.temperatureF).toBe(70);
-      expect(updatedDetailView.combination.timeMinutes).toBe(10);
-      expect(updatedDetailView.combination.shootingIso).toBe(800);
-      expect(updatedDetailView.source).toBe('custom');
-    });
-
-    it('does not update detailView if a different recipe is displayed', async () => {
-      const recipeBeingEdited = createMockCustomRecipe({
-        id: 'recipe-to-edit',
-        name: 'Recipe Being Edited',
-      });
-
-      const differentRecipe = createMockCustomRecipe({
-        id: 'different-recipe',
-        name: 'Different Recipe',
-      });
-
-      const updatedRecipe = createMockCustomRecipe({
-        id: 'recipe-to-edit',
-        name: 'Updated Recipe',
-      });
-
-      // Detail view is showing a DIFFERENT recipe
-      const currentDetailView = createMockDetailView(differentRecipe);
-      const editingView = createMockDetailView(recipeBeingEdited);
-
-      mockUpdateCustomRecipe.mockReturnValue(updatedRecipe);
-
-      const { result } = renderHook(() =>
-        useCustomRecipeCrud({
-          customRecipes: [recipeBeingEdited, differentRecipe],
-          addCustomRecipe: mockAddCustomRecipe,
-          updateCustomRecipe: mockUpdateCustomRecipe,
-          deleteCustomRecipe: mockDeleteCustomRecipe,
-          addFavorite: mockAddFavorite,
-          showToast: mockShowToast,
-          editingRecipe: editingView,
-          detailView: currentDetailView, // Different recipe is shown
-          setIsCustomModalOpen: mockSetIsCustomModalOpen,
-          setEditingRecipe: mockSetEditingRecipe,
-          setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
-          setIsDetailOpen: mockSetIsDetailOpen,
-          setDetailView: mockSetDetailView,
-          ...deleteConfirmProps,
-          getFilmById: mockGetFilmById,
-          getDeveloperById: mockGetDeveloperById,
-        })
-      );
-
-      await act(async () => {
-        await result.current.handleCustomRecipeSubmit(baseFormData);
-      });
-
-      // setDetailView should NOT have been called since a different recipe is displayed
-      expect(mockSetDetailView).not.toHaveBeenCalled();
-    });
-
-    it('does not update detailView when adding a new recipe', async () => {
-      mockAddCustomRecipe.mockReturnValue('new-recipe-id');
-
-      const { result } = renderHook(() =>
-        useCustomRecipeCrud({
-          customRecipes: [],
-          addCustomRecipe: mockAddCustomRecipe,
-          updateCustomRecipe: mockUpdateCustomRecipe,
-          deleteCustomRecipe: mockDeleteCustomRecipe,
-          addFavorite: mockAddFavorite,
-          showToast: mockShowToast,
-          editingRecipe: null, // No recipe being edited (adding new)
-          detailView: null,
-          setIsCustomModalOpen: mockSetIsCustomModalOpen,
-          setEditingRecipe: mockSetEditingRecipe,
-          setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
-          setIsDetailOpen: mockSetIsDetailOpen,
-          setDetailView: mockSetDetailView,
-          ...deleteConfirmProps,
-          getFilmById: mockGetFilmById,
-          getDeveloperById: mockGetDeveloperById,
-        })
-      );
-
-      await act(async () => {
-        await result.current.handleCustomRecipeSubmit(baseFormData);
-      });
-
-      // setDetailView should NOT have been called for new recipes
-      expect(mockSetDetailView).not.toHaveBeenCalled();
-    });
-
     it('closes modal and clears editing state after successful save', async () => {
       const originalRecipe = createMockCustomRecipe({ id: 'recipe-to-edit' });
       const updatedRecipe = createMockCustomRecipe({ id: 'recipe-to-edit' });
-      const currentDetailView = createMockDetailView(originalRecipe);
+      const currentView = createMockView(originalRecipe);
 
       mockUpdateCustomRecipe.mockReturnValue(updatedRecipe);
 
@@ -347,16 +190,11 @@ describe('useCustomRecipeCrud', () => {
           deleteCustomRecipe: mockDeleteCustomRecipe,
           addFavorite: mockAddFavorite,
           showToast: mockShowToast,
-          editingRecipe: currentDetailView,
-          detailView: currentDetailView,
+          editingRecipe: currentView,
           setIsCustomModalOpen: mockSetIsCustomModalOpen,
           setEditingRecipe: mockSetEditingRecipe,
           setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
-          setIsDetailOpen: mockSetIsDetailOpen,
-          setDetailView: mockSetDetailView,
           ...deleteConfirmProps,
-          getFilmById: mockGetFilmById,
-          getDeveloperById: mockGetDeveloperById,
         })
       );
 
@@ -373,7 +211,7 @@ describe('useCustomRecipeCrud', () => {
   describe('handleEditCustomRecipe', () => {
     it('opens edit modal with the recipe to edit', () => {
       const recipe = createMockCustomRecipe({ id: 'recipe-to-edit' });
-      const view = createMockDetailView(recipe);
+      const view = createMockView(recipe);
 
       const { result } = renderHook(() =>
         useCustomRecipeCrud({
@@ -384,15 +222,10 @@ describe('useCustomRecipeCrud', () => {
           addFavorite: mockAddFavorite,
           showToast: mockShowToast,
           editingRecipe: null,
-          detailView: null,
           setIsCustomModalOpen: mockSetIsCustomModalOpen,
           setEditingRecipe: mockSetEditingRecipe,
           setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
-          setIsDetailOpen: mockSetIsDetailOpen,
-          setDetailView: mockSetDetailView,
           ...deleteConfirmProps,
-          getFilmById: mockGetFilmById,
-          getDeveloperById: mockGetDeveloperById,
         })
       );
 
@@ -406,7 +239,7 @@ describe('useCustomRecipeCrud', () => {
 
     it('does not open modal if recipe is not found in customRecipes', () => {
       const recipe = createMockCustomRecipe({ id: 'non-existent-recipe' });
-      const view = createMockDetailView(recipe);
+      const view = createMockView(recipe);
 
       const { result } = renderHook(() =>
         useCustomRecipeCrud({
@@ -417,15 +250,10 @@ describe('useCustomRecipeCrud', () => {
           addFavorite: mockAddFavorite,
           showToast: mockShowToast,
           editingRecipe: null,
-          detailView: null,
           setIsCustomModalOpen: mockSetIsCustomModalOpen,
           setEditingRecipe: mockSetEditingRecipe,
           setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
-          setIsDetailOpen: mockSetIsDetailOpen,
-          setDetailView: mockSetDetailView,
           ...deleteConfirmProps,
-          getFilmById: mockGetFilmById,
-          getDeveloperById: mockGetDeveloperById,
         })
       );
 

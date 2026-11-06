@@ -4,7 +4,7 @@
    Named viewport breakpoints, shared by every responsive decision
    -------------------------------------------------------------
    Pure numbers and predicates only: the DOM subscriptions live in
-   @dorkroom/ui (`useBreakpoint`, `useIsMobile`, `useColumnCount`).
+   @dorkroom/ui (`useBreakpoint`, `useIsMobile`).
 \* ------------------------------------------------------------------ */
 
 /**
@@ -54,32 +54,4 @@ export function isAtLeastBreakpoint(
   name: BreakpointName
 ): boolean {
   return width >= BREAKPOINTS[name];
-}
-
-/**
- * Container width from which the mobile card grid shows two columns instead
- * of one.
- *
- * @public
- */
-export const MOBILE_TWO_COLUMN_MIN_WIDTH = 480;
-
-/**
- * Card-grid column count for a container width.
- *
- * Desktop follows the Tailwind grid steps: 1 column below `sm`, 2 from `sm`,
- * 3 from `lg`, 4 from `xl`. Mobile shows 1 column below
- * {@link MOBILE_TWO_COLUMN_MIN_WIDTH} and 2 from it.
- *
- * @param width - Container width in pixels (not the viewport)
- * @param isMobile - Whether the page is in its mobile layout
- *
- * @public
- */
-export function columnCountForWidth(width: number, isMobile: boolean): number {
-  if (isMobile) return width >= MOBILE_TWO_COLUMN_MIN_WIDTH ? 2 : 1;
-  if (isAtLeastBreakpoint(width, 'xl')) return 4;
-  if (isAtLeastBreakpoint(width, 'lg')) return 3;
-  if (isAtLeastBreakpoint(width, 'sm')) return 2;
-  return 1;
 }

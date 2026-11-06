@@ -39,8 +39,7 @@ export type CalculatorMode =
 
 export type FilmsFilter = 'color' | 'iso' | 'brand' | 'status' | 'sort';
 
-export type DevelopmentFilter =
-  'developer_type' | 'dilution' | 'iso' | 'recipe_type' | 'favorites';
+export type DevelopmentFilter = 'recipe_type' | 'favorites';
 
 /**
  * Every route the app can render, in the order the router declares them.

@@ -24,13 +24,13 @@ interface FilmDeveloperSelectionProps {
   developerOptions: SelectItem[];
   /** The picker still needed, which gets the brand outline. */
   needs?: 'film' | 'developer';
-  /** Removes both clear controls, where the page has its own Start over. */
-  hideClear?: boolean;
   /**
-   * `card` is the framed original. `columns` and `stacked` drop the frame, for a
-   * page that lays out its own surfaces, and give the inputs 44px targets.
+   * `columns` puts the two side by side from `md` up, `stacked` always one
+   * above the other. Both give the inputs 44px targets and no frame, for a
+   * page that lays out its own surfaces. The page has its own Start over, so
+   * the inputs carry no clear control.
    */
-  layout?: 'card' | 'columns' | 'stacked';
+  layout?: 'columns' | 'stacked';
 }
 
 /**
@@ -50,39 +50,18 @@ export function FilmDeveloperSelection({
   onDeveloperChange,
   developerOptions,
   needs,
-  hideClear = false,
-  layout = 'card',
+  layout = 'columns',
 }: FilmDeveloperSelectionProps) {
-  const hasSelections = selectedFilm || selectedDeveloper;
-  const isCard = layout === 'card';
   const filmSelectRef = useRef<SearchableSelectHandle>(null);
   useImperativeHandle(ref, () => ({
     focusFilm: () => filmSelectRef.current?.focusWithoutOpening(),
   }));
 
-  const clearSelections = () => {
-    onFilmChange('');
-    onDeveloperChange('');
-  };
-
   const triggerClass = (picker: 'film' | 'developer') =>
-    cn(!isCard && 'min-h-11', needs === picker && NEEDED_OUTLINE);
+    cn('min-h-11', needs === picker && NEEDED_OUTLINE);
 
   return (
-    <div
-      className={cn(
-        'relative z-10',
-        isCard && 'rounded-2xl border p-6 shadow-subtle'
-      )}
-      style={
-        isCard
-          ? {
-              borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'rgba(var(--color-background-rgb), 0.25)',
-            }
-          : undefined
-      }
-    >
+    <div className="relative z-10">
       <div
         className={cn(
           'grid grid-cols-1 gap-4',
@@ -97,7 +76,7 @@ export function FilmDeveloperSelection({
           onValueChange={onFilmChange}
           items={filmOptions}
           triggerClassName={triggerClass('film')}
-          allowClear={!hideClear}
+          allowClear={false}
         />
         <SearchableSelect
           label="Developer"
@@ -106,34 +85,13 @@ export function FilmDeveloperSelection({
           onValueChange={onDeveloperChange}
           items={developerOptions}
           triggerClassName={triggerClass('developer')}
-          allowClear={!hideClear}
+          allowClear={false}
         />
       </div>
       {/* The outline alone says nothing to a screen reader. */}
-      {(!isCard || needs) && (
-        <p aria-live="polite" className="sr-only">
-          {needs ? `Choose a ${needs} next.` : ''}
-        </p>
-      )}
-      {!hideClear && (
-        <div className="flex items-center justify-between gap-4 pt-4">
-          {hasSelections && (
-            <button
-              type="button"
-              onClick={clearSelections}
-              className={cn(
-                'rounded-full border px-4 py-2 text-sm font-medium transition',
-                'border-[var(--color-border-secondary)] text-[var(--color-text-secondary)]',
-                'hover:border-[var(--color-border-primary)] hover:text-[var(--color-text-primary)]',
-                'focus-visible:border-[var(--color-border-primary)] focus-visible:text-[var(--color-text-primary)]',
-                'active:border-[var(--color-border-primary)] active:text-[var(--color-text-primary)]'
-              )}
-            >
-              Clear selections
-            </button>
-          )}
-        </div>
-      )}
+      <p aria-live="polite" className="sr-only">
+        {needs ? `Choose a ${needs} next.` : ''}
+      </p>
     </div>
   );
 }

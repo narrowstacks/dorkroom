@@ -31,9 +31,6 @@ export const CUSTOM_RECIPES_STORAGE_KEY = 'dorkroom_custom_recipes';
 
 export const FAVORITE_RECIPES_STORAGE_KEY = 'dorkroom_favorite_recipes';
 
-export const RECIPES_VIEW_MODE_STORAGE_KEY =
-  'dorkroom-development-recipes-view-mode';
-
 /**
  * Current key -> older keys it replaced; consumed by
  * `removeSupersededStorageKeys`. An entry here means the old key is deleted,

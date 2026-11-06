@@ -116,8 +116,7 @@ export function RecipeListScreen() {
   );
   // Defer the list's data swap so filter/sort taps commit instantly (chip
   // highlight, match count) while the heavy card re-render happens in an
-  // interruptible background render — same pattern as the web page's
-  // deferredCombinedRows (development-recipes-page.tsx).
+  // interruptible background render.
   const deferredVisible = useDeferredValue(visible);
 
   const activeFilterCount =

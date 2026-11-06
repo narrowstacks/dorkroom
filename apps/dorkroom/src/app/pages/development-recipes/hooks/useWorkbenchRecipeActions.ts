@@ -2,7 +2,6 @@ import type { Developer, Film } from '@dorkroom/api';
 import {
   type CustomRecipe,
   type CustomRecipeFormData,
-  type DevelopmentCombinationView,
   useFavorites,
   useRecipeSharing,
 } from '@dorkroom/logic';
@@ -11,16 +10,12 @@ import { useState } from 'react';
 import { useRecipeActions } from './useRecipeActions';
 import { useRecipeModals } from './useRecipeModals';
 
-const ignore = () => undefined;
-const NO_TRANSITIONS = new Map<string, 'adding' | 'removing'>();
-
 interface UseWorkbenchRecipeActionsProps {
   customRecipes: CustomRecipe[];
   addCustomRecipe: (data: CustomRecipeFormData) => string;
   updateCustomRecipe: (id: string, data: CustomRecipeFormData) => CustomRecipe;
   deleteCustomRecipe: (id: string) => void;
   favorites: ReturnType<typeof useFavorites>;
-  openView: DevelopmentCombinationView | null;
   /** Called with the id of a recipe just created, imported or accepted. */
   onRecipeCreated: (id: string) => void;
   forceRefresh: () => Promise<void>;
@@ -31,10 +26,9 @@ interface UseWorkbenchRecipeActionsProps {
 }
 
 /**
- * `useRecipeActions` for a page with no detail drawer or list animation. The
- * drawer setters are dropped because the open recipe is derived from the index:
- * an edit refreshes it and a delete falls to the default without being told.
- * Animations are off so Save toggles at once, keeping `favorite_toggled`.
+ * `useRecipeActions` for a page with no detail drawer. The drawer setters are
+ * dropped because the open recipe is derived from the index: an edit refreshes
+ * it and a delete falls to the default without being told.
  */
 export function useWorkbenchRecipeActions({
   customRecipes,
@@ -42,7 +36,6 @@ export function useWorkbenchRecipeActions({
   updateCustomRecipe,
   deleteCustomRecipe,
   favorites,
-  openView,
   onRecipeCreated,
   forceRefresh,
   getFilmById,
@@ -73,10 +66,6 @@ export function useWorkbenchRecipeActions({
     toggleFavorite: favorites.toggleFavorite,
     addFavorite: favorites.addFavorite,
     showToast,
-    animationsEnabled: false,
-    pageIndex: 0,
-    setIsDetailOpen: ignore,
-    setDetailView: ignore,
     setIsCustomModalOpen: modals.setIsCustomModalOpen,
     setEditingRecipe: modals.setEditingRecipe,
     setIsSubmittingRecipe: modals.setIsSubmittingRecipe,
@@ -94,12 +83,9 @@ export function useWorkbenchRecipeActions({
     closeDeleteConfirm: modals.closeDeleteConfirm,
     setIsDeleting: modals.setIsDeleting,
     editingRecipe: modals.editingRecipe,
-    detailView: openView,
     sharedRecipeView: modals.sharedRecipeView,
     sharedRecipeSource: modals.sharedRecipeSource,
     filmdevPreviewData: modals.filmdevPreviewData,
-    favoriteTransitions: NO_TRANSITIONS,
-    setFavoriteTransitions: ignore,
     forceRefresh,
     setIsRefreshingData: setIsRefreshing,
     getFilmById,

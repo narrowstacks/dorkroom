@@ -241,7 +241,7 @@ describe('MobileSidebar', () => {
       render(<MobileSidebar {...defaultProps} />);
 
       // size-11 = 2.75rem = 44px, the repo's established minimum-touch-target
-      // class (see filter-panel-container.tsx, actions-bar.tsx).
+      // class.
       expect(
         screen.getByRole('button', { name: 'Close navigation' })
       ).toHaveClass('size-11');
