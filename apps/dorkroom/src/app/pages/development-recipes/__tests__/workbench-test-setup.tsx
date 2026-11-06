@@ -7,7 +7,7 @@ import {
   VolumeProvider,
 } from '@dorkroom/ui';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { StrictMode } from 'react';
 import { vi } from 'vitest';
@@ -280,6 +280,43 @@ export function stubBrowser() {
     dispatchEvent: () => false,
   }));
   Element.prototype.scrollIntoView = vi.fn();
+}
+
+/**
+ * A viewport whose width the test can change. `useIsMobile` and every
+ * `min-width` query read it, and `resize` tells the subscribers, as a window
+ * crossing the breakpoint would.
+ */
+export function stubViewport(initialWidth: number) {
+  let width = initialWidth;
+  const listeners = new Set<() => void>();
+  const matches = (query: string) => {
+    const limit = Number(/(\d+)px/.exec(query)?.[1]);
+    return query.includes('max-width') ? width <= limit : width >= limit;
+  };
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    get matches() {
+      return matches(query);
+    },
+    media: query,
+    onchange: null,
+    addEventListener: (_: string, listener: () => void) =>
+      listeners.add(listener),
+    removeEventListener: (_: string, listener: () => void) =>
+      listeners.delete(listener),
+    addListener: () => undefined,
+    removeListener: () => undefined,
+    dispatchEvent: () => false,
+  }));
+  Element.prototype.scrollIntoView = vi.fn();
+  return {
+    resize(next: number) {
+      width = next;
+      act(() => {
+        for (const listener of listeners) listener();
+      });
+    },
+  };
 }
 
 export const params = () => new URLSearchParams(window.location.search);

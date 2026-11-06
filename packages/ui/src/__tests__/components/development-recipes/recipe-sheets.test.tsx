@@ -109,6 +109,59 @@ describe('RecipePickerSheet', () => {
     );
   });
 
+  it('does not blame a filter that nothing was typed in', async () => {
+    const user = userEvent.setup();
+    render(
+      <TemperatureProvider>
+        <RecipePickerSheet
+          isOpen
+          onClose={vi.fn()}
+          title="Film"
+          filterLabel="Filter films"
+          options={[]}
+          onSelect={vi.fn()}
+          emptyText="No saved recipes."
+        />
+      </TemperatureProvider>
+    );
+    const dialog = await screen.findByRole('dialog', { name: 'Film' });
+    expect(within(dialog).getByRole('status')).toHaveTextContent(
+      'No saved recipes.'
+    );
+    await user.type(within(dialog).getByRole('searchbox'), 'x');
+    expect(within(dialog).getByRole('status')).toHaveTextContent(
+      'No saved recipes.'
+    );
+  });
+
+  it('moves focus to the selected row only when asked, not on opening', async () => {
+    const props = {
+      isOpen: true,
+      onClose: vi.fn(),
+      title: 'Film',
+      filterLabel: 'Filter films',
+      options,
+      selectedValue: 'trix',
+      onSelect: vi.fn(),
+    };
+    const { rerender } = render(
+      <TemperatureProvider>
+        <RecipePickerSheet {...props} focusRowRequest={2} />
+      </TemperatureProvider>
+    );
+    const dialog = await screen.findByRole('dialog', { name: 'Film' });
+    const selected = within(dialog)
+      .getAllByRole('button')
+      .find((row) => row.getAttribute('aria-current') === 'true');
+    expect(document.activeElement).not.toBe(selected);
+    rerender(
+      <TemperatureProvider>
+        <RecipePickerSheet {...props} focusRowRequest={3} />
+      </TemperatureProvider>
+    );
+    await waitFor(() => expect(document.activeElement).toBe(selected));
+  });
+
   it('does not put focus in the filter on open, which would raise the keyboard', async () => {
     const { dialog } = await open();
     await waitFor(() =>

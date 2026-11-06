@@ -1,6 +1,8 @@
 import {
   type FC,
+  type ReactNode,
   type RefObject,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -28,6 +30,15 @@ export interface RecipePickerSheetProps {
   filterLabel: string;
   /** Where focus goes on close, in place of the button that opened the sheet. */
   returnFocus?: RefObject<HTMLElement | null>;
+  /** Said when there are no options at all, whatever is in the filter. */
+  emptyText?: string;
+  /** Drawn under the filter, such as a note on what the list leaves out. */
+  children?: ReactNode;
+  /**
+   * Bump to move focus to the selected row, or the first if none is selected.
+   * Taken after the commit, so a change of `options` in the same update counts.
+   */
+  focusRowRequest?: number;
 }
 
 /** Scroll `list` just far enough to show `row`. No `scrollIntoView` options: Safari before 16 misreads them. */
@@ -43,12 +54,28 @@ function revealInList(list: HTMLElement, row: Element) {
 const PickerBody: FC<
   Pick<
     RecipePickerSheetProps,
-    'options' | 'selectedValue' | 'onSelect' | 'onClose'
+    | 'options'
+    | 'selectedValue'
+    | 'onSelect'
+    | 'onClose'
+    | 'emptyText'
+    | 'children'
+    | 'focusRowRequest'
   > & { filterLabel: string }
-> = ({ options, selectedValue, onSelect, onClose, filterLabel }) => {
+> = ({
+  options,
+  selectedValue,
+  onSelect,
+  onClose,
+  filterLabel,
+  emptyText = 'Nothing to choose from.',
+  children,
+  focusRowRequest = 0,
+}) => {
   const [filter, setFilter] = useState('');
   const listRef = useRef<HTMLUListElement>(null);
   const enterRowRef = useRef<HTMLButtonElement>(null);
+  const filterRef = useRef<HTMLInputElement>(null);
 
   // Mounted fresh on each open, so this opens on the selected row, and typing in
   // the filter does not scroll the list back to it.
@@ -57,6 +84,14 @@ const PickerBody: FC<
     const row = list?.querySelector('[aria-current]');
     if (list && row) revealInList(list, row);
   }, []);
+
+  // This body mounts on each open, so a count left from the last open is not a request.
+  const seenRequest = useRef(focusRowRequest);
+  useEffect(() => {
+    if (focusRowRequest === seenRequest.current) return;
+    seenRequest.current = focusRowRequest;
+    (enterRowRef.current ?? filterRef.current)?.focus();
+  }, [focusRowRequest]);
 
   const words = filter.trim().toLowerCase();
   const shown = options.filter((option) =>
@@ -77,12 +112,18 @@ const PickerBody: FC<
         label={filterLabel}
         hideLabel
         placeholder={filterLabel}
+        inputRef={filterRef}
         onEscape={onClose}
         onEnter={() => enterRowRef.current?.focus()}
         className="m-0.5 shrink-0"
       />
+      {children}
       <output className="block min-h-4 shrink-0 px-2 text-xs text-secondary">
-        {shown.length === 0 ? 'Nothing matches that.' : ''}
+        {options.length === 0
+          ? emptyText
+          : shown.length === 0
+            ? 'Nothing matches that.'
+            : ''}
       </output>
       <RecipeOptionList
         ref={listRef}
@@ -114,6 +155,9 @@ export const RecipePickerSheet: FC<RecipePickerSheetProps> = ({
   onSelect,
   filterLabel,
   returnFocus,
+  emptyText,
+  children,
+  focusRowRequest,
 }) => (
   <ResponsiveModal
     isOpen={isOpen}
@@ -130,6 +174,10 @@ export const RecipePickerSheet: FC<RecipePickerSheetProps> = ({
       onSelect={onSelect}
       onClose={onClose}
       filterLabel={filterLabel}
-    />
+      emptyText={emptyText}
+      focusRowRequest={focusRowRequest}
+    >
+      {children}
+    </PickerBody>
   </ResponsiveModal>
 );
