@@ -58,6 +58,11 @@ describe('text-sanitization', () => {
       expect(sanitizeText(input)).toBe(input);
     });
 
+    it('fits a cut text inside the limit, dots included', () => {
+      expect(sanitizeText('x'.repeat(50), 10)).toBe('xxxxxxx...');
+      expect(sanitizeText('x'.repeat(10), 10)).toBe('x'.repeat(10));
+    });
+
     it('keeps a bare < or > in prose', () => {
       expect(sanitizeText('Keep temp < 20C and time > 5 min')).toBe(
         'Keep temp < 20C and time > 5 min'
@@ -117,7 +122,7 @@ describe('text-sanitization', () => {
     });
 
     it('does not split a surrogate pair when truncating', () => {
-      const result = sanitizeText('ab\u{1F600}cd', 3);
+      const result = sanitizeText('ab\u{1F600}cde', 6);
       expect(result).toBe('ab...');
     });
 
@@ -274,7 +279,7 @@ describe('text-sanitization', () => {
 
     it('does not cut an emoji in half at the cap', () => {
       const result = sanitizeRecipeName(`${'a'.repeat(199)}\u{1F4F7}`);
-      expect(result).toBe(`${'a'.repeat(199)}...`);
+      expect(result).toBe(`${'a'.repeat(197)}...`);
     });
 
     it('returns empty string for null', () => {
@@ -351,7 +356,7 @@ describe('text-sanitization', () => {
         isoSpeed: 400,
         colorType: 'bw',
         grainStructure: 'Fine onclick=alert(1)',
-        description: `${'d'.repeat(500)}...`,
+        description: `${'d'.repeat(497)}...`,
       });
     });
 
@@ -437,7 +442,7 @@ describe('text-sanitization', () => {
     });
 
     it('truncates tags to 50 characters', () => {
-      expect(sanitizeTags(['t'.repeat(60)])).toEqual([`${'t'.repeat(50)}...`]);
+      expect(sanitizeTags(['t'.repeat(60)])).toEqual([`${'t'.repeat(47)}...`]);
     });
 
     it('returns undefined for missing input', () => {

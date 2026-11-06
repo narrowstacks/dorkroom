@@ -1,15 +1,18 @@
 import type { Developer, Film } from '@dorkroom/api';
 import {
+  buildFilmSlugIndex,
   calculatePushPull,
   type CustomDeveloperData,
   type CustomFilmData,
   type CustomRecipeFormData,
+  customRecipeSchema,
   type SelectItem,
 } from '@dorkroom/logic';
 import { useMemo, useState } from 'react';
 import { cn } from '../../lib/cn';
 import { optionChangeHandler } from '../../lib/select-options';
 import { Select } from '../select';
+import { LiveStatusAlert } from '../status-alert';
 import { TextInput } from '../text-input';
 
 interface CustomRecipeFormProps {
@@ -74,6 +77,7 @@ type CustomDeveloperChangeHandler = <K extends keyof CustomDeveloperData>(
 
 interface FilmSectionProps {
   formData: CustomRecipeFormData;
+  selectedFilm: Film | undefined;
   filmOptions: SelectItem[];
   onChange: ChangeHandler;
   onCustomFilmChange: CustomFilmChangeHandler;
@@ -82,6 +86,7 @@ interface FilmSectionProps {
 
 function FilmSection({
   formData,
+  selectedFilm,
   filmOptions,
   onChange,
   onCustomFilmChange,
@@ -120,7 +125,7 @@ function FilmSection({
 
       {formData.useExistingFilm ? (
         <Select
-          selectedValue={formData.selectedFilmId || ''}
+          selectedValue={selectedFilm?.uuid ?? formData.selectedFilmId ?? ''}
           onValueChange={onFilmSelect}
           items={filmOptions}
           ariaLabel="Film"
@@ -179,16 +184,26 @@ function FilmSection({
 
 interface DeveloperSectionProps {
   formData: CustomRecipeFormData;
+  selectedDeveloper: Developer | undefined;
   developerOptions: SelectItem[];
+  workingLifeInput: string;
+  stockLifeInput: string;
   onChange: ChangeHandler;
   onCustomDeveloperChange: CustomDeveloperChangeHandler;
+  onWorkingLifeInputChange: (value: string) => void;
+  onStockLifeInputChange: (value: string) => void;
 }
 
 function DeveloperSection({
   formData,
+  selectedDeveloper,
   developerOptions,
+  workingLifeInput,
+  stockLifeInput,
   onChange,
   onCustomDeveloperChange,
+  onWorkingLifeInputChange,
+  onStockLifeInputChange,
 }: DeveloperSectionProps) {
   return (
     <div
@@ -223,7 +238,9 @@ function DeveloperSection({
 
       {formData.useExistingDeveloper ? (
         <Select
-          selectedValue={formData.selectedDeveloperId || ''}
+          selectedValue={
+            selectedDeveloper?.uuid ?? formData.selectedDeveloperId ?? ''
+          }
           onValueChange={(value) => onChange('selectedDeveloperId', value)}
           items={developerOptions}
           ariaLabel="Developer"
@@ -263,24 +280,16 @@ function DeveloperSection({
           />
           <TextInput
             label="Working life (hours)"
-            value={String(formData.customDeveloper?.workingLifeHours ?? '')}
-            onValueChange={(value) =>
-              onCustomDeveloperChange(
-                'workingLifeHours',
-                value ? Number(value) : undefined
-              )
-            }
+            value={workingLifeInput}
+            onValueChange={onWorkingLifeInputChange}
+            inputMode="decimal"
             placeholder="24"
           />
           <TextInput
             label="Stock life (months)"
-            value={String(formData.customDeveloper?.stockLifeMonths ?? '')}
-            onValueChange={(value) =>
-              onCustomDeveloperChange(
-                'stockLifeMonths',
-                value ? Number(value) : undefined
-              )
-            }
+            value={stockLifeInput}
+            onValueChange={onStockLifeInputChange}
+            inputMode="decimal"
             placeholder="6"
           />
           <TextInput
@@ -392,14 +401,14 @@ function DevelopmentDetailsSection({
           }}
         >
           {pushPullDisplay}
-          {boxSpeed && (
+          {boxSpeed ? (
             <span
               className="ml-auto text-xs"
               style={{ color: 'var(--color-text-muted)' }}
             >
               Box: ISO {boxSpeed}
             </span>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
@@ -441,7 +450,12 @@ function DilutionSection({
           <TextInput
             label="Custom dilution"
             value={formData.customDilution}
-            onValueChange={(value) => onChange('customDilution', value)}
+            onValueChange={(value) => {
+              // With no list to pick from, this box is the only way to replace
+              // a dilution id the developer no longer has.
+              onChange('selectedDilutionId', '');
+              onChange('customDilution', value);
+            }}
             placeholder="1+1"
           />
         )}
@@ -490,6 +504,93 @@ function FormActions({ isSubmitting, onCancel }: FormActionsProps) {
   );
 }
 
+/**
+ * These inputs only update the form on a usable number, so a cleared one would
+ * otherwise save the number it last held.
+ */
+const numberInputProblem = (name: string, input: string): string | null =>
+  input.trim() === '' || Number.isNaN(Number(input))
+    ? `Enter ${name} as a number.`
+    : null;
+
+/** The same for an input that may stay blank. */
+const optionalNumberInputProblem = (
+  name: string,
+  input: string
+): string | null =>
+  input.trim() === '' || Number.isFinite(Number(input))
+    ? null
+    : `Enter ${name} as a number, or leave it blank.`;
+
+/**
+ * What the form saves: resolved ids, no draft left by unticking "use custom",
+ * and no custom dilution the form isn't showing. With a list to pick from, the
+ * box only shows for `custom`; with no list, the box is the only input.
+ */
+function cleanSubmission(
+  data: CustomRecipeFormData,
+  film: Film | undefined,
+  developer: Developer | undefined,
+  pushPull: number
+): CustomRecipeFormData {
+  return {
+    ...data,
+    name: data.name.trim(),
+    pushPull,
+    customDilution:
+      developer?.dilutions?.length && data.selectedDilutionId !== 'custom'
+        ? ''
+        : data.customDilution,
+    selectedFilmId: film?.uuid ?? data.selectedFilmId,
+    selectedDeveloperId: developer?.uuid ?? data.selectedDeveloperId,
+    customFilm: data.useExistingFilm ? undefined : data.customFilm,
+    customDeveloper: data.useExistingDeveloper
+      ? undefined
+      : data.customDeveloper,
+  };
+}
+
+/**
+ * A blank custom dilution, or an id the developer no longer has, would save and
+ * then read as Stock. Having no dilution selected at all really is Stock.
+ */
+function findDilutionProblem(
+  { selectedDilutionId, customDilution }: CustomRecipeFormData,
+  developer: Developer
+): string | null {
+  if (selectedDilutionId === 'custom') {
+    return customDilution?.trim() ? null : 'Enter the custom dilution.';
+  }
+  if (
+    selectedDilutionId &&
+    !developer.dilutions.some(({ id }) => String(id) === selectedDilutionId)
+  ) {
+    return "This recipe's dilution is no longer listed for this developer. Choose another, or enter your own.";
+  }
+  return null;
+}
+
+/**
+ * The first thing stopping this form from saving, or null. A selected id must
+ * still name something: a recipe whose film has left the catalogue keeps the old
+ * id, and the schema alone would let it be saved broken again.
+ */
+function findProblem(
+  submission: CustomRecipeFormData,
+  film: Film | undefined,
+  developer: Developer | undefined
+): string | null {
+  const parsed = customRecipeSchema.safeParse(submission);
+  if (!parsed.success) return parsed.error.issues[0].message;
+  if (submission.useExistingFilm && !film) {
+    return 'Choose a film, or enter your own.';
+  }
+  if (submission.useExistingDeveloper && !developer) {
+    return 'Choose a developer, or enter your own.';
+  }
+  return developer ? findDilutionProblem(submission, developer) : null;
+}
+
 export function CustomRecipeForm({
   initialValue,
   onSubmit,
@@ -512,55 +613,65 @@ export function CustomRecipeForm({
     String(initialValue.shootingIso || '')
   );
 
+  const [workingLifeInput, setWorkingLifeInput] = useState(() =>
+    String(initialValue.customDeveloper?.workingLifeHours ?? '')
+  );
+  const [stockLifeInput, setStockLifeInput] = useState(() =>
+    String(initialValue.customDeveloper?.stockLifeMonths ?? '')
+  );
+
+  const [formError, setFormError] = useState<string | null>(null);
+
+  // A recipe can hold a uuid or a slug, and a slug can be a renamed film's old
+  // one: API rows store slugs. Everything below reads the entry, not the id.
+  const filmsById = useMemo(() => {
+    const index = buildFilmSlugIndex(allFilms);
+    for (const film of allFilms) index.set(film.uuid, film);
+    return index;
+  }, [allFilms]);
+  const developersById = useMemo(
+    () =>
+      new Map(
+        allDevelopers.flatMap((developer): [string, Developer][] => [
+          [developer.slug, developer],
+          [developer.uuid, developer],
+        ])
+      ),
+    [allDevelopers]
+  );
+  const selectedFilm = formData.useExistingFilm
+    ? filmsById.get(formData.selectedFilmId ?? '')
+    : undefined;
+  const selectedDeveloper = formData.useExistingDeveloper
+    ? developersById.get(formData.selectedDeveloperId ?? '')
+    : undefined;
+
   // Get dilution options for the selected developer
   const dilutionOptions = useMemo(() => {
-    if (!formData.useExistingDeveloper || !formData.selectedDeveloperId) {
-      return [];
-    }
-    const developer = allDevelopers.find(
-      (d) => d.uuid === formData.selectedDeveloperId
-    );
-    if (!developer?.dilutions?.length) {
+    if (!selectedDeveloper?.dilutions?.length) {
       return [];
     }
     return [
       { label: 'Select dilution', value: '' },
-      ...developer.dilutions.map((d) => ({
+      ...selectedDeveloper.dilutions.map((d) => ({
         label: d.name || d.dilution,
-        value: d.id,
+        value: String(d.id),
       })),
       { label: 'Custom dilution', value: 'custom' },
     ];
-  }, [
-    formData.useExistingDeveloper,
-    formData.selectedDeveloperId,
-    allDevelopers,
-  ]);
+  }, [selectedDeveloper]);
 
   // Show dilution dropdown only when using existing developer with dilutions
-  const showDilutionDropdown = Boolean(
-    formData.useExistingDeveloper &&
-    formData.selectedDeveloperId &&
-    dilutionOptions.length > 2 // More than just "Select" and "Custom"
-  );
+  const showDilutionDropdown = dilutionOptions.length > 2; // More than just "Select" and "Custom"
 
   // Show custom dilution input when: custom developer OR "custom" selected in dropdown
   const showCustomDilutionInput =
     !formData.useExistingDeveloper || formData.selectedDilutionId === 'custom';
 
   // Get the box speed from the selected film or custom film
-  const boxSpeed = useMemo(() => {
-    if (formData.useExistingFilm && formData.selectedFilmId) {
-      const film = allFilms.find((f) => f.uuid === formData.selectedFilmId);
-      return film?.isoSpeed ?? null;
-    }
-    return formData.customFilm?.isoSpeed ?? null;
-  }, [
-    formData.useExistingFilm,
-    formData.selectedFilmId,
-    formData.customFilm?.isoSpeed,
-    allFilms,
-  ]);
+  const boxSpeed = formData.useExistingFilm
+    ? (selectedFilm?.isoSpeed ?? null)
+    : (formData.customFilm?.isoSpeed ?? null);
 
   // Calculate push/pull from box speed and shooting ISO
   const calculatedPushPull = useMemo(() => {
@@ -614,6 +725,17 @@ export function CustomRecipeForm({
     }));
   };
 
+  const updateOptionalNumber = (
+    key: 'workingLifeHours' | 'stockLifeMonths',
+    value: string
+  ) => {
+    if (value.trim() === '') {
+      handleCustomDeveloperChange(key, undefined);
+    } else if (Number.isFinite(Number(value))) {
+      handleCustomDeveloperChange(key, Number(value));
+    }
+  };
+
   // Handle film selection - auto-set shooting ISO to film's native ISO
   const handleFilmSelect = (filmId: string) => {
     const film = allFilms.find((f) => f.uuid === filmId);
@@ -631,8 +753,22 @@ export function CustomRecipeForm({
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    // Include the calculated pushPull value in the submission
-    onSubmit({ ...formData, pushPull: calculatedPushPull });
+    const submission = cleanSubmission(
+      formData,
+      selectedFilm,
+      selectedDeveloper,
+      calculatedPushPull
+    );
+    const problem =
+      numberInputProblem('a development time', timeMinutesInput) ??
+      numberInputProblem('a shooting ISO', shootingIsoInput) ??
+      (formData.useExistingDeveloper
+        ? null
+        : (optionalNumberInputProblem('a working life', workingLifeInput) ??
+          optionalNumberInputProblem('a stock life', stockLifeInput))) ??
+      findProblem(submission, selectedFilm, selectedDeveloper);
+    setFormError(problem);
+    if (!problem) onSubmit(submission);
   };
 
   return (
@@ -650,6 +786,7 @@ export function CustomRecipeForm({
 
       <FilmSection
         formData={formData}
+        selectedFilm={selectedFilm}
         filmOptions={filmOptions}
         onChange={updateRecipeField}
         onCustomFilmChange={handleCustomFilmChange}
@@ -658,9 +795,20 @@ export function CustomRecipeForm({
 
       <DeveloperSection
         formData={formData}
+        selectedDeveloper={selectedDeveloper}
         developerOptions={developerOptions}
+        workingLifeInput={workingLifeInput}
+        stockLifeInput={stockLifeInput}
         onChange={updateRecipeField}
         onCustomDeveloperChange={handleCustomDeveloperChange}
+        onWorkingLifeInputChange={(value) => {
+          setWorkingLifeInput(value);
+          updateOptionalNumber('workingLifeHours', value);
+        }}
+        onStockLifeInputChange={(value) => {
+          setStockLifeInput(value);
+          updateOptionalNumber('stockLifeMonths', value);
+        }}
       />
 
       <DevelopmentDetailsSection
@@ -719,6 +867,8 @@ export function CustomRecipeForm({
         />
         Add to favorites after saving
       </label>
+
+      <LiveStatusAlert action="error" message={formError} />
 
       <FormActions isSubmitting={isSubmitting} onCancel={onCancel} />
     </form>

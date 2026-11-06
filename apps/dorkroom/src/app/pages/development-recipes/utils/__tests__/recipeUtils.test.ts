@@ -5,6 +5,7 @@ import {
   createMemoryRecipeAdapter,
   type CustomRecipe,
   type CustomRecipeFormData,
+  customRecipeSchema,
   getCustomRecipeDeveloper,
   getCustomRecipeFilm,
 } from '@dorkroom/logic';
@@ -155,6 +156,118 @@ describe('convertRecipeToFormData custom flags (#510)', () => {
     });
     expect(form.useExistingFilm).toBe(false);
     expect(form.useExistingDeveloper).toBe(false);
+  });
+});
+
+describe('convertRecipeToFormData keeps a stored custom developer', () => {
+  it('saves unchanged without losing what the view cannot carry', () => {
+    const stored = {
+      ...customDeveloper,
+      filmOrPaper: 'both' as const,
+      workingLifeHours: 24,
+      stockLifeMonths: 6,
+      notes: 'Keep cold',
+      mixingInstructions: 'Mix at 20C',
+      safetyNotes: 'Wear gloves',
+    };
+    const recipe = storedRecipe({
+      developerId: 'custom_dev_9',
+      isCustomDeveloper: true,
+      customDeveloper: stored,
+    });
+    const form = convertRecipeToFormData(viewOf(recipe), recipe);
+    expect(form.customDeveloper).toEqual(stored);
+
+    const store = createCustomRecipeStore(createMemoryRecipeAdapter([recipe]));
+    const saved = store.update(recipe.id, form);
+    expect(saved.customDeveloper).toEqual(stored);
+  });
+
+  it('round-trips a stored developer whose lives were saved as null', () => {
+    // What JSON makes of the NaN older versions saved.
+    const stored: CustomRecipe['customDeveloper'] = JSON.parse(
+      JSON.stringify({
+        ...customDeveloper,
+        workingLifeHours: Number.NaN,
+        stockLifeMonths: Number.NaN,
+      })
+    );
+    expect(stored?.workingLifeHours).toBeNull();
+    const recipe = storedRecipe({
+      developerId: 'custom_dev_9',
+      isCustomDeveloper: true,
+      customDeveloper: stored,
+    });
+    const form = convertRecipeToFormData(viewOf(recipe), recipe);
+    expect(form.customDeveloper?.workingLifeHours).toBeUndefined();
+    expect(form.customDeveloper?.stockLifeMonths).toBeUndefined();
+    expect(customRecipeSchema.safeParse(form).success).toBe(true);
+
+    const store = createCustomRecipeStore(createMemoryRecipeAdapter([recipe]));
+    const saved = store.update(recipe.id, form);
+    expect(saved.customDeveloper?.workingLifeHours).toBeUndefined();
+    expect(saved.customDeveloper?.name).toBe(customDeveloper.name);
+  });
+
+  it('gives a stored developer with no dilutions a Stock one, as the form needs', () => {
+    const recipe = storedRecipe({
+      developerId: 'custom_dev_9',
+      isCustomDeveloper: true,
+      customDeveloper: { ...customDeveloper, dilutions: [] },
+    });
+    const form = convertRecipeToFormData(viewOf(recipe), recipe);
+    expect(form.customDeveloper?.dilutions).toEqual([
+      { name: 'Stock', dilution: 'Stock' },
+    ]);
+  });
+});
+
+describe('convertRecipeToFormData with a custom developer', () => {
+  const customDeveloperRecipe = (): DevelopmentCombinationView => ({
+    combination: createCombinationFromCustomRecipe({
+      id: 'custom_1700000000000_abcdefghi',
+      name: 'No dilutions',
+      filmId: catalogueFilm.uuid,
+      developerId: 'custom_dev_1',
+      temperatureF: 68,
+      timeMinutes: 9,
+      shootingIso: 400,
+      pushPull: 0,
+      isCustomFilm: false,
+      isCustomDeveloper: true,
+      dateCreated: stamp,
+      dateModified: stamp,
+      isPublic: false,
+    }),
+    film: catalogueFilm,
+    developer: {
+      id: 0,
+      uuid: 'custom_dev_1',
+      slug: 'home',
+      name: 'Caffenol',
+      manufacturer: 'Home',
+      type: 'powder',
+      description: '',
+      filmOrPaper: true,
+      dilutions: [],
+      mixingInstructions: null,
+      storageRequirements: null,
+      safetyNotes: null,
+      imageCredit: null,
+      imageSourceUrl: null,
+      notes: null,
+      createdAt: stamp,
+      updatedAt: stamp,
+    },
+    source: 'custom',
+  });
+
+  it('gives an empty dilutions list a Stock entry, so it can be saved again', () => {
+    const form = convertRecipeToFormData(customDeveloperRecipe());
+    expect(form.customDeveloper?.dilutions).toEqual([
+      { name: 'Stock', dilution: 'Stock' },
+    ]);
+    expect(customRecipeSchema.safeParse(form).success).toBe(true);
   });
 });
 

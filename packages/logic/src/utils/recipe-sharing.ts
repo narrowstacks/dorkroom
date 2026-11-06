@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { RECIPE_TEXT_LIMITS } from '../constants/custom-recipe-limits';
 import type {
   CustomDeveloperData,
   CustomFilmData,
@@ -89,7 +90,9 @@ const encodedCustomRecipeSchema = z.object({
   // Links written before #322 typed this as a number (none carried a value in
   // practice); catalogue ids are strings and many are UUIDs.
   dilutionId: jsonOptional(
-    z.union([z.string().max(100), z.number()]).transform(String)
+    z
+      .union([z.string().max(RECIPE_TEXT_LIMITS.dilutionId), z.number()])
+      .transform(String)
   ),
   customDilution: jsonOptional(z.string()),
   isCustomFilm: z.boolean(),
@@ -247,10 +250,16 @@ export const createCustomRecipeFromEncoded = (
     timeMinutes: encodedRecipe.timeMinutes,
     shootingIso: encodedRecipe.shootingIso,
     pushPull: encodedRecipe.pushPull,
-    agitationSchedule: sanitizeText(encodedRecipe.agitationSchedule, 500),
-    notes: sanitizeText(encodedRecipe.notes, 2000),
+    agitationSchedule: sanitizeText(
+      encodedRecipe.agitationSchedule,
+      RECIPE_TEXT_LIMITS.agitationSchedule
+    ),
+    notes: sanitizeText(encodedRecipe.notes, RECIPE_TEXT_LIMITS.recipeNotes),
     dilutionId: encodedRecipe.dilutionId,
-    customDilution: sanitizeText(encodedRecipe.customDilution, 100),
+    customDilution: sanitizeText(
+      encodedRecipe.customDilution,
+      RECIPE_TEXT_LIMITS.customDilution
+    ),
     isCustomFilm: encodedRecipe.isCustomFilm,
     isCustomDeveloper: encodedRecipe.isCustomDeveloper,
     customFilm: sanitizeCustomFilm(encodedRecipe.customFilm),

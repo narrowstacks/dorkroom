@@ -43,6 +43,11 @@ export const convertRecipeToFormData = (
   const isCustomDeveloper = stored
     ? stored.isCustomDeveloper
     : combination.developerId.startsWith('custom_dev_');
+  // The view only carries what a catalogue Developer has, so saving from it
+  // alone would wipe the rest of a stored custom developer.
+  const storedDeveloper = stored?.isCustomDeveloper
+    ? stored.customDeveloper
+    : undefined;
 
   return {
     name: combination.name || '',
@@ -69,14 +74,19 @@ export const convertRecipeToFormData = (
           name: view.developer?.name || '',
           type: view.developer?.type || 'powder',
           filmOrPaper: 'film', // Default to film since API only provides boolean
-          workingLifeHours: undefined, // Developer type doesn't have this field
-          stockLifeMonths: undefined, // Developer type doesn't have this field
           notes: view.developer?.notes || '',
           mixingInstructions: '', // Developer type doesn't have this field
           safetyNotes: '', // Developer type doesn't have this field
-          dilutions: view.developer?.dilutions || [
-            { name: 'Stock', dilution: 'Stock' },
-          ],
+          ...storedDeveloper,
+          // Stored records can hold null here: NaN was once saved, and JSON
+          // turns it to null. The form and schema take a number or nothing.
+          workingLifeHours: storedDeveloper?.workingLifeHours ?? undefined,
+          stockLifeMonths: storedDeveloper?.stockLifeMonths ?? undefined,
+          dilutions: storedDeveloper?.dilutions?.length
+            ? storedDeveloper.dilutions
+            : view.developer?.dilutions?.length
+              ? view.developer.dilutions
+              : [{ name: 'Stock', dilution: 'Stock' }],
         }
       : undefined,
     temperatureF: combination.temperatureF,

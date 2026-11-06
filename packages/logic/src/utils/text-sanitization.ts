@@ -1,3 +1,5 @@
+import { RECIPE_TEXT_LIMITS } from '../constants/custom-recipe-limits';
+
 /**
  * Control and invisible formatting characters to remove: Cc (controls), Cf
  * (zero-width spaces, bidi overrides and isolates, BOM, Unicode tag
@@ -43,7 +45,7 @@ const LONE_SURROGATE =
  *   not show up as noise; a bare `<` or `>` in prose is kept
  * - strips control and invisible formatting characters (bidi overrides,
  *   zero-width spaces, NUL), keeping tab/newline and the ZWJ/ZWNJ joiners
- * - truncates to `maxLength`
+ * - truncates to `maxLength`, ending in "..." and counting those three
  *
  * It deliberately does NOT delete bare words such as "script", "object",
  * "iframe" or "embed", or `on...=` sequences: those mangle legitimate prose
@@ -88,7 +90,7 @@ export function sanitizeText(
   // double-encode ("&lt;" -> "&amp;lt;").
 
   if (sanitized.length > maxLength) {
-    let cut = sanitized.substring(0, maxLength);
+    let cut = sanitized.substring(0, Math.max(0, maxLength - 3));
     // Do not leave half of a surrogate pair (emoji, rare CJK) at the cut.
     if (/[\uD800-\uDBFF]$/.test(cut)) cut = cut.slice(0, -1);
     sanitized = `${cut}...`;
@@ -108,7 +110,9 @@ export function sanitizeText(
  * @returns Sanitized recipe name
  */
 export function sanitizeRecipeName(name: string | undefined | null): string {
-  return sanitizeText(name, 200).replace(/\s+/g, ' ').trim();
+  return sanitizeText(name, RECIPE_TEXT_LIMITS.recipeName)
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 // Import types for type-safe sanitization
@@ -137,10 +141,16 @@ export function sanitizeCustomFilm(
 
   return {
     ...film,
-    brand: sanitizeText(film.brand, 100) || 'Unknown',
-    name: sanitizeText(film.name, 100) || 'Unknown',
-    grainStructure: sanitizeText(film.grainStructure, 100),
-    description: sanitizeText(film.description, 500),
+    brand: sanitizeText(film.brand, RECIPE_TEXT_LIMITS.filmBrand) || 'Unknown',
+    name: sanitizeText(film.name, RECIPE_TEXT_LIMITS.filmName) || 'Unknown',
+    grainStructure: sanitizeText(
+      film.grainStructure,
+      RECIPE_TEXT_LIMITS.grainStructure
+    ),
+    description: sanitizeText(
+      film.description,
+      RECIPE_TEXT_LIMITS.filmDescription
+    ),
   };
 }
 
@@ -164,15 +174,30 @@ export function sanitizeCustomDeveloper(
 
   return {
     ...developer,
-    manufacturer: sanitizeText(developer.manufacturer, 100) || 'Unknown',
-    name: sanitizeText(developer.name, 100) || 'Unknown',
-    type: sanitizeText(developer.type, 100) || 'Unknown',
-    notes: sanitizeText(developer.notes, 1000),
-    mixingInstructions: sanitizeText(developer.mixingInstructions, 2000),
-    safetyNotes: sanitizeText(developer.safetyNotes, 1000),
+    manufacturer:
+      sanitizeText(
+        developer.manufacturer,
+        RECIPE_TEXT_LIMITS.developerManufacturer
+      ) || 'Unknown',
+    name:
+      sanitizeText(developer.name, RECIPE_TEXT_LIMITS.developerName) ||
+      'Unknown',
+    type:
+      sanitizeText(developer.type, RECIPE_TEXT_LIMITS.developerType) ||
+      'Unknown',
+    notes: sanitizeText(developer.notes, RECIPE_TEXT_LIMITS.developerNotes),
+    mixingInstructions: sanitizeText(
+      developer.mixingInstructions,
+      RECIPE_TEXT_LIMITS.mixingInstructions
+    ),
+    safetyNotes: sanitizeText(
+      developer.safetyNotes,
+      RECIPE_TEXT_LIMITS.safetyNotes
+    ),
     dilutions: developer.dilutions.map((d) => ({
-      name: sanitizeText(d.name, 50) || 'Unknown',
-      dilution: sanitizeText(d.dilution, 50) || '1:1',
+      name: sanitizeText(d.name, RECIPE_TEXT_LIMITS.dilutionLabel) || 'Unknown',
+      dilution:
+        sanitizeText(d.dilution, RECIPE_TEXT_LIMITS.dilutionLabel) || '1:1',
     })),
   };
 }
@@ -195,7 +220,7 @@ export function sanitizeTags(
 ): string[] | undefined {
   if (!tags) return undefined;
   return tags.reduce<string[]>((acc, tag) => {
-    const sanitized = sanitizeText(tag, 50);
+    const sanitized = sanitizeText(tag, RECIPE_TEXT_LIMITS.tag);
     if (sanitized) acc.push(sanitized);
     return acc;
   }, []);
