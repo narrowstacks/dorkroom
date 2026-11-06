@@ -1,2 +1,2 @@
-import { BorderScreen } from '@/screens/border-screen';
-export default BorderScreen;
+import { HomeScreen } from '@/screens/home-screen';
+export default HomeScreen;

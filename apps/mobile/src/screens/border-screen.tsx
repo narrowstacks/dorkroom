@@ -1,4 +1,7 @@
-import { useStandaloneBorderCalculator } from '@dorkroom/logic';
+import {
+  borderCalculatorLink,
+  useStandaloneBorderCalculator,
+} from '@dorkroom/logic';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { BorderPreview } from '@/components/border/border-preview';
@@ -15,6 +18,7 @@ import { GlassCard } from '@/components/glass-card';
 import { NavRow } from '@/components/nav-row';
 import { Screen } from '@/components/screen';
 import { WarningsCard } from '@/components/warnings-card';
+import { useLinkOverrides } from '@/hooks/use-link-overrides';
 import { useMeasurementUnit } from '@/hooks/use-measurement-unit';
 
 type SheetId = 'paperImage' | 'borderSize' | 'position' | null;
@@ -42,9 +46,14 @@ function ToggleButton({
   );
 }
 
-export function BorderScreen() {
+interface BorderScreenBodyProps {
+  /** Values the screen was opened with (a Home answer or a deep link). */
+  overrides?: ReturnType<typeof borderCalculatorLink.read>;
+}
+
+function BorderScreenBody({ overrides }: BorderScreenBodyProps) {
   const [unit] = useMeasurementUnit();
-  const calc = useStandaloneBorderCalculator(unit);
+  const calc = useStandaloneBorderCalculator(unit, { overrides });
   const { calculation } = calc;
   const [sheet, setSheet] = useState<SheetId>(null);
   const closeSheet = () => setSheet(null);
@@ -171,4 +180,10 @@ export function BorderScreen() {
       </BottomSheet>
     </Screen>
   );
+}
+
+export function BorderScreen() {
+  const { overrides, prefillId } = useLinkOverrides(borderCalculatorLink);
+  // Re-mounts on a new link: the shared hooks apply overrides on mount only.
+  return <BorderScreenBody key={prefillId} overrides={overrides} />;
 }

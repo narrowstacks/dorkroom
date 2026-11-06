@@ -1,5 +1,6 @@
 import {
   formatFocalLength,
+  lensCalculatorLink,
   SENSOR_FORMATS,
   useLensCalculator,
 } from '@dorkroom/logic';
@@ -26,6 +27,7 @@ import { ResultStat } from '@/components/result-stat';
 import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
 import { ShareButton } from '@/components/share-button';
+import { useLinkOverrides } from '@/hooks/use-link-overrides';
 import { buildLensShare } from '@/lib/share-text';
 import { tokens } from '@/theme/tokens';
 
@@ -42,7 +44,12 @@ const lensFormula = (
   labels: FormatPairLabels
 ) => `${focal} on ${labels.source} = ${equivalent} on ${labels.target}`;
 
-export function LensScreen() {
+interface LensScreenBodyProps {
+  /** Values the screen was opened with (a Home answer or a deep link). */
+  overrides?: ReturnType<typeof lensCalculatorLink.read>;
+}
+
+function LensScreenBody({ overrides }: LensScreenBodyProps) {
   const {
     values,
     setFocalLength,
@@ -50,7 +57,7 @@ export function LensScreen() {
     setTargetFormat,
     swapFormats,
     calculation,
-  } = useLensCalculator();
+  } = useLensCalculator({ overrides });
   // The hook stores a number; keep what the user is typing so partial input
   // like "8" or "85," isn't rewritten under their cursor.
   const [draft, setDraft] = useState<string | null>(null);
@@ -169,4 +176,10 @@ export function LensScreen() {
       )}
     </Screen>
   );
+}
+
+export function LensScreen() {
+  const { overrides, prefillId } = useLinkOverrides(lensCalculatorLink);
+  // Re-mounts on a new link: the shared hooks apply overrides on mount only.
+  return <LensScreenBody key={prefillId} overrides={overrides} />;
 }

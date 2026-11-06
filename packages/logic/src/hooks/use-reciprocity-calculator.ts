@@ -7,6 +7,7 @@ import {
   DEFAULT_RECIPROCITY_CUSTOM_FACTOR,
   DEFAULT_RECIPROCITY_METERED_TIME,
 } from '../constants/reciprocity-calculator-defaults';
+import type { reciprocityCalculatorLink } from '../schemas/reciprocity-calculator.schema';
 import type {
   ReciprocityCalculation,
   ReciprocityCalculatorState,
@@ -23,6 +24,9 @@ import {
  * Handles reciprocity failure calculations for various film types,
  * providing corrected exposure times for long exposures.
  *
+ * @param options - `overrides`: values the calculator starts with instead of
+ *   its defaults, such as a link's (`reciprocityCalculatorLink.read`). Read
+ *   on mount only. This hook does not persist, so they are not stored.
  * @returns Object containing calculator state, calculation results, and control functions
  * @example
  * ```typescript
@@ -47,20 +51,25 @@ import {
  * }
  * ```
  */
-export function useReciprocityCalculator(): ReciprocityCalculatorState & {
+export function useReciprocityCalculator(options?: {
+  overrides?: ReturnType<typeof reciprocityCalculatorLink.read>;
+}): ReciprocityCalculatorState & {
   exposurePresets: number[];
   filmTypes: typeof RECIPROCITY_FILM_TYPES;
 } {
-  const [filmType, setFilmType] = useState(RECIPROCITY_FILM_TYPES[0].value);
+  const overrides = options?.overrides;
+  const [filmType, setFilmType] = useState(
+    () => overrides?.filmType ?? RECIPROCITY_FILM_TYPES[0].value
+  );
   const [meteredTime, setMeteredTime] = useState(
-    DEFAULT_RECIPROCITY_METERED_TIME
+    () => overrides?.meteredTime ?? DEFAULT_RECIPROCITY_METERED_TIME
   );
   const [customFactor, setCustomFactor] = useState(() =>
-    String(DEFAULT_RECIPROCITY_CUSTOM_FACTOR)
+    String(overrides?.customFactor ?? DEFAULT_RECIPROCITY_CUSTOM_FACTOR)
   );
   const [formattedTime, setFormattedTime] = useState<string | null>(() => {
     const initialSeconds = parseReciprocityTime(
-      DEFAULT_RECIPROCITY_METERED_TIME
+      overrides?.meteredTime ?? DEFAULT_RECIPROCITY_METERED_TIME
     );
     return initialSeconds !== null
       ? formatReciprocityTime(initialSeconds)

@@ -1,8 +1,20 @@
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
-import { useDevelopmentRecipes } from '@dorkroom/logic';
-import { router } from 'expo-router';
+import {
+  useDevelopers,
+  useDevelopmentRecipes,
+  useFilms,
+} from '@dorkroom/logic';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SlidersHorizontal, Timer } from 'lucide-react-native';
-import { memo, useCallback, useDeferredValue, useMemo, useState } from 'react';
+import {
+  memo,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -17,6 +29,8 @@ import { RecipeCard } from '@/components/development/recipe-card';
 import { SearchBar } from '@/components/development/search-bar';
 import { GradientBackground } from '@/components/gradient-background';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
+import { resolveRecipeTarget } from '@/lib/home/recipe-target';
+import { LINK_OPENED_PARAM } from '@/lib/link-prefill';
 import { selectionTint } from '@/theme/accents';
 import { FiltersSheet } from './filters-sheet';
 import {
@@ -46,6 +60,21 @@ export function RecipeListScreen() {
   const recipes = useDevelopmentRecipes();
   const [query, setQuery] = useState('');
   const [tagFilter, setTagFilter] = useState('');
+  // A Home result for a film or developer opens the browser filtered to it.
+  const {
+    film: filmParam,
+    developer: developerParam,
+    [LINK_OPENED_PARAM]: openedParam,
+  } = useLocalSearchParams<{
+    film?: string;
+    developer?: string;
+    at?: string;
+  }>();
+  const catalogFilms = useFilms().data;
+  const catalogDevelopers = useDevelopers().data;
+  // The Home target the browser has no recipes for, by name.
+  const [unavailable, setUnavailable] = useState<string | null>(null);
+  const appliedOpening = useRef<string | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [picker, setPicker] = useState<'film' | 'developer' | null>(null);
   const debouncedQuery = useDebouncedValue(query);
@@ -61,6 +90,7 @@ export function RecipeListScreen() {
 
   const onPickFilm = useCallback(
     (slug: string) => {
+      setUnavailable(null);
       recipes.setSelectedFilm(
         slug ? (recipes.allFilms.find((f) => f.slug === slug) ?? null) : null
       );
@@ -70,6 +100,7 @@ export function RecipeListScreen() {
   );
   const onPickDeveloper = useCallback(
     (slug: string) => {
+      setUnavailable(null);
       recipes.setSelectedDeveloper(
         slug
           ? (recipes.allDevelopers.find((d) => d.slug === slug) ?? null)
@@ -95,7 +126,46 @@ export function RecipeListScreen() {
     recipes.setSelectedDeveloper(null);
     setTagFilter('');
     setQuery('');
+    setUnavailable(null);
   }, [recipes]);
+
+  // A Home opening is a fresh filter request: drop every other selection and
+  // filter, then apply its film and developer. Applied once per opening (the
+  // `at` marker tells two openings of the same target apart), so a later
+  // catalog refetch cannot undo what the user changed since.
+  const { isLoaded, allFilms, allDevelopers } = recipes;
+  const { setSelectedFilm, setSelectedDeveloper } = recipes;
+  useEffect(() => {
+    if (!isLoaded || (!filmParam && !developerParam)) return;
+    const opening = `${filmParam ?? ''}|${developerParam ?? ''}|${openedParam ?? ''}`;
+    if (appliedOpening.current === opening) return;
+    appliedOpening.current = opening;
+    const target = resolveRecipeTarget(
+      { film: filmParam, developer: developerParam },
+      { films: allFilms, developers: allDevelopers },
+      { films: catalogFilms, developers: catalogDevelopers }
+    );
+    clearEverything();
+    setSelectedFilm(target.film);
+    setSelectedDeveloper(target.developer);
+    setUnavailable(target.unavailable);
+  }, [
+    isLoaded,
+    filmParam,
+    developerParam,
+    openedParam,
+    allFilms,
+    allDevelopers,
+    catalogFilms,
+    catalogDevelopers,
+    clearEverything,
+    setSelectedFilm,
+    setSelectedDeveloper,
+  ]);
+  const updateQuery = useCallback((text: string) => {
+    setUnavailable(null);
+    setQuery(text);
+  }, []);
 
   const views = useMemo(
     () =>
@@ -111,8 +181,11 @@ export function RecipeListScreen() {
     ]
   );
   const visible = useMemo(
-    () => filterRecipeViews(views, debouncedQuery, tagFilter),
-    [views, debouncedQuery, tagFilter]
+    () =>
+      unavailable === null
+        ? filterRecipeViews(views, debouncedQuery, tagFilter)
+        : [],
+    [unavailable, views, debouncedQuery, tagFilter]
   );
   // Defer the list's data swap so filter/sort taps commit instantly (chip
   // highlight, match count) while the heavy card re-render happens in an
@@ -144,70 +217,27 @@ export function RecipeListScreen() {
   );
 
   const header = (
-    <View className="gap-3 pb-2">
-      <SearchBar value={query} onChangeText={setQuery} />
-      <FilmDeveloperBar
-        filmLabel={
-          recipes.selectedFilm
-            ? `${recipes.selectedFilm.brand} ${recipes.selectedFilm.name}`
-            : null
-        }
-        developerLabel={
-          recipes.selectedDeveloper
-            ? `${recipes.selectedDeveloper.manufacturer} ${recipes.selectedDeveloper.name}`
-            : null
-        }
-        onPressFilm={() => setPicker('film')}
-        onPressDeveloper={() => setPicker('developer')}
-        onClearFilm={onClearFilm}
-        onClearDeveloper={onClearDeveloper}
-      />
-      <View className="flex-row items-center justify-between">
-        <Text className="text-sm text-white/50">
-          {visible.length} {visible.length === 1 ? 'recipe' : 'recipes'}
-        </Text>
-        <View className="flex-row items-center gap-2">
-          {/* TODO(mob-timer-recipe-link): temporary entry to reach the standalone
-              Process Timer for in-session testing. Remove once tools.ts registers
-              the timer permanently and the recipe→timer link card lands. */}
-          <Pressable
-            onPress={() => router.push('/development/timer')}
-            accessibilityRole="button"
-            accessibilityLabel="Process timer"
-            className="flex-row items-center gap-2 rounded-full bg-white/10 px-4 py-2"
-          >
-            <Timer size={16} color="#ffffff" />
-            <Text className="text-sm font-semibold text-white">Timer</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setFiltersOpen(true)}
-            accessibilityRole="button"
-            accessibilityLabel="Filters and sort"
-            className="flex-row items-center gap-2 rounded-full bg-white/10 px-4 py-2"
-          >
-            <SlidersHorizontal size={16} color="#ffffff" />
-            <Text className="text-sm font-semibold text-white">Filters</Text>
-            {activeFilterCount > 0 ? (
-              <View
-                className="rounded-full px-1.5"
-                style={{
-                  backgroundColor: filtersBadgeTint.backgroundColor,
-                  borderWidth: 1,
-                  borderColor: filtersBadgeTint.borderColor,
-                }}
-              >
-                <Text
-                  className="text-xs font-semibold"
-                  style={{ color: filtersBadgeTint.color }}
-                >
-                  {activeFilterCount}
-                </Text>
-              </View>
-            ) : null}
-          </Pressable>
-        </View>
-      </View>
-    </View>
+    <RecipeListHeader
+      query={query}
+      onQueryChange={updateQuery}
+      filmLabel={
+        recipes.selectedFilm
+          ? `${recipes.selectedFilm.brand} ${recipes.selectedFilm.name}`
+          : null
+      }
+      developerLabel={
+        recipes.selectedDeveloper
+          ? `${recipes.selectedDeveloper.manufacturer} ${recipes.selectedDeveloper.name}`
+          : null
+      }
+      onPressFilm={() => setPicker('film')}
+      onPressDeveloper={() => setPicker('developer')}
+      onClearFilm={onClearFilm}
+      onClearDeveloper={onClearDeveloper}
+      count={visible.length}
+      activeFilterCount={activeFilterCount}
+      onOpenFilters={() => setFiltersOpen(true)}
+    />
   );
 
   if (recipes.isLoading && !recipes.isLoaded) {
@@ -254,7 +284,10 @@ export function RecipeListScreen() {
         ListHeaderComponent={header}
         ListEmptyComponent={
           <EmptyState
-            showClearAll={activeFilterCount > 0 || query !== ''}
+            unavailable={unavailable}
+            showClearAll={
+              unavailable !== null || activeFilterCount > 0 || query !== ''
+            }
             onClearAll={clearEverything}
           />
         }
@@ -297,17 +330,106 @@ export function RecipeListScreen() {
   );
 }
 
+function RecipeListHeader({
+  query,
+  onQueryChange,
+  filmLabel,
+  developerLabel,
+  onPressFilm,
+  onPressDeveloper,
+  onClearFilm,
+  onClearDeveloper,
+  count,
+  activeFilterCount,
+  onOpenFilters,
+}: {
+  query: string;
+  onQueryChange: (text: string) => void;
+  filmLabel: string | null;
+  developerLabel: string | null;
+  onPressFilm: () => void;
+  onPressDeveloper: () => void;
+  onClearFilm: () => void;
+  onClearDeveloper: () => void;
+  count: number;
+  activeFilterCount: number;
+  onOpenFilters: () => void;
+}) {
+  return (
+    <View className="gap-3 pb-2">
+      <SearchBar value={query} onChangeText={onQueryChange} />
+      <FilmDeveloperBar
+        filmLabel={filmLabel}
+        developerLabel={developerLabel}
+        onPressFilm={onPressFilm}
+        onPressDeveloper={onPressDeveloper}
+        onClearFilm={onClearFilm}
+        onClearDeveloper={onClearDeveloper}
+      />
+      <View className="flex-row items-center justify-between">
+        <Text className="text-sm text-white/50">
+          {count} {count === 1 ? 'recipe' : 'recipes'}
+        </Text>
+        <View className="flex-row items-center gap-2">
+          {/* TODO(mob-timer-recipe-link): temporary entry to reach the standalone
+              Process Timer for in-session testing. Remove once tools.ts registers
+              the timer permanently and the recipe→timer link card lands. */}
+          <Pressable
+            onPress={() => router.push('/development/timer')}
+            accessibilityRole="button"
+            accessibilityLabel="Process timer"
+            className="flex-row items-center gap-2 rounded-full bg-white/10 px-4 py-2"
+          >
+            <Timer size={16} color="#ffffff" />
+            <Text className="text-sm font-semibold text-white">Timer</Text>
+          </Pressable>
+          <Pressable
+            onPress={onOpenFilters}
+            accessibilityRole="button"
+            accessibilityLabel="Filters and sort"
+            className="flex-row items-center gap-2 rounded-full bg-white/10 px-4 py-2"
+          >
+            <SlidersHorizontal size={16} color="#ffffff" />
+            <Text className="text-sm font-semibold text-white">Filters</Text>
+            {activeFilterCount > 0 ? (
+              <View
+                className="rounded-full px-1.5"
+                style={{
+                  backgroundColor: filtersBadgeTint.backgroundColor,
+                  borderWidth: 1,
+                  borderColor: filtersBadgeTint.borderColor,
+                }}
+              >
+                <Text
+                  className="text-xs font-semibold"
+                  style={{ color: filtersBadgeTint.color }}
+                >
+                  {activeFilterCount}
+                </Text>
+              </View>
+            ) : null}
+          </Pressable>
+        </View>
+      </View>
+    </View>
+  );
+}
+
 function EmptyState({
+  unavailable,
   showClearAll,
   onClearAll,
 }: {
+  unavailable: string | null;
   showClearAll: boolean;
   onClearAll: () => void;
 }) {
   return (
     <View className="items-center gap-3 px-6 py-16">
       <Text className="text-center text-base text-white/60">
-        No recipes match your search and filters.
+        {unavailable === null
+          ? 'No recipes match your search and filters.'
+          : `No development recipes for ${unavailable} yet.`}
       </Text>
       {showClearAll ? (
         <Pressable
@@ -316,7 +438,7 @@ function EmptyState({
           className="rounded-full bg-white/10 px-4 py-2"
         >
           <Text className="text-sm font-semibold text-white">
-            Clear all filters
+            {unavailable === null ? 'Clear all filters' : 'Browse all recipes'}
           </Text>
         </Pressable>
       ) : null}

@@ -95,3 +95,27 @@ describe('useExposureCalculator exact thirds (#551)', () => {
     expect(result.current.calculation?.newTimeValue).toBe(24);
   });
 });
+
+describe('useExposureCalculator overrides', () => {
+  it("starts from a link's values and rounds the stops like the buttons do", () => {
+    const { result } = renderHook(() =>
+      useExposureCalculator({ overrides: { originalTime: 12, stops: -1 / 3 } })
+    );
+
+    expect(result.current.originalTime).toBe('12');
+    expect(result.current.stops).toBe('-0.33');
+    expect(result.current.calculation?.originalTimeValue).toBe(12);
+  });
+
+  it('keeps the defaults for what the link leaves out', () => {
+    const plain = renderHook(() => useExposureCalculator());
+    const linked = renderHook(() =>
+      useExposureCalculator({ overrides: { stops: 2 } })
+    );
+
+    expect(linked.result.current.originalTime).toBe(
+      plain.result.current.originalTime
+    );
+    expect(linked.result.current.stops).toBe('2');
+  });
+});
