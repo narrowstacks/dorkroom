@@ -215,6 +215,7 @@ function catalogAnswer(
         iso: reading.iso,
         dilution: reading.dilution,
         temperature: reading.temperature,
+        filmAssumed: match.filmAssumed,
       },
       unit
     );

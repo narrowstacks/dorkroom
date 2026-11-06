@@ -1,5 +1,7 @@
+import type { Combination, Film } from '@dorkroom/api';
 import { describe, expect, it } from 'vitest';
 import { SHARED_LINK_MARKER } from '../../constants/calculator-link-params';
+import { buildFilmRecipeIndex } from '../../utils/film-recipes';
 import {
   type HomeAnswer,
   type HomeAnswerKind,
@@ -1164,5 +1166,444 @@ describe('suggestHome', () => {
   it('caps the list and suggests nothing for an empty box', () => {
     expect(suggestHome('', FIXTURE_DATA)).toEqual([]);
     expect(suggestHome('i', FIXTURE_DATA).length).toBeLessThanOrEqual(6);
+  });
+});
+
+describe('rebrand families', () => {
+  const rebrand = (
+    slug: string,
+    brand: string,
+    name: string,
+    isoSpeed: number,
+    baseFilmSlug: string
+  ): Film => ({
+    ...film(slug, brand, name, 'bw', isoSpeed, null),
+    baseFilmSlug,
+  });
+
+  // Real rows (dorkroom.art/api, 2026-11-05): published under Lady Grey and
+  // Earl Grey, and shared with their bases and every other rebrand of those.
+  const row = (
+    uuid: string,
+    filmSlug: string,
+    developerSlug: string,
+    shootingIso: number,
+    dilutionId: string,
+    timeMinutes: number
+  ): Combination => ({
+    ...FIXTURE_RECIPES[0],
+    uuid,
+    filmSlug,
+    filmStockId: filmSlug,
+    developerSlug,
+    developerId: developerSlug,
+    shootingIso,
+    dilutionId,
+    customDilution: null,
+    temperatureC: 20,
+    temperatureF: 68,
+    timeMinutes,
+  });
+  const LADY_GREY = 'lomography-lady-grey-400';
+  const EARL_GREY = 'lomography-earl-grey-100';
+  const SHARED_RECIPES = [
+    row('xtol-lady', LADY_GREY, 'kodak-xtol', 400, '1', 6.5),
+    row('rodinal-lady-50', LADY_GREY, 'agfa-rodinal-adonal', 400, '2', 10),
+    row('rodinal-lady-25', LADY_GREY, 'agfa-rodinal-adonal', 400, '1', 5),
+    row('xtol-earl-stock', EARL_GREY, 'kodak-xtol', 100, '1', 5),
+    row('xtol-earl-1-1', EARL_GREY, 'kodak-xtol', 100, '2', 9),
+    row('rodinal-earl-50', EARL_GREY, 'agfa-rodinal-adonal', 100, '2', 8),
+    row('rodinal-earl-25', EARL_GREY, 'agfa-rodinal-adonal', 100, '1', 4),
+  ];
+  // The Arista Premium films come first, as they do live, so a tie starts on
+  // the film without recipes.
+  const FAMILY_FILMS = [
+    film('arista-premium-100', 'Arista', 'Premium 100', 'bw', 100, null),
+    film('arista-premium-400', 'Arista', 'Premium 400', 'bw', 400, null),
+    ...FIXTURE_FILMS,
+    rebrand(
+      LADY_GREY,
+      'Lomography',
+      'Lady Grey 400',
+      400,
+      'foma-fomapan-400-action'
+    ),
+    rebrand(
+      EARL_GREY,
+      'Lomography',
+      'Earl Grey 100',
+      100,
+      'foma-fomapan-100-classic'
+    ),
+    rebrand(
+      'foma-holga-400',
+      'Foma',
+      'Holga 400',
+      400,
+      'foma-fomapan-400-action'
+    ),
+    rebrand(
+      'arista-edu-ultra-100',
+      'Arista',
+      'Edu Ultra 100',
+      100,
+      'foma-fomapan-100-classic'
+    ),
+    rebrand(
+      'arista-edu-ultra-400',
+      'Arista',
+      'Edu Ultra 400',
+      400,
+      'foma-fomapan-400-action'
+    ),
+  ];
+  const DATA = {
+    films: FAMILY_FILMS,
+    developers: FIXTURE_DEVELOPERS,
+    combinations: [...FIXTURE_RECIPES, ...SHARED_RECIPES],
+  };
+
+  const recipeLink = (a: HomeAnswer) => {
+    if (a.kind !== 'recipe' && a.kind !== 'no_recipe') {
+      throw new Error(`No recipe link on ${a.kind}`);
+    }
+    return a.link.target.search;
+  };
+  const searchOf = ({
+    search,
+  }: {
+    search: object;
+  }): { film?: unknown; recipe?: unknown } => search;
+  const group = (query: string, key: string) =>
+    searchHome(query, DATA).groups.find((g) => g.key === key);
+
+  it.each([
+    ['holga xtol', 'Foma Holga 400', 'foma-holga-400'],
+    [
+      'arista edu ultra 400 xtol',
+      'Arista Edu Ultra 400',
+      'arista-edu-ultra-400',
+    ],
+    ['fomapan 400 xtol', 'Foma Fomapan 400 Action', 'foma-fomapan-400-action'],
+  ])(
+    'answers %s with the row shared across the family',
+    (query, name, slug) => {
+      const a = answer(query, DATA);
+      expect(a.kind).toBe('recipe');
+      expect(a.title).toBe(`${name} in Kodak XTOL`);
+      expect(a.figure?.value).toBe('6:30');
+      expect(factOf(a, 'Dilution')?.value).toBe('Stock');
+      expect(factOf(a, 'Rated at')?.value).toBe('EI 400');
+      expect(factOf(a, 'Rated at')?.detail).toBe('box speed');
+      expect(recipeLink(a)).toMatchObject({
+        film: slug,
+        developer: 'kodak-xtol',
+        recipe: 'xtol-lady',
+      });
+    }
+  );
+
+  it('reads ambiguous words as the film with a recipe for the pair', () => {
+    const xtol = answer('arista 400 xtol', DATA);
+    expect(xtol.title).toBe('Arista Edu Ultra 400 in Kodak XTOL');
+    expect(xtol.figure?.value).toBe('6:30');
+    expect(recipeLink(xtol).film).toBe('arista-edu-ultra-400');
+
+    const rodinal = answer('arista 100 rodinal', DATA);
+    expect(rodinal.title).toBe('Arista Edu Ultra 100 in Agfa Rodinal/Adonal');
+    expect(rodinal.figure?.value).toBe('8:00');
+    expect(recipeLink(rodinal).film).toBe('arista-edu-ultra-100');
+  });
+
+  it('stays on a film named whole, even with no recipe for the pair', () => {
+    for (const query of [
+      'arista premium 400 xtol',
+      // "ultra" and "400" also fit Edu Ultra 400, which has the recipe.
+      'premium 400 xtol ultra',
+    ]) {
+      const a = answer(query, DATA);
+      expect(a.kind).toBe('no_recipe');
+      expect(a.title).toBe('Arista Premium 400 in Kodak XTOL');
+      expect(recipeLink(a).film).toBe('arista-premium-400');
+    }
+  });
+
+  it('stays on the first film named whole when another also fits', () => {
+    // "tmax" here is the developer's word, though it completes T-MAX 100 too.
+    const data = {
+      films: [
+        film('ilford-delta-100', 'Ilford', 'Delta 100', 'bw', 100, null),
+        film('kodak-t-max-100', 'Kodak', 'T-MAX 100', 'bw', 100, null),
+      ],
+      developers: [developer('kodak-t-max-rs', 'Kodak', 'T-MAX RS', [])],
+      combinations: [
+        row('delta', 'ilford-delta-100', 'kodak-xtol', 100, '1', 7),
+        row('delta-2', 'ilford-delta-100', 'kodak-xtol', 100, '2', 9),
+        row('tmax', 'kodak-t-max-100', 'kodak-t-max-rs', 100, '1', 7),
+      ],
+    };
+    const a = answer('delta 100 tmax rs', data);
+    expect(a.kind).toBe('no_recipe');
+    expect(a.title).toBe('Ilford Delta 100 in Kodak T-MAX RS');
+  });
+
+  it('does not move past a film named whole to one that only fits', () => {
+    const data = {
+      films: [
+        film('foma-retro-400', 'Foma', 'Fomapan Retro 400', 'bw', 400, null),
+        film('rollei-retro-400', 'Rollei', 'Retro 400', 'bw', 400, null),
+        film('other-retro-400', 'Other', 'Retro 400 Extra', 'bw', 400, null),
+      ],
+      developers: FIXTURE_DEVELOPERS,
+      combinations: [
+        row('foma', 'foma-retro-400', 'kodak-d-76', 400, '1', 7),
+        row('other', 'other-retro-400', 'kodak-xtol', 400, '1', 7),
+      ],
+    };
+    expect(answer('retro 400 xtol', data).kind).toBe('no_recipe');
+  });
+
+  describe('a film with no recipes giving way', () => {
+    const ownerOf = (slug: string) =>
+      film(slug, 'Owner', `Owner ${slug}`, 'bw', 400, null);
+
+    it('marks the guess, on an answer and on no recipe', () => {
+      expect(answer('arista 400 xtol', DATA).readAs).toEqual([
+        { text: 'Arista Edu Ultra 400', assumed: true },
+      ]);
+      expect(answer('arista edu ultra 400 xtol', DATA).readAs).toEqual([]);
+      expect(answer('holga xtol', DATA).readAs).toEqual([]);
+    });
+
+    it('falls back to a tied film with recipes when none has the pair', () => {
+      const a = answer('arista 400 d-76', DATA);
+      expect(a.kind).toBe('no_recipe');
+      expect(a.title).toBe('Arista Edu Ultra 400 in Kodak D-76');
+      expect(a.notes[0]).toBe(
+        'No recipe for this pair yet. Edu Ultra 400 has 3 recipes in other developers.'
+      );
+      expect(recipeLink(a).film).toBe('arista-edu-ultra-400');
+      expect(readAs(a)).toEqual(['Arista Edu Ultra 400']);
+    });
+
+    it('needs every word accounted for', () => {
+      for (const query of ['arista 400 xtol 100', 'arista 400 xtol 800']) {
+        const a = answer(query, DATA);
+        expect(a.kind).toBe('no_recipe');
+        expect(a.title).toMatch(/^Arista Premium \d+ in Kodak XTOL$/);
+      }
+      const typed = answer('arista 400 xtol at 800', DATA);
+      expect(typed.title).toBe('Arista Edu Ultra 400 in Kodak XTOL');
+      expect(typed.notice).toBe(
+        'No EI 800 recipe for this pair. Showing EI 400.'
+      );
+    });
+
+    it('stays on the top film for words it does not explain', () => {
+      const data = {
+        ...DATA,
+        films: [
+          film('foma-fomapan-t800', 'Foma', 'Fomapan T800', 'bw', 800, null),
+          ...FAMILY_FILMS,
+        ],
+      };
+      expect(answer('foma 320 xtol', data).title).toBe(
+        'Foma Fomapan T800 in Kodak XTOL'
+      );
+      const guess = answer('foma xtol', data);
+      expect(guess.title).toBe('Foma Fomapan 100 Classic in Kodak XTOL');
+      expect(guess.readAs).toEqual([
+        { text: 'Foma Fomapan 100 Classic', assumed: true },
+      ]);
+    });
+
+    it('stays on a film with recipes of its own, whatever the pair lacks', () => {
+      const data = {
+        films: [
+          film('kentmere-pan-100', 'Kentmere', 'Pan 100', 'bw', 100, null),
+          film('ilford-pan-f', 'Ilford', 'Pan F Plus', 'bw', 50, null),
+          film('ilford-ortho', 'Ilford', 'Ortho Plus', 'bw', 80, null),
+          film('rollei-ortho-25', 'Rollei', 'Ortho 25', 'bw', 25, null),
+        ],
+        developers: FIXTURE_DEVELOPERS,
+        combinations: [
+          row('p1', 'kentmere-pan-100', 'kodak-d-76', 100, '1', 7),
+          row('p2', 'kentmere-pan-100', 'kodak-d-76', 100, '2', 9),
+          row('p3', 'ilford-pan-f', 'kodak-xtol', 50, '1', 6.75),
+          row('o1', 'ilford-ortho', 'kodak-xtol', 80, '1', 7),
+          row('o2', 'ilford-ortho', 'kodak-xtol', 80, '2', 9),
+          row('o3', 'rollei-ortho-25', 'kodak-d-76', 25, '1', 8),
+        ],
+      };
+      expect(answer('pan xtol', data).title).toBe(
+        'Kentmere Pan 100 in Kodak XTOL'
+      );
+      expect(answer('pan xtol', data).kind).toBe('no_recipe');
+      expect(answer('ortho d-76', data).title).toBe(
+        'Ilford Ortho Plus in Kodak D-76'
+      );
+      expect(answer('ortho d-76', data).kind).toBe('no_recipe');
+    });
+
+    it('moves only within a tie', () => {
+      expect(answer('fomapan 200 xtol', DATA).title).toBe(
+        'Foma Fomapan 200 Creative in Kodak XTOL'
+      );
+      // The maker's word and the number fit Zed 400 too, for a lower score.
+      const data = {
+        films: [
+          film('acme-alpha', 'Acme', 'Alpha Special 400', 'bw', 400, null),
+          ownerOf('owner-zed'),
+          rebrand('alpha-zed', 'Alpha', 'Zed 400', 400, 'owner-zed'),
+        ],
+        developers: FIXTURE_DEVELOPERS,
+        combinations: [row('z', 'owner-zed', 'kodak-xtol', 400, '1', 6.5)],
+      };
+      const a = answer('alpha 400 xtol', data);
+      expect(a.kind).toBe('no_recipe');
+      expect(a.title).toBe('Acme Alpha Special 400 in Kodak XTOL');
+    });
+
+    it('moves only to a reading of the same developer', () => {
+      const data = {
+        films: [
+          film('alpha-x1', 'Acme', 'Alpha X1', 'bw', 400, null),
+          ownerOf('owner-bravo'),
+          rebrand('bravo-x1', 'Acme', 'Bravo X1', 400, 'owner-bravo'),
+        ],
+        developers: [
+          developer('alpha-dev', 'Acme', 'Alpha Dev', []),
+          developer('bravo-dev', 'Acme', 'Bravo Dev', []),
+        ],
+        combinations: [row('b', 'owner-bravo', 'bravo-dev', 400, '1', 6.5)],
+      };
+      const a = answer('alpha bravo', data);
+      expect(a.kind).toBe('no_recipe');
+      expect(a.title).toBe('Acme Alpha X1 in Acme Bravo Dev');
+    });
+
+    it('counts an alias without its maker as naming a film whole', () => {
+      const data = {
+        films: [
+          film(
+            'kodak-ektapan-100',
+            'Kodak',
+            'Ektapan 100',
+            'bw',
+            100,
+            null,
+            false,
+            [{ name: 'Kodak Zed 100', slug: 'kodak-zed-100' }]
+          ),
+          ownerOf('owner-extra'),
+          rebrand('zed-extra', 'Other', 'Zed 100 Extra', 100, 'owner-extra'),
+        ],
+        developers: FIXTURE_DEVELOPERS,
+        combinations: [row('e', 'owner-extra', 'kodak-xtol', 100, '1', 6.5)],
+      };
+      const a = answer('zed 100 xtol', data);
+      expect(a.kind).toBe('no_recipe');
+      expect(a.title).toBe('Kodak Ektapan 100 in Kodak XTOL');
+    });
+
+    it('settles a tie on rows published under a film or its aliases', () => {
+      const data = {
+        films: [
+          film('first-zed', 'First', 'Zed 100 One', 'bw', 100, '1.3'),
+          film('second-zed', 'Second', 'Zed 100 Two', 'bw', 100, '1.3', false, [
+            { name: 'Old Zed', slug: 'old-zed' },
+          ]),
+        ],
+        developers: FIXTURE_DEVELOPERS,
+        combinations: [row('z', 'old-zed', 'kodak-xtol', 100, '1', 6.5)],
+      };
+      expect(answer('zed 100 30s', data).title).toMatch(/^Second Zed 100 Two/);
+    });
+  });
+
+  it('reads the push from the box speed of the film asked about', () => {
+    const data = {
+      ...DATA,
+      films: [
+        ...FAMILY_FILMS,
+        rebrand('slow-200', 'Slow', 'Slow 200', 200, LADY_GREY),
+      ],
+    };
+    const a = answer('slow 200 xtol', data);
+    expect(factOf(a, 'Rated at')?.value).toBe('EI 400');
+    expect(factOf(a, 'Rated at')?.detail).toBe('push +1');
+    expect(a.notes[0]).toBe(
+      'No recipe at box speed (EI 200) for this pair. Recipes exist at EI 400.'
+    );
+  });
+
+  it('says no recipe when no film the words fit has one', () => {
+    const a = answer('holga d-76', DATA);
+    expect(a.kind).toBe('no_recipe');
+    expect(a.notes[0]).toBe(
+      'No recipe for this pair yet. Holga 400 has 3 recipes in other developers.'
+    );
+  });
+
+  it('counts a film as /films does', () => {
+    const { counts } = buildFilmRecipeIndex(DATA.combinations, FAMILY_FILMS);
+    expect(counts.get('foma-holga-400')).toBe(3);
+    for (const [query, slug] of [
+      ['holga', 'foma-holga-400'],
+      ['edu ultra 100', 'arista-edu-ultra-100'],
+      ['lady grey', LADY_GREY],
+      ['fomapan 400 action', 'foma-fomapan-400-action'],
+    ] as const) {
+      const films = group(query, 'films');
+      if (films?.key !== 'films') throw new Error(`No films for ${query}`);
+      const item = films.items.find((i) => searchOf(i.target).film === slug);
+      expect(item?.meta).toBe(`${counts.get(slug)} recipes`);
+    }
+  });
+
+  it("names the film asked about on the pair's other recipes", () => {
+    const others = group('holga rodinal', 'recipes');
+    if (others?.key !== 'recipes') throw new Error('no recipes');
+    expect(others.label).toBe('Other recipes for this pair');
+    expect(others.items).toHaveLength(1);
+    expect(others.items[0].title).toMatch(/^Foma Holga 400 in /);
+    expect(searchOf(others.items[0].target).film).toBe('foma-holga-400');
+  });
+
+  it("names a row's own film when only a developer is asked about", () => {
+    const { groups } = searchHome('xtol', {
+      ...DATA,
+      combinations: SHARED_RECIPES,
+    });
+    const rows = groups.find((g) => g.key === 'recipes');
+    if (rows?.key !== 'recipes') throw new Error('no recipes');
+    const shared = rows.items.find(
+      (i) => searchOf(i.target).recipe === 'xtol-lady'
+    );
+    if (!shared) throw new Error('no shared row');
+    expect(shared.title).toMatch(/^Lomography Lady Grey 400 in /);
+    expect(searchOf(shared.target).film).toBe(LADY_GREY);
+  });
+
+  it('ranks completions by the developers a film shares', () => {
+    expect(suggestHome('ar', DATA)[0].label).toBe('Arista Edu Ultra 100');
+  });
+
+  it('suggests templates from the family', () => {
+    expect(suggestHome('holga', DATA).map((s) => s.label)).toContain(
+      'Foma Holga 400 in Kodak XTOL'
+    );
+  });
+
+  it('keeps home defaults on shared rows: Stock before any dilution', () => {
+    const a = answer('arista edu ultra 100 xtol', DATA);
+    expect(a.figure?.value).toBe('5:00');
+    expect(factOf(a, 'Dilution')?.value).toBe('Stock');
+  });
+
+  it('honours a typed dilution on shared rows', () => {
+    const a = answer('arista edu ultra 100 xtol 1+1', DATA);
+    expect(a.figure?.value).toBe('9:00');
+    expect(factOf(a, 'Dilution')?.value).toBe('1+1');
   });
 });
