@@ -597,10 +597,20 @@ export default function DevelopmentRecipesPage({
       onDeleteCustomRecipe={handleDeleteCustomRecipe}
       isFavorite={handleCheckFavorite}
       selectedRecipeId={selectedRecipeId}
-      onClearFilters={handleClearFilters}
+      // Unlike the sidebar's button, this also drops the film and developer: a
+      // pair with no recipes leaves nothing else to adjust.
+      onClearFilters={() => {
+        handleClearFilters();
+        clearSelections();
+      }}
       hasActiveFilters={
         Boolean(
-          searchQuery || developerTypeFilter || dilutionFilter || isoFilter
+          searchQuery ||
+          developerTypeFilter ||
+          dilutionFilter ||
+          isoFilter ||
+          selectedFilm ||
+          selectedDeveloper
         ) ||
         customRecipeFilter !== 'all' ||
         favoritesOnly
