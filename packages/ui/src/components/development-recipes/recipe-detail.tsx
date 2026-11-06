@@ -3,6 +3,7 @@ import {
   type DevelopmentCombinationView,
   formatTemperatureWithUnit,
   getCombinationDilution,
+  getRecipeAgitation,
   isFilmDevOrgUrl,
 } from '@dorkroom/logic';
 import { Edit2, ExternalLink, Share2, Star, Trash2 } from 'lucide-react';
@@ -118,7 +119,7 @@ export function DevelopmentRecipeDetail({
         <DetailRow label="Dilution" value={dilutionLabel} />
         <DetailRow
           label="Agitation"
-          value={combination.agitationSchedule || 'Standard'}
+          value={getRecipeAgitation(view) ?? 'Not in source'}
         />
         <DetailRow label="ISO" value={combination.shootingIso} />
         <DetailRow label="Push/Pull" value={pushPull} />

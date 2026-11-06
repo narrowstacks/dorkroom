@@ -8,6 +8,7 @@ import { FilmPageRecipeRow } from './film-page-recipe-row';
 const VISIBLE_ROWS = 5;
 
 interface FilmPageRecipesProps {
+  filmSlug: string;
   groups: Array<RecipeIsoGroup<FilmRecipe>>;
   defaultIso: number | undefined;
   developersReady: boolean;
@@ -20,6 +21,7 @@ interface FilmPageRecipesProps {
  * expansion start over for every film without an effect.
  */
 export const FilmPageRecipes: FC<FilmPageRecipesProps> = ({
+  filmSlug,
   groups,
   defaultIso,
   developersReady,
@@ -123,6 +125,7 @@ export const FilmPageRecipes: FC<FilmPageRecipesProps> = ({
           <FilmPageRecipeRow
             key={recipe.combination.uuid}
             recipe={recipe}
+            filmSlug={filmSlug}
             developersReady={developersReady}
             onOpen={onRecipeOpen}
           />

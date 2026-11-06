@@ -109,6 +109,18 @@ describe('RecipePickerSheet', () => {
     );
   });
 
+  it('ignores punctuation and spaces when filtering', async () => {
+    const { user, dialog } = await open();
+    await user.type(
+      within(dialog).getByRole('searchbox', { name: 'Filter films' }),
+      'kodak trix'
+    );
+    expect(within(dialog).getAllByRole('listitem')).toHaveLength(1);
+    expect(within(dialog).getByRole('listitem')).toHaveTextContent(
+      'Kodak Tri-X 400'
+    );
+  });
+
   it('does not blame a filter that nothing was typed in', async () => {
     const user = userEvent.setup();
     render(

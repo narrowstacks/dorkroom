@@ -467,6 +467,37 @@ describe('the scope', () => {
     );
   });
 
+  it('Official keeps a non-default open official recipe, and All after it keeps it too', async () => {
+    renderWorkbench({
+      search: `?${pair}&recipe=${RECIPES.hp5Xtol800.uuid}`,
+    });
+    await panelHeading();
+    fireEvent.click(scope('Official'));
+    await waitFor(
+      () => expect(heldUrl('recipeType')).toBe('official'),
+      URL_SYNC
+    );
+    expect(heldUrl('recipe')).toBe(RECIPES.hp5Xtol800.uuid);
+    fireEvent.click(scope('All'));
+    await waitFor(() => expect(heldUrl('recipeType')).toBeNull(), URL_SYNC);
+    expect(heldUrl('recipe')).toBe(RECIPES.hp5Xtol800.uuid);
+  });
+
+  it('a pass through an empty scope still returns to the pair default, not the open recipe', async () => {
+    renderWorkbench({
+      search: `?${pair}&recipe=${RECIPES.hp5Xtol800.uuid}`,
+    });
+    await panelHeading();
+    for (const name of ['Official', 'Custom', 'Saved', 'Custom', 'Official']) {
+      fireEvent.click(scope(name));
+    }
+    fireEvent.click(scope('All'));
+    await waitFor(
+      () => expect(heldUrl('recipe')).toBe(RECIPES.hp5XtolDefault.uuid),
+      URL_SYNC
+    );
+  });
+
   it('unsaving under Saved keeps the recipe on screen until the user moves on', async () => {
     renderWorkbench({
       search: `?${pair}&favorites=true`,

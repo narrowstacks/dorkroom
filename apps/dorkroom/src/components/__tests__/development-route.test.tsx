@@ -30,7 +30,7 @@ import { developmentSearchSchema } from '../../routes/search-schemas';
 import { DevelopmentRoute } from '../development-route';
 
 /**
- * The /development route's component with the real page, behind a real router on the
+ * The /development route's component with the real workbench page, behind a real router on the
  * browser history (the page reads and writes the URL through the router). A
  * link to the page already open, such as a recipe answer in the nav search,
  * must apply.
@@ -168,16 +168,21 @@ async function renderDevelopment(initialUrl = '/development') {
   );
   // The real recipes page is heavy; under a full parallel run its first render
   // can take longer than findAllByText's default 1s.
-  await screen.findAllByText(/Ilford HP5 Plus/, undefined, { timeout: 5000 });
+  await screen.findByRole(
+    'heading',
+    { name: 'What are you developing?' },
+    { timeout: 5000 }
+  );
   return router;
 }
 
-const detailPanel = () =>
-  screen.queryByRole('region', { name: /recipe details$/ });
+const panelHeading = () =>
+  screen.queryByRole('heading', { level: 2, name: / in / });
+const searchBox = () => screen.getByRole('searchbox', { name: 'Or search' });
 
 beforeEach(() => {
   localStorage.clear();
-  // Desktop width: the detail panel is a region beside the table.
+  // Desktop width.
   vi.stubGlobal('matchMedia', (query: string) => ({
     // Desktop: min-width breakpoints hold, the mobile max-width query does not.
     matches: /\(min-width:\s*\d+px\)/.test(query),
@@ -208,7 +213,7 @@ afterEach(() => {
 describe('/development route', () => {
   it('applies a recipe link that arrives while the page is open', async () => {
     const router = await renderDevelopment();
-    expect(detailPanel()).toBeNull();
+    expect(panelHeading()).toBeNull();
 
     await act(() =>
       router.navigate({
@@ -218,9 +223,7 @@ describe('/development route', () => {
     );
 
     await waitFor(() =>
-      expect(detailPanel()).toHaveAccessibleName(
-        'Ilford HP5 Plus with Ilford DD-X recipe details'
-      )
+      expect(panelHeading()).toHaveTextContent('Ilford HP5 Plus in Ilford DD-X')
     );
     const params = new URLSearchParams(window.location.search);
     expect(params.get('film')).toBe('hp5-plus');
@@ -229,7 +232,7 @@ describe('/development route', () => {
 
   it('applies a link clicked while the page shows its own search', async () => {
     await renderDevelopment();
-    const box = screen.getByRole('textbox', { name: 'Search recipes' });
+    const box = searchBox();
     fireEvent.change(box, { target: { value: 'tri-x' } });
     await waitFor(
       () =>
@@ -242,9 +245,7 @@ describe('/development route', () => {
     fireEvent.click(screen.getByRole('link', { name: 'Open recipe' }));
 
     await waitFor(() =>
-      expect(detailPanel()).toHaveAccessibleName(
-        'Ilford HP5 Plus with Ilford DD-X recipe details'
-      )
+      expect(panelHeading()).toHaveTextContent('Ilford HP5 Plus in Ilford DD-X')
     );
     // Past the page's 300ms URL writer: it must not put the old search back.
     await act(() => new Promise((resolve) => setTimeout(resolve, 500)));
@@ -280,7 +281,7 @@ describe('/development route', () => {
   it('syncs its filters with a replace that keeps the hash and other params', async () => {
     await renderDevelopment('/development?utm_source=forum#notes');
     const historyLength = window.history.length;
-    const box = screen.getByRole('textbox', { name: 'Search recipes' });
+    const box = searchBox();
     fireEvent.change(box, { target: { value: 'hp5' } });
 
     await waitFor(
@@ -299,7 +300,7 @@ describe('/development route', () => {
 
   it('keeps the page mounted while it syncs its own filters to the URL', async () => {
     await renderDevelopment();
-    const box = screen.getByRole('textbox', { name: 'Search recipes' });
+    const box = searchBox();
     box.focus();
     fireEvent.change(box, { target: { value: 'hp5' } });
 
@@ -312,7 +313,7 @@ describe('/development route', () => {
       { timeout: 2000 }
     );
     // A remount would have swapped the box for a new, unfocused one.
-    expect(screen.getByRole('textbox', { name: 'Search recipes' })).toBe(box);
+    expect(searchBox()).toBe(box);
     expect(box).toHaveFocus();
   });
 });

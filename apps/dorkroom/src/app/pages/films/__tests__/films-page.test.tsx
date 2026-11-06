@@ -541,7 +541,10 @@ describe.each([
     const link = await within(page).findByRole('link', {
       name: /Kodak D-76/,
     });
-    expect(link).toHaveAttribute('href', '/development?recipe=recipe-1');
+    expect(link).toHaveAttribute(
+      'href',
+      '/development?film=hp5-plus&recipe=recipe-1'
+    );
     expect(link).toHaveTextContent('1+1');
     expect(link).toHaveTextContent('9m 30s');
     expect(
