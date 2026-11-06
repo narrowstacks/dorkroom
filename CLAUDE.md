@@ -158,6 +158,42 @@ not yet in the CI gate. Dependency pinning is two-tier, backstopped by the
 `bunfig.toml` `minimumReleaseAge` gate. See the `toolchain` skill
 (`.claude/skills/toolchain/`) for the full policy and rationale.
 
+## Vercel Builds
+
+**Vercel builds only commits marked in their subject line**: `[deploy]` for
+production, `[preview]` for branch previews (`scripts/should-deploy.sh`).
+Production stays on the last `[deploy]` commit, and the next one ships everything
+merged since, so a batch of PRs produces one deployment.
+
+Put `[deploy]` on the merge commit of:
+
+- A standalone PR that changes the web build: anything outside `apps/mobile/`,
+  `supabase/`, `docker/`, `docs/`, `scripts/`, `resources/`, `.github/`,
+  `.claude/`, and `*.md`. `api/`, `utils/`, `packages/`, and root config all
+  count.
+- The **last PR of a batch or stack**, when any PR in the batch changed the web
+  build, even if the last PR is docs-only. Earlier merges in the batch stay
+  unmarked.
+
+Everything else stays unmarked: mid-batch merges, iOS-only work, docs, CI.
+
+Merge with an explicit subject, because that subject is what Vercel reads:
+
+```bash
+gh pr merge 700 --squash --subject "feat(web): new page (#700) [deploy]"  # deploys
+gh pr merge 699 --squash --subject "feat(web): first step (#699)"         # does not
+```
+
+The PR title is unreliable here: GitHub's squash default uses the commit subject
+for a single-commit PR. On a rebase merge, the last commit's subject decides. A
+marker in the commit body does nothing.
+
+For a preview, put `[preview]` in the subject of the branch's latest commit:
+`git commit --allow-empty -m "chore: request preview [preview]"`. It never ships
+production, even if it becomes the squash subject. To ship a batch whose last
+merge went out unmarked, land an empty `chore: ship web [deploy]` commit on
+`main`.
+
 ## Vercel Runtime
 
 **Never pin `@vercel/node` in `vercel.json`.** It is an *official* builder: the

@@ -5,6 +5,11 @@ description: Dorkroom release and versioning workflow — CalVer version bumps a
 
 # Releasing Dorkroom
 
+## Deploying
+
+Pushing to main deploys the web app only when the commit subject contains
+`[deploy]`. See "Vercel Builds" in the root `CLAUDE.md` for when to mark a commit.
+
 ## Versioning
 
 - **CalVer** (`YYYY.MM.DD`) — all `package.json` versions use the date changes are pushed to main.

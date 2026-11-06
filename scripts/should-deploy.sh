@@ -1,80 +1,44 @@
 #!/bin/bash
 # Vercel Ignored Build Step
 # Exit 0 = skip build, Exit 1 = proceed with build
+#
+# Builds are opt-in, through a marker in the commit subject: [deploy] for
+# production, [preview] for everything else. That lets a batch of PRs merge
+# without a deployment per merge; the final [deploy] commit ships everything
+# since the last one. CLAUDE.md ("Vercel Builds") says when to mark a commit.
+#
+# The markers are per environment so that a preview request can never ship: a
+# lone [preview] commit becomes the squash subject on main, where only [deploy]
+# counts. Only the subject is read, because squash merges here copy every branch
+# commit into the body.
 
-echo "🔍 Checking if build should be skipped..."
+MESSAGE="$VERCEL_GIT_COMMIT_MESSAGE"
+SUBJECT="${MESSAGE%%$'\n'*}"
+
+if [ "$VERCEL_ENV" = "production" ]; then
+  MARKER="[deploy]"
+else
+  MARKER="[preview]"
+fi
+
 echo "📌 Current commit: $VERCEL_GIT_COMMIT_SHA"
-echo "📌 Previous commit: $VERCEL_GIT_PREVIOUS_SHA"
-echo "📌 Repo: $VERCEL_GIT_REPO_OWNER/$VERCEL_GIT_REPO_SLUG"
+echo "📌 Environment: $VERCEL_ENV (needs $MARKER)"
+echo "📌 Subject: $SUBJECT"
 
-# Commits from our own automation never affect the web build: the badge sync
-# only rewrites README.md and the screenshot sync only rewrites
-# resources/dorkroom-homepage.webp. Match them by commit message BEFORE the
-# GitHub API diff below — that call is unauthenticated and rate-limited from
-# Vercel's shared build IPs, and its failure mode is deliberately "build",
-# which let these bot commits trigger deployments despite the path allowlist.
-case "$VERCEL_GIT_COMMIT_MESSAGE" in
-  "chore: sync README version badges"* | "chore: update homepage screenshot"*)
-    echo "⏭ Skipping build: automation commit ($VERCEL_GIT_COMMIT_MESSAGE)"
-    exit 0
+# No commit message means no Git metadata, so this deployment did not come from
+# a push (for example a CLI deploy from outside a checkout). Someone asked for
+# it directly, and there is no subject to mark.
+if [ -z "$MESSAGE" ]; then
+  echo "🔨 No commit message, building."
+  exit 1
+fi
+
+case "$SUBJECT" in
+  *"$MARKER"*)
+    echo "🔨 Subject contains $MARKER, building."
+    exit 1
     ;;
 esac
 
-# Pick the base to diff against. Vercel leaves VERCEL_GIT_PREVIOUS_SHA empty
-# on the first push of a branch, which used to fall through to "build" and
-# deployed a preview for every iOS-only PR (apps/mobile/ is skipped below,
-# but only once there was something to diff). For a branch other than main,
-# diff the whole branch against main instead: GitHub's three-dot compare
-# lists the changes since the merge base, which is exactly the PR's diff.
-BASE="$VERCEL_GIT_PREVIOUS_SHA"
-if [ -z "$BASE" ] && [ -n "$VERCEL_GIT_COMMIT_REF" ] && [ "$VERCEL_GIT_COMMIT_REF" != "main" ]; then
-  BASE="main"
-  echo "📌 First push of branch $VERCEL_GIT_COMMIT_REF: diffing against main."
-fi
-
-if [ -z "$BASE" ]; then
-  echo "⚠️ No previous commit SHA — cannot diff, so building."
-  exit 1
-fi
-
-# Use GitHub API to get changed files (works without git history)
-GITHUB_API="https://api.github.com/repos/$VERCEL_GIT_REPO_OWNER/$VERCEL_GIT_REPO_SLUG/compare/$BASE...$VERCEL_GIT_COMMIT_SHA"
-echo "📡 Fetching diff from GitHub API..."
-
-CHANGED_FILES=$(curl -s "$GITHUB_API" | grep '"filename":' | sed 's/.*"filename": "\([^"]*\)".*/\1/')
-
-echo "📁 Changed files:"
-echo "$CHANGED_FILES"
-
-if [ -z "$CHANGED_FILES" ]; then
-  echo "⚠️ Could not determine changed files — building rather than risk a skip."
-  exit 1
-fi
-
-# Both fallbacks above deliberately BUILD rather than consult turbo's affected
-# detection. `turbo query affected` (the replacement Vercel recommends for the
-# deprecated turbo-ignore) is package-scoped: it reports zero affected packages
-# for root-level changes like vercel.json, turbo.json or the root package.json.
-# Gating on it would have skipped the deploy that fixed the @vercel/node builder
-# pin. The allowlist below is the inverse and is the safe shape: build unless a
-# change is explicitly known not to feed the web build.
-#
-# Skip if changes are ONLY in these paths/files.
-# - apps/mobile is the React Native (Expo) app — Vercel builds the web app only,
-#   so commits touching only the mobile app must not trigger a web deployment.
-# - supabase/ (Deno edge functions + DB migrations) deploys to Supabase, and
-#   docker/ (self-host entrypoint) deploys outside Vercel — neither feeds the build.
-# - resources/ holds README/marketing assets only.
-# NOTE: utils/ is intentionally NOT here — it's imported by api/, so changes
-# there must still trigger a build.
-NON_BUILD_PATTERNS="(^docs/|^scripts/|^\.github/|^\.cursor/|^\.vscode/|^\.claude/|^\.superpowers/|^apps/mobile/|^supabase/|^docker/|^resources/|\.md$|^LICENSE$|^NOTICE$|^\.gitignore$|^\.dockerignore$|^\.editorconfig$)"
-
-# Check if ANY changed file is NOT in the skip patterns
-if echo "$CHANGED_FILES" | grep -qvE "$NON_BUILD_PATTERNS"; then
-  echo "🔨 App-related files changed, building..."
-  exit 1
-fi
-
-# Only docs/config changed - skip build
-echo "⏭ Skipping build: only docs/config files changed"
+echo "⏭ Skipping build: subject has no $MARKER marker."
 exit 0

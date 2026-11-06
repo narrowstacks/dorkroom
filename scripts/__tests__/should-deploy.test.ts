@@ -1,101 +1,86 @@
 import { spawnSync } from 'node:child_process';
-import {
-  chmodSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 const SCRIPT = join(__dirname, '..', 'should-deploy.sh');
 
-// should-deploy.sh reads the changed files from the GitHub compare API with
-// curl. A fake curl on PATH records the URL it was called with and prints a
-// canned compare response, so the script runs without the network.
-let binDir: string;
-
-function run(env: Record<string, string>, files: string[]) {
-  const body = files.map((f) => `      "filename": "${f}",`).join('\n');
-  writeFileSync(join(binDir, 'response.json'), body);
+function run(env: 'production' | 'preview', message: string) {
   const result = spawnSync('bash', [SCRIPT], {
     env: {
-      PATH: `${binDir}:${process.env.PATH ?? ''}`,
-      FAKE_DIR: binDir,
-      VERCEL_GIT_REPO_OWNER: 'narrowstacks',
-      VERCEL_GIT_REPO_SLUG: 'dorkroom',
+      PATH: process.env.PATH ?? '',
+      VERCEL_ENV: env,
       VERCEL_GIT_COMMIT_SHA: 'head',
-      VERCEL_GIT_COMMIT_MESSAGE: 'feat: something',
-      ...env,
+      VERCEL_GIT_COMMIT_MESSAGE: message,
     },
     encoding: 'utf8',
   });
-  return { code: result.status, out: result.stdout };
+  return result.status;
 }
-
-beforeEach(() => {
-  binDir = mkdtempSync(join(tmpdir(), 'should-deploy-'));
-  const curl = join(binDir, 'curl');
-  writeFileSync(
-    curl,
-    '#!/bin/bash\necho "$2" > "$FAKE_DIR/url"\ncat "$FAKE_DIR/response.json"\n'
-  );
-  chmodSync(curl, 0o755);
-});
-
-afterEach(() => {
-  rmSync(binDir, { recursive: true, force: true });
-});
 
 const SKIP = 0;
 const BUILD = 1;
 
 describe('should-deploy.sh', () => {
-  it('skips the first push of an iOS-only branch, diffing against main', () => {
-    const { code, out } = run({ VERCEL_GIT_COMMIT_REF: 'feat/mobile-x' }, [
-      'apps/mobile/src/lib/a.ts',
-      'apps/mobile/CHANGELOG.md',
-    ]);
-    expect(code).toBe(SKIP);
-    expect(out).toContain('diffing against main');
-    expect(readFileSync(join(binDir, 'url'), 'utf8')).toContain(
-      '/compare/main...head'
+  it('builds production on [deploy]', () => {
+    expect(run('production', 'feat(web): new page (#700) [deploy]')).toBe(
+      BUILD
     );
   });
 
-  it('builds the first push of a branch that touches the web app', () => {
-    const { code } = run({ VERCEL_GIT_COMMIT_REF: 'feat/web-x' }, [
-      'apps/mobile/src/lib/a.ts',
-      'apps/dorkroom/src/app/pages/privacy-page.tsx',
-    ]);
-    expect(code).toBe(BUILD);
+  it('builds a preview on [preview]', () => {
+    expect(run('preview', 'chore: preview [preview]')).toBe(BUILD);
   });
 
-  it('builds main with no previous SHA rather than guess a base', () => {
-    const { code } = run({ VERCEL_GIT_COMMIT_REF: 'main' }, [
-      'apps/mobile/src/lib/a.ts',
-    ]);
-    expect(code).toBe(BUILD);
+  it.each(['production', 'preview'] as const)(
+    'skips an unmarked %s commit',
+    (env) => {
+      expect(run(env, 'feat(web): new page')).toBe(SKIP);
+    }
+  );
+
+  it('skips production on [preview], so a preview request cannot ship', () => {
+    expect(run('production', 'chore: preview [preview] (#700)')).toBe(SKIP);
   });
 
-  it('diffs against the previous SHA when Vercel provides one', () => {
-    const { code } = run(
-      {
-        VERCEL_GIT_COMMIT_REF: 'feat/mobile-x',
-        VERCEL_GIT_PREVIOUS_SHA: 'prev',
-      },
-      ['apps/mobile/src/lib/a.ts']
-    );
-    expect(code).toBe(SKIP);
-    expect(readFileSync(join(binDir, 'url'), 'utf8')).toContain(
-      '/compare/prev...head'
-    );
+  it('skips a preview on [deploy]', () => {
+    expect(run('preview', 'feat(web): new page [deploy]')).toBe(SKIP);
   });
 
-  it('builds when the compare API returns nothing', () => {
-    const { code } = run({ VERCEL_GIT_COMMIT_REF: 'feat/mobile-x' }, []);
-    expect(code).toBe(BUILD);
+  it('skips a squash merge whose marker is only in a branch commit in the body', () => {
+    expect(
+      run(
+        'production',
+        'feat(web): new page (#700)\n\n* feat(web): new page\n\n* chore: ship [deploy]'
+      )
+    ).toBe(SKIP);
+  });
+
+  it('builds a marked squash merge with a multi-line body', () => {
+    expect(
+      run(
+        'production',
+        'feat(web): new page (#700) [deploy]\n\n* feat(web): new page'
+      )
+    ).toBe(BUILD);
+  });
+
+  it.each(['[DEPLOY]', 'deploy', '[deploy', '[build]', '[release]'])(
+    'skips the near-miss marker %s',
+    (marker) => {
+      expect(run('production', `feat(web): new page ${marker}`)).toBe(SKIP);
+    }
+  );
+
+  it('skips automation commits', () => {
+    expect(
+      run('production', 'chore: sync README version badges [skip ci]')
+    ).toBe(SKIP);
+    expect(
+      run('production', 'chore: update homepage screenshot [skip ci]')
+    ).toBe(SKIP);
+  });
+
+  it('builds when there is no commit message to mark', () => {
+    expect(run('production', '')).toBe(BUILD);
   });
 });
