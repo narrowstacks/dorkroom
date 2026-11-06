@@ -435,10 +435,10 @@ describe('RecipeList', () => {
     );
     const current = screen.getByRole('button', { current: true });
     expect(current).toHaveAccessibleName(/7 minutes/);
-    expect(current.querySelector('svg')).not.toBeNull();
-    expect(
-      screen.getAllByRole('button').filter((b) => b.querySelector('svg'))
-    ).toHaveLength(1);
+    expect(current.querySelector('svg')).toBeNull();
+    expect(current).toHaveClass(
+      'shadow-[inset_0_0_0_2px_var(--color-border-primary)]'
+    );
   });
 
   it('shows duplicates as separate, distinguishable rows with their own keys', async () => {
@@ -918,7 +918,9 @@ describe('RecipeList details', () => {
       />
     );
     expect(screen.getByRole('button', { current: true })).toHaveClass(
-      'border-primary'
+      'border-primary',
+      // Wider than its resting 2px, or the focus ring lands on top of it.
+      'focus-visible:shadow-[inset_0_0_0_4px_var(--color-focus-ring)]'
     );
     expect(screen.getByRole('button', { name: /7 minutes/ })).toHaveClass(
       'border-transparent',

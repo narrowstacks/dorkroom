@@ -15,9 +15,9 @@ export interface RecipeScopeFilterProps {
 }
 
 /**
- * Narrows the pickers and search to all, official, custom or saved recipes. The
- * chips wrap rather than scroll: four do not fit a phone, and a scrolled row
- * hides "Saved" with no hint it is there.
+ * Narrows the pickers and search to all, official, custom or saved recipes. All
+ * four fit the side column's one row. They wrap rather than
+ * scroll: a scrolled row hides "Saved" with no hint it is there.
  */
 export const RecipeScopeFilter: FC<RecipeScopeFilterProps> = ({
   value,

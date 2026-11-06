@@ -19,6 +19,7 @@ import {
   RecipePanel,
   type RecipePanelProps,
 } from '../../../components/development-recipes/recipe-panel';
+import { recipeRowsToPickerOptions } from '../../../components/development-recipes/recipe-picker-option';
 import { RecipeTemperatureChip } from '../../../components/development-recipes/recipe-temperature-chip';
 import { TemperatureProvider } from '../../../contexts/temperature-context';
 import { VolumeProvider } from '../../../contexts/volume-context';
@@ -283,14 +284,19 @@ describe('RecipePanel', () => {
       ).toHaveAccessibleName(/^EI 400/);
     });
 
-    it('marks the selected chip with a check, not colour alone', () => {
+    it('marks the selected chip with a heavier border and no icon', () => {
       renderPanel(pair);
       const group = screen.getByRole('radiogroup', { name: 'Speed' });
       const [selected, other] = within(group).getAllByRole('radio');
-      const check = (radio: HTMLElement) =>
-        radio.parentElement?.querySelector('svg');
-      expect(check(selected)).not.toBeNull();
-      expect(check(other)).toBeNull();
+      expect(selected).toBeChecked();
+      expect(selected.parentElement?.querySelector('svg')).toBeNull();
+      const chip = (radio: HTMLElement) => radio.nextElementSibling;
+      expect(chip(selected)).toHaveClass(
+        'shadow-[inset_0_0_0_2px_var(--color-border-primary)]'
+      );
+      expect(chip(other)).not.toHaveClass(
+        'shadow-[inset_0_0_0_2px_var(--color-border-primary)]'
+      );
     });
 
     it('keeps the chip off the bare border class that high contrast repaints', () => {
@@ -490,16 +496,61 @@ describe('RecipePanel', () => {
     );
   });
 
-  it('names the maker for an official source link', () => {
-    renderPanel([
+  it('puts tags on the source line and draws no box for them', () => {
+    const { container } = renderPanel([
       make('k', {
-        infoSource: 'https://example.com/f4017.pdf',
+        infoSource: 'https://example.com/kodak.pdf',
         tags: ['official-kodak'],
+        notes: null,
       }),
     ]);
-    expect(
-      screen.getByRole('link', { name: 'Official Kodak source' })
-    ).toBeInTheDocument();
+    const tag = screen.getByText('official kodak');
+    expect(tag.closest('dd')).toContainElement(
+      screen.getByRole('link', { name: /View source/ })
+    );
+    expect(container.querySelectorAll('.bg-border-muted')).not.toContain(
+      tag.parentElement
+    );
+  });
+
+  it('keeps the notes box for notes alone', () => {
+    renderPanel([make('k', { notes: 'Agitate gently.', tags: ['x'] })]);
+    expect(screen.getByText('Agitate gently.').parentElement).toHaveClass(
+      'bg-border-muted'
+    );
+    expect(screen.getByText('x').closest('dd')).not.toBeNull();
+  });
+
+  it('puts the actions directly under the title on the wide layout', () => {
+    renderPanel([make('k')]);
+    const title = screen.getByRole('heading', { level: 2 });
+    const save = screen.getByRole('button', { name: 'Save' });
+    expect(title.parentElement?.contains(save)).toBe(false);
+    expect(title.closest('header')).toHaveClass('flex-col');
+  });
+
+  it('labels a row whose dilution is lost as unknown, not Stock', () => {
+    const view = {
+      ...make('k', { customDilution: null, dilutionId: '2' }),
+      developer: undefined,
+    };
+    const [option] = recipeRowsToPickerOptions(
+      [{ view, dilution: 'Stock', temperatureDiffers: false }],
+      { unit: 'celsius' }
+    );
+    expect(option.label).toContain('Dilution not known');
+  });
+
+  it('says the dilution is unknown when its developer is gone, with no mixer', () => {
+    renderPanel([
+      {
+        ...make('k', { customDilution: null, dilutionId: '2' }),
+        developer: undefined,
+      },
+    ]);
+    expect(screen.getAllByText(/Dilution not known/).length).toBeGreaterThan(0);
+    expect(screen.queryByLabelText('Total volume')).toBeNull();
+    expect(screen.queryByText(/use developer stock/i)).toBeNull();
   });
 
   it('keeps a 44px target on the source link and the volume input', () => {
@@ -691,12 +742,27 @@ describe('RecipeTemperatureChip', () => {
     );
   });
 
-  it('follows its surface colour instead of pinning one', () => {
+  it('inverts the icon on the filled High chip only', () => {
     chip(24, 75.2);
-    const classes = screen.getByText(/High temp/).className.split(' ');
-    expect(classes).toContain('border-current');
-    expect(classes).not.toContain('text-primary');
-    expect(classes).not.toContain('border-primary');
+    expect(screen.getByText(/High temp/)).toHaveClass('darkroom-invert-icon');
+    cleanup();
+    chip(18, 64.4);
+    expect(screen.getByText(/Low temp/)).not.toHaveClass(
+      'darkroom-invert-icon'
+    );
+  });
+
+  it('takes High and Low from their own tokens, not the surface', () => {
+    chip(24, 75.2);
+    const high = screen.getByText(/High temp/).className;
+    expect(high).toContain('--color-temp-high-bg');
+    expect(high).toContain('--temp-high-border-style');
+    expect(high).not.toContain('border-current');
+    cleanup();
+    chip(18, 64.4);
+    expect(screen.getByText(/Low temp/).className).toContain(
+      '--color-temp-low-text'
+    );
   });
 
   it('renders just past the tolerance', () => {
@@ -722,7 +788,7 @@ describe('RecipeTemperatureChip', () => {
   it('avoids the bare border class', () => {
     chip(24, 75.2);
     const classes = screen.getByText(/High temp/).className.split(' ');
-    expect(classes).toContain('border-1');
+    expect(classes).toContain('[border-width:1px]');
     expect(classes).not.toContain('border');
   });
 });

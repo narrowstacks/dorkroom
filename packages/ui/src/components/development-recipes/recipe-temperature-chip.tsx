@@ -14,11 +14,11 @@ export interface RecipeTemperatureChipProps {
 /**
  * Flags a recipe that is not at room temperature: "High temp 24°C" or "Low
  * temp 18°C", in the user's unit. Nothing is drawn at 20°C, judged by the same
- * tolerance as `isNonStandardTemperature`. An icon and words carry the meaning,
- * so it survives the one-colour darkroom theme. It takes its colour from the
- * surface it sits on (`currentColor`), so a hovered row that flips its text
- * colour takes the chip with it. It avoids the bare `border`
- * class, which the high-contrast theme repaints on every `rounded-xl` surface.
+ * tolerance as `isNonStandardTemperature`. Warm or cool by token, with an icon and
+ * words, so the meaning survives the one-colour themes: those tell High from Low
+ * by a solid fill against a dashed outline. The fill is opaque, so a hovered row
+ * underneath changes nothing. It avoids the bare `border` class, which the
+ * high-contrast theme repaints on every `rounded-xl` surface.
  */
 export const RecipeTemperatureChip: FC<RecipeTemperatureChipProps> = ({
   temperatureC,
@@ -33,7 +33,10 @@ export const RecipeTemperatureChip: FC<RecipeTemperatureChipProps> = ({
   return (
     <span
       className={cn(
-        'inline-flex min-h-8 items-center gap-1.5 rounded-lg border-1 border-current px-2.5 text-sm font-medium',
+        'inline-flex min-h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium [border-width:1px]',
+        isHigher
+          ? 'darkroom-invert-icon bg-[color:var(--color-temp-high-bg)] text-[color:var(--color-temp-high-text)] border-[color:var(--color-temp-high-border)] [border-style:var(--temp-high-border-style)]'
+          : 'bg-[color:var(--color-temp-low-bg)] text-[color:var(--color-temp-low-text)] border-[color:var(--color-temp-low-border)] [border-style:var(--temp-low-border-style)]',
         className
       )}
     >

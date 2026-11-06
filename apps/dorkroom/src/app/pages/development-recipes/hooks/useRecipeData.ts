@@ -39,7 +39,7 @@ export interface UseRecipeDataProps {
 
 type SelectOption = { label: string; value: string };
 
-const toFilmOptions = (films: Film[]): SelectOption[] => [
+export const toFilmOptions = (films: Film[]): SelectOption[] => [
   { label: 'Select film', value: '' },
   ...films.map((film) => ({
     label: `${film.brand} ${film.name}`,
@@ -47,7 +47,7 @@ const toFilmOptions = (films: Film[]): SelectOption[] => [
   })),
 ];
 
-const toDeveloperOptions = (developers: Developer[]): SelectOption[] => [
+export const toDeveloperOptions = (developers: Developer[]): SelectOption[] => [
   { label: 'Select developer', value: '' },
   ...developers.map((developer) => ({
     label: `${developer.manufacturer} ${developer.name}`,
@@ -146,33 +146,16 @@ export function useRecipesByUuid(
 }
 
 /**
- * Hook that handles all data processing and derived state for development recipes
- * Consolidates combination views, filtering, and sorting
+ * A `?recipe=<encoded>` custom recipe as a view, with its film and developer
+ * taken from the shared data where it brings its own.
  */
-export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
-  const {
-    filteredCombinations,
-    customRecipes,
-    allFilms,
-    allDevelopers,
-    catalogFilms,
-    catalogDevelopers,
-    selectedFilm,
-    selectedDeveloper,
-    developerTypeFilter,
-    dilutionFilter,
-    isoFilter,
-    searchQuery,
-    customRecipeFilter,
-    favoritesOnly,
-    sharedCustomRecipe,
-    isFavorite,
-    getFilmById,
-    getDeveloperById,
-  } = props;
-
+export function useSharedCustomRecipeView(
+  sharedCustomRecipe: UseRecipeDataProps['sharedCustomRecipe'],
+  getFilmById: (id: string) => Film | undefined,
+  getDeveloperById: (id: string) => Developer | undefined
+): DevelopmentCombinationView | null {
   // Memoize expensive shared custom recipe conversion
-  const sharedCustomRecipeView = useMemo(() => {
+  return useMemo(() => {
     if (!sharedCustomRecipe) {
       return null;
     }
@@ -264,8 +247,15 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
 
     return recipeView;
   }, [sharedCustomRecipe, getFilmById, getDeveloperById]);
+}
 
-  const customCombinationViews = useMemo<DevelopmentCombinationView[]>(() => {
+/** The user's custom recipes as views, leaving out any that are out of range. */
+export function useCustomCombinationViews(
+  customRecipes: CustomRecipe[],
+  getFilmById: (id: string) => Film | undefined,
+  getDeveloperById: (id: string) => Developer | undefined
+): DevelopmentCombinationView[] {
+  return useMemo<DevelopmentCombinationView[]>(() => {
     if (!customRecipes.length) {
       return [];
     }
@@ -289,6 +279,45 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
       ];
     });
   }, [customRecipes, getDeveloperById, getFilmById]);
+}
+
+/**
+ * Hook that handles all data processing and derived state for development recipes
+ * Consolidates combination views, filtering, and sorting
+ */
+export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
+  const {
+    filteredCombinations,
+    customRecipes,
+    allFilms,
+    allDevelopers,
+    catalogFilms,
+    catalogDevelopers,
+    selectedFilm,
+    selectedDeveloper,
+    developerTypeFilter,
+    dilutionFilter,
+    isoFilter,
+    searchQuery,
+    customRecipeFilter,
+    favoritesOnly,
+    sharedCustomRecipe,
+    isFavorite,
+    getFilmById,
+    getDeveloperById,
+  } = props;
+
+  const sharedCustomRecipeView = useSharedCustomRecipeView(
+    sharedCustomRecipe,
+    getFilmById,
+    getDeveloperById
+  );
+
+  const customCombinationViews = useCustomCombinationViews(
+    customRecipes,
+    getFilmById,
+    getDeveloperById
+  );
 
   const apiCombinationViews = useMemo<DevelopmentCombinationView[]>(() => {
     return filteredCombinations.map((combination) => ({
