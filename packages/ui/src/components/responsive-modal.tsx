@@ -1,5 +1,5 @@
 import { X } from 'lucide-react';
-import { type FC, type ReactNode, useId } from 'react';
+import { type FC, type ReactNode, type RefObject, useId } from 'react';
 import { useIsMobile } from '../hooks/use-breakpoint';
 import { cn } from '../lib/cn';
 import { Drawer, DrawerBody, DrawerContent } from './drawer';
@@ -40,6 +40,14 @@ export interface ResponsiveModalProps {
   drawerContentClassName?: string;
   /** Whether to hide the close button in the header */
   hideCloseButton?: boolean;
+  /** Custom className for the drawer panel, such as a taller height */
+  drawerClassName?: string;
+  /** Extra classes for the drawer's close button */
+  closeButtonClassName?: string;
+  /** Where focus goes on open, in place of the first tabbable element */
+  initialFocus?: RefObject<HTMLElement | null>;
+  /** Where focus goes on close, in place of the opener */
+  returnFocus?: RefObject<HTMLElement | null>;
 }
 
 /**
@@ -92,6 +100,10 @@ export const ResponsiveModal: FC<ResponsiveModalProps> = ({
   drawerBodyClassName,
   drawerContentClassName,
   hideCloseButton = false,
+  drawerClassName,
+  closeButtonClassName,
+  initialFocus,
+  returnFocus,
 }) => {
   // Use prop if provided, otherwise use hook
   const isMobileHook = useIsMobile();
@@ -110,6 +122,9 @@ export const ResponsiveModal: FC<ResponsiveModalProps> = ({
         enableBackgroundBlur={true}
         modal
         ariaLabelledBy={titleId}
+        className={drawerClassName}
+        initialFocus={initialFocus}
+        returnFocus={returnFocus}
       >
         <DrawerContent
           className={cn(
@@ -132,7 +147,10 @@ export const ResponsiveModal: FC<ResponsiveModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full p-2 transition"
+                className={cn(
+                  'rounded-full p-2 transition',
+                  closeButtonClassName
+                )}
                 style={{
                   color: 'var(--color-text-secondary)',
                   borderColor: 'var(--color-border-secondary)',
@@ -168,6 +186,8 @@ export const ResponsiveModal: FC<ResponsiveModalProps> = ({
       size={size}
       footer={footer}
       hideCloseButton={hideCloseButton}
+      initialFocus={initialFocus}
+      returnFocus={returnFocus}
     >
       {children}
     </Modal>

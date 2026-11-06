@@ -1,6 +1,14 @@
 import type { SelectItem } from '@dorkroom/logic';
 import { Check, ChevronDown, X } from 'lucide-react';
-import { type RefObject, useEffect, useId, useRef, useState } from 'react';
+import {
+  type Ref,
+  type RefObject,
+  useEffect,
+  useId,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import { useSwallowOutsideClick } from '../hooks/use-swallow-outside-click';
 import { cn } from '../lib/cn';
 import { cssVars } from '../lib/dom';
@@ -14,7 +22,26 @@ const LISTBOX_OPEN_ATTRIBUTE = 'data-listbox-open';
 
 let openListCount = 0;
 
+function useListboxOpenAttribute(isListShown: boolean) {
+  useEffect(() => {
+    if (!isListShown) return;
+    const root = document.documentElement;
+    openListCount += 1;
+    root.setAttribute(LISTBOX_OPEN_ATTRIBUTE, '');
+    return () => {
+      openListCount -= 1;
+      if (openListCount === 0) root.removeAttribute(LISTBOX_OPEN_ATTRIBUTE);
+    };
+  }, [isListShown]);
+}
+
+export interface SearchableSelectHandle {
+  /** Focuses the input without opening the list. */
+  focusWithoutOpening: () => void;
+}
+
 interface SearchableSelectProps {
+  ref?: Ref<SearchableSelectHandle>;
   label?: string;
   selectedValue: string;
   onValueChange: (value: string) => void;
@@ -52,6 +79,7 @@ function SearchableSelectOption({
       role="option"
       id={id}
       aria-selected={isSelected}
+      aria-label={item.detail ? `${item.label}, ${item.detail}` : undefined}
       onClick={() => {
         const pointerType = lastPointerType.current;
         lastPointerType.current = '';
@@ -71,10 +99,16 @@ function SearchableSelectOption({
           ? 'bg-hover-surface text-on-hover-surface'
           : 'text-secondary hover:bg-hover-surface hover:text-on-hover-surface',
         isFocused && 'shadow-[inset_0_0_0_2px_var(--color-on-hover-surface)]',
-        isSelected ? 'font-medium' : 'font-normal'
+        isSelected ? 'font-medium' : 'font-normal',
+        item.detail && 'min-h-11'
       )}
     >
-      <span>{item.label}</span>
+      <span className={cn(item.detail && 'min-w-0 flex-1')}>{item.label}</span>
+      {item.detail && (
+        <span className="max-w-[45%] shrink-0 text-right text-xs tabular-nums">
+          {item.detail}
+        </span>
+      )}
       {isSelected && <Check className="size-4 shrink-0" aria-hidden="true" />}
     </div>
   );
@@ -115,7 +149,10 @@ function useBlurClose(
  * pen skip it: focusing a text input from a tap raises the on-screen keyboard,
  * which a tap on an X should not do.
  */
-function useClearRefocus(inputRef: RefObject<HTMLInputElement | null>) {
+function useClearRefocus(
+  inputRef: RefObject<HTMLInputElement | null>,
+  handleRef: Ref<SearchableSelectHandle> | undefined
+) {
   const suppressOpenOnFocus = useRef(false);
   const refocusInput = (pointerType: string) => {
     if (pointerType === 'touch' || pointerType === 'pen') {
@@ -129,6 +166,9 @@ function useClearRefocus(inputRef: RefObject<HTMLInputElement | null>) {
     // dispatches nothing, so never leave the flag armed.
     suppressOpenOnFocus.current = false;
   };
+  useImperativeHandle(handleRef, () => ({
+    focusWithoutOpening: () => refocusInput(''),
+  }));
   return { refocusInput, suppressOpenOnFocus };
 }
 
@@ -243,6 +283,7 @@ function NoResultsHint() {
 }
 
 export function SearchableSelect({
+  ref,
   label,
   selectedValue,
   onValueChange,
@@ -275,16 +316,7 @@ export function SearchableSelect({
   );
 
   const isListShown = isOpen && filteredItems.length > 0;
-  useEffect(() => {
-    if (!isListShown) return;
-    const root = document.documentElement;
-    openListCount += 1;
-    root.setAttribute(LISTBOX_OPEN_ATTRIBUTE, '');
-    return () => {
-      openListCount -= 1;
-      if (openListCount === 0) root.removeAttribute(LISTBOX_OPEN_ATTRIBUTE);
-    };
-  }, [isListShown]);
+  useListboxOpenAttribute(isListShown);
 
   const closeList = () => {
     lastSelection.current = null;
@@ -293,7 +325,7 @@ export function SearchableSelect({
     setFocusedIndex(-1);
   };
 
-  const { refocusInput, suppressOpenOnFocus } = useClearRefocus(inputRef);
+  const { refocusInput, suppressOpenOnFocus } = useClearRefocus(inputRef, ref);
 
   const { cancelPendingClose, handleInputBlur } = useBlurClose(
     listRef,

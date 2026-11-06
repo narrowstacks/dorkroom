@@ -2,8 +2,8 @@ import { Check } from 'lucide-react';
 import { type FocusEvent, useId, useLayoutEffect, useRef } from 'react';
 import { cn } from '../../lib/cn';
 
-export interface RecipeChoiceOption {
-  id: string;
+export interface RecipeChoiceOption<T extends string = string> {
+  id: T;
   label: string;
   /** Second line, such as the development time. */
   detail?: string;
@@ -13,14 +13,14 @@ export interface RecipeChoiceOption {
   accessibleName?: string;
 }
 
-export interface RecipeChoiceChipsProps {
+export interface RecipeChoiceChipsProps<T extends string = string> {
   /** Names the group for assistive technology and, unless hidden, shows above it. */
   label: string;
   hideLabel?: boolean;
-  options: readonly RecipeChoiceOption[];
+  options: readonly RecipeChoiceOption<T>[];
   /** Selected option id, or null when none matches (a free-typed value). */
-  value: string | null;
-  onChange: (id: string) => void;
+  value: T | null;
+  onChange: (id: T) => void;
   /** One swipeable row, for phones. Otherwise the chips wrap. */
   scroll?: boolean;
   className?: string;
@@ -49,7 +49,7 @@ function revealInRow(row: HTMLElement, chip: Element) {
  * The selected chip carries a check and a heavier border as well as a tint,
  * because the darkroom and high-contrast themes collapse colour.
  */
-export function RecipeChoiceChips({
+export function RecipeChoiceChips<T extends string = string>({
   label,
   hideLabel = false,
   options,
@@ -57,7 +57,7 @@ export function RecipeChoiceChips({
   onChange,
   scroll = false,
   className,
-}: RecipeChoiceChipsProps) {
+}: RecipeChoiceChipsProps<T>) {
   const labelId = useId();
   const groupName = useId();
   const rowRef = useRef<HTMLDivElement>(null);
@@ -84,6 +84,7 @@ export function RecipeChoiceChips({
     return () => {
       live = false;
     };
+    // oxlint-disable-next-line react/exhaustive-effect-dependencies -- `value` is read through the DOM: it decides which input is `:checked` in the query above
   }, [value, scroll]);
 
   return (

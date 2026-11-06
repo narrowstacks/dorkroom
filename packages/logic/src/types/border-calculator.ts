@@ -15,6 +15,8 @@ export interface SelectItem {
   label: string;
   /** Unique identifier/value for the item */
   value: string;
+  /** Extra text shown on the option, such as "12 recipes". Never filtered on. */
+  detail?: string;
 }
 
 /**
