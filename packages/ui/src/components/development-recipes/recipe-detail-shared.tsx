@@ -1,6 +1,7 @@
 import {
   formatClock,
   formatTemperature,
+  getFilmDisplayName,
   isHigherTemperature,
   type TemperatureUnit,
 } from '@dorkroom/logic';
@@ -90,7 +91,9 @@ export const recipeTitle = (
   film: { brand: string; name: string } | null | undefined,
   developer: { manufacturer: string; name: string } | null | undefined
 ): string => {
-  const filmName = film ? `${film.brand} ${film.name}` : 'Unknown film';
+  const filmName = film
+    ? `${film.brand} ${getFilmDisplayName(film)}`
+    : 'Unknown film';
   const developerName = developer
     ? `${developer.manufacturer} ${developer.name}`
     : 'Unknown developer';

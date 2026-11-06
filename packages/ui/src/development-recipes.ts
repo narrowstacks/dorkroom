@@ -17,6 +17,10 @@ export { RecipeDetailPanel } from './components/development-recipes/recipe-detai
 export { DevelopmentResultsCardsVirtualized } from './components/development-recipes/results-cards-virtualized';
 export { DevelopmentResultsTableVirtualized } from './components/development-recipes/results-table-virtualized';
 export {
+  recipeTitle,
+  temperatureFlagText,
+} from './components/development-recipes/recipe-detail-shared';
+export {
   RecipePanel,
   RecipePanelActions,
 } from './components/development-recipes/recipe-panel';

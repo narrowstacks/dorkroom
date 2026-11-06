@@ -1,4 +1,3 @@
-import { Check } from 'lucide-react';
 import { type FocusEvent, useId, useLayoutEffect, useRef } from 'react';
 import { cn } from '../../lib/cn';
 
@@ -46,8 +45,8 @@ function revealInRow(row: HTMLElement, chip: Element) {
 /**
  * A single-choice group of tappable chips. Each is a native radio input, so
  * the browser gives the group one tab stop and arrow keys that move and select.
- * The selected chip carries a check and a heavier border as well as a tint,
- * because the darkroom and high-contrast themes collapse colour.
+ * The selected chip has a heavier border as well as a tint, because the
+ * darkroom and high-contrast themes drop the tint.
  */
 export function RecipeChoiceChips<T extends string = string>({
   label,
@@ -103,7 +102,7 @@ export function RecipeChoiceChips<T extends string = string>({
         role="radiogroup"
         aria-labelledby={labelId}
         className={cn(
-          'flex gap-2 p-0.5',
+          'flex gap-1.5 p-0.5',
           scroll ? 'overflow-x-auto pb-2 [scrollbar-width:thin]' : 'flex-wrap'
         )}
       >
@@ -129,19 +128,13 @@ export function RecipeChoiceChips<T extends string = string>({
               />
               <span
                 className={cn(
-                  'relative flex min-h-11 min-w-11 cursor-pointer flex-col items-center justify-center rounded-xl border-1 px-6 py-1.5 text-center tabular-nums transition-colors',
+                  'recipe-focus-dash relative flex min-h-11 min-w-11 cursor-pointer flex-col items-center justify-center rounded-xl border-1 px-2.5 py-1.5 text-center tabular-nums transition-colors',
                   'peer-focus-visible:ring-2 peer-focus-visible:ring-[color:var(--color-focus-ring)]',
                   selected
-                    ? 'border-primary bg-recipe-selected text-primary shadow-[inset_0_0_0_1px_var(--color-border-primary)]'
+                    ? 'border-primary bg-recipe-selected text-primary shadow-[inset_0_0_0_2px_var(--color-border-primary)]'
                     : 'border-secondary text-primary hover:bg-hover-surface hover:text-on-hover-surface'
                 )}
               >
-                {selected && (
-                  <Check
-                    aria-hidden="true"
-                    className="absolute bottom-0 left-1.5 top-0 my-auto size-4"
-                  />
-                )}
                 <span className="text-sm font-medium">{option.label}</span>
                 {option.detail && (
                   <span className="text-xs">{option.detail}</span>

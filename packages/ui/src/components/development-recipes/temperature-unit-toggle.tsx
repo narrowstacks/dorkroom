@@ -6,11 +6,12 @@ const TEMPERATURE_OPTIONS = [
   { value: 'celsius', label: '°C' },
 ] as const;
 
-export function TemperatureUnitToggle() {
+export function TemperatureUnitToggle({ className }: { className?: string }) {
   const { unit, toggleUnit } = useTemperature();
 
   return (
     <UnitToggle
+      className={className}
       currentUnit={unit}
       onToggle={toggleUnit}
       options={[TEMPERATURE_OPTIONS[0], TEMPERATURE_OPTIONS[1]]}

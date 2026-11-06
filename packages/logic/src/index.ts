@@ -189,6 +189,7 @@ export * from './utils/border-layout';
 export * from './utils/calculator-url-params';
 export * from './utils/camera-exposure-calculations';
 export * from './utils/combination-dilution';
+export * from './utils/film-display-name';
 export {
   FILM_SORTS,
   type FilmRecipe,

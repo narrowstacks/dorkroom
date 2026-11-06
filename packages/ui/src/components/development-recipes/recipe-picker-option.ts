@@ -1,6 +1,7 @@
 import {
   type DevelopmentCombinationView,
   formatClock,
+  getKnownCombinationDilution,
   isNonStandardTemperature,
   recipeIdOf,
   type RecipeRow,
@@ -141,10 +142,11 @@ export function recipeRowsToPickerOptions(
   { unit, boxIso }: RecipeRowOptionSettings
 ): RecipePickerOption[] {
   const listings = listingLabels(rows);
-  return rows.map(({ view, dilution, temperatureDiffers }, index) => {
+  return rows.map(({ view, temperatureDiffers }, index) => {
     const { combination } = view;
     const label = [
-      dilution,
+      getKnownCombinationDilution(combination, view.developer) ??
+        'Dilution not known',
       `EI ${combination.shootingIso}`,
       describeSpeed(combination.shootingIso, boxIso),
     ]

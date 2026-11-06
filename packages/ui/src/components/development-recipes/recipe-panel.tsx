@@ -2,11 +2,10 @@ import type { Film } from '@dorkroom/api';
 import {
   type DevelopmentCombinationView,
   formatClock,
-  getCombinationDilution,
+  getKnownCombinationDilution,
   getRecipeAgitation,
   isFilmDevOrgUrl,
   isNonStandardTemperature,
-  officialTagMaker,
   recipeIdOf,
   type RecipeSpeedChoice,
   type RecipeTemperatureChoice,
@@ -132,7 +131,7 @@ export const RecipePanel: FC<RecipePanelProps> = ({
   const withActions = !isPhone;
   const isCustom = view.source === 'custom';
 
-  const dilution = getCombinationDilution(combination, developer);
+  const dilution = getKnownCombinationDilution(combination, developer);
   const agitation = getRecipeAgitation(view);
 
   const { temperatureF, temperatureC } = combination;
@@ -194,17 +193,14 @@ export const RecipePanel: FC<RecipePanelProps> = ({
 
   const source = combination.infoSource;
   const speed = describeSpeed(combination.shootingIso, film?.isoSpeed);
-  const subtitle = [dilution, `EI ${combination.shootingIso}`, speed]
+  const subtitle = [
+    dilution ?? 'Dilution not known',
+    `EI ${combination.shootingIso}`,
+    speed,
+  ]
     .filter(Boolean)
     .join(', ');
-  const sourceMaker = combination.tags
-    ?.map(officialTagMaker)
-    .find((maker) => maker !== null);
-  const sourceLabel = isFilmDevOrgUrl(source)
-    ? 'FilmDev.org'
-    : sourceMaker
-      ? `Official ${sourceMaker} source`
-      : 'View source';
+  const sourceLabel = isFilmDevOrgUrl(source) ? 'FilmDev.org' : 'View source';
   const headingId = useId();
   // flex-1 with a basis sizes a column's height, leaving blank gaps on the phone.
   const chipGroupClass = isPhone ? 'min-w-0' : 'min-w-0 flex-1 basis-64';
@@ -214,7 +210,7 @@ export const RecipePanel: FC<RecipePanelProps> = ({
       aria-labelledby={headingId}
       className={cn('flex min-w-0 flex-col gap-6', className)}
     >
-      <header className="flex flex-wrap items-start justify-between gap-3">
+      <header className="flex flex-col gap-3">
         <div className="min-w-0">
           <h2
             id={headingId}
@@ -231,7 +227,7 @@ export const RecipePanel: FC<RecipePanelProps> = ({
         </div>
         {withActions && (
           <div className="flex flex-wrap items-center gap-2">
-            <TemperatureUnitToggle />
+            <TemperatureUnitToggle className="min-h-11 shrink-0 whitespace-nowrap" />
             <RecipePanelActions
               isSaved={isSaved}
               onToggleSaved={onToggleSaved}
@@ -242,7 +238,7 @@ export const RecipePanel: FC<RecipePanelProps> = ({
       </header>
 
       <div className="flex flex-wrap items-end gap-x-12 gap-y-4">
-        <p className="m-0">
+        <p>
           <span aria-hidden="true">
             <span
               className={cn(
@@ -269,11 +265,14 @@ export const RecipePanel: FC<RecipePanelProps> = ({
             </span>
           )}
         </p>
-        <dl className="m-0 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
           <dt className="text-tertiary">Agitation</dt>
           <dd className="m-0 text-primary">{agitation ?? 'Not in source'}</dd>
           <dt className="self-center text-tertiary">Source</dt>
-          <dd className="m-0 text-primary">
+          <dd className="m-0 flex flex-wrap items-center gap-x-2 text-primary">
+            {combination.tags?.map((tag) => (
+              <Tag key={tag}>{tag}</Tag>
+            ))}
             {source ? (
               <a
                 href={source}
@@ -333,29 +332,24 @@ export const RecipePanel: FC<RecipePanelProps> = ({
         >
           Mix it
         </h3>
-        <VolumeMixer dilutionString={dilution} presetsMl={MIX_PRESETS_ML} />
+        {dilution === null ? (
+          <p className="text-sm text-primary">
+            Dilution not known: this recipe's developer is gone, so there is
+            nothing to mix from. Check where the recipe came from.
+          </p>
+        ) : (
+          <VolumeMixer dilutionString={dilution} presetsMl={MIX_PRESETS_ML} />
+        )}
       </section>
 
-      {(combination.notes ||
-        (combination.tags && combination.tags.length > 0)) && (
-        <div className="space-y-3 rounded-xl border border-secondary bg-border-muted p-4 text-sm">
-          {combination.notes && (
-            <div>
-              <div className="text-xs uppercase tracking-wide text-muted">
-                Notes
-              </div>
-              <p className="mt-1 leading-relaxed text-secondary">
-                {combination.notes}
-              </p>
-            </div>
-          )}
-          {combination.tags && combination.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {combination.tags.map((tag) => (
-                <Tag key={tag}>{tag}</Tag>
-              ))}
-            </div>
-          )}
+      {combination.notes && (
+        <div className="rounded-xl border border-secondary bg-border-muted p-4 text-sm">
+          <div className="text-xs uppercase tracking-wide text-muted">
+            Notes
+          </div>
+          <p className="mt-1 leading-relaxed text-secondary">
+            {combination.notes}
+          </p>
         </div>
       )}
 

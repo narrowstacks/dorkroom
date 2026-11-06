@@ -78,7 +78,7 @@ export const RecipeSearchBox: FC<RecipeSearchBoxProps> = ({
           autoCorrect="off"
           spellCheck={false}
           className={cn(
-            'block min-h-11 w-full rounded-xl border-1 border-secondary bg-[color:var(--color-surface-muted)] py-2 pl-3 pr-11 text-base text-primary',
+            'block min-h-11 w-full rounded-xl border-1 border-secondary bg-[color:var(--color-surface-muted)] py-2 pl-3 pr-11 text-base text-primary placeholder:text-[color:var(--color-text-tertiary)]',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]',
             '[&::-webkit-search-cancel-button]:appearance-none'
           )}
