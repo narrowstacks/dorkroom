@@ -12,6 +12,7 @@ import {
 import { useSwallowOutsideClick } from '../hooks/use-swallow-outside-click';
 import { cn } from '../lib/cn';
 import { cssVars } from '../lib/dom';
+import { labelMatches } from '../lib/label-match';
 
 /**
  * Set on <html> while any list is open. The app's floating phone buttons key
@@ -312,7 +313,7 @@ export function SearchableSelect({
 
   // Filter items based on search term
   const filteredItems = items.filter((item) =>
-    item.label.toLowerCase().includes(searchTerm.toLowerCase())
+    labelMatches(item.label, searchTerm)
   );
 
   const isListShown = isOpen && filteredItems.length > 0;

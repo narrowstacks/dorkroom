@@ -396,7 +396,7 @@ export const ROUTE_DESCRIPTIONS: RouteTextByPath = {
   '/lenses':
     'Calculate equivalent focal lengths between sensor and film formats. Compare APS-C, Full Frame, and Medium Format field of view.',
   '/development':
-    'Browse film and developer combinations with development times. Find recipes for popular film stocks and chemistry.',
+    'Pick a film and developer to get the development time. Search by name, and switch between recipes by speed, dilution and temperature.',
   '/films':
     'Browse and search the film stock database. Filter by brand, ISO, and color type.',
   '/docs': 'How-to guides and reference material for analog photography.',

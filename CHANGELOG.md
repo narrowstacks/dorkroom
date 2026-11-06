@@ -9,6 +9,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Added
 
+- **A simpler way to find a development time.** /development now opens on a film and a developer picker instead of a table. Pick both, or search for something like "hp5 800 xtol", and the time appears with its temperature and mixing amounts. Switch between published speeds and temperatures with one tap. A recipe not at 20°C is flagged as high or low temperature, here and on a film's page on /films. Your saved and custom recipes appear alongside the rest, and a filter narrows to either. Picking a film also shows the recipes of its rebrands. Recipe previews no longer claim "Standard" agitation when a recipe does not say. (#679)
 - **API client filters.** `fetchFilms`, `fetchDevelopers` and `fetchCombinations` in `@dorkroom/api` accept typed, optional query params (slug, brand, colour type, film, developer, page and so on) matching the API reference. Calls without params behave as before, and failures already throw `DorkroomApiError`. (fixes #254)
 - **Film photos credit their source.** A film's page now shows who took the packaging photo and its licence, linked to where it came from.
 - **A sortable films table.** /films lists films in a full-width table. Click the Film, ISO or Recipes heading to sort; the sort is kept in the link. Opening a film narrows the table to a list beside the film's page, and on phones each film is a row that opens as its own page. The Darkroom theme shows no film photos, since they were too bright for its red-only screen. (#669)

@@ -21,7 +21,7 @@ export function CollapsibleSection({
         type="button"
         aria-expanded={isExpanded}
         onClick={onToggle}
-        className="w-full p-4 text-left"
+        className="w-full rounded-xl p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-focus-ring)]"
       >
         <div className="flex items-center justify-between">
           <div className="min-w-0">

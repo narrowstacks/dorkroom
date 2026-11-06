@@ -1009,3 +1009,23 @@ describe('SavedRecipes details', () => {
     expect(screen.getByText('1+3, EI 400')).toBeVisible();
   });
 });
+
+describe('SearchableSelect filtering past punctuation', () => {
+  it('finds "T-MAX/Ektapan" by typing tmax', async () => {
+    const user = userEvent.setup();
+    render(
+      <SearchableSelect
+        label="Film"
+        selectedValue=""
+        onValueChange={vi.fn()}
+        items={[
+          { label: 'Kodak T-MAX/Ektapan', value: 'tmax' },
+          { label: 'Ilford HP5 Plus', value: 'hp5' },
+        ]}
+      />
+    );
+    await user.type(screen.getByRole('combobox'), 'tmax');
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+    expect(screen.getByRole('option')).toHaveTextContent('Kodak T-MAX/Ektapan');
+  });
+});

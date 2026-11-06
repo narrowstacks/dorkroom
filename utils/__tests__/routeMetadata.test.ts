@@ -126,7 +126,7 @@ describe('getRouteMetadata with query params', () => {
   it('falls back to static metadata for /development without film', () => {
     const meta = getRouteMetadata('/development');
     expect(meta.title).toBe('Development Recipes | Dorkroom');
-    expect(meta.description).toContain('Browse film and developer');
+    expect(meta.description).toContain('Pick a film and developer');
   });
 
   it('falls back to static metadata for /films without film slug', () => {

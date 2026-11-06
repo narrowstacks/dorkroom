@@ -272,10 +272,42 @@ describe('FilmPage recipes', () => {
       ]),
     });
     const link = screen.getByRole('link', { name: /Kodak D-76/ });
-    expect(link).toHaveAttribute('href', '/development?recipe=abc-123');
+    expect(link).toHaveAttribute(
+      'href',
+      '/development?film=hp5-plus&recipe=abc-123'
+    );
     expect(link).toHaveTextContent('1+1');
     expect(link).toHaveTextContent('9m 30s');
     expect(link).toHaveTextContent('68.0°F');
+  });
+
+  it('opens a rebrand-shared row under the film being viewed, and flags a non-room temperature', () => {
+    renderPage({
+      film: film({ slug: 'arista-edu-ultra-400', uuid: 'arista' }),
+      recipes: ready([
+        {
+          shootingIso: 400,
+          recipes: [
+            {
+              combination: combination('abc-123', 400, {
+                temperatureC: 24,
+                temperatureF: 75.2,
+              }),
+              developerName: 'Kodak D-76',
+              dilution: '1+1',
+            },
+          ],
+        },
+      ]),
+    });
+    const link = screen.getByRole('link', { name: /Kodak D-76/ });
+    expect(link).toHaveAttribute(
+      'href',
+      '/development?film=arista-edu-ultra-400&recipe=abc-123'
+    );
+    // The chip gives the temperature, so the row's own value is left out.
+    expect(link.textContent?.match(/75\.2°F/g)).toHaveLength(1);
+    expect(link).toHaveTextContent('High temp 75.2°F');
   });
 
   it('shows a skeleton for developer text until developers load, row still linked', () => {
@@ -291,7 +323,10 @@ describe('FilmPage recipes', () => {
       ),
     });
     const link = screen.getByRole('link');
-    expect(link).toHaveAttribute('href', '/development?recipe=r1');
+    expect(link).toHaveAttribute(
+      'href',
+      '/development?film=hp5-plus&recipe=r1'
+    );
     expect(
       link.querySelector('[aria-hidden="true"] .animate-pulse')
     ).not.toBeNull();

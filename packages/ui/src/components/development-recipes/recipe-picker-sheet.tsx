@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { labelMatches } from '../../lib/label-match';
 import { ResponsiveModal } from '../responsive-modal';
 import { RecipeOptionList } from './recipe-option-list';
 import type { RecipePickerOption } from './recipe-picker-option';
@@ -93,10 +94,8 @@ const PickerBody: FC<
     (enterRowRef.current ?? filterRef.current)?.focus();
   }, [focusRowRequest]);
 
-  const words = filter.trim().toLowerCase();
-  const shown = options.filter((option) =>
-    option.label.toLowerCase().includes(words)
-  );
+  const words = filter.trim();
+  const shown = options.filter((option) => labelMatches(option.label, words));
 
   // With nothing typed, Enter lands where the list opened: on the selected row.
   const enterValue =

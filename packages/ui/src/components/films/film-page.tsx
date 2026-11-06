@@ -272,6 +272,7 @@ export const FilmPage: FC<FilmPageProps> = ({
       {readyRecipes && (
         <FilmPageRecipes
           key={film.uuid}
+          filmSlug={film.slug}
           groups={readyRecipes.groups}
           defaultIso={readyRecipes.defaultIso}
           developersReady={readyRecipes.developersReady}

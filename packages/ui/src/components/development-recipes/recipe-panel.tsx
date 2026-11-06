@@ -121,7 +121,7 @@ const TimeReadout: FC<{
       >
         <span
           className={cn(
-            'block font-bold leading-none tracking-tight tabular-nums text-primary',
+            'block font-bold leading-none tracking-tight text-primary',
             isPhone ? 'text-6xl min-[375px]:text-7xl' : 'text-7xl lg:text-8xl'
           )}
         >

@@ -6,5 +6,5 @@ import { lazyPage } from '../app/lib/lazy-page';
  * import it, while development-route.tsx keeps exporting components only.
  */
 export const DevelopmentRecipesPage = lazyPage(
-  () => import('../app/pages/development-recipes/development-recipes-page')
+  () => import('../app/pages/development-recipes/recipe-workbench-page')
 );
