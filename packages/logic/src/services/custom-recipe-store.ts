@@ -9,6 +9,7 @@
  * `useCustomRecipes`, which is built on `useSyncExternalStore`.
  */
 
+import { RECIPE_TEXT_LIMITS } from '../constants/custom-recipe-limits';
 import { CUSTOM_RECIPES_STORAGE_KEY } from '../constants/storage-keys';
 import type {
   CustomRecipe,
@@ -120,13 +121,19 @@ export function createMemoryRecipeAdapter(
 const resolveDilution = (
   formData: CustomRecipeFormData
 ): Pick<CustomRecipe, 'dilutionId' | 'customDilution'> => {
-  const selected = sanitizeText(formData.selectedDilutionId, 100).trim();
+  const selected = sanitizeText(
+    formData.selectedDilutionId,
+    RECIPE_TEXT_LIMITS.dilutionId
+  ).trim();
   if (formData.useExistingDeveloper && selected && selected !== 'custom') {
     return { dilutionId: selected, customDilution: '' };
   }
   return {
     dilutionId: undefined,
-    customDilution: sanitizeText(formData.customDilution, 100),
+    customDilution: sanitizeText(
+      formData.customDilution,
+      RECIPE_TEXT_LIMITS.customDilution
+    ),
   };
 };
 
@@ -182,8 +189,11 @@ const createRecipeFromFormData = (
     timeMinutes: formData.timeMinutes,
     shootingIso: formData.shootingIso,
     pushPull: formData.pushPull,
-    agitationSchedule: sanitizeText(formData.agitationSchedule, 500),
-    notes: sanitizeText(formData.notes, 2000),
+    agitationSchedule: sanitizeText(
+      formData.agitationSchedule,
+      RECIPE_TEXT_LIMITS.agitationSchedule
+    ),
+    notes: sanitizeText(formData.notes, RECIPE_TEXT_LIMITS.recipeNotes),
     ...resolveDilution(formData),
     isCustomFilm: !formData.useExistingFilm,
     isCustomDeveloper: !formData.useExistingDeveloper,

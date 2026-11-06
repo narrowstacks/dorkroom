@@ -116,8 +116,8 @@ describe('combination-factory', () => {
       expect(
         getRecipeValidationError({ ...validRecipe, temperatureF: 250 })
       ).toBe('Temperature must be at most 212°F (boiling point)');
-      expect(getRecipeValidationError({ ...validRecipe, pushPull: -3 })).toBe(
-        'Push/pull must be at least -2 stops'
+      expect(getRecipeValidationError({ ...validRecipe, pushPull: -6 })).toBe(
+        'Push/pull must be at least -5 stops'
       );
     });
   });

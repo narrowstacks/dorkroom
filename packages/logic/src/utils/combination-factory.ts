@@ -32,7 +32,7 @@ export const recipeNumericFieldSchemas = {
   timeMinutes: numericField().positive('Time must be positive'),
   shootingIso: numericField().positive('ISO must be positive'),
   pushPull: numericField()
-    .min(-2, 'Push/pull must be at least -2 stops')
+    .min(-5, 'Push/pull must be at least -5 stops')
     .max(5, 'Push/pull must be at most +5 stops'),
 };
 

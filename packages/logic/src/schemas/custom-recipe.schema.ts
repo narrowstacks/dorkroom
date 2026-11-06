@@ -1,46 +1,73 @@
 import { z } from 'zod';
+import {
+  MAX_RECIPE_TIME_MINUTES,
+  RECIPE_TEXT_LIMITS as LIMITS,
+} from '../constants/custom-recipe-limits';
+import { recipeNumericFieldSchemas } from '../utils/combination-factory';
 
 /**
  * Validation schema for Custom Recipe Form
  * Comprehensive schema with nested objects and conditional field validation
  */
 
+/**
+ * The store used to cut long text to the limit and then add "...", so recipes
+ * saved earlier can hold three characters more. They still have to save.
+ */
+const fitsLimit = (text: string, limit: number): boolean =>
+  text.length <= limit || (text.length <= limit + 3 && text.endsWith('...'));
+
+const limitedText = (limit: number, message: string) =>
+  z.string().refine((text) => fitsLimit(text, limit), message);
+
+const requiredText = (limit: number, required: string, tooLong: string) =>
+  z
+    .string()
+    .trim()
+    .min(1, required)
+    .refine((text) => fitsLimit(text, limit), tooLong);
+
 // Custom Film Schema
 export const customFilmSchema = z.object({
-  brand: z
-    .string()
-    .min(1, 'Film brand is required')
-    .max(100, 'Film brand is too long'),
-  name: z
-    .string()
-    .min(1, 'Film name is required')
-    .max(100, 'Film name is too long'),
-  isoSpeed: z
-    .number()
-    .min(3, 'ISO speed is too low')
-    .max(10000, 'ISO speed is too high'),
+  brand: requiredText(
+    LIMITS.filmBrand,
+    'Film brand is required',
+    'Film brand is too long'
+  ),
+  name: requiredText(
+    LIMITS.filmName,
+    'Film name is required',
+    'Film name is too long'
+  ),
+  isoSpeed: recipeNumericFieldSchemas.shootingIso,
   colorType: z.enum(['bw', 'color', 'slide']),
-  grainStructure: z
-    .string()
-    .max(200, 'Grain structure description is too long')
-    .optional(),
-  description: z.string().max(500, 'Film description is too long').optional(),
+  grainStructure: limitedText(
+    LIMITS.grainStructure,
+    'Grain structure description is too long'
+  ).optional(),
+  description: limitedText(
+    LIMITS.filmDescription,
+    'Film description is too long'
+  ).optional(),
 });
 
 // Custom Developer Schema
 export const customDeveloperSchema = z.object({
-  manufacturer: z
-    .string()
-    .min(1, 'Manufacturer is required')
-    .max(100, 'Manufacturer is too long'),
-  name: z
-    .string()
-    .min(1, 'Developer name is required')
-    .max(100, 'Developer name is too long'),
-  type: z
-    .string()
-    .min(1, 'Developer type is required')
-    .max(100, 'Developer type is too long'),
+  manufacturer: requiredText(
+    LIMITS.developerManufacturer,
+    'Manufacturer is required',
+    'Manufacturer is too long'
+  ),
+  name: requiredText(
+    LIMITS.developerName,
+    'Developer name is required',
+    'Developer name is too long'
+  ),
+  type: requiredText(
+    LIMITS.developerType,
+    'Developer type is required',
+    'Developer type is too long'
+  ),
   filmOrPaper: z.enum(['film', 'paper', 'both']),
   workingLifeHours: z
     .number()
@@ -50,17 +77,24 @@ export const customDeveloperSchema = z.object({
     .number()
     .min(0, 'Stock life cannot be negative')
     .optional(),
-  notes: z.string().max(500, 'Developer notes are too long').optional(),
-  mixingInstructions: z
-    .string()
-    .max(1000, 'Mixing instructions are too long')
-    .optional(),
-  safetyNotes: z.string().max(500, 'Safety notes are too long').optional(),
+  notes: limitedText(
+    LIMITS.developerNotes,
+    'Developer notes are too long'
+  ).optional(),
+  mixingInstructions: limitedText(
+    LIMITS.mixingInstructions,
+    'Mixing instructions are too long'
+  ).optional(),
+  safetyNotes: limitedText(
+    LIMITS.safetyNotes,
+    'Safety notes are too long'
+  ).optional(),
   dilutions: z
     .array(
       z.object({
-        name: z.string().min(1, 'Dilution name is required'),
-        dilution: z.string().min(1, 'Dilution ratio is required'),
+        // The form has no way to edit these, so a blank one must not block a save.
+        name: z.string(),
+        dilution: z.string(),
       })
     )
     .min(1, 'At least one dilution is required'),
@@ -72,41 +106,38 @@ export const customRecipeSchema = z
     name: z
       .string()
       .min(1, 'Recipe name is required')
-      .max(200, 'Recipe name is too long'),
+      .refine(
+        (text) => fitsLimit(text, LIMITS.recipeName),
+        'Recipe name is too long'
+      ),
 
-    temperatureF: z
-      .number()
-      .min(32, 'Temperature cannot be below freezing (32°F)')
-      .max(200, 'Temperature is too high'),
+    // The same ranges the store enforces, plus a ceiling on time for what gets
+    // saved from here. Real recipes push past +2 and shoot past EI 10000.
+    temperatureF: recipeNumericFieldSchemas.temperatureF,
+    timeMinutes: recipeNumericFieldSchemas.timeMinutes.max(
+      MAX_RECIPE_TIME_MINUTES,
+      `Time must be at most ${MAX_RECIPE_TIME_MINUTES} minutes (24 hours)`
+    ),
+    shootingIso: recipeNumericFieldSchemas.shootingIso,
+    pushPull: recipeNumericFieldSchemas.pushPull,
 
-    timeMinutes: z
-      .number()
-      .min(0.1, 'Development time must be greater than 0')
-      .max(120, 'Development time cannot exceed 2 hours'),
-
-    shootingIso: z
-      .number()
-      .min(3, 'ISO is too low')
-      .max(10000, 'ISO is too high'),
-
-    pushPull: z
-      .number()
-      .min(-2, 'Push/pull cannot be less than -2')
-      .max(2, 'Push/pull cannot be more than +2'),
-
-    agitationSchedule: z
-      .string()
-      .min(1, 'Agitation schedule is required')
-      .max(500, 'Agitation schedule is too long'),
+    // Optional: most published recipes have none, and the panel says so.
+    agitationSchedule: limitedText(
+      LIMITS.agitationSchedule,
+      'Agitation schedule is too long'
+    ).optional(),
 
     selectedDilutionId: z.string().optional(), // dilution ID or 'custom'
 
-    customDilution: z
-      .string()
-      .max(200, 'Custom dilution is too long')
-      .optional(),
+    customDilution: limitedText(
+      LIMITS.customDilution,
+      'Custom dilution is too long'
+    ).optional(),
 
-    notes: z.string().max(1000, 'Recipe notes are too long').optional(),
+    notes: limitedText(
+      LIMITS.recipeNotes,
+      'Recipe notes are too long'
+    ).optional(),
 
     isPublic: z.boolean().default(false),
     isFavorite: z.boolean().default(false),
@@ -130,7 +161,7 @@ export const customRecipeSchema = z
       return !!data.customFilm;
     },
     {
-      message: 'Either select an existing film or provide custom film details',
+      message: 'Choose a film, or enter your own.',
       path: ['selectedFilmId'],
     }
   )
@@ -143,8 +174,7 @@ export const customRecipeSchema = z
       return !!data.customDeveloper;
     },
     {
-      message:
-        'Either select an existing developer or provide custom developer details',
+      message: 'Choose a developer, or enter your own.',
       path: ['selectedDeveloperId'],
     }
   );

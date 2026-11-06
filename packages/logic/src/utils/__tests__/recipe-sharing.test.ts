@@ -200,7 +200,7 @@ describe('recipe-sharing', () => {
       ['negative development time', { timeMinutes: -3 }],
       ['zero shooting ISO', { shootingIso: 0 }],
       ['push beyond +5 stops', { pushPull: 9 }],
-      ['pull beyond -2 stops', { pushPull: -3 }],
+      ['pull beyond -5 stops', { pushPull: -6 }],
     ])('returns null for a recipe with %s', (_label, override) => {
       const outOfRange = {
         name: 'x',
@@ -241,7 +241,7 @@ describe('recipe-sharing', () => {
       expect(
         decodeCustomRecipe(
           toUrlSafeBase64(
-            JSON.stringify({ ...edge, temperatureF: 32, pushPull: -2 })
+            JSON.stringify({ ...edge, temperatureF: 32, pushPull: -5 })
           )
         )
       ).not.toBeNull();

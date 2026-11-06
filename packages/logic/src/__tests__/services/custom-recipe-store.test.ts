@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import {
+  MAX_RECIPE_TIME_MINUTES,
+  RECIPE_TEXT_LIMITS,
+} from '../../constants/custom-recipe-limits';
 import { CUSTOM_RECIPES_STORAGE_KEY } from '../../constants/storage-keys';
+import { customRecipeSchema } from '../../schemas/custom-recipe.schema';
 import {
   createCustomRecipeStore,
   createLocalStorageRecipeAdapter,
@@ -10,6 +15,7 @@ import type {
   CustomRecipe,
   CustomRecipeFormData,
 } from '../../types/custom-recipes';
+import { createCombinationFromCustomRecipe } from '../../utils/combination-factory';
 
 const baseFormData: CustomRecipeFormData = {
   name: 'Test Recipe',
@@ -563,5 +569,81 @@ describe('custom film and developer ids (#510)', () => {
     expect(saved.developerId).toBe('dev-9');
     expect(saved.isCustomFilm).toBe(false);
     expect(saved.isCustomDeveloper).toBe(false);
+  });
+
+  it('keeps every text the form accepts as it was typed', () => {
+    const store = createCustomRecipeStore(createMemoryRecipeAdapter());
+    const text = (limit: number) => 'x'.repeat(limit);
+    const data: CustomRecipeFormData = {
+      ...baseFormData,
+      name: text(RECIPE_TEXT_LIMITS.recipeName),
+      notes: text(RECIPE_TEXT_LIMITS.recipeNotes),
+      agitationSchedule: text(RECIPE_TEXT_LIMITS.agitationSchedule),
+      selectedDilutionId: 'custom',
+      customDilution: text(RECIPE_TEXT_LIMITS.customDilution),
+      useExistingFilm: false,
+      customFilm: {
+        brand: text(RECIPE_TEXT_LIMITS.filmBrand),
+        name: text(RECIPE_TEXT_LIMITS.filmName),
+        isoSpeed: 400,
+        colorType: 'bw',
+        grainStructure: text(RECIPE_TEXT_LIMITS.grainStructure),
+        description: text(RECIPE_TEXT_LIMITS.filmDescription),
+      },
+      useExistingDeveloper: false,
+      customDeveloper: {
+        manufacturer: text(RECIPE_TEXT_LIMITS.developerManufacturer),
+        name: text(RECIPE_TEXT_LIMITS.developerName),
+        type: text(RECIPE_TEXT_LIMITS.developerType),
+        filmOrPaper: 'film',
+        notes: text(RECIPE_TEXT_LIMITS.developerNotes),
+        mixingInstructions: text(RECIPE_TEXT_LIMITS.mixingInstructions),
+        safetyNotes: text(RECIPE_TEXT_LIMITS.safetyNotes),
+        dilutions: [{ name: 'Stock', dilution: 'Stock' }],
+      },
+    };
+    expect(customRecipeSchema.safeParse(data).success).toBe(true);
+
+    const saved = store.add(data);
+
+    expect(saved.notes).toBe(data.notes);
+    expect(saved.customDilution).toBe(data.customDilution);
+    expect(saved.customFilm).toEqual(data.customFilm);
+    expect(saved.customDeveloper).toEqual(data.customDeveloper);
+  });
+
+  it('cuts a stored note from before the limit fit, and it still validates', () => {
+    const store = createCustomRecipeStore(createMemoryRecipeAdapter());
+    const limit = RECIPE_TEXT_LIMITS.recipeNotes;
+    const old = { ...baseFormData, notes: `${'x'.repeat(limit)}...` };
+    expect(customRecipeSchema.safeParse(old).success).toBe(true);
+    const saved = store.add(old);
+    expect(saved.notes).toHaveLength(limit);
+    expect(saved.notes?.endsWith('...')).toBe(true);
+  });
+
+  it('keeps a stored recipe past the form time limit readable', () => {
+    const store = createCustomRecipeStore(
+      createMemoryRecipeAdapter([
+        {
+          id: 'old',
+          name: 'Week long stand',
+          filmId: 'f',
+          developerId: 'd',
+          temperatureF: 68,
+          timeMinutes: MAX_RECIPE_TIME_MINUTES + 1,
+          shootingIso: 400,
+          pushPull: 0,
+          isCustomFilm: false,
+          isCustomDeveloper: false,
+          dateCreated: 'x',
+          dateModified: 'x',
+          isPublic: false,
+        },
+      ])
+    );
+    expect(() =>
+      createCombinationFromCustomRecipe(store.read()[0])
+    ).not.toThrow();
   });
 });
