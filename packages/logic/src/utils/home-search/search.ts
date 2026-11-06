@@ -76,7 +76,7 @@ export interface QueryReading {
 }
 
 /** On the ISO third-stop series (100, 125, 160, 200, ...), to within rounding. */
-const onIsoSeries = (n: number) => {
+export const onIsoSeries = (n: number): boolean => {
   const thirds = 3 * Math.log2(n / 100);
   return Math.abs(thirds - Math.round(thirds)) < 0.05;
 };

@@ -47,6 +47,8 @@ export interface RecipeIndex {
   developers: ReadonlyMap<string, RecipeDeveloperEntry>;
   /** Film key, then developer key, then recipes in input order. Never holds an empty list. */
   pairs: ReadonlyMap<string, ReadonlyMap<string, readonly RecipeView[]>>;
+  /** `pairs` before any scope: which names the catalogue really has recipes for. */
+  allPairs: ReadonlyMap<string, ReadonlyMap<string, readonly RecipeView[]>>;
   /** Every recipe given, including one whose film or developer did not resolve. */
   viewsById: ReadonlyMap<string, RecipeView>;
   /** The film and developer a recipe itself belongs to, for filling the pickers. */
@@ -104,7 +106,8 @@ export interface RecipeScopeFilters {
 
 const NO_RECIPES: readonly RecipeView[] = [];
 
-const recipeIdOf = (view: RecipeView) =>
+/** A recipe's key in `viewsById` and `keysById`. */
+export const recipeIdOf = (view: RecipeView): string =>
   String(view.combination.uuid || view.combination.id);
 
 const dilutionOf = (view: RecipeView) =>
@@ -272,6 +275,7 @@ export function buildRecipeIndex(
     films: filmEntries,
     developers: developerEntries,
     pairs,
+    allPairs: pairs,
     viewsById,
     keysById,
     unresolvedCustom:
