@@ -183,13 +183,56 @@ describe('buildFilmRecipeIndex film and rebrand semantics', () => {
     expect(slugs(index, 'hp5-plus')).toEqual([own.uuid, rebrandOwn.uuid]);
   });
 
-  it('does not share one rebrand own recipes with a sibling rebrand', () => {
+  it('shares recipes between sibling rebrands of one base', () => {
     const a = recipe('foma-400', 'rodinal', 400);
     const b = recipe('lomo-400', 'kodak-d-76', 400);
     const index = buildFilmRecipeIndex([a, b], films);
-    expect(slugs(index, 'foma-400')).toEqual([a.uuid]);
-    expect(slugs(index, 'lomo-400')).toEqual([b.uuid]);
+    expect(slugs(index, 'foma-400')).toEqual([a.uuid, b.uuid]);
+    expect(slugs(index, 'lomo-400')).toEqual([a.uuid, b.uuid]);
     expect(slugs(index, 'hp5-plus')).toEqual([a.uuid, b.uuid]);
+  });
+
+  it('gives a base with no rows of its own the whole family', () => {
+    const a = recipe('foma-400', 'rodinal', 400);
+    const b = recipe('lomo-400', 'kodak-d-76', 400);
+    const index = buildFilmRecipeIndex([b, a], films);
+    expect(slugs(index, 'hp5-plus')).toEqual([b.uuid, a.uuid]);
+    expect(getFilmRecipeCount(index, 'hp5-plus')).toBe(2);
+  });
+
+  it('keeps rows with blank uuids apart', () => {
+    const index = buildFilmRecipeIndex(
+      [
+        recipe('hp5-plus', 'rodinal', 400, { uuid: '' }),
+        recipe('hp5-plus', 'kodak-d-76', 400, { uuid: '' }),
+      ],
+      films
+    );
+    expect(getFilmRecipeCount(index, 'hp5-plus')).toBe(2);
+    expect(getFilmRecipeCount(index, 'foma-400')).toBe(2);
+  });
+
+  it('lists a row once and counts what it lists', () => {
+    const rows = [
+      recipe('foma-400', 'rodinal', 400),
+      recipe('hp5-plus', 'rodinal', 400),
+      recipe('lomo-400', 'kodak-d-76', 400),
+    ];
+    const index = buildFilmRecipeIndex([...rows, { ...rows[0] }], films);
+    for (const slug of ['foma-400', 'lomo-400', 'hp5-plus']) {
+      const list = index.recipesBySlug.get(slug) ?? [];
+      expect(new Set(list.map((r) => r.uuid)).size).toBe(list.length);
+      expect(getFilmRecipeCount(index, slug)).toBe(list.length);
+      expect(list).toHaveLength(3);
+    }
+  });
+
+  it('does not leave the family', () => {
+    const other = recipe('pan-f-plus', 'rodinal', 50);
+    const a = recipe('foma-400', 'rodinal', 400);
+    const index = buildFilmRecipeIndex([other, a], films);
+    expect(slugs(index, 'lomo-400')).toEqual([a.uuid]);
+    expect(slugs(index, 'pan-f-plus')).toEqual([other.uuid]);
   });
 
   it('counts a recipe once and ignores recipes for unknown films', () => {
@@ -201,6 +244,42 @@ describe('buildFilmRecipeIndex film and rebrand semantics', () => {
     );
     expect(getFilmRecipeCount(index, 'hp5-plus')).toBe(1);
     expect(index.counts.has('mystery-film')).toBe(false);
+  });
+});
+
+describe('buildFilmRecipeIndex family edges', () => {
+  const ids = (index: ReturnType<typeof buildFilmRecipeIndex>, slug: string) =>
+    index.recipesBySlug.get(slug)?.map((c) => c.uuid);
+
+  it('resolves a base named by one of its alias slugs', () => {
+    const base = film('base', 'A', 'Base', 'bw', 400, {
+      aliases: [{ slug: 'old-base', name: 'Old Base' }],
+    });
+    const reb = film('reb', 'B', 'Reb', 'bw', 400, {
+      baseFilmSlug: 'old-base',
+    });
+    const sib = film('sib', 'C', 'Sib', 'bw', 400, { baseFilmSlug: 'base' });
+    const a = recipe('reb', 'rodinal', 400);
+    const index = buildFilmRecipeIndex([a], [base, reb, sib]);
+    for (const slug of ['base', 'reb', 'sib']) {
+      expect(ids(index, slug)).toEqual([a.uuid]);
+    }
+  });
+
+  it('does not follow a chain past the base', () => {
+    const top = film('top', 'A', 'Top', 'bw', 400);
+    const mid = film('mid', 'B', 'Mid', 'bw', 400, { baseFilmSlug: 'top' });
+    const midSib = film('mid-sib', 'C', 'Mid Sib', 'bw', 400, {
+      baseFilmSlug: 'top',
+    });
+    const leaf = film('leaf', 'D', 'Leaf', 'bw', 400, { baseFilmSlug: 'mid' });
+    const t = recipe('top', 'rodinal', 400);
+    const l = recipe('leaf', 'rodinal', 200);
+    const ms = recipe('mid-sib', 'rodinal', 100);
+    const index = buildFilmRecipeIndex([t, l, ms], [top, mid, midSib, leaf]);
+    expect(ids(index, 'mid')).toEqual([t.uuid, l.uuid, ms.uuid]);
+    expect(ids(index, 'leaf')).toEqual([l.uuid]);
+    expect(ids(index, 'mid-sib')).toEqual([t.uuid, ms.uuid]);
   });
 });
 
