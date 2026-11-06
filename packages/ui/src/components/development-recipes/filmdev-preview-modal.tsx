@@ -76,7 +76,7 @@ export function FilmdevPreviewModal({
         onClick={onConfirm}
         disabled={isProcessing}
         className={cn(
-          'rounded-full bg-text-primary px-5 py-2 text-sm font-semibold text-background transition hover:bg-text-primary/90',
+          'rounded-full bg-text-primary px-5 py-2 text-sm font-semibold text-background transition hover:bg-text-secondary',
           isProcessing && 'cursor-wait opacity-70'
         )}
       >

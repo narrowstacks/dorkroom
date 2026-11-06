@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -501,3 +501,62 @@ describe('migrated hover utilities keep their content legible in every theme', (
 // the row's own text colour, so the ring-vs-fill pair is the 'searchable select
 // option' (bg-hover-surface / text-on-hover-surface) entry in
 // MIGRATED_HOVER_PAIRS above. The component test covers which rows get the ring.
+
+function componentSources(): string[] {
+  const root = join(here, '..', '..', '..', '..', '..');
+  return [
+    join(root, 'packages', 'ui', 'src', 'components'),
+    join(root, 'apps', 'dorkroom', 'src', 'app'),
+  ].flatMap((dir) =>
+    readdirSync(dir, { recursive: true, encoding: 'utf8' })
+      .filter((file) => file.endsWith('.tsx'))
+      .map((file) => join(dir, file))
+  );
+}
+
+describe('two-colour themes', () => {
+  it('have no see-through text-token hover, which reads grey or dim red', () => {
+    const offenders = componentSources().filter((file) =>
+      /hover:bg-text-[a-z]+\/\d/.test(readFileSync(file, 'utf8'))
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  it('invert a solid text-primary button on hover, as its fill cannot change', () => {
+    const variants = new Set(
+      componentSources().flatMap((file) =>
+        [
+          ...readFileSync(file, 'utf8').matchAll(
+            /(?<![\w:-])((?:[a-z-]+:)*hover:)bg-text-secondary\b/g
+          ),
+        ].map((match) => match[1])
+      )
+    );
+    expect(variants.size).toBeGreaterThan(0);
+    for (const theme of ['high-contrast', 'darkroom']) {
+      expect(utilityColor(theme, 'bg-text-secondary')).toEqual(
+        utilityColor(theme, 'bg-text-primary')
+      );
+      for (const variant of variants) {
+        const selector = `[data-theme="${theme}"] .${variant.replaceAll(':', '\\:')}bg-text-secondary:enabled:hover`;
+        expect(themeCss, `${variant} in ${theme}`).toContain(selector);
+      }
+    }
+    const rule = themeCss.slice(
+      themeCss.indexOf('.enabled\\:hover\\:bg-text-secondary')
+    );
+    expect(rule.slice(rule.indexOf('{'), rule.indexOf('}'))).toMatch(
+      /background-color: var\(--color-background\) !important;\s+color: var\(--color-text-primary\) !important;\s+box-shadow: inset/
+    );
+  });
+
+  it('mark the selected unit by line and weight', () => {
+    for (const theme of ['high-contrast', 'darkroom']) {
+      expect(themeCss).toContain(`[data-theme="${theme}"] .unit-toggle-active`);
+    }
+    const rule = themeCss.slice(themeCss.indexOf('.unit-toggle-active {'));
+    expect(rule.slice(0, rule.indexOf('}'))).toMatch(
+      /font-weight: 700;\s+text-decoration: underline/
+    );
+  });
+});

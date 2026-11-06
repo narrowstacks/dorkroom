@@ -89,7 +89,7 @@ export function ConfirmModal({
         <div className="flex gap-3 items-start mb-5">
           {showWarningIcon && (
             <div
-              className="flex-shrink-0 p-1.5 rounded-full"
+              className="confirm-icon flex-shrink-0 p-1.5 rounded-full"
               style={{
                 backgroundColor: isDestructive
                   ? 'color-mix(in srgb, var(--color-semantic-error) 15%, transparent)'

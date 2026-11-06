@@ -127,7 +127,7 @@ export function Modal({
         aria-hidden="true"
         tabIndex={-1}
         data-testid="modal-backdrop"
-        className="absolute inset-0 h-full w-full cursor-default backdrop-blur"
+        className="modal-scrim absolute inset-0 h-full w-full cursor-default backdrop-blur"
         style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
         onClick={onClose}
       />
@@ -138,7 +138,7 @@ export function Modal({
         aria-labelledby={title ? titleId : ariaLabelledBy}
         tabIndex={-1}
         className={cn(
-          'relative z-10 m-0 max-h-none w-full rounded-2xl border p-6 shadow-xl backdrop-blur-lg animate-scale-fade-in',
+          'dialog-frame relative z-10 m-0 max-h-none w-full rounded-2xl border p-6 shadow-xl backdrop-blur-lg animate-scale-fade-in',
           SIZE_CLASSES[size],
           className
         )}

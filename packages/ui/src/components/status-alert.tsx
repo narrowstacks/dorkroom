@@ -33,7 +33,11 @@ export function StatusAlert({
 
   return (
     <div
-      className={cn('flex items-center gap-3 rounded-lg border p-3', className)}
+      className={cn(
+        'status-alert flex items-center gap-3 rounded-lg border p-3',
+        action === 'warning' && 'status-alert-warning',
+        className
+      )}
       role={omitRole ? undefined : action === 'error' ? 'alert' : 'status'}
       style={{
         borderColor:

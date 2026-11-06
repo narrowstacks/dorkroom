@@ -94,7 +94,7 @@ function RootComponent() {
               status-bar/toolbar bands, which hijacked the tint that should
               come from .backdrop-gradient (see utilities.css). */}
           <header
-            className="z-50 hidden border-b lg:sticky lg:top-[env(safe-area-inset-top)] lg:block lg:backdrop-blur"
+            className="opaque-surface z-50 hidden border-b lg:sticky lg:top-[env(safe-area-inset-top)] lg:block lg:backdrop-blur"
             style={{
               backgroundColor: 'rgba(var(--color-background-rgb), 0.8)',
               borderColor: 'var(--color-border-muted)',

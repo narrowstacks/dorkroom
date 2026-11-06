@@ -42,6 +42,9 @@ export function UnitToggle({
       }}
     >
       <span
+        className={
+          currentUnit === leftOption.value ? 'unit-toggle-active' : undefined
+        }
         style={{
           color:
             currentUnit === leftOption.value
@@ -53,6 +56,9 @@ export function UnitToggle({
       </span>
       <span style={{ color: 'var(--color-text-muted)' }}>|</span>
       <span
+        className={
+          currentUnit === rightOption.value ? 'unit-toggle-active' : undefined
+        }
         style={{
           color:
             currentUnit === rightOption.value

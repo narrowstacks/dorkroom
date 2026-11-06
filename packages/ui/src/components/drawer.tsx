@@ -130,7 +130,7 @@ export function Drawer({
       <div
         ref={backdropRef}
         className={cn(
-          'absolute inset-0 transition-opacity duration-300 h-full',
+          'modal-scrim absolute inset-0 transition-opacity duration-300 h-full',
           enableBackgroundBlur && 'backdrop-blur-sm',
           enableBackgroundOverlay &&
             'bg-[color:var(--color-visualization-overlay)]',
@@ -154,7 +154,7 @@ export function Drawer({
         tabIndex={modal ? -1 : undefined}
         inert={(modal && !isOpen) || undefined}
         className={cn(
-          'absolute border transition-transform duration-300 ease-out overflow-hidden',
+          'dialog-frame absolute border transition-transform duration-300 ease-out overflow-hidden',
           anchor === 'bottom' || anchor === 'top'
             ? `${sizeClasses[size]} rounded-t-xl`
             : 'w-80 h-full',
