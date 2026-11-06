@@ -11,6 +11,7 @@ import { reciprocityCalculatorLink } from '../../schemas/reciprocity-calculator.
 import { getCombinationDilution } from '../combination-dilution';
 import { sameDilution } from '../dilution-parser';
 import { calculatePushPull } from '../exposure-calculations';
+import { buildFilmRecipeIndex, getFilmRecipeCount } from '../film-recipes';
 import { calculateReciprocity } from '../reciprocity-calculations';
 import {
   formatTemperature,
@@ -61,6 +62,8 @@ interface Named extends NameWords {
 export interface FilmEntry extends Named {
   film: Film;
   name: string;
+  /** Recipes published under this film, without its rebrand family's. */
+  ownRecipes: number;
   /** Reciprocity exponent from the film data, or null when it has none. */
   factor: number | null;
 }
@@ -74,6 +77,8 @@ export interface Catalog {
   films: FilmEntry[];
   developers: DeveloperEntry[];
   combinations: readonly Combination[];
+  /** Each film's recipes, rebrand family included, by canonical slug. */
+  filmRecipes: ReadonlyMap<string, readonly Combination[]>;
   filmBySlug: ReadonlyMap<string, FilmEntry>;
   developerBySlug: ReadonlyMap<string, DeveloperEntry>;
   /** Films and developers have loaded, so any name in a query is known. */
@@ -135,32 +140,35 @@ export function getCatalog(data: HomeSearchData): Catalog {
     return memo.catalog;
   }
   const combinations = data.combinations ?? [];
-  const filmRecipes = new Map<string, number>();
+  const filmIndex = buildFilmRecipeIndex(combinations, [...(data.films ?? [])]);
+  const ownRecipes = new Map<string, number>();
   const developerRecipes = new Map<string, number>();
-  const filmPartners = new Map<string, Set<string>>();
   const developerPartners = new Map<string, Set<string>>();
-  const addTo = (map: Map<string, Set<string>>, key: string, value: string) =>
-    map.set(key, (map.get(key) ?? new Set()).add(value));
   for (const c of combinations) {
-    filmRecipes.set(c.filmSlug, (filmRecipes.get(c.filmSlug) ?? 0) + 1);
+    ownRecipes.set(c.filmSlug, (ownRecipes.get(c.filmSlug) ?? 0) + 1);
     developerRecipes.set(
       c.developerSlug,
       (developerRecipes.get(c.developerSlug) ?? 0) + 1
     );
-    addTo(filmPartners, c.filmSlug, c.developerSlug);
-    addTo(developerPartners, c.developerSlug, c.filmSlug);
+    developerPartners.set(
+      c.developerSlug,
+      (developerPartners.get(c.developerSlug) ?? new Set()).add(c.filmSlug)
+    );
   }
 
   const filmBySlug = new Map<string, FilmEntry>();
   const films = (data.films ?? []).map((film) => {
-    const slugs = [film.slug, ...film.aliases.map((a) => a.slug)];
     const entry: FilmEntry = {
       film,
       name: `${film.brand} ${film.name}`,
       ...filmNames(film),
-      recipes: slugs.reduce((n, slug) => n + (filmRecipes.get(slug) ?? 0), 0),
+      recipes: getFilmRecipeCount(filmIndex, film.slug),
+      ownRecipes: [film.slug, ...film.aliases.map((a) => a.slug)].reduce(
+        (n, slug) => n + (ownRecipes.get(slug) ?? 0),
+        0
+      ),
       partners: new Set(
-        slugs.flatMap((slug) => [...(filmPartners.get(slug) ?? [])])
+        filmIndex.recipesBySlug.get(film.slug)?.map((c) => c.developerSlug)
       ).size,
       factor: filmFactor(film),
     };
@@ -186,6 +194,7 @@ export function getCatalog(data: HomeSearchData): Catalog {
     films,
     developers,
     combinations,
+    filmRecipes: filmIndex.recipesBySlug,
     filmBySlug,
     developerBySlug,
     namesLoaded: Boolean(data.films && data.developers),
@@ -382,17 +391,64 @@ export function catalogTokens(text: string): string[] {
 export interface CatalogMatch {
   film: Scored<FilmEntry> | null;
   developer: Scored<DeveloperEntry> | null;
+  /** The film is a guess between several the words fit equally. */
+  filmAssumed?: boolean;
+}
+
+/** Blank the tokens a match used, so later matches index the same tokens. */
+function withoutUsed(tokens: readonly string[], used: readonly number[]) {
+  const spent = new Set(used);
+  return tokens.map((t, i) => (spent.has(i) ? '' : t));
+}
+
+/** Every word of one of the film's names is in the query, maker aside. */
+function namesFilmWhole(entry: FilmEntry, tokens: readonly string[]) {
+  const typed = new Set(tokens);
+  const maker = new Set(entry.brand);
+  return [entry.film.name, ...entry.film.aliases.map((a) => a.name)].some(
+    (name) =>
+      tokenize(name)
+        .filter((word) => !maker.has(word))
+        .every((word) => typed.has(word))
+  );
 }
 
 export function matchCatalog(
   catalog: Catalog,
   tokens: readonly string[]
 ): CatalogMatch {
-  const film = best(catalog.films, tokens);
-  const used = new Set(film?.used);
-  // Blank what the film used, so both matches index the same tokens.
-  const rest = tokens.map((t, i) => (used.has(i) ? '' : t));
-  return { film, developer: best(catalog.developers, rest) };
+  const pairOf = (film: Scored<FilmEntry> | null): CatalogMatch => ({
+    film,
+    developer: best(catalog.developers, withoutUsed(tokens, film?.used ?? [])),
+  });
+  // Published rows settle a tie, not shared ones, so a rebrand's family cannot
+  // pull it ahead of the film the words name ("premium 400 dixactol ultra").
+  const films = catalog.films
+    .map((entry) => score(entry, tokens))
+    .filter((s) => s.own > 0)
+    .sort(
+      (a, b) => b.score - a.score || b.entry.ownRecipes - a.entry.ownRecipes
+    );
+  const top = pairOf(films[0] ?? null);
+  const developer = top.developer?.entry;
+  if (!top.film || !developer || top.film.entry.recipes > 0) return top;
+  const tied = films.filter((s) => s.score === films[0].score);
+  if (tied.some((s) => namesFilmWhole(s.entry, tokens))) return top;
+  // Words that fit several films equally ("arista 400"): a film with no recipes
+  // gives way to one that also accounts for every word. No tied film has rows
+  // of its own here, so only a rebrand family can ever move the answer.
+  const readings = tied.filter((s) => {
+    const { developer: other } = pairOf(s);
+    const spent = new Set([...s.used, ...(other?.used ?? [])]);
+    return (
+      other?.entry === developer && tokens.every((t, i) => !t || spent.has(i))
+    );
+  });
+  const film =
+    readings.find(
+      (s) => recipesOf(catalog, { film: s.entry, developer }).length > 0
+    ) ?? readings.find((s) => s.entry.recipes > 0);
+  return film ? { ...pairOf(film), filmAssumed: true } : top;
 }
 
 /* ------------------------------------------------------------------ *
@@ -401,12 +457,14 @@ export function matchCatalog(
 
 type RecipeAnswer = Extract<HomeAnswer, { kind: 'recipe' | 'no_recipe' }>;
 
+/** `filmSlug` is the film asked about, which on a shared recipe is not the row's. */
 function recipeLink(
   combination: Combination,
-  dilution: string
+  dilution: string,
+  filmSlug = combination.filmSlug
 ): DevelopmentLinkSearch {
   return {
-    film: combination.filmSlug,
+    film: filmSlug,
     developer: combination.developerSlug,
     iso: String(combination.shootingIso),
     dilution: isRecipeUrlDilution(dilution) ? dilution : undefined,
@@ -415,25 +473,28 @@ function recipeLink(
 }
 
 /**
- * The recipes for a film, a developer, or both (a film's aliases count as
- * the film). With neither given, none.
+ * The recipes for a film, a developer, or both (a film's aliases and rebrand
+ * family count as the film). With neither given, none.
  */
 export function recipesOf(
   catalog: Catalog,
   { film, developer }: { film?: FilmEntry; developer?: DeveloperEntry }
 ): Combination[] {
   if (!film && !developer) return [];
-  return catalog.combinations.filter(
-    (c) =>
-      (!film || catalog.filmBySlug.get(c.filmSlug) === film) &&
-      (!developer || c.developerSlug === developer.developer.slug)
+  const recipes = film
+    ? (catalog.filmRecipes.get(film.film.slug) ?? [])
+    : catalog.combinations;
+  return recipes.filter(
+    (c) => !developer || c.developerSlug === developer.developer.slug
   );
 }
 
-export interface RecipeWish {
+interface RecipeWish {
   iso: number | null;
   dilution: { dilution: string; label: string } | null;
   temperature: TypedTemperature | null;
+  /** The film is a guess, so the answer says how it read the query. */
+  filmAssumed?: boolean;
 }
 
 /**
@@ -458,13 +519,14 @@ export function recipeAnswer(
   unit: TemperatureUnit = 'celsius'
 ): RecipeAnswer {
   const title = `${film.name} in ${developer.name}`;
+  const readAs = wish.filmAssumed ? [{ text: film.name, assumed: true }] : [];
   const all = recipesOf(catalog, { film, developer });
   if (all.length === 0) {
     return {
       kind: 'no_recipe',
       title,
       badge: 'No recipe',
-      readAs: [],
+      readAs,
       figure: null,
       facts: [],
       notes: [
@@ -549,7 +611,7 @@ export function recipeAnswer(
     kind: 'recipe',
     title,
     badge: recipeSourceLabel(recipe.tags),
-    readAs: [],
+    readAs,
     notice: notices.length ? notices.join(' ') : undefined,
     figure: {
       value: formatClock(recipe.timeMinutes),
@@ -581,7 +643,10 @@ export function recipeAnswer(
         : `${plural(others.length, 'other recipe')} for this pair, at EI ${otherSpeeds.join(', ')}`,
     link: {
       label: 'Open recipe',
-      target: { to: '/development', search: recipeLink(recipe, dilution) },
+      target: {
+        to: '/development',
+        search: recipeLink(recipe, dilution, film.film.slug),
+      },
     },
   };
 }
@@ -713,14 +778,17 @@ export function catalogGroups(
       label: answered ? 'Other recipes for this pair' : 'Development recipes',
       total: recipes.length,
       items: recipes.slice(0, 4).map((c) => {
-        const f = catalog.filmBySlug.get(c.filmSlug);
+        const f = film ?? catalog.filmBySlug.get(c.filmSlug);
         const d = catalog.developerBySlug.get(c.developerSlug);
         const dilution = getCombinationDilution(c, d?.developer);
         return {
           title: `${f?.name ?? c.filmSlug} in ${d?.name ?? c.developerSlug} ${dilution}`,
           detail: `EI ${c.shootingIso} · ${temperatureIn(unit, c.temperatureC, c.temperatureF)} · ${recipeSourceLabel(c.tags)}`,
           meta: formatClock(c.timeMinutes),
-          target: { to: '/development', search: recipeLink(c, dilution) },
+          target: {
+            to: '/development',
+            search: recipeLink(c, dilution, film?.film.slug),
+          },
         };
       }),
     });
