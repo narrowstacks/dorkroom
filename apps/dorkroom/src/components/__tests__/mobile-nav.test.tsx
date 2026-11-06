@@ -231,6 +231,18 @@ class FakeMediaQueryList extends EventTarget implements MediaQueryList {
   removeListener(): void {}
 }
 
+describe('MobileNav in the two-colour themes', () => {
+  it('sets its translucency in a class the themes can override', () => {
+    render346(<MobileNav pathname="/" onNavigate={vi.fn()} />);
+    const toggle = screen.getByRole('button', { name: 'Open navigation' });
+    expect(toggle.style.opacity).toBe('');
+    expect(toggle.className).toContain('[[data-theme=darkroom]_&]:opacity-100');
+    expect(toggle.className).toContain(
+      '[[data-theme=high-contrast]_&]:opacity-100'
+    );
+  });
+});
+
 describe('MobileNav breakpoint', () => {
   it('keeps the drawer open up to 1023px and closes it at 1024px', () => {
     const originalMatchMedia = window.matchMedia;

@@ -1,6 +1,7 @@
 import type { RecipeUrlBinding } from '@dorkroom/logic';
 import { ConfirmModal, TemperatureProvider, useIsMobile } from '@dorkroom/ui';
 import { RecipeModals } from './components/recipe-modals';
+import { WorkbenchPhoneLayout } from './components/workbench-phone-layout';
 import { WorkbenchWideLayout } from './components/workbench-wide-layout';
 import { useRecipeWorkbench } from './hooks/useRecipeWorkbench';
 
@@ -19,7 +20,11 @@ export default function RecipeWorkbenchPage({
 
   return (
     <TemperatureProvider>
-      <WorkbenchWideLayout wb={wb} />
+      {isMobile ? (
+        <WorkbenchPhoneLayout wb={wb} />
+      ) : (
+        <WorkbenchWideLayout wb={wb} />
+      )}
       <RecipeModals
         isMobile={isMobile}
         isCustomModalOpen={modals.isCustomModalOpen}

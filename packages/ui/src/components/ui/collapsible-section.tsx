@@ -24,18 +24,18 @@ export function CollapsibleSection({
         className="w-full p-4 text-left"
       >
         <div className="flex items-center justify-between">
-          <div>
+          <div className="min-w-0">
             <div className="text-xs uppercase tracking-wide text-muted">
               {title}
             </div>
-            <div className="mt-1 text-base font-semibold text-primary">
+            <div className="mt-1 text-base font-semibold text-primary [overflow-wrap:anywhere]">
               {subtitle}
             </div>
           </div>
           {isExpanded ? (
-            <ChevronDown className="size-4 text-muted" />
+            <ChevronDown className="size-4 shrink-0 text-muted" />
           ) : (
-            <ChevronRight className="size-4 text-muted" />
+            <ChevronRight className="size-4 shrink-0 text-muted" />
           )}
         </div>
       </button>

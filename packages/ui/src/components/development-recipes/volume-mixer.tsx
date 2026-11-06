@@ -28,18 +28,32 @@ interface VolumeMixerProps {
    * the input and unit toggle to a 44px touch target.
    */
   presetsMl?: readonly number[];
+  /**
+   * The total, when a parent keeps it so it survives this component being
+   * unmounted (a layout change). Without it the mixer keeps its own.
+   */
+  volumeMl?: number;
+  onVolumeMlChange?: (ml: number) => void;
 }
 
 /**
  * Volume mixer component for calculating developer concentrate and water amounts.
  * Shows the calculated volumes based on the dilution ratio and user-entered total volume.
  */
-export function VolumeMixer({ dilutionString, presetsMl }: VolumeMixerProps) {
+export function VolumeMixer({
+  dilutionString,
+  presetsMl,
+  volumeMl,
+  onVolumeMlChange,
+}: VolumeMixerProps) {
   const { unit } = useVolume();
   const inputId = useId();
-  const [totalVolumeMl, setTotalVolumeMl] = useState(() =>
-    getDefaultVolumeMl()
-  );
+  const [ownVolumeMl, setOwnVolumeMl] = useState(() => getDefaultVolumeMl());
+  const totalVolumeMl = volumeMl ?? ownVolumeMl;
+  const setTotalVolumeMl = (ml: number) => {
+    setOwnVolumeMl(ml);
+    onVolumeMlChange?.(ml);
+  };
   // What is typed, while the field has focus. The committed volume is in ml, so
   // echoing it back would rewrite a half-typed value ("12" in fl oz becomes
   // "1.0") and refuse an emptied field.

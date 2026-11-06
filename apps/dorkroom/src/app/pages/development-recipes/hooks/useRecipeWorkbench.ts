@@ -58,9 +58,16 @@ export function useRecipeWorkbench(url: RecipeUrlBinding) {
   const [selection, setSelection] = useState(EMPTY_SELECTION);
   const [scope, setScope] = useState<RecipeScope>('all');
   // `q` needs no catalogue to resolve, so the box is filled on first paint.
-  const [query, setQuery] = useState(() =>
+  const [query, setQueryText] = useState(() =>
     readRecipeUrlSearchQuery(url.search)
   );
+  // Closing the phone's search sheet keeps the text, which would otherwise open
+  // the sheet again each time the layout remounts across the breakpoint.
+  const [searchDismissed, setSearchDismissed] = useState(false);
+  const setQuery = (next: string) => {
+    setQueryText(next);
+    setSearchDismissed(false);
+  };
   const [isSeeded, setIsSeeded] = useState(false);
   const [expectsContent] = useState(() => opensSomething(url));
   const [focusRequest, setFocusRequest] = useState<{
@@ -70,6 +77,8 @@ export function useRecipeWorkbench(url: RecipeUrlBinding) {
     'recipe' | 'custom_recipe' | null
   >(null);
   const [isSharedDialogShown, setIsSharedDialogShown] = useState(false);
+  // Kept here, not in the mixer, so crossing the phone breakpoint keeps it.
+  const [mixVolumeMl, setMixVolumeMl] = useState<number>();
 
   /** A user's choice, which also ends any wait to read the link. */
   function applyChoice(next: WorkbenchSelection) {
@@ -290,6 +299,7 @@ export function useRecipeWorkbench(url: RecipeUrlBinding) {
     applyChoice(EMPTY_SELECTION);
     setScope('all');
     setQuery('');
+    setMixVolumeMl(undefined);
     setFocusRequest({ target: 'film' });
   };
 
@@ -411,6 +421,8 @@ export function useRecipeWorkbench(url: RecipeUrlBinding) {
     scope,
     query,
     setQuery,
+    searchDismissed,
+    dismissSearch: () => setSearchDismissed(true),
     resultsQuery: isLoaded ? deferredQuery : '',
     searchResult,
     savedRecipes,
@@ -445,6 +457,9 @@ export function useRecipeWorkbench(url: RecipeUrlBinding) {
     pickSaved,
     changeScope,
     startOver,
+    mixVolumeMl,
+    setMixVolumeMl,
+    focusHeading: () => setFocusRequest({ target: 'heading' }),
     openCustomForm,
     openImport: () => modals.setIsImportModalOpen(true),
     copyLink,

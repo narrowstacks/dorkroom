@@ -17,3 +17,11 @@ export const MOBILE_FAB_EDGE = 'right-[calc(env(safe-area-inset-right)+1rem)]';
 /** The second spot: one button (3rem) and a 0.75rem gap in from the first. */
 export const MOBILE_FAB_SECOND =
   'right-[calc(env(safe-area-inset-right)+4.75rem)]';
+
+/**
+ * Fixes something on the floating buttons' row, to their left, so it covers no
+ * more of the page than they do: their two buttons (3rem each), the 0.75rem gap
+ * and edge offset, and 0.5rem of air.
+ */
+export const BESIDE_MOBILE_FABS =
+  'fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-[calc(env(safe-area-inset-left)+1rem)] right-[calc(env(safe-area-inset-right)+8.25rem)]';

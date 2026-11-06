@@ -1,45 +1,24 @@
 import { recipeIdOf } from '@dorkroom/logic';
-import { cn, LiveStatusAlert, Skeleton } from '@dorkroom/ui';
+import { cn } from '@dorkroom/ui';
 import {
   FilmDeveloperSelection,
   RecipeList,
-  RecipePanel,
   RecipeScopeFilter,
   RecipeSearchBox,
   RecipeSearchResults,
   SavedRecipes,
 } from '@dorkroom/ui/development-recipes';
-import { Plus, RotateCcw, Upload } from 'lucide-react';
 import { useLayoutEffect, useRef } from 'react';
 import type { RecipeWorkbench } from '../hooks/useRecipeWorkbench';
-import { OpenRecipeAnnouncement } from './open-recipe-announcement';
-import { SharedRecipeNotice } from './shared-recipe-notice';
 import { UnresolvedCustomRecipes } from './unresolved-custom-recipes';
-
-const SIDE_BUTTON =
-  'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-1 border-secondary px-4 text-sm font-medium text-primary transition-colors hoverable-action-btn focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]';
-
-function WorkbenchSkeleton() {
-  return (
-    <div
-      data-testid="workbench-skeleton"
-      aria-hidden="true"
-      className="flex flex-col gap-6 md:flex-row md:items-start"
-    >
-      <div className="flex shrink-0 flex-col gap-4 md:w-72 lg:w-80">
-        <Skeleton className="border-1 border-secondary h-11 w-full rounded-xl" />
-        <Skeleton className="border-1 border-secondary h-11 w-full rounded-xl" />
-        <Skeleton className="border-1 border-secondary h-11 w-full rounded-xl" />
-        <Skeleton className="border-1 border-secondary h-40 w-full rounded-xl" />
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-4">
-        <Skeleton className="border-1 border-secondary h-8 w-2/3 rounded-lg" />
-        <Skeleton className="border-1 border-secondary h-24 w-1/2 rounded-lg" />
-        <Skeleton className="border-1 border-secondary h-40 w-full rounded-xl" />
-      </div>
-    </div>
-  );
-}
+import {
+  AddImportButtons,
+  PromptNote,
+  SIDE_BUTTON,
+  WorkbenchBanners,
+  WorkbenchPanel,
+  WorkbenchSkeleton,
+} from './workbench-shared';
 
 /**
  * The pair's recipes in their own scroller, because a pair can list 14 rows and
@@ -98,33 +77,7 @@ export function WorkbenchWideLayout({ wb }: { wb: RecipeWorkbench }) {
 
   return (
     <div className="mx-auto flex max-w-[1280px] flex-col gap-4 px-4 py-6 sm:px-6">
-      <LiveStatusAlert
-        action="error"
-        message={
-          wb.loadFailed
-            ? 'The recipe catalogue did not load. Your custom recipes are still here.'
-            : null
-        }
-      />
-      {wb.loadFailed && (
-        <div>
-          <button
-            type="button"
-            onClick={() => void wb.retry()}
-            disabled={wb.isRefreshing}
-            className={SIDE_BUTTON}
-          >
-            <RotateCcw aria-hidden="true" className="size-4" />
-            {wb.isRefreshing ? 'Retrying…' : 'Retry'}
-          </button>
-        </div>
-      )}
-      <SharedRecipeNotice
-        isLoading={wb.isLoadingSharedRecipe}
-        message={wb.sharedRecipeError ?? null}
-        onDismiss={wb.dismissSharedRecipeError}
-      />
-      <OpenRecipeAnnouncement wb={wb} />
+      <WorkbenchBanners wb={wb} />
 
       {wb.showSkeleton ? (
         <WorkbenchSkeleton />
@@ -166,10 +119,7 @@ export function WorkbenchWideLayout({ wb }: { wb: RecipeWorkbench }) {
               onDeveloperChange={wb.selectDeveloper}
               developerOptions={wb.developerOptions}
             />
-            {/* Mounted while empty: a live region added with its text can be skipped. */}
-            <output className="block text-sm text-secondary empty:hidden">
-              {wb.promptNote ?? (wb.isLoading ? 'Loading recipes…' : '')}
-            </output>
+            <PromptNote wb={wb} />
             <RecipeSearchBox
               label="Or search"
               value={wb.query}
@@ -194,7 +144,11 @@ export function WorkbenchWideLayout({ wb }: { wb: RecipeWorkbench }) {
               currentId={openView ? recipeIdOf(openView) : null}
               onSelect={wb.pickSaved}
             />
-            <UnresolvedCustomRecipes wb={wb} />
+            <UnresolvedCustomRecipes
+              recipes={wb.unresolvedCustom}
+              onEdit={wb.editRecipe}
+              onDelete={wb.deleteRecipe}
+            />
 
             <div className="flex flex-wrap gap-2">
               {wb.canStartOver && (
@@ -206,47 +160,15 @@ export function WorkbenchWideLayout({ wb }: { wb: RecipeWorkbench }) {
                   Start over
                 </button>
               )}
-              <button
-                type="button"
-                onClick={wb.openCustomForm}
-                className={SIDE_BUTTON}
-              >
-                <Plus aria-hidden="true" className="size-4" />
-                Add custom recipe
-              </button>
-              {wb.isLoaded && (
-                <button
-                  type="button"
-                  onClick={wb.openImport}
-                  className={SIDE_BUTTON}
-                >
-                  <Upload aria-hidden="true" className="size-4" />
-                  Import recipe
-                </button>
-              )}
+              <AddImportButtons wb={wb} />
             </div>
           </section>
 
           {openView && (
             <div className="flex min-w-0 flex-1 flex-col gap-4">
-              {wb.hintNote && (
-                <p className="rounded-xl border-1 border-secondary p-3 text-sm text-primary">
-                  {wb.hintNote}
-                </p>
-              )}
-              <RecipePanel
+              <WorkbenchPanel
+                wb={wb}
                 className="rounded-2xl border-1 border-secondary bg-[color:var(--color-surface)] p-5 lg:p-8"
-                view={openView}
-                film={film?.film ?? openView.film}
-                onSelectRecipe={wb.pickChoice}
-                temperatureChoices={wb.temperatureChoices}
-                speedChoices={wb.speedChoices}
-                isSaved={wb.isSaved}
-                onToggleSaved={() => wb.toggleSaved(openView)}
-                onCopyLink={wb.copyLink}
-                onEdit={() => wb.editRecipe(openView)}
-                onDelete={() => wb.deleteRecipe(openView)}
-                headingRef={wb.headingRef}
               />
             </div>
           )}

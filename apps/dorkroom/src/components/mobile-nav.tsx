@@ -90,7 +90,7 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
         className={cn(
           MOBILE_FAB,
           MOBILE_FAB_EDGE,
-          'darkroom-invert-icon',
+          'darkroom-invert-icon opacity-90 [[data-theme=darkroom]_&]:opacity-100 [[data-theme=high-contrast]_&]:opacity-100',
           isMobileMenuOpen ? 'z-[60]' : 'z-50'
         )}
         style={{
@@ -98,7 +98,6 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
           borderColor: 'var(--color-background)',
           borderWidth: 1,
           backgroundColor: 'var(--color-text-primary)',
-          opacity: 0.9,
         }}
         aria-label={isMobileMenuOpen ? 'Close navigation' : 'Open navigation'}
         aria-expanded={isMobileMenuOpen}

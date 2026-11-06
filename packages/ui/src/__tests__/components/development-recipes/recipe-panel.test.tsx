@@ -155,7 +155,11 @@ describe('RecipePanel', () => {
   it('shows the time and the temperature in both units', () => {
     renderPanel([single]);
     expect(screen.getByText('9:30')).toBeInTheDocument();
-    expect(screen.getByText('minutes at 68°F (20°C)')).toBeInTheDocument();
+    expect(screen.getByText('at 68°F (20°C)')).toBeInTheDocument();
+    // Beside the time, as a unit; the sentence for screen readers stays whole.
+    expect(
+      screen.getByText('minutes').closest('[aria-hidden="true"]')
+    ).not.toBeNull();
   });
 
   it('reads the time in one announcement', () => {
@@ -401,6 +405,22 @@ describe('RecipePanel', () => {
       expect(screen.queryByRole('button', { name: 'Save' })).toBeNull();
       expect(screen.queryByRole('button', { name: 'Copy link' })).toBeNull();
       expect(screen.queryByRole('switch', { name: /Switch to/ })).toBeNull();
+    });
+
+    it('hides the title and subtitle on the phone, keeping the heading for focus', () => {
+      renderPanel([single], { layout: 'phone' });
+      const heading = screen.getByRole('heading', { level: 2 });
+      expect(heading).toHaveClass('sr-only');
+      expect(heading).toHaveAttribute('tabindex', '-1');
+      expect(heading.nextElementSibling?.tagName).not.toBe('P');
+    });
+
+    it('fits the phone time and "minutes" together at 320px', () => {
+      renderPanel([single], { layout: 'phone' });
+      expect(screen.getByText('minutes').className).toContain('text-base');
+      expect(
+        screen.getByText('minutes').previousElementSibling?.className
+      ).toContain('text-6xl');
     });
 
     it('offers Edit and Delete on a custom recipe only', () => {
@@ -655,7 +675,7 @@ describe('RecipePanel', () => {
         'custom'
       ),
     ]);
-    expect(screen.getByText('minutes at 75°F (23.9°C)')).toBeInTheDocument();
+    expect(screen.getByText('High temp 75°F (23.9°C)')).toBeInTheDocument();
     expect(screen.getByText(/at 23\.9°C and 75°F/)).toBeInTheDocument();
   });
 
@@ -684,31 +704,58 @@ describe('RecipePanel temperature flag', () => {
     timeMinutes: 7,
   });
 
-  it('shows "High temp" beside the time for a warm recipe', () => {
-    renderPanel([warm]);
-    expect(screen.getByText('High temp 75.2°F')).toBeInTheDocument();
-  });
+  it.each(['wide', 'phone'] as const)(
+    'puts both units in one chip, in place of the plain line, on the %s layout',
+    (layout) => {
+      renderPanel([warm], { layout });
+      expect(screen.getByText('High temp 75.2°F (24°C)')).toBeInTheDocument();
+      expect(screen.queryByText(/^at /)).toBeNull();
+    }
+  );
 
   it('follows the user unit', () => {
     localStorage.setItem('dorkroom-temperature-unit', 'celsius');
     renderPanel([warm]);
-    expect(screen.getByText('High temp 24°C')).toBeInTheDocument();
+    expect(screen.getByText('High temp 24°C (75.2°F)')).toBeInTheDocument();
   });
 
-  it('reserves its row while another temperature is one tap away', () => {
-    const pair = [
-      make('t20', { timeMinutes: 9 }),
-      make('t24', { temperatureC: 24, temperatureF: 75.2, timeMinutes: 7 }),
-    ];
-    const { container } = renderPanel(pair);
-    const row = container.querySelector('.min-h-8');
-    expect(row).not.toBeNull();
-    expect(row).toBeEmptyDOMElement();
+  it('flags a cold recipe the same way', () => {
+    localStorage.setItem('dorkroom-temperature-unit', 'celsius');
+    renderPanel([make('c', { temperatureC: 18, temperatureF: 64.4 })]);
+    expect(screen.getByText('Low temp 18°C (64.4°F)')).toBeInTheDocument();
   });
 
-  it('adds no row for a room-temperature recipe with no other temperature', () => {
-    const { container } = renderPanel([single]);
-    expect(container.querySelector('.min-h-8')).toBeNull();
+  it('keeps a plain line at 20C, within the tolerance', () => {
+    localStorage.setItem('dorkroom-temperature-unit', 'celsius');
+    renderPanel([single]);
+    expect(screen.getByText('at 20°C (68°F)')).toBeInTheDocument();
+    expect(screen.queryByText(/High temp|Low temp/)).toBeNull();
+  });
+
+  it('says the temperature once to a screen reader, with what it means', () => {
+    localStorage.setItem('dorkroom-temperature-unit', 'celsius');
+    renderPanel([warm]);
+    expect(
+      screen.getByText(
+        'Development time 7 minutes at 24°C and 75.2°F, high temperature'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('High temp 24°C (75.2°F)').closest('[aria-hidden=true]')
+    ).not.toBeNull();
+  });
+
+  it('gives the plain line and the chip one row height, so nothing below moves', () => {
+    localStorage.setItem('dorkroom-temperature-unit', 'celsius');
+    const { container, unmount } = renderPanel([single]);
+    expect(container.querySelector('.min-h-8')).toContainElement(
+      screen.getByText('at 20°C (68°F)')
+    );
+    unmount();
+    const warmPanel = renderPanel([warm]);
+    expect(warmPanel.container.querySelector('.min-h-8')).toContainElement(
+      screen.getByText('High temp 24°C (75.2°F)')
+    );
   });
 });
 
@@ -763,6 +810,20 @@ describe('RecipeTemperatureChip', () => {
     expect(screen.getByText(/Low temp/).className).toContain(
       '--color-temp-low-text'
     );
+  });
+
+  it('adds the other unit only when asked', () => {
+    localStorage.setItem('dorkroom-temperature-unit', 'celsius');
+    render(
+      <TemperatureProvider>
+        <RecipeTemperatureChip
+          temperatureC={24}
+          temperatureF={75.2}
+          bothUnits
+        />
+      </TemperatureProvider>
+    );
+    expect(screen.getByText('High temp 24°C (75.2°F)')).toBeInTheDocument();
   });
 
   it('renders just past the tolerance', () => {

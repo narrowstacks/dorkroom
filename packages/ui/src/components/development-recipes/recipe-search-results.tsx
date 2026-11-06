@@ -1,5 +1,5 @@
 import type { RecipeSearchHit, RecipeSearchResult } from '@dorkroom/logic';
-import type { FC, Ref } from 'react';
+import type { FC, ReactNode, Ref } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { cn } from '../../lib/cn';
 import { recipeTitle } from './recipe-detail-shared';
@@ -18,6 +18,8 @@ export interface RecipeSearchResultsProps {
   firstResultRef?: Ref<HTMLButtonElement>;
   /** The scrolling area, for a sheet that pins the search box above it. */
   className?: string;
+  /** Drawn after the results, scrolling with them. */
+  children?: ReactNode;
 }
 
 const statusText = (
@@ -43,6 +45,7 @@ export const RecipeSearchResults: FC<RecipeSearchResultsProps> = ({
   emptyText = 'No recipes match. Try fewer words.',
   firstResultRef,
   className,
+  children,
 }) => {
   const { unit } = useTemperature();
   const hits = query.trim() === '' ? [] : result.hits;
@@ -72,6 +75,7 @@ export const RecipeSearchResults: FC<RecipeSearchResultsProps> = ({
           rowRef={firstResultRef}
         />
       )}
+      {children}
     </div>
   );
 };

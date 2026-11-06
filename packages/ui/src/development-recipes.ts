@@ -32,6 +32,7 @@ export { RecipeScopeFilter } from './components/development-recipes/recipe-scope
 export { RecipeSearchBox } from './components/development-recipes/recipe-search-box';
 export { RecipeSearchResults } from './components/development-recipes/recipe-search-results';
 export { RecipeSearchSheet } from './components/development-recipes/recipe-search-sheet';
+export { SHEET_CLOSE_BUTTON } from './components/development-recipes/recipe-sheet-classes';
 export type { SavedRecipe } from './components/development-recipes/saved-recipes';
 export { SavedRecipes } from './components/development-recipes/saved-recipes';
 export { SharedRecipeModal } from './components/development-recipes/shared-recipe-modal';

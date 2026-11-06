@@ -14,14 +14,26 @@ export interface RecipeSearchSheetProps {
   onClose: () => void;
   query: string;
   onQueryChange: (query: string) => void;
-  /** From `searchRecipes`, on `query`. */
+  /**
+   * What `result` answers, when it is not `query`: the deferred text, or blank
+   * while the catalogue has not loaded and a result of nothing would be untrue.
+   */
+  resultsQuery?: string;
+  /** From `searchRecipes`, on `resultsQuery`. */
   result: RecipeSearchResult;
   /** Called with the picked hit. The sheet then closes itself. */
   onSelectHit: (hit: RecipeSearchHit) => void;
-  /** Drawn under the search box, such as the scope filter. */
+  /** Drawn under the search box, such as a loading or failed status. */
   children?: ReactNode;
+  /**
+   * Drawn after the results and scrolling with them, for what must not push the
+   * first result down behind the keyboard.
+   */
+  afterResults?: ReactNode;
   /** Said when nothing matches, where "Try fewer words" would mislead. */
   emptyText?: string;
+  /** The search box, for the caller to move focus to. */
+  inputRef?: RefObject<HTMLInputElement | null>;
   /**
    * Where focus goes on close, in place of the button that opened the sheet. Read
    * as the sheet closes, so an element the pick itself mounts is too late and
@@ -41,13 +53,17 @@ export const RecipeSearchSheet: FC<RecipeSearchSheetProps> = ({
   onClose,
   query,
   onQueryChange,
+  resultsQuery,
   result,
   onSelectHit,
   emptyText,
   children,
+  afterResults,
+  inputRef: givenInputRef,
   returnFocus,
 }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const ownInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = givenInputRef ?? ownInputRef;
   const firstResultRef = useRef<HTMLButtonElement>(null);
   return (
     <ResponsiveModal
@@ -74,7 +90,7 @@ export const RecipeSearchSheet: FC<RecipeSearchSheetProps> = ({
         />
         {children}
         <RecipeSearchResults
-          query={query}
+          query={resultsQuery ?? query}
           result={result}
           emptyText={emptyText}
           firstResultRef={firstResultRef}
@@ -83,7 +99,9 @@ export const RecipeSearchSheet: FC<RecipeSearchSheetProps> = ({
             onClose();
           }}
           className={SHEET_LIST}
-        />
+        >
+          {afterResults}
+        </RecipeSearchResults>
       </div>
     </ResponsiveModal>
   );
