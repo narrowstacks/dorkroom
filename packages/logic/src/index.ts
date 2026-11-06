@@ -221,6 +221,7 @@ export * from './utils/object-comparison';
 export * from './utils/persisted-calculator';
 export * from './utils/precision';
 export * from './utils/preset-sharing';
+export * from './utils/recipe-search';
 export * from './utils/recipe-selection';
 export * from './utils/recipe-sharing';
 export * from './utils/reciprocity-calculations';

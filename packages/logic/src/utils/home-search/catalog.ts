@@ -38,13 +38,17 @@ import type {
   HomeSearchData,
 } from './types';
 
-/** What matching reads of a film or developer. */
-interface Named {
+/** The words of a film or developer that matching reads. */
+export interface NameWords {
   /** Words of its own name and aliases, without the maker's. */
   own: string[];
   /** Each name's neighbouring words run together ("tmax400", "hp5plus"). */
   joined: string[];
   brand: string[];
+}
+
+/** What matching reads of a film or developer. */
+interface Named extends NameWords {
   recipes: number;
   /**
    * How many developers (for a film) or films (for a developer) it has
@@ -94,6 +98,25 @@ function joinedWords(names: readonly string[], skip: ReadonlySet<string>) {
   });
 }
 
+export function filmNames(film: Film): NameWords {
+  const brand = tokenize(film.brand);
+  const brandWords = new Set(brand);
+  const names = [film.name, ...film.aliases.map((a) => a.name)];
+  return {
+    own: tokenize(names.join(' ')).filter((t) => !brandWords.has(t)),
+    joined: joinedWords(names, brandWords),
+    brand,
+  };
+}
+
+export function developerNames(developer: Developer): NameWords {
+  return {
+    own: tokenize(developer.name),
+    joined: joinedWords([developer.name], new Set()),
+    brand: tokenize(developer.manufacturer),
+  };
+}
+
 function filmFactor(film: Film): number | null {
   const factor = Number.parseFloat(film.reciprocityFailure ?? '');
   return Number.isFinite(factor) && factor > 0 ? factor : null;
@@ -130,16 +153,11 @@ export function getCatalog(data: HomeSearchData): Catalog {
 
   const filmBySlug = new Map<string, FilmEntry>();
   const films = (data.films ?? []).map((film) => {
-    const brand = tokenize(film.brand);
-    const brandWords = new Set(brand);
-    const names = [film.name, ...film.aliases.map((a) => a.name)];
     const slugs = [film.slug, ...film.aliases.map((a) => a.slug)];
     const entry: FilmEntry = {
       film,
       name: `${film.brand} ${film.name}`,
-      own: tokenize(names.join(' ')).filter((t) => !brandWords.has(t)),
-      joined: joinedWords(names, brandWords),
-      brand,
+      ...filmNames(film),
       recipes: slugs.reduce((n, slug) => n + (filmRecipes.get(slug) ?? 0), 0),
       partners: new Set(
         slugs.flatMap((slug) => [...(filmPartners.get(slug) ?? [])])
@@ -156,9 +174,7 @@ export function getCatalog(data: HomeSearchData): Catalog {
     const entry: DeveloperEntry = {
       developer,
       name: developerName(developer),
-      own: tokenize(developer.name),
-      joined: joinedWords([developer.name], new Set()),
-      brand: tokenize(developer.manufacturer),
+      ...developerNames(developer),
       recipes: developerRecipes.get(developer.slug) ?? 0,
       partners: developerPartners.get(developer.slug)?.size ?? 0,
     };
@@ -199,16 +215,26 @@ const hasLetter = (token: string) => /[a-z]/.test(token);
  */
 const GENERIC_WORDS = new Set(['plus', 'pro', 'professional', 'classic']);
 
+/** How query tokens met a film or developer's words. */
+export interface NameMatch {
+  /** Points from words of its own name; a number counts less than a word. */
+  own: number;
+  /** Points from its maker's words. */
+  brand: number;
+  /** Indexes of the query tokens this entry used. */
+  used: number[];
+}
+
 /**
- * Score an entry against query tokens: words of its own name count most,
- * its maker's words less, and a bare number ("400") or a generic word
- * ("plus") never identifies one. A word typed whole ("tmax400") or split
- * ("t max") still matches. Empty tokens are spent and skipped.
+ * Match query tokens against a name, or null when they do not identify it. Its
+ * own words count most, its maker's words less, and a bare number ("400") or a
+ * generic word ("plus") never identifies one. A word typed whole ("tmax400") or
+ * split ("t max") still matches. Empty tokens are spent and skipped.
  */
-function score<E extends Named>(
-  entry: E,
+export function matchesNames(
+  entry: NameWords,
   tokens: readonly string[]
-): Scored<E> {
+): NameMatch | null {
   let own = 0;
   let brand = 0;
   const used = new Set<number>();
@@ -253,8 +279,21 @@ function score<E extends Named>(
   const named = [...used].some(
     (index) => hasLetter(tokens[index]) && !GENERIC_WORDS.has(tokens[index])
   );
-  return named
-    ? { entry, score: own * 3 + brand, own, used: [...used] }
+  return named ? { own, brand, used: [...used] } : null;
+}
+
+function score<E extends Named>(
+  entry: E,
+  tokens: readonly string[]
+): Scored<E> {
+  const match = matchesNames(entry, tokens);
+  return match
+    ? {
+        entry,
+        score: match.own * 3 + match.brand,
+        own: match.own,
+        used: match.used,
+      }
     : { entry, score: 0, own: 0, used: [] };
 }
 
