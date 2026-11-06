@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  type RefObject,
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useBodyScrollLock } from '../hooks/use-body-scroll-lock';
 import { useEscapeKey } from '../hooks/use-escape-key';
 import { useModalLayer } from '../hooks/use-modal-layer';
@@ -35,6 +41,10 @@ interface DrawerProps {
   modal?: boolean;
   /** Id of the element that names the dialog. Used only with `modal`. */
   ariaLabelledBy?: string;
+  /** Where focus goes on open. Used only with `modal`. */
+  initialFocus?: RefObject<HTMLElement | null>;
+  /** Where focus goes on close, in place of the opener. Used only with `modal`. */
+  returnFocus?: RefObject<HTMLElement | null>;
 }
 
 export function Drawer({
@@ -48,6 +58,8 @@ export function Drawer({
   className,
   modal = false,
   ariaLabelledBy,
+  initialFocus,
+  returnFocus,
 }: DrawerProps) {
   // Consolidated transition state so updates flow through a single setter.
   const [transition, setTransition] = useState({
@@ -78,7 +90,9 @@ export function Drawer({
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
+  // A layout effect, so the content mounts and `initialFocus` lands in the same
+  // task as the tap: iOS only raises the keyboard for focus inside that task.
+  useLayoutEffect(() => {
     // eslint-disable-next-line react-doctor/no-adjust-state-on-prop-change, react-doctor/no-derived-state -- the transition state is not derivable from isOpen: it is a timed animation sequence (rAF-delayed slide-in, 300ms slide-out before unmounting)
     return isOpen ? runOpenTransition() : runCloseTransition();
   }, [isOpen, runOpenTransition, runCloseTransition]);
@@ -94,7 +108,7 @@ export function Drawer({
   const backdropRef = useRef<HTMLDivElement>(null);
   const panelRef = useModalLayer<HTMLDivElement>(
     modal && isOpen && showContent,
-    { keepInteractive: [backdropRef] }
+    { keepInteractive: [backdropRef], initialFocus, returnFocus }
   );
 
   const transformClasses = {

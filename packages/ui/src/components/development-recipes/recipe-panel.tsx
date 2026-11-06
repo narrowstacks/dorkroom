@@ -21,7 +21,12 @@ import {
   RecipeChoiceChips,
   type RecipeChoiceOption,
 } from './recipe-choice-chips';
-import { spokenTime, temperatureText } from './recipe-detail-shared';
+import {
+  describeSpeed,
+  recipeTitle,
+  spokenTime,
+  temperatureText,
+} from './recipe-detail-shared';
 import { RecipeTemperatureChip } from './recipe-temperature-chip';
 import { TemperatureUnitToggle } from './temperature-unit-toggle';
 import { VolumeMixer } from './volume-mixer';
@@ -30,17 +35,6 @@ const MIX_PRESETS_ML = [300, 500, 1000] as const;
 
 const ACTION_BUTTON =
   'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-1 border-primary px-4 text-sm font-medium text-primary transition-colors hoverable-action-btn focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]';
-
-/** Where a speed sits against the box speed, in the prototype's words. */
-function describeSpeed(iso: number, boxIso: number | undefined): string | null {
-  if (!boxIso) return null;
-  if (iso === boxIso) return 'box speed';
-  const stops = Math.log2(iso / boxIso);
-  if (Number.isInteger(stops)) {
-    return stops > 0 ? `push +${stops}` : `pull -${-stops}`;
-  }
-  return iso > boxIso ? 'above box speed' : 'below box speed';
-}
 
 export interface RecipePanelActionsProps {
   isSaved: boolean;
@@ -147,11 +141,6 @@ export const RecipePanel: FC<RecipePanelProps> = ({
   const [firstTemperature, secondTemperature] =
     unit === 'celsius' ? [celsius, fahrenheit] : [fahrenheit, celsius];
 
-  const filmName = film ? `${film.brand} ${film.name}` : 'Unknown film';
-  const developerName = developer
-    ? `${developer.manufacturer} ${developer.name}`
-    : 'Unknown developer';
-
   const temperatureOptions: RecipeChoiceOption[] = temperatureChoices.map(
     ({ view: choice }) => {
       const label = temperatureText(choice.combination, unit);
@@ -236,7 +225,7 @@ export const RecipePanel: FC<RecipePanelProps> = ({
               isPhone ? 'text-xl' : 'text-2xl md:text-3xl'
             )}
           >
-            {filmName} in {developerName}
+            {recipeTitle(film, developer)}
           </h2>
           <p className="text-sm text-tertiary">{subtitle}</p>
         </div>

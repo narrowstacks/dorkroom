@@ -1,12 +1,9 @@
-import {
-  formatTemperature,
-  isHigherTemperature,
-  isNonStandardTemperature,
-} from '@dorkroom/logic';
+import { isHigherTemperature, isNonStandardTemperature } from '@dorkroom/logic';
 import { ThermometerSnowflake, ThermometerSun } from 'lucide-react';
 import type { FC } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { cn } from '../../lib/cn';
+import { temperatureFlagText } from './recipe-detail-shared';
 
 export interface RecipeTemperatureChipProps {
   temperatureC: number;
@@ -33,12 +30,6 @@ export const RecipeTemperatureChip: FC<RecipeTemperatureChipProps> = ({
 
   const isHigher = isHigherTemperature(temperatureF);
   const Icon = isHigher ? ThermometerSun : ThermometerSnowflake;
-  const value = formatTemperature(
-    unit === 'celsius' ? temperatureC : temperatureF,
-    unit,
-    { trimTrailingZero: true }
-  );
-
   return (
     <span
       className={cn(
@@ -47,7 +38,7 @@ export const RecipeTemperatureChip: FC<RecipeTemperatureChipProps> = ({
       )}
     >
       <Icon aria-hidden="true" className="size-4 shrink-0" />
-      {isHigher ? 'High' : 'Low'} temp {value}
+      {temperatureFlagText({ temperatureC, temperatureF }, unit)}
     </span>
   );
 };

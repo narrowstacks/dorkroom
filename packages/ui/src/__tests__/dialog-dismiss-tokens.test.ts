@@ -43,6 +43,8 @@ const SHELL_DIALOGS = [
   'save-before-share-modal.tsx',
   'development-recipes/filmdev-preview-modal.tsx',
   'development-recipes/shared-recipe-modal.tsx',
+  'development-recipes/recipe-picker-sheet.tsx',
+  'development-recipes/recipe-search-sheet.tsx',
 ] as const;
 
 /** Every dialog file, for the colour-token checks. */
