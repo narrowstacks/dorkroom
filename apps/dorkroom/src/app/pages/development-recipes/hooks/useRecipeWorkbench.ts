@@ -112,7 +112,6 @@ export function useRecipeWorkbench(url: RecipeUrlBinding) {
         developer && !developer.isCustom ? developer.developer : null,
       dilutionFilter: selection.hint.dilution,
       isoFilter: selection.hint.iso,
-      developerTypeFilter: '',
       customRecipeFilter: scopeFilters.customRecipeFilter,
       favoritesOnly: scopeFilters.favoritesOnly,
       selectedRecipeId: openView ? recipeIdOf(openView) : null,
@@ -131,7 +130,6 @@ export function useRecipeWorkbench(url: RecipeUrlBinding) {
     updateCustomRecipe: catalog.updateCustomRecipe,
     deleteCustomRecipe: catalog.deleteCustomRecipe,
     favorites,
-    openView,
     onRecipeCreated: (id) => {
       applyChoice(openRecipeById(id));
       setFocusRequest({ target: 'heading' });

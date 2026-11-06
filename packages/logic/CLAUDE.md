@@ -9,7 +9,7 @@ sibling (Metro picks it up automatically; see `use-window-dimensions.native.ts`)
 
 ## Before You Start
 
-1. **Check current TanStack Query/Form/Table docs** (Context7 when connected) before making changes
+1. **Check current TanStack Query/Form docs** (Context7 when connected) before making changes
 2. **Watch for circular dependencies** between @dorkroom packages
 3. Calculator math lives here, not in a screen or page component
 
@@ -134,7 +134,7 @@ The border reducer (`use-border-calculator-state.ts`) validates its snapshot
 whole rather than per field, so it does not use the hook, but it reads the
 same provider.
 
-Other persisted state (custom recipes, border presets, view preference) still
+Other persisted state (custom recipes, border presets) still
 uses `globalThis.localStorage` through `createStorageManager`. On iOS that
 global is an MMKV shim installed at app startup over the same MMKV instance,
 so keep reads synchronous and never assume a browser `Storage` object.

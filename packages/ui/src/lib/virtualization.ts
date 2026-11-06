@@ -1,20 +1,15 @@
 /**
- * What the virtualized results lists on /films and /development share. List
- * specifics such as row heights stay beside each list.
+ * What the virtualized results lists on /films share. List specifics such as
+ * row heights stay beside each list.
  */
 
 import { RESIZE_DEBOUNCE_MS } from './resize-debounce';
 
 /**
  * Default container height for virtualized lists.
- * Calculated as: 100dvh - header (64px) - filters (120px) - pagination (96px)
+ * Calculated as: 100dvh - the header and the toolbar above the list (280px)
  */
 export const DEFAULT_CONTAINER_HEIGHT = 'calc(100dvh - 280px)';
-
-/**
- * Minimum container height to prevent layout collapse on small screens.
- */
-export const MIN_CONTAINER_HEIGHT = '400px';
 
 /**
  * Maximum container height to prevent over-expansion.

@@ -282,9 +282,6 @@
   --color-tag-bw: #ff0000;
   --color-tag-color: #ff0000;
   --color-tag-slide: #ff0000;
-  --color-official-badge-bg: #ff0000;
-  --color-official-badge-border: #ff0000;
-  --color-official-badge-icon: #000000;
   --toggle-pill-border: 1px solid #ff0000;
   --toggle-circle-border: 1px solid #ff0000;
   /* Ensure toggle knob is black in both states */
@@ -340,7 +337,6 @@
   --accent-amber-gradient: none;
   --accent-rose-text: #ff0000;
   --accent-rose-border: #ff0000;
-  --accent-rose-gradient: none;
   --accent-cyan-text: #ff0000;
   --accent-cyan-border: #ff0000;
   --accent-cyan-gradient: none;
@@ -554,11 +550,6 @@
     in oklab,
     oklch(64.5% 0.246 16.439) 50%,
     transparent
-  );
-  --accent-rose-gradient: linear-gradient(
-    to bottom right,
-    color-mix(in oklab, oklch(64.5% 0.246 16.439) 20%, transparent),
-    color-mix(in oklab, oklch(63.7% 0.237 25.331) 20%, transparent)
   );
   --accent-cyan-text: oklch(78.9% 0.154 211.53);
   --accent-cyan-border: color-mix(
@@ -807,11 +798,6 @@
     oklch(64.5% 0.246 16.439) 45%,
     transparent
   );
-  --accent-rose-gradient: linear-gradient(
-    to bottom right,
-    color-mix(in oklab, oklch(64.5% 0.246 16.439) 14%, transparent),
-    color-mix(in oklab, oklch(63.7% 0.237 25.331) 14%, transparent)
-  );
   --accent-cyan-border: color-mix(
     in oklab,
     oklch(71.5% 0.143 215.221) 45%,
@@ -925,9 +911,6 @@
   --color-tag-bw: #000000;
   --color-tag-color: #000000;
   --color-tag-slide: #000000;
-  --color-official-badge-bg: #000000;
-  --color-official-badge-border: #000000;
-  --color-official-badge-icon: #ffffff;
   --toggle-pill-border: 1px solid #000000;
   --toggle-pill-border-active: 1px solid #000000;
   --toggle-circle-border: 1px solid #000000;
@@ -986,7 +969,6 @@
   --accent-amber-gradient: none;
   --accent-rose-text: #000000;
   --accent-rose-border: #000000;
-  --accent-rose-gradient: none;
   --accent-cyan-text: #000000;
   --accent-cyan-border: #000000;
   --accent-cyan-gradient: none;
@@ -1128,19 +1110,6 @@
   background-image: none;
 }
 
-/* Official badge: solid fill in darkroom & high-contrast themes */
-[data-theme="darkroom"] .official-badge {
-  background-color: var(--color-official-badge-bg) !important;
-  border-color: var(--color-official-badge-border) !important;
-  color: var(--color-official-badge-icon) !important;
-}
-
-[data-theme="high-contrast"] .official-badge {
-  background-color: var(--color-official-badge-bg) !important;
-  border-color: var(--color-official-badge-border) !important;
-  color: var(--color-official-badge-icon) !important;
-}
-
 /* Ensure all icons use only black/red in darkroom theme */
 [data-theme="darkroom"] svg {
   color: var(--color-text-primary);
@@ -1151,21 +1120,6 @@
 [data-theme="darkroom"] .darkroom-invert-icon svg {
   color: var(--color-background) !important;
   stroke: var(--color-background) !important;
-}
-
-/* Same opt-out for controls that only fill with a colour on hover (the
-   collapsed filter panel's expand button turns brand red under the red icon). */
-@media (hover: hover) {
-  [data-theme="darkroom"] .darkroom-hover-invert-icon:hover svg {
-    color: var(--color-background) !important;
-    stroke: var(--color-background) !important;
-  }
-}
-
-/* Override: official badge icon stays black in darkroom theme */
-[data-theme="darkroom"] .official-badge svg {
-  color: var(--color-official-badge-icon) !important;
-  stroke: var(--color-official-badge-icon) !important;
 }
 
 /* Ensure focus rings use only red/black in darkroom theme */
@@ -1340,11 +1294,9 @@
 }
 
 [data-theme="high-contrast"] .shadow-sm,
-[data-theme="high-contrast"] .shadow-md,
 [data-theme="high-contrast"] .shadow-lg,
 [data-theme="high-contrast"] .shadow-xl,
 [data-theme="darkroom"] .shadow-sm,
-[data-theme="darkroom"] .shadow-md,
 [data-theme="darkroom"] .shadow-lg,
 [data-theme="darkroom"] .shadow-xl {
   --tw-shadow: 0 0 #0000 !important;

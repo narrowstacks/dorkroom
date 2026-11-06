@@ -3,39 +3,14 @@ import type { CustomRecipe } from '@dorkroom/logic';
 import {
   createCombinationFromCustomRecipe,
   debugWarn,
-  getCombinationDilution,
   getCustomRecipeDeveloper,
   getCustomRecipeFilm,
-  matchesSearchQuery,
 } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 
-export interface UseRecipeDataProps {
-  filteredCombinations: Combination[];
-  customRecipes: CustomRecipe[];
-  allFilms: Film[];
-  allDevelopers: Developer[];
-  /** Whole catalogue, for the custom recipe form's pickers. */
-  catalogFilms: Film[];
-  catalogDevelopers: Developer[];
-  selectedFilm: Film | null;
-  selectedDeveloper: Developer | null;
-  developerTypeFilter: string;
-  dilutionFilter: string;
-  isoFilter: string;
-  /** Debounced free-text search, applied the same way as to API recipes. */
-  searchQuery: string;
-  customRecipeFilter: 'all' | 'hide-custom' | 'only-custom' | 'official';
-  favoritesOnly: boolean;
-  sharedCustomRecipe:
-    | CustomRecipe
-    | Omit<CustomRecipe, 'id' | 'dateCreated' | 'dateModified'>
-    | null;
-  isFavorite: (id: string) => boolean;
-  getFilmById: (id: string) => Film | undefined;
-  getDeveloperById: (id: string) => Developer | undefined;
-}
+type SharedCustomRecipe =
+  CustomRecipe | Omit<CustomRecipe, 'id' | 'dateCreated' | 'dateModified'>;
 
 type SelectOption = { label: string; value: string };
 
@@ -54,23 +29,6 @@ export const toDeveloperOptions = (developers: Developer[]): SelectOption[] => [
     value: developer.uuid,
   })),
 ];
-
-export interface UseRecipeDataReturn {
-  combinedRows: DevelopmentCombinationView[];
-  apiCombinationViews: DevelopmentCombinationView[];
-  customCombinationViews: DevelopmentCombinationView[];
-  filteredCustomViews: DevelopmentCombinationView[];
-  sharedCustomRecipeView: DevelopmentCombinationView | null;
-  /** Films with recipes, for the filter sidebar. */
-  filmOptions: SelectOption[];
-  /** Developers with recipes, for the filter sidebar. */
-  developerOptions: SelectOption[];
-  /** Every catalogue film, for the custom recipe form. */
-  catalogFilmOptions: SelectOption[];
-  /** Every catalogue developer, for the custom recipe form. */
-  catalogDeveloperOptions: SelectOption[];
-  memoizedIsFavorite: (id: string) => boolean;
-}
 
 /**
  * Converts a custom recipe to a Combination, or returns null when its values
@@ -100,11 +58,8 @@ function toCombinationOrNull(
  * excludes that recipe from the filtered list, and resolving against it
  * meant the link never opened and `recipe=` was dropped (#508).
  *
- * Separate from `useRecipeData` because it depends only on data available
- * before the URL state hook runs, which needs it to resolve a shared recipe
- * link, while `useRecipeData` needs that hook's decoded shared custom recipe.
- * Computing it in `useRecipeData` made the page bridge the map back to the
- * URL hook through state (#288).
+ * It depends only on data available before the URL state hook runs, which
+ * needs it to resolve a shared recipe link (#288).
  */
 export function useRecipesByUuid(
   allCombinations: Combination[],
@@ -150,7 +105,7 @@ export function useRecipesByUuid(
  * taken from the shared data where it brings its own.
  */
 export function useSharedCustomRecipeView(
-  sharedCustomRecipe: UseRecipeDataProps['sharedCustomRecipe'],
+  sharedCustomRecipe: SharedCustomRecipe | null,
   getFilmById: (id: string) => Film | undefined,
   getDeveloperById: (id: string) => Developer | undefined
 ): DevelopmentCombinationView | null {
@@ -279,190 +234,4 @@ export function useCustomCombinationViews(
       ];
     });
   }, [customRecipes, getDeveloperById, getFilmById]);
-}
-
-/**
- * Hook that handles all data processing and derived state for development recipes
- * Consolidates combination views, filtering, and sorting
- */
-export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
-  const {
-    filteredCombinations,
-    customRecipes,
-    allFilms,
-    allDevelopers,
-    catalogFilms,
-    catalogDevelopers,
-    selectedFilm,
-    selectedDeveloper,
-    developerTypeFilter,
-    dilutionFilter,
-    isoFilter,
-    searchQuery,
-    customRecipeFilter,
-    favoritesOnly,
-    sharedCustomRecipe,
-    isFavorite,
-    getFilmById,
-    getDeveloperById,
-  } = props;
-
-  const sharedCustomRecipeView = useSharedCustomRecipeView(
-    sharedCustomRecipe,
-    getFilmById,
-    getDeveloperById
-  );
-
-  const customCombinationViews = useCustomCombinationViews(
-    customRecipes,
-    getFilmById,
-    getDeveloperById
-  );
-
-  const apiCombinationViews = useMemo<DevelopmentCombinationView[]>(() => {
-    return filteredCombinations.map((combination) => ({
-      combination,
-      film: getFilmById(combination.filmStockId),
-      developer: getDeveloperById(combination.developerId),
-      source: 'api',
-    }));
-  }, [filteredCombinations, getFilmById, getDeveloperById]);
-
-  const filteredCustomViews = useMemo(() => {
-    if (!customCombinationViews.length) {
-      return [];
-    }
-
-    const query = searchQuery.trim();
-
-    return customCombinationViews.filter((view) => {
-      const { combination, film, developer } = view;
-
-      if (selectedFilm && combination.filmStockId !== selectedFilm.uuid) {
-        return false;
-      }
-
-      if (
-        selectedDeveloper &&
-        combination.developerId !== selectedDeveloper.uuid
-      ) {
-        return false;
-      }
-
-      if (developerTypeFilter && developer?.type !== developerTypeFilter) {
-        return false;
-      }
-
-      if (
-        dilutionFilter &&
-        getCombinationDilution(combination, developer).toLowerCase() !==
-          dilutionFilter.toLowerCase()
-      ) {
-        return false;
-      }
-
-      if (isoFilter) {
-        if (isoFilter === 'boxspeed' && selectedFilm) {
-          if (combination.shootingIso !== selectedFilm.isoSpeed) return false;
-        } else if (
-          isoFilter !== 'boxspeed' &&
-          combination.shootingIso.toString() !== isoFilter
-        ) {
-          return false;
-        }
-      }
-
-      // Same haystack as the API-recipe search in useDevelopmentRecipes. The
-      // view's film and developer already carry customFilm/customDeveloper
-      // names where the recipe uses them (#326).
-      if (query) {
-        const haystack = [
-          film ? `${film.brand} ${film.name}` : '',
-          developer ? `${developer.manufacturer} ${developer.name}` : '',
-          getCombinationDilution(combination, developer),
-        ].join(' ');
-        if (!matchesSearchQuery(haystack, query)) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [
-    customCombinationViews,
-    selectedFilm,
-    selectedDeveloper,
-    developerTypeFilter,
-    dilutionFilter,
-    isoFilter,
-    searchQuery,
-  ]);
-
-  const combinedRows = useMemo<DevelopmentCombinationView[]>(() => {
-    let rows: DevelopmentCombinationView[] = [];
-
-    // Apply recipe type filter
-    if (customRecipeFilter === 'all') {
-      rows = [...apiCombinationViews, ...filteredCustomViews];
-    } else if (customRecipeFilter === 'hide-custom') {
-      rows = [...apiCombinationViews];
-    } else if (customRecipeFilter === 'only-custom') {
-      rows = [...filteredCustomViews];
-    } else if (customRecipeFilter === 'official') {
-      rows = [...apiCombinationViews, ...filteredCustomViews].filter((row) =>
-        row.combination.tags?.some((t) => t.startsWith('official-'))
-      );
-    }
-
-    // Apply favorites-only filter if enabled
-    if (favoritesOnly) {
-      rows = rows.filter((row) => {
-        const id = String(row.combination.uuid || row.combination.id);
-        return isFavorite(id);
-      });
-    }
-
-    // NOTE: Sorting is now handled by TanStack Table via the favoriteAware sorting function
-    // in use-development-table.ts. Return unsorted rows to allow table-based sorting.
-    return rows;
-  }, [
-    apiCombinationViews,
-    filteredCustomViews,
-    customRecipeFilter,
-    favoritesOnly,
-    isFavorite,
-  ]);
-
-  // Memoize the isFavorite function for use in table sorting
-  const memoizedIsFavorite = useCallback(
-    (id: string) => isFavorite(id),
-    [isFavorite]
-  );
-
-  const filmOptions = useMemo(() => toFilmOptions(allFilms), [allFilms]);
-  const developerOptions = useMemo(
-    () => toDeveloperOptions(allDevelopers),
-    [allDevelopers]
-  );
-  const catalogFilmOptions = useMemo(
-    () => toFilmOptions(catalogFilms),
-    [catalogFilms]
-  );
-  const catalogDeveloperOptions = useMemo(
-    () => toDeveloperOptions(catalogDevelopers),
-    [catalogDevelopers]
-  );
-
-  return {
-    combinedRows,
-    apiCombinationViews,
-    customCombinationViews,
-    filteredCustomViews,
-    sharedCustomRecipeView,
-    filmOptions,
-    developerOptions,
-    catalogFilmOptions,
-    catalogDeveloperOptions,
-    memoizedIsFavorite,
-  };
 }

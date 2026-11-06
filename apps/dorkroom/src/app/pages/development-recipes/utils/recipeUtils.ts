@@ -105,17 +105,3 @@ export const convertRecipeToFormData = (
     isFavorite: false,
   };
 };
-
-/**
- * Gets the unique identifier for a combination
- * Prefers UUID over numeric ID
- */
-export const getCombinationIdentifier = (
-  combination?: DevelopmentCombinationView['combination'] | null
-): string => {
-  if (!combination) {
-    return '';
-  }
-
-  return String(combination.uuid || combination.id);
-};

@@ -1,134 +1,14 @@
-import type { Developer, Film } from '@dorkroom/api';
 import type { CustomRecipe } from '@dorkroom/logic';
 import { renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  useRecipeData,
-  type UseRecipeDataProps,
+  useCustomCombinationViews,
   useRecipesByUuid,
+  useSharedCustomRecipeView,
 } from '../useRecipeData';
 
-const TIMESTAMP = '2026-01-01T00:00:00.000Z';
-
-const makeFilm = (overrides: Partial<Film>): Film => ({
-  id: 1,
-  uuid: 'film-uuid-1',
-  slug: 'kodak-tri-x',
-  brand: 'Kodak',
-  name: 'Tri-X',
-  colorType: 'bw',
-  isoSpeed: 400,
-  grainStructure: null,
-  description: '',
-  manufacturerNotes: null,
-  reciprocityFailure: null,
-  discontinued: false,
-  staticImageUrl: null,
-  imageCredit: null,
-  imageSourceUrl: null,
-  aliases: [],
-  baseFilmSlug: null,
-  dateAdded: TIMESTAMP,
-  createdAt: TIMESTAMP,
-  updatedAt: TIMESTAMP,
-  ...overrides,
-});
-
-const makeDeveloper = (overrides: Partial<Developer>): Developer => ({
-  id: 1,
-  uuid: 'dev-uuid-1',
-  slug: 'kodak-hc-110',
-  name: 'HC-110',
-  manufacturer: 'Kodak',
-  type: 'liquid',
-  description: '',
-  filmOrPaper: true,
-  dilutions: [],
-  mixingInstructions: null,
-  storageRequirements: null,
-  safetyNotes: null,
-  imageCredit: null,
-  imageSourceUrl: null,
-  notes: null,
-  createdAt: TIMESTAMP,
-  updatedAt: TIMESTAMP,
-  ...overrides,
-});
-
-const film = makeFilm({});
-const developer = makeDeveloper({
-  uuid: 'dev-uuid-1',
-  type: 'liquid',
-  dilutions: [
-    { id: '1', name: 'A', dilution: '1+15' },
-    { id: '69affee4-6a3f-44d2-8ec3-1dc83eca7449', name: 'B', dilution: '1+31' },
-  ],
-});
-
-const recipe = (
-  id: string,
-  dilution: Pick<CustomRecipe, 'dilutionId' | 'customDilution'>
-): CustomRecipe => ({
-  id,
-  name: id,
-  filmId: film.uuid,
-  developerId: developer.uuid,
-  temperatureF: 68,
-  timeMinutes: 5,
-  shootingIso: 400,
-  pushPull: 0,
-  isCustomFilm: false,
-  isCustomDeveloper: false,
-  dateCreated: '2026-01-01T00:00:00.000Z',
-  dateModified: '2026-01-01T00:00:00.000Z',
-  isPublic: false,
-  ...dilution,
-});
-
-const customRecipes = [
-  recipe('dropdown-b', { dilutionId: '69affee4-6a3f-44d2-8ec3-1dc83eca7449' }),
-  recipe('free-text', { customDilution: '1+63' }),
-  recipe('stock', {}),
-];
-
-const filterCustom = (dilutionFilter: string) => {
-  const props: UseRecipeDataProps = {
-    filteredCombinations: [],
-    customRecipes,
-    allFilms: [film],
-    allDevelopers: [developer],
-    catalogFilms: [film],
-    catalogDevelopers: [developer],
-    selectedFilm: null,
-    selectedDeveloper: developer,
-    developerTypeFilter: '',
-    dilutionFilter,
-    isoFilter: '',
-    searchQuery: '',
-    customRecipeFilter: 'all',
-    favoritesOnly: false,
-    sharedCustomRecipe: null,
-    isFavorite: () => false,
-    getFilmById: (id) => (id === film.uuid ? film : undefined),
-    getDeveloperById: (id) => (id === developer.uuid ? developer : undefined),
-  };
-  const { result } = renderHook(() => useRecipeData(props));
-  return result.current.filteredCustomViews.map((v) => v.combination.uuid);
-};
-
-describe('custom recipe dilution filter (#322)', () => {
-  it('matches a recipe saved with a dropdown dilution', () => {
-    expect(filterCustom('1+31')).toEqual(['dropdown-b']);
-  });
-
-  it('still matches a free-text dilution', () => {
-    expect(filterCustom('1+63')).toEqual(['free-text']);
-  });
-
-  it('treats a recipe with no dilution as Stock, like API recipes', () => {
-    expect(filterCustom('stock')).toEqual(['stock']);
-  });
-});
+const noFilm = () => undefined;
+const noDeveloper = () => undefined;
 
 const createRecipe = (overrides: Partial<CustomRecipe> = {}): CustomRecipe => ({
   id: 'custom-valid',
@@ -163,33 +43,9 @@ const createShared = (overrides: Partial<SharedRecipe> = {}): SharedRecipe => ({
   ...overrides,
 });
 
-const createProps = (
-  overrides: Partial<UseRecipeDataProps> = {}
-): UseRecipeDataProps => ({
-  filteredCombinations: [],
-  customRecipes: [],
-  allFilms: [],
-  allDevelopers: [],
-  catalogFilms: [],
-  catalogDevelopers: [],
-  selectedFilm: null,
-  selectedDeveloper: null,
-  developerTypeFilter: '',
-  dilutionFilter: '',
-  isoFilter: '',
-  searchQuery: '',
-  customRecipeFilter: 'all',
-  favoritesOnly: false,
-  sharedCustomRecipe: null,
-  isFavorite: () => false,
-  getFilmById: () => undefined,
-  getDeveloperById: () => undefined,
-  ...overrides,
-});
-
 // Regression for #323: a recipe saved before range validation existed used to
 // throw during render and crash /development on every load.
-describe('useRecipeData with invalid stored recipes', () => {
+describe('recipe views with invalid stored recipes', () => {
   let warnSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
@@ -209,13 +65,12 @@ describe('useRecipeData with invalid stored recipes', () => {
     });
 
     const { result } = renderHook(() =>
-      useRecipeData(createProps({ customRecipes: [invalid, valid] }))
+      useCustomCombinationViews([invalid, valid], noFilm, noDeveloper)
     );
 
-    expect(
-      result.current.customCombinationViews.map((view) => view.combination.uuid)
-    ).toEqual(['custom-valid']);
-    expect(result.current.combinedRows).toHaveLength(1);
+    expect(result.current.map((view) => view.combination.uuid)).toEqual([
+      'custom-valid',
+    ]);
 
     const { result: byUuid } = renderHook(() =>
       useRecipesByUuid([], [invalid, valid])
@@ -228,99 +83,19 @@ describe('useRecipeData with invalid stored recipes', () => {
     const shared = createShared({ pushPull: 9 });
 
     const { result } = renderHook(() =>
-      useRecipeData(createProps({ sharedCustomRecipe: shared }))
+      useSharedCustomRecipeView(shared, noFilm, noDeveloper)
     );
 
-    expect(result.current.sharedCustomRecipeView).toBeNull();
+    expect(result.current).toBeNull();
   });
 
   it('builds a shared view for a valid shared recipe', () => {
     const shared = createShared();
 
     const { result } = renderHook(() =>
-      useRecipeData(createProps({ sharedCustomRecipe: shared }))
+      useSharedCustomRecipeView(shared, noFilm, noDeveloper)
     );
 
-    expect(result.current.sharedCustomRecipeView?.combination.uuid).toBe(
-      'shared-custom'
-    );
-  });
-});
-
-describe('custom recipe search (#326)', () => {
-  const ilford = makeDeveloper({
-    uuid: 'dev-uuid-2',
-    manufacturer: 'Ilford',
-    name: 'Ilfosol 3',
-  });
-  const searchCustom = (searchQuery: string) => {
-    const { result } = renderHook(() =>
-      useRecipeData(
-        createProps({
-          searchQuery,
-          customRecipes: [
-            createRecipe({ id: 'tri-x-hc110' }),
-            createRecipe({ id: 'tri-x-ilfosol', developerId: ilford.uuid }),
-            createRecipe({
-              id: 'custom-dev',
-              isCustomDeveloper: true,
-              customDeveloper: {
-                manufacturer: 'Homebrew',
-                name: 'Caffenol',
-                type: 'powder',
-                filmOrPaper: 'film',
-                dilutions: [],
-              },
-            }),
-          ],
-          getFilmById: (id) => (id === film.uuid ? film : undefined),
-          getDeveloperById: (id) =>
-            [developer, ilford].find((d) => d.uuid === id),
-        })
-      )
-    );
-    return result.current.filteredCustomViews.map((v) => v.combination.uuid);
-  };
-
-  it('hides custom recipes that do not match the query', () => {
-    expect(searchCustom('Rodinal')).toEqual([]);
-  });
-
-  it('matches on developer name', () => {
-    expect(searchCustom('ilfosol')).toEqual(['tri-x-ilfosol']);
-  });
-
-  it('matches a custom developer by its own name', () => {
-    expect(searchCustom('caffenol')).toEqual(['custom-dev']);
-  });
-
-  it('keeps every recipe when the query is blank', () => {
-    expect(searchCustom('  ')).toHaveLength(3);
-  });
-});
-
-describe('film and developer options', () => {
-  it('offers the whole catalogue to the custom recipe form, not just films with recipes', () => {
-    const triX = makeFilm({ uuid: 'tri-x', brand: 'Kodak', name: 'Tri-X 400' });
-    const fomapan = makeFilm({
-      uuid: 'fomapan-100',
-      brand: 'Foma',
-      name: 'Fomapan 100 Classic',
-    });
-    const { result } = renderHook(() =>
-      useRecipeData(
-        createProps({ allFilms: [triX], catalogFilms: [triX, fomapan] })
-      )
-    );
-
-    expect(result.current.filmOptions.map((o) => o.value)).toEqual([
-      '',
-      'tri-x',
-    ]);
-    expect(result.current.catalogFilmOptions.map((o) => o.value)).toEqual([
-      '',
-      'tri-x',
-      'fomapan-100',
-    ]);
+    expect(result.current?.combination.uuid).toBe('shared-custom');
   });
 });

@@ -13,14 +13,14 @@ components and shares `@dorkroom/logic` instead.
 ```
 src/
 ├── components/            # Reusable UI components, grouped by feature
-│   ├── border-calculator/ calculator/ detail-panel/ development-recipes/
-│   ├── films/ filters/ marketing/ resize/ results/
+│   ├── border-calculator/ calculator/ development-recipes/ films/
+│   ├── marketing/ resize/ results/
 │   └── *.tsx              # Cross-cutting primitives (modal, select, number-input, …)
 ├── contexts/              # Theme + unit contexts (measurement, temperature, volume)
 ├── forms/                 # Form-specific components
 ├── hooks/                 # Custom React hooks
 ├── lib/                   # Utilities (cn, themes, color, select-options, …)
-├── types/                 # Ambient declarations (assets, tanstack-table)
+├── types/                 # Ambient declarations (assets)
 ├── index.ts               # Root entry point
 └── calculator.ts, border-calculator.ts,
     development-recipes.ts, films.ts    # Additional entry points
@@ -37,7 +37,7 @@ from apps:
 | `@dorkroom/ui/forms` | Form field components |
 | `@dorkroom/ui/calculator` | Calculator shell and layout pieces |
 | `@dorkroom/ui/border-calculator` | Border-calculator-specific components |
-| `@dorkroom/ui/development-recipes` | Recipe table, filters, detail views |
+| `@dorkroom/ui/development-recipes` | Recipe workbench pieces: panel, pickers, search, scope filter, forms, modals |
 | `@dorkroom/ui/films` | Film toolbar, results table and list, film page, photos |
 
 The split keeps route-specific bundles out of the root barrel. A component used
@@ -151,15 +151,16 @@ Don't reach for it in new code expecting a visible shadow.
   focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--color-focus-ring)]`),
   not a ring: an inset ring is a box shadow painted under the content, so the
   cards or rows hide most of it. Where a sticky header or full-bleed rows would
-  still cover the outline (the recipe table), draw it on the bordered wrapper
+  still cover the outline (the films table), draw it on the bordered wrapper
   with a `has-[…:focus-visible]:outline-*` variant instead.
 
 ## Results lists
 
-`/films` and `/development` share `components/results/` (`ResultsFrame`,
-`ResultsEmpty`, the table heads, `VirtualTableSpacer`, the error boundary) and
-`lib/virtualization.ts`. A table or list goes inside `ResultsFrame`, so the page
-gradient never shows behind it; recipe cards are solid themselves.
+`/films` uses `components/results/` (`ResultsFrame`, `ResultsEmpty`, the table
+heads, `VirtualTableSpacer`, the error boundary) and `lib/virtualization.ts`.
+A table or list goes inside `ResultsFrame`, so the page gradient never shows
+behind it. `/development` is not a results list: it is a workbench of pickers
+and one recipe panel, built from `development-recipes/`.
 
 ## Accessibility
 

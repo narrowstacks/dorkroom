@@ -114,7 +114,6 @@ describe('useRecipeUrlState', () => {
     selectedDeveloper: null,
     dilutionFilter: '',
     isoFilter: '',
-    developerTypeFilter: '',
     favoritesOnly: false,
     customRecipeFilter: '',
   };
@@ -137,7 +136,8 @@ describe('useRecipeUrlState', () => {
       )
     );
 
-    expect(result.current.initialUrlState.view).toBe('favorites');
+    expect(result.current.initialUrlState.favoritesOnly).toBe(true);
+    expect(result.current.initialUrlState).not.toHaveProperty('view');
   });
 
   it('should handle "view" parameter for custom recipes', () => {
@@ -152,8 +152,39 @@ describe('useRecipeUrlState', () => {
       )
     );
 
-    expect(result.current.initialUrlState.view).toBe('custom');
+    expect(result.current.initialUrlState.customRecipeFilter).toBe(
+      'only-custom'
+    );
+    expect(result.current.initialUrlState).not.toHaveProperty('view');
   });
+
+  it.each(['favorites', 'custom'])(
+    'removes a legacy view=%s from the URL on the next write',
+    (view) => {
+      vi.useFakeTimers();
+      mockLocation.search = `?view=${view}`;
+
+      renderHook(() =>
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
+      );
+
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      expect(mockReplaceState).toHaveBeenCalled();
+      const lastCall =
+        mockReplaceState.mock.calls[mockReplaceState.mock.calls.length - 1];
+      expect(lastCall[2]).not.toContain('view');
+
+      vi.useRealTimers();
+    }
+  );
 
   it('should update URL when favoritesOnly state changes', () => {
     vi.useFakeTimers();
@@ -445,13 +476,10 @@ describe('useRecipeUrlState', () => {
       );
 
       expect(result.current.initialUrlState.recipeId).toBe(validUuid);
-      expect(result.current.initialUrlState.isSharedApiRecipe).toBeUndefined();
     });
 
-    // `fromShare` is what tells a link somebody handed over apart from the
-    // canonical URL of a detail view you opened yourself. `isSharedApiRecipe`
-    // cannot answer that: it additionally requires the film and developer
-    // slugs, so a share link without them looks identical to a bookmark.
+    // `fromShare` tells a link somebody handed over apart from the canonical
+    // URL of a recipe you opened yourself.
     it('should mark a source=share URL as coming from a share', () => {
       const validUuid = '550e8400-e29b-41d4-a716-446655440000';
       mockLocation.search = `?recipe=${validUuid}&source=share`;
@@ -466,7 +494,6 @@ describe('useRecipeUrlState', () => {
       );
 
       expect(result.current.initialUrlState.fromShare).toBe(true);
-      expect(result.current.initialUrlState.isDirectSelection).toBeUndefined();
     });
 
     it('should not mark a bookmarked recipe URL as coming from a share', () => {
@@ -483,7 +510,6 @@ describe('useRecipeUrlState', () => {
       );
 
       expect(result.current.initialUrlState.fromShare).toBeUndefined();
-      expect(result.current.initialUrlState.isDirectSelection).toBe(true);
     });
 
     it('should handle encoded custom recipe ID', () => {
@@ -682,7 +708,7 @@ describe('useRecipeUrlState', () => {
         )
       );
 
-      expect(result.current.initialUrlState.view).toBeUndefined();
+      expect(result.current.initialUrlState).not.toHaveProperty('view');
     });
 
     it('should handle empty film list', () => {
@@ -724,7 +750,7 @@ describe('useRecipeUrlState', () => {
       expect(result.current.initialUrlState.selectedDeveloper).toBeUndefined();
       expect(result.current.initialUrlState.isoFilter).toBeUndefined();
       expect(result.current.initialUrlState.dilutionFilter).toBeUndefined();
-      expect(result.current.initialUrlState.view).toBeUndefined();
+      expect(result.current.initialUrlState).not.toHaveProperty('view');
     });
 
     it('should handle mix of valid and invalid parameters', () => {
@@ -1121,27 +1147,11 @@ describe('useRecipeUrlState', () => {
       expect(result.current.initialUrlState.dilutionFilter).toBeUndefined();
     });
 
-    it('applies developerType with no developer in the URL', () => {
-      mockLocation.search = '?developerType=powder';
-
-      const { result } = renderHook(() =>
-        useRecipeUrlState(
-          useTestUrl(),
-          mockFilms,
-          mockDevelopers,
-          mockCurrentState
-        )
-      );
-
-      expect(result.current.initialUrlState.developerTypeFilter).toBe('powder');
-    });
-
-    it('ignores developerType when a developer is also set in the URL (#325)', () => {
-      // The mirror image of the dilution case above: dilution needs a
-      // developer to mean anything, developerType is made redundant by one.
-      // A shared URL with both set (developer=dd-x is a liquid developer)
-      // must not hydrate a hidden, inert — or worse, silently applied —
-      // developer-type filter.
+    it('ignores developerType and removes it from the URL', () => {
+      // The developer type filter is gone, but old links still carry the
+      // param. It applies nothing and is stripped on the next write, with
+      // the other params of the link kept.
+      vi.useFakeTimers();
       mockLocation.search = '?developer=dd-x&developerType=powder';
 
       const { result } = renderHook(() =>
@@ -1153,12 +1163,47 @@ describe('useRecipeUrlState', () => {
         )
       );
 
+      expect(result.current.initialUrlState).not.toHaveProperty(
+        'developerTypeFilter'
+      );
       expect(result.current.initialUrlState.selectedDeveloper?.slug).toBe(
         'dd-x'
       );
-      expect(
-        result.current.initialUrlState.developerTypeFilter
-      ).toBeUndefined();
+
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      expect(mockReplaceState).toHaveBeenCalled();
+      const lastCall =
+        mockReplaceState.mock.calls[mockReplaceState.mock.calls.length - 1];
+      expect(lastCall[2]).not.toContain('developerType');
+
+      vi.useRealTimers();
+    });
+
+    it('removes a lone developerType from the URL, whatever its value', () => {
+      vi.useFakeTimers();
+      mockLocation.search = '?developerType=powder';
+
+      renderHook(() =>
+        useRecipeUrlState(
+          useTestUrl(),
+          mockFilms,
+          mockDevelopers,
+          mockCurrentState
+        )
+      );
+
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      const lastCall =
+        mockReplaceState.mock.calls[mockReplaceState.mock.calls.length - 1];
+      expect(lastCall[2]).not.toContain('developerType');
+
+      vi.useRealTimers();
     });
 
     it('strips a lone orphaned iso=boxspeed param from the URL once film/developer data arrives', () => {

@@ -33,7 +33,7 @@ const SAMPLES = {
   film_recipe_opened: {},
   home_search: { result: 'recipe', count: 4 },
   nav_search: { result: 'list', count: 7 },
-  filter_applied: { tool: 'development', filter: 'dilution' },
+  filter_applied: { tool: 'development', filter: 'recipe_type' },
   app_error: { route: '/border' },
   route_not_found: { referrer: 'external' },
 } satisfies AnalyticsEvents;

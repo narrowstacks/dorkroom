@@ -187,32 +187,19 @@ describe('FilmDeveloperSelection', () => {
     );
   });
 
-  it('keeps the original card, clear button and X by default', () => {
+  it('has no clear controls, since the page has its own Start over', () => {
     setup();
-    expect(
-      screen.getByRole('button', { name: 'Clear selections' })
-    ).toBeVisible();
-    expect(
-      screen.getByRole('button', { name: 'Clear selection' })
-    ).toBeVisible();
-    expect(screen.getByRole('combobox', { name: 'Film' })).not.toHaveClass(
-      outline
-    );
-    expect(screen.getByRole('combobox', { name: 'Film' })).not.toHaveClass(
-      'min-h-11'
-    );
-  });
-
-  it('hideClear removes both clear controls', () => {
-    setup({ hideClear: true });
     expect(screen.queryByRole('button', { name: /clear/i })).toBeNull();
   });
 
-  it('the frameless layouts give the inputs 44px targets', () => {
-    setup({ layout: 'stacked' });
-    expect(screen.getByRole('combobox', { name: 'Film' })).toHaveClass(
-      'min-h-11'
-    );
+  it('gives the inputs 44px targets in both layouts', () => {
+    for (const layout of ['columns', 'stacked'] as const) {
+      const view = setup({ layout });
+      expect(screen.getByRole('combobox', { name: 'Film' })).toHaveClass(
+        'min-h-11'
+      );
+      view.unmount();
+    }
   });
 });
 
@@ -641,21 +628,8 @@ describe('FilmDeveloperSelection layouts', () => {
     );
   const gridOf = (root: Element) => root.querySelector('.grid');
 
-  it('frames only the card', () => {
-    const card = setup();
-    expect(card.container.firstElementChild).toHaveClass('rounded-2xl', 'p-6');
-    card.unmount();
-    for (const layout of ['columns', 'stacked'] as const) {
-      const view = setup({ layout });
-      expect(view.container.firstElementChild).not.toHaveClass('rounded-2xl');
-      expect(view.container.firstElementChild).not.toHaveClass('p-6');
-      view.unmount();
-    }
-  });
-
   it('puts the pickers side by side except in stacked', () => {
     for (const [layout, twoColumns] of [
-      ['card', true],
       ['columns', true],
       ['stacked', false],
     ] as const) {

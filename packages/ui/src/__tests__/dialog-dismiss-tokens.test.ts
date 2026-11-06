@@ -25,11 +25,7 @@ const componentsDir = join(
  * Escape through the shared hook. Every other dialog renders through one of
  * these (issue #458), so it inherits both.
  */
-const DISMISSIBLE_DIALOGS = [
-  'modal.tsx',
-  'drawer.tsx',
-  'detail-panel/detail-panel.tsx',
-] as const;
+const DISMISSIBLE_DIALOGS = ['modal.tsx', 'drawer.tsx'] as const;
 
 /**
  * Dialogs built on `Modal` or `ResponsiveModal` rather than a shell of their

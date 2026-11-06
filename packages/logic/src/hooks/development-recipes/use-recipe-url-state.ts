@@ -38,8 +38,6 @@ const MANAGED_QUERY_KEYS: Array<keyof RecipeUrlParams> = [
   'view',
 ];
 
-const VALID_DEVELOPER_TYPES = ['powder', 'concentrate'];
-
 const isManagedKey = (key: string): key is keyof RecipeUrlParams =>
   MANAGED_QUERY_KEYS.some((managed) => managed === key);
 
@@ -62,11 +60,6 @@ const parseSearchParams = (search: RecipeUrlSearch): RecipeUrlParams => {
       case 'view':
         if (value === 'favorites' || value === 'custom') {
           result.view = value;
-        }
-        break;
-      case 'developerType':
-        if (VALID_DEVELOPER_TYPES.includes(value)) {
-          result.developerType = value;
         }
         break;
       case 'recipeType': {
@@ -236,14 +229,6 @@ export const validateUrlParams = (
     }
   }
 
-  if (params.developerType) {
-    if (VALID_DEVELOPER_TYPES.includes(params.developerType)) {
-      sanitized.developerType = params.developerType;
-    } else {
-      errors.push('Invalid developer type');
-    }
-  }
-
   if (params.recipeType) {
     const recipeType = customRecipeFilterSchema.safeParse(params.recipeType);
     if (recipeType.success) {
@@ -323,7 +308,6 @@ export interface RecipeFilterState {
   selectedDeveloper: Developer | null;
   dilutionFilter: string;
   isoFilter: string;
-  developerTypeFilter: string;
   customRecipeFilter: string;
   favoritesOnly: boolean;
   selectedRecipeId?: string | null;
@@ -443,13 +427,8 @@ export const useRecipeUrlState = (
       }
     }
 
-    // The mirror of the dilution rule above: a developer makes developerType
-    // redundant and hides its control, so drop it rather than apply it (#325).
-    if (validation.sanitized.developerType && !state.selectedDeveloper) {
-      state.developerTypeFilter = validation.sanitized.developerType;
-    }
-
-    // New params take precedence over legacy `view`
+    // New params take precedence over the legacy `view`, which maps onto them
+    // here and is dropped from the URL on the next write.
     if (validation.sanitized.favorites === 'true') {
       state.favoritesOnly = true;
     } else if (validation.sanitized.view === 'favorites') {
@@ -464,25 +443,11 @@ export const useRecipeUrlState = (
       state.customRecipeFilter = 'only-custom';
     }
 
-    // Legacy view field (for useUrlStateSync backward compat)
-    if (validation.sanitized.view) {
-      state.view = validation.sanitized.view;
-    }
-
     if (validation.sanitized.recipe) {
       state.recipeId = validation.sanitized.recipe;
 
-      const isFromShare = validation.sanitized.source === 'share';
-
-      if (isFromShare) {
+      if (validation.sanitized.source === 'share') {
         state.fromShare = true;
-        const hasFilmDeveloper =
-          validation.sanitized.film && validation.sanitized.developer;
-        if (hasFilmDeveloper) {
-          state.isSharedApiRecipe = true;
-        }
-      } else {
-        state.isDirectSelection = true;
       }
     }
 
@@ -659,7 +624,12 @@ export const useRecipeUrlState = (
     // Filters
     urlParams.dilution = currentState.dilutionFilter || '';
     urlParams.iso = currentState.isoFilter || '';
-    urlParams.developerType = currentState.developerTypeFilter || '';
+
+    // The developer type filter is gone. `developerType` stays a managed key
+    // so a link that still carries it has it removed on the next write. The
+    // explicit undefined is what removes it, here and for `view` and `source`
+    // below: `updateUrl` spreads these over the params already in the URL.
+    urlParams.developerType = undefined;
 
     // Recipe type (only write non-default values)
     const recipeTypeFilter = customRecipeFilterSchema.safeParse(
@@ -677,13 +647,8 @@ export const useRecipeUrlState = (
     urlParams.view = undefined;
 
     // Selected recipe
-    if (currentState.selectedRecipeId) {
-      urlParams.recipe = currentState.selectedRecipeId;
-      urlParams.source = undefined;
-    } else {
-      urlParams.recipe = '';
-      urlParams.source = undefined;
-    }
+    urlParams.recipe = currentState.selectedRecipeId || '';
+    urlParams.source = undefined;
 
     updateUrl(urlParams);
   }, [
@@ -692,7 +657,6 @@ export const useRecipeUrlState = (
     currentState.selectedDeveloper,
     currentState.dilutionFilter,
     currentState.isoFilter,
-    currentState.developerTypeFilter,
     currentState.customRecipeFilter,
     currentState.favoritesOnly,
     currentState.selectedRecipeId,

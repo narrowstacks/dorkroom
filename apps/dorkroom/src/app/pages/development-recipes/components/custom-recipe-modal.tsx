@@ -1,5 +1,9 @@
 import type { Developer, Film } from '@dorkroom/api';
-import { type CustomRecipeFormData, useCustomRecipes } from '@dorkroom/logic';
+import {
+  type CustomRecipeFormData,
+  recipeIdOf,
+  useCustomRecipes,
+} from '@dorkroom/logic';
 import { ResponsiveModal } from '@dorkroom/ui';
 import {
   CustomRecipeForm,
@@ -9,7 +13,6 @@ import type { FC } from 'react';
 import {
   convertRecipeToFormData,
   CUSTOM_RECIPE_FORM_DEFAULT,
-  getCombinationIdentifier,
 } from '../utils/recipeUtils';
 
 export interface CustomRecipeModalProps {
@@ -40,9 +43,7 @@ export const CustomRecipeModal: FC<CustomRecipeModalProps> = ({
   const title = editingRecipe ? 'Edit custom recipe' : 'Add custom recipe';
   const { customRecipes } = useCustomRecipes();
   const storedRecipe = editingRecipe
-    ? customRecipes.find(
-        (r) => r.id === getCombinationIdentifier(editingRecipe.combination)
-      )
+    ? customRecipes.find((r) => r.id === recipeIdOf(editingRecipe))
     : undefined;
   const initialValue = editingRecipe
     ? convertRecipeToFormData(editingRecipe, storedRecipe)

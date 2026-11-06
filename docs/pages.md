@@ -411,21 +411,41 @@ with no canvas cap) is a follow-up.
 
 ## Film Development Recipes (`/development`)
 
-**Purpose:** Browse, filter, and manage B&W film development recipes.
+**Purpose:** Find one development time. The page asks what you are developing,
+then shows a single recipe to work from, with its alternatives one tap away.
+There is no table, no card grid, no compare view and no browse-all list.
 
 **Location:** `apps/dorkroom/src/app/pages/development-recipes/`
+(`recipe-workbench-page.tsx`, state in `hooks/useRecipeWorkbench.ts`)
 
-**Features:**
+**How it works:**
 
-- Film and developer selection dropdowns
-- Collapsible filters (developer type, dilution, ISO, recipe type, custom recipes)
-- Favorites filtering
-- Grid and table view modes
-- Pagination
-- Recipe detail panel (sidebar on desktop, bottom drawer on mobile)
-- Custom recipe creation/editing
-- Recipe sharing (URL and clipboard)
-- Recipe import from external sources
+- No params: a prompt with the Film and Developer pickers and a search box. No
+  recipe list is shown until you choose something.
+- Pick a film and a developer, or pick a result from the search, and the
+  default recipe opens in the panel: box speed at 20C first, then any recipe at
+  20C, then the first listed. Ties go to the speed nearest the box speed, then
+  1+1, then Stock, then the rest; published recipes come before custom ones.
+- The panel shows the time, then the temperature, then dilution, agitation
+  ("Not in source" when the data has none), the mixing amounts (`VolumeMixer`)
+  and the Film and Developer sections. Chips switch between the published
+  temperatures and speeds of the pair. A recipe not at 20C carries a High temp
+  or Low temp chip wherever it appears, with an icon and words.
+- Search takes free text such as `hp5 800 xtol`, `tri-x d-76`, `hp5 1600`,
+  `1+1` or `24c`, across films, developers, dilutions, speeds and temperatures
+  (`searchRecipes` in `packages/logic`). It is separate from the home search.
+- Scope filter: All, Official, Custom, Saved. It narrows the pickers and the
+  search. Start over resets the film, developer, search, scope, hints and open
+  recipe; the C/F setting and saved recipes are preferences and stay.
+- Wide layout: pickers and search on the left, the recipe panel on the right.
+  Phone layout (`useIsMobile`): one-line pickers, a header, a fixed Save and
+  Copy link bar, and a "..." menu with C/F, saved recipes, Start over, Add and
+  Import. The search opens as a sheet.
+- Film names come from `getFilmDisplayName`, a seam that returns the name
+  unchanged. Rebranded films share recipes with their whole family, the same
+  rule as `/films` and the home search.
+- Custom recipes: create, edit, delete, import from filmdev.org or a code, and
+  share by URL or clipboard. Saved recipes are favorites.
 
 **URL search params:**
 
@@ -434,9 +454,9 @@ All of these are read, validated and written by `useRecipeUrlState`
 browser API: the route (`components/development-route.tsx`) hands it the
 router's search and a writer, and its one debounced (300ms) write becomes a
 TanStack Router navigation with `replace: true` that keeps the hash and any
-other param (`utm_*`), so filter changes never add history entries.
-`q` seeds the search box at mount; the rest are applied once the catalogue
-loads (`useUrlStateSync`). No param is written back until the catalogue has
+other param (`utm_*`), so changes never add history entries. `q` seeds the
+search box at mount; the rest are applied once the catalogue loads
+(`seedFromUrl` in `utils/workbench-selection.ts`). No param is written back until the catalogue has
 loaded, `q` included, so if loading fails the URL keeps what the link carried.
 
 ```typescript
@@ -444,22 +464,38 @@ loaded, `q` included, so if loading fails the URL keeps what the link carried.
   q?: string;              // Free-text recipe search
   film?: string;           // Film slug
   developer?: string;      // Developer slug
-  dilution?: string;
-  iso?: string;            // ISO value or 'boxspeed'
-  developerType?: string;  // 'powder' | 'concentrate'
+  dilution?: string;       // Hint, needs a developer
+  iso?: string;            // Hint: ISO value or 'boxspeed'
   recipeType?: string;     // 'all' | 'hide-custom' | 'only-custom' | 'official'
-  favorites?: string;      // 'true' to show favorites only
-  recipe?: string;         // Recipe UUID for direct link
+  favorites?: string;      // 'true' for the Saved scope
+  recipe?: string;         // Recipe UUID or custom id, opens it
   source?: string;         // 'share' for shared recipes
   view?: 'favorites' | 'custom'; // Legacy, use recipeType/favorites instead
+  developerType?: string;  // Retired: ignored with no notice, removed on write
 }
 ```
 
+| URL | Behaviour |
+| --- | --- |
+| `recipe=<uuid>` | Opens it whatever `q` or the scope say; the pickers fill from it |
+| `recipe=<uuid>&source=share` | The same, and counts as a share open |
+| `recipe=<encoded>&source=share` | A shared custom recipe: a dialog over the prompt, or an error banner for bad data |
+| `recipe=custom_*` | Opens on the device that has it |
+| `film` + `developer` | Opens the default recipe in scope |
+| `film` or `developer` alone | The prompt with it selected, even with no recipes |
+| Unknown slug or recipe | Ignored and removed |
+| `q` | Seeds the search; the phone opens the search sheet |
+| `favorites=true`, `view=favorites` | Saved scope |
+| `recipeType=official` or `hide-custom` | Official scope |
+| `recipeType=only-custom`, `view=custom` | Custom scope |
+
 **Data dependencies:**
 
-- `useDevelopmentRecipes()` - Main data hook
+- `useDevelopmentRecipes()` - Catalogue data (also used by the iOS app)
+- `buildRecipeIndex()`, `searchRecipes()` and the other helpers in
+  `packages/logic/src/utils/recipe-selection.ts` and `recipe-search.ts`
 - `useCustomRecipes()` - CRUD for custom recipes (synchronous localStorage store)
-- `useFavorites()` - Favorite management
+- `useFavorites()` - Saved recipes
 - `useRecipeSharing()` - Share/copy functionality
 
 ---
@@ -499,7 +535,7 @@ loaded, `q` included, so if loading fails the URL keeps what the link carried.
   recipes has no Recipes section and the page leads with About. Stats show
   only values the film has, never `0` or a dash. Recipes are grouped into tabs
   by shooting ISO, default to the box speed, show five rows with a See all
-  control, and each row links to `/development?recipe=<uuid>`
+  control, and each row links to `/development?film=<slug>&recipe=<uuid>`
 - Darkroom theme shows no film photos, because white packshots are too bright
   on its red-only screen: rows show the film icon, and the film page shows no
   photo or tile. E-ink devices and the films with no photo get the icon tile

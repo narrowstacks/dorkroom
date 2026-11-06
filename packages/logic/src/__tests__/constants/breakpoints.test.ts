@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   BREAKPOINTS,
-  columnCountForWidth,
   isAtLeastBreakpoint,
   isMobileWidth,
   MOBILE_MAX_WIDTH,
@@ -42,34 +41,5 @@ describe('isAtLeastBreakpoint', () => {
     ['xl', 1280, true],
   ] as const)('%s at %ipx -> %s', (name, width, expected) => {
     expect(isAtLeastBreakpoint(width, name)).toBe(expected);
-  });
-});
-
-describe('columnCountForWidth', () => {
-  it.each([
-    [0, 1],
-    [639, 1],
-    [640, 2],
-    [767, 2],
-    [768, 2],
-    [769, 2],
-    [1023, 2],
-    [1024, 3],
-    [1279, 3],
-    [1280, 4],
-    [1920, 4],
-  ])('desktop %ipx -> %i', (width, columns) => {
-    expect(columnCountForWidth(width, false)).toBe(columns);
-  });
-
-  it.each([
-    [320, 1],
-    [479, 1],
-    [480, 2],
-    [481, 2],
-    [767, 2],
-    [768, 2],
-  ])('mobile %ipx -> %i', (width, columns) => {
-    expect(columnCountForWidth(width, true)).toBe(columns);
   });
 });

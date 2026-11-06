@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Dorkroom is an analog photography calculator app. Turborepo monorepo with React 19, TypeScript, Tailwind CSS 4, and the TanStack ecosystem (Query v5, Router v1, Form v1, Table v8, Virtual v3, Store v0.11).
+Dorkroom is an analog photography calculator app. Turborepo monorepo with React 19, TypeScript, Tailwind CSS 4, and the TanStack ecosystem (Query v5, Router v1, Form v1, Virtual v3, Store v0.11).
 
 **Structure:**
 
@@ -79,7 +79,7 @@ ruleset, `doctor.config.json` policy, and which rules are suppressed and why.
 
 **Packages** (read before modifying):
 
-- `packages/logic/CLAUDE.md` - TanStack Query/Form/Table patterns, mutations, schemas
+- `packages/logic/CLAUDE.md` - TanStack Query/Form patterns, mutations, schemas
 - `packages/ui/CLAUDE.md` - Component patterns, Tailwind, accessibility
 - `packages/api/CLAUDE.md` - API types, Raw vs Transformed types, error handling
 - `api/CLAUDE.md` - Vercel serverless functions, Supabase proxy endpoints

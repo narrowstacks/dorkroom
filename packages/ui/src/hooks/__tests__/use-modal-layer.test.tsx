@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useModalLayer } from '../use-modal-layer';
 
-/** A minimal modal: portalled to the body, like Modal and DetailPanel. */
+/** A minimal modal: portalled to the body, like Modal and Drawer. */
 function Layer({
   isOpen,
   label,

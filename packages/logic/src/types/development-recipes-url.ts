@@ -8,6 +8,7 @@ export interface RecipeUrlParams {
   developer?: string;
   dilution?: string;
   iso?: string;
+  /** Retired filter. Read only so the param is managed, and removed on write. */
   developerType?: string;
   recipeType?: CustomRecipeFilter;
   favorites?: string;
@@ -53,21 +54,12 @@ export interface InitialUrlState {
   selectedDeveloper?: Developer;
   dilutionFilter?: string;
   isoFilter?: string;
-  developerTypeFilter?: string;
   customRecipeFilter?: CustomRecipeFilter;
   favoritesOnly?: boolean;
   recipeId?: string;
   fromUrl?: boolean;
-  /**
-   * The URL carried `source=share`, i.e. a link another user handed over.
-   * Distinct from `isSharedApiRecipe`, which additionally requires the film and
-   * developer slugs; a share link missing those is still a share.
-   */
+  /** The URL carried `source=share`, i.e. a link another user handed over. */
   fromShare?: boolean;
-  isSharedApiRecipe?: boolean;
-  isDirectSelection?: boolean;
-  /** @deprecated Kept for backward compat */
-  view?: 'favorites' | 'custom';
 }
 
 export interface UrlValidationConfig {

@@ -110,7 +110,6 @@ export function WorkbenchWideLayout({ wb }: { wb: RecipeWorkbench }) {
             <FilmDeveloperSelection
               ref={wb.pickersRef}
               layout={isOpen ? 'stacked' : 'columns'}
-              hideClear
               needs={wb.needs}
               selectedFilm={film?.key ?? ''}
               onFilmChange={wb.selectFilm}

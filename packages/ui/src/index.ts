@@ -17,13 +17,6 @@ export type { DevelopmentCombinationView } from '@dorkroom/logic';
 export { ConfirmModal } from './components/confirm-modal';
 export { ResultsFrame } from './components/results/results-frame';
 export { VirtualizedErrorBoundary } from './components/results/virtualized-error-boundary';
-export type { DetailPanelProps } from './components/detail-panel';
-// Detail Panel Components
-export {
-  DetailPanel,
-  DetailPanelCloseButton,
-  DetailPanelExpandButton,
-} from './components/detail-panel';
 export { DimensionInputGroup } from './components/dimension-input-group';
 export { Drawer, DrawerBody, DrawerContent } from './components/drawer';
 export type {
@@ -31,15 +24,6 @@ export type {
   ErrorFallbackProps,
 } from './components/error-boundary';
 export { ErrorBoundary, ErrorFallback } from './components/error-boundary';
-// Filter Panel Components
-export {
-  FilterPanelClearButton,
-  FilterPanelContainer,
-  FilterPanelContext,
-  FilterPanelHeader,
-  FilterPanelSection,
-  useFilterPanel,
-} from './components/filters';
 export { LabeledSliderInput } from './components/labeled-slider-input';
 // Marketing Components
 export { Greeting } from './components/marketing/greeting';
@@ -79,7 +63,6 @@ export {
 export { ShareButton, type ShareResult } from './components/share-button';
 export { ShareModal } from './components/share-modal';
 export { LiveStatusAlert, StatusAlert } from './components/status-alert';
-export { TemperatureAlert } from './components/temperature-alert';
 export { TextInput } from './components/text-input';
 export type { ThemeToggleProps } from './components/theme-toggle';
 export { ThemeToggle } from './components/theme-toggle';
@@ -91,11 +74,7 @@ export { ToggleSwitch } from './components/toggle-switch';
 export type { TooltipProps } from './components/tooltip';
 export { Tooltip } from './components/tooltip';
 export { CollapsibleSection } from './components/ui/collapsible-section';
-export {
-  Skeleton,
-  SkeletonCard,
-  SkeletonTableRow,
-} from './components/ui/skeleton';
+export { Skeleton } from './components/ui/skeleton';
 export { Tag } from './components/ui/tag';
 export type {
   UnitToggleOption,
