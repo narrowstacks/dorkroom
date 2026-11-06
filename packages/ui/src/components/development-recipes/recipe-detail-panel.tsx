@@ -14,6 +14,11 @@ import { PushPullAlert } from '../push-pull-alert';
 import { TemperatureAlert } from '../temperature-alert';
 import { CollapsibleSection } from '../ui/collapsible-section';
 import { Tag } from '../ui/tag';
+import { filmDatabaseUrlFor } from './film-database-url';
+import {
+  DeveloperCollapsibleSection,
+  FilmCollapsibleSection,
+} from './recipe-about-sections';
 import { DetailRow, formatTime } from './recipe-detail-shared';
 import { VolumeMixer } from './volume-mixer';
 
@@ -55,78 +60,6 @@ function getDilutionLabel(view: DevelopmentCombinationView): string {
   const { combination, developer } = view;
   return getCombinationDilution(combination, developer);
 }
-
-interface FilmCollapsibleSectionProps {
-  view: DevelopmentCombinationView;
-  filmDatabaseUrl: string | null;
-  isExpanded: boolean;
-  onToggle: () => void;
-}
-
-/** Collapsible "Film" section shared by sidebar and expanded layouts. */
-const FilmCollapsibleSection: FC<FilmCollapsibleSectionProps> = ({
-  view,
-  filmDatabaseUrl,
-  isExpanded,
-  onToggle,
-}) => {
-  const { film } = view;
-  return (
-    <CollapsibleSection
-      title="Film"
-      subtitle={film ? `${film.brand} ${film.name}` : 'Unknown film'}
-      isExpanded={isExpanded}
-      onToggle={onToggle}
-    >
-      <div className="space-y-3">
-        {film?.description && (
-          <p className="text-sm text-secondary">{film.description}</p>
-        )}
-        {filmDatabaseUrl && (
-          <a
-            href={filmDatabaseUrl}
-            className="inline-flex items-center gap-2 text-xs text-tertiary underline-offset-4 hover:text-primary hover:underline"
-          >
-            <ExternalLink className="size-3" /> View in Film Database
-          </a>
-        )}
-      </div>
-    </CollapsibleSection>
-  );
-};
-
-interface DeveloperCollapsibleSectionProps {
-  view: DevelopmentCombinationView;
-  isExpanded: boolean;
-  onToggle: () => void;
-}
-
-/** Collapsible "Developer" section shared by sidebar and expanded layouts. */
-const DeveloperCollapsibleSection: FC<DeveloperCollapsibleSectionProps> = ({
-  view,
-  isExpanded,
-  onToggle,
-}) => {
-  const { developer } = view;
-  return (
-    <CollapsibleSection
-      title="Developer"
-      subtitle={
-        developer
-          ? `${developer.manufacturer} ${developer.name}`
-          : 'Unknown developer'
-      }
-      isExpanded={isExpanded}
-      onToggle={onToggle}
-    >
-      {(developer?.description || developer?.notes) && (
-        <p className="text-sm text-secondary">
-          {developer?.description || developer?.notes}
-        </p>
-      )}
-    </CollapsibleSection>
-  );
-};
 
 interface SectionExpandState {
   isFilmExpanded: boolean;
@@ -622,7 +555,7 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
     ? calculatePushPull(combination.shootingIso, film.isoSpeed)
     : (combination.pushPull ?? 0);
 
-  const filmDatabaseUrl = film?.slug ? `/films?film=${film.slug}` : null;
+  const filmDatabaseUrl = filmDatabaseUrlFor(film);
 
   const dilutionLabel = getDilutionLabel(view);
 

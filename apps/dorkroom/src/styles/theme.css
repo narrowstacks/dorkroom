@@ -86,6 +86,15 @@
     transparent
   );
 
+  /* The chosen chip in a recipe choice group: the brand mixed into the surface.
+     Selection also gets a check and a heavier border, since darkroom is
+     one colour. */
+  --color-recipe-selected: color-mix(
+    in srgb,
+    var(--color-brand) 18%,
+    var(--color-surface)
+  );
+
   /* Delete button on a recipe card. */
   --background-color-delete: color-mix(
     in srgb,

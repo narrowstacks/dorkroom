@@ -15,6 +15,10 @@ export type { RecipeDetailPanelProps } from './components/development-recipes/re
 export { RecipeDetailPanel } from './components/development-recipes/recipe-detail-panel';
 export { DevelopmentResultsCardsVirtualized } from './components/development-recipes/results-cards-virtualized';
 export { DevelopmentResultsTableVirtualized } from './components/development-recipes/results-table-virtualized';
+export {
+  RecipePanel,
+  RecipePanelActions,
+} from './components/development-recipes/recipe-panel';
 export { SharedRecipeModal } from './components/development-recipes/shared-recipe-modal';
 export type { TableColumnContext } from './components/development-recipes/table-columns';
 export { createTableColumns } from './components/development-recipes/table-columns';

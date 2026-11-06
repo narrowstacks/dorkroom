@@ -17,7 +17,12 @@ export function CollapsibleSection({
 }: CollapsibleSectionProps) {
   return (
     <div className="rounded-xl border border-secondary bg-border-muted">
-      <button type="button" onClick={onToggle} className="w-full p-4 text-left">
+      <button
+        type="button"
+        aria-expanded={isExpanded}
+        onClick={onToggle}
+        className="w-full p-4 text-left"
+      >
         <div className="flex items-center justify-between">
           <div>
             <div className="text-xs uppercase tracking-wide text-muted">

@@ -5,6 +5,8 @@ import { colorMixOr } from '../lib/color';
 import { cssVars } from '../lib/dom';
 
 interface NumberInputProps {
+  /** Lets a `<label htmlFor>` point at the input. */
+  id?: string;
   value: string;
   onChangeText: (value: string) => void;
   placeholder?: string;
@@ -20,6 +22,7 @@ interface NumberInputProps {
 }
 
 export function NumberInput({
+  id,
   value,
   onChangeText,
   placeholder,
@@ -35,6 +38,7 @@ export function NumberInput({
 
   return (
     <input
+      id={id}
       type="number"
       aria-label={inputTitle ?? placeholder ?? 'Number input'}
       value={value}
