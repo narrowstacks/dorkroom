@@ -7,6 +7,12 @@ const type = (value: string) =>
   fireEvent.change(screen.getByRole('textbox'), { target: { value } });
 
 describe('ImportRecipeForm', () => {
+  it('shows a failed import in the alert high contrast and darkroom can flatten', () => {
+    render(<ImportRecipeForm onImport={vi.fn()} error="Not a recipe" />);
+    expect(screen.getByRole('alert')).toHaveTextContent('Not a recipe');
+    expect(screen.getByRole('alert')).toHaveClass('status-alert');
+  });
+
   it('disables Import while empty and for garbage, with a readable error', async () => {
     render(<ImportRecipeForm onImport={vi.fn()} />);
     expect(button()).toBeDisabled();

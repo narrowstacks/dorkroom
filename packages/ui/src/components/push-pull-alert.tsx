@@ -47,7 +47,7 @@ export function PushPullAlert({ shootingIso, pushPull }: PushPullAlertProps) {
   const actionWord = isPushed ? 'pushed' : 'pulled';
   return (
     <div
-      className="flex items-start gap-2 rounded-lg border p-3 text-sm"
+      className="status-alert flex items-start gap-2 rounded-lg border p-3 text-sm"
       style={{
         borderColor: colors.border,
         backgroundColor: colors.background,

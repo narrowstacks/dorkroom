@@ -118,7 +118,7 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
           <div
             ref={backdropRef}
             className={cn(
-              'fixed inset-0 z-40 backdrop-blur-sm transition-opacity duration-300 lg:hidden',
+              'modal-scrim fixed inset-0 z-40 backdrop-blur-sm transition-opacity duration-300 lg:hidden',
               // Stays a tap catcher through the exit (its click is a no-op once
               // closed): the drawer ignores taps while sliding out, and
               // without this they would land on the page links underneath.
@@ -139,7 +139,7 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
             ref={navRef}
             id="mobile-navigation"
             className={cn(
-              'fixed right-0 top-0 z-50 h-dvh w-72 border-l pb-[calc(env(safe-area-inset-bottom)+5rem)] shadow-xl backdrop-blur transition-transform duration-300 ease-out lg:hidden',
+              'opaque-surface fixed right-0 top-0 z-50 h-dvh w-72 border-l pb-[calc(env(safe-area-inset-bottom)+5rem)] shadow-xl backdrop-blur transition-transform duration-300 ease-out lg:hidden',
               visible ? 'translate-x-0' : 'pointer-events-none translate-x-full'
             )}
             style={{

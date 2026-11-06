@@ -49,6 +49,7 @@ export function NumberInput({
       min={min}
       max={max}
       className={cn(
+        'number-input',
         'w-20 rounded-lg border px-3 py-2 focus-visible:outline-none',
         className
       )}

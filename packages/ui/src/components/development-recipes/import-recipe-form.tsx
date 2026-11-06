@@ -2,7 +2,7 @@ import { extractImportRecipeCode, importRecipeSchema } from '@dorkroom/logic';
 import { useForm } from '@tanstack/react-form';
 import { TanStackTextInput } from '../../forms/components/tanstack-text-input';
 import { cn } from '../../lib/cn';
-import { colorMixOr } from '../../lib/color';
+import { StatusAlert } from '../status-alert';
 
 interface ImportRecipeFormProps {
   onImport: (encoded: string) => void;
@@ -50,33 +50,7 @@ export function ImportRecipeForm({
         )}
       </form.Field>
 
-      {error && (
-        <div
-          className="rounded-xl border px-3 py-2 text-sm"
-          style={{
-            borderColor: colorMixOr(
-              'var(--color-semantic-error)',
-              20,
-              'transparent',
-              'var(--color-border-secondary)'
-            ),
-            backgroundColor: colorMixOr(
-              'var(--color-semantic-error)',
-              10,
-              'transparent',
-              'transparent'
-            ),
-            color: colorMixOr(
-              'var(--color-semantic-error)',
-              80,
-              'var(--color-text-primary)',
-              'var(--color-semantic-error)'
-            ),
-          }}
-        >
-          {error}
-        </div>
-      )}
+      {error && <StatusAlert action="error" message={error} />}
 
       <div className="flex flex-col gap-3 pt-1 md:flex-row md:justify-end">
         {onCancel && (

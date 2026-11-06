@@ -87,8 +87,8 @@
   );
 
   /* The chosen chip in a recipe choice group: the brand mixed into the surface.
-     Selection also gets a check and a heavier border, since darkroom is
-     one colour. */
+     Selection also gets a heavier border, the only mark in the two themes that
+     drop this tint. */
   --color-recipe-selected: color-mix(
     in srgb,
     var(--color-brand) 18%,
@@ -236,6 +236,16 @@
   --color-focus-ring: #ff0000;
   --color-hover-surface: var(--color-border-muted);
   --color-on-hover-surface: var(--color-text-secondary);
+  /* Recipes away from 20C: warm for High, cool for Low. Opaque, so the chip reads
+     the same on a hovered row. */
+  --color-temp-high-bg: #ff0000;
+  --color-temp-high-text: #000000;
+  --color-temp-high-border: #ff0000;
+  --temp-high-border-style: solid;
+  --color-temp-low-bg: #000000;
+  --color-temp-low-text: #ff0000;
+  --color-temp-low-border: #ff0000;
+  --temp-low-border-style: dashed;
   --color-semantic-success: #ff0000;
   --color-semantic-warning: #ff0000;
   --color-semantic-error: #ff0000;
@@ -368,6 +378,16 @@
   --color-focus-ring: #7dd6ff;
   --color-hover-surface: var(--color-border-muted);
   --color-on-hover-surface: var(--color-text-secondary);
+  /* Recipes away from 20C: warm for High, cool for Low. Opaque, so the chip reads
+     the same on a hovered row. */
+  --color-temp-high-bg: #3f1d0b;
+  --color-temp-high-text: #fdba74;
+  --color-temp-high-border: #c2410c;
+  --temp-high-border-style: solid;
+  --color-temp-low-bg: #0b2a3f;
+  --color-temp-low-text: #7dd3fc;
+  --color-temp-low-border: #0369a1;
+  --temp-low-border-style: solid;
   --color-semantic-success: #6ef3a4;
   --color-semantic-warning: #e5ff7d;
   --color-semantic-error: #f99f96;
@@ -601,6 +621,16 @@
   --color-focus-ring: #1e6091;
   --color-hover-surface: var(--color-border-muted);
   --color-on-hover-surface: var(--color-text-secondary);
+  /* Recipes away from 20C: warm for High, cool for Low. Opaque, so the chip reads
+     the same on a hovered row. */
+  --color-temp-high-bg: #fff0e3;
+  --color-temp-high-text: #9a3412;
+  --color-temp-high-border: #c2410c;
+  --temp-high-border-style: solid;
+  --color-temp-low-bg: #e3f2fb;
+  --color-temp-low-text: #075985;
+  --color-temp-low-border: #0369a1;
+  --temp-low-border-style: solid;
   --color-semantic-success: #2d7a4a;
   --color-semantic-warning: #b83f16; /* 4.6:1 on white */
   --color-semantic-error: #d32323;
@@ -848,6 +878,16 @@
      the label invisible; high-contrast inverts instead (see hover-contrast test). */
   --color-hover-surface: #000000;
   --color-on-hover-surface: #ffffff;
+  /* Recipes away from 20C: warm for High, cool for Low. Opaque, so the chip reads
+     the same on a hovered row. */
+  --color-temp-high-bg: #000000;
+  --color-temp-high-text: #ffffff;
+  --color-temp-high-border: #000000;
+  --temp-high-border-style: solid;
+  --color-temp-low-bg: #ffffff;
+  --color-temp-low-text: #000000;
+  --color-temp-low-border: #000000;
+  --temp-low-border-style: dashed;
   --color-semantic-success: #000000;
   --color-semantic-warning: #000000;
   --color-semantic-error: #000000;
@@ -984,6 +1024,16 @@
   --color-focus-ring: #7dd6ff;
   --color-hover-surface: var(--color-border-muted);
   --color-on-hover-surface: var(--color-text-secondary);
+  /* Recipes away from 20C: warm for High, cool for Low. Opaque, so the chip reads
+     the same on a hovered row. */
+  --color-temp-high-bg: #3f1d0b;
+  --color-temp-high-text: #fdba74;
+  --color-temp-high-border: #c2410c;
+  --temp-high-border-style: solid;
+  --color-temp-low-bg: #0b2a3f;
+  --color-temp-low-text: #7dd3fc;
+  --color-temp-low-border: #0369a1;
+  --temp-low-border-style: solid;
   --color-semantic-success: #6ef3a4;
   --color-semantic-warning: #e5ff7d;
   --color-semantic-error: #f99f96;
@@ -1175,4 +1225,167 @@
 
 :root:not([data-theme]) {
   color-scheme: dark;
+}
+
+/* Pure black and white, or pure red and black: no tints, blur or partial opacity.
+   Meaning goes to line weight, dashes and inversion instead. !important because
+   these answer inline colour-mix styles and, in the legacy sheet, boosted utilities. */
+[data-theme="high-contrast"] .bg-recipe-selected,
+[data-theme="darkroom"] .bg-recipe-selected {
+  background-color: transparent !important;
+}
+
+[data-theme="high-contrast"] .bg-delete,
+[data-theme="darkroom"] .bg-delete {
+  background-color: transparent !important;
+}
+
+[data-theme="high-contrast"] .text-delete,
+[data-theme="darkroom"] .text-delete {
+  color: var(--color-text-primary) !important;
+}
+
+[data-theme="high-contrast"] .hover\:bg-delete-hover:hover,
+[data-theme="darkroom"] .hover\:bg-delete-hover:hover {
+  background-color: var(--color-text-primary) !important;
+}
+
+[data-theme="high-contrast"] .hover\:text-delete-hover:hover,
+[data-theme="darkroom"] .hover\:text-delete-hover:hover {
+  color: var(--color-background) !important;
+}
+
+[data-theme="high-contrast"] .hover\:bg-delete-hover:hover svg,
+[data-theme="darkroom"] .hover\:bg-delete-hover:hover svg {
+  color: var(--color-background) !important;
+  stroke: var(--color-background) !important;
+}
+
+/* bg-text-secondary is bg-text-primary in these themes, so a solid button would
+   not change on hover. It inverts instead, with a line so it keeps its shape. */
+[data-theme="high-contrast"] .hover\:bg-text-secondary:enabled:hover,
+[data-theme="darkroom"] .hover\:bg-text-secondary:enabled:hover,
+[data-theme="high-contrast"] .enabled\:hover\:bg-text-secondary:enabled:hover,
+[data-theme="darkroom"] .enabled\:hover\:bg-text-secondary:enabled:hover {
+  background-color: var(--color-background) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: inset 0 0 0 2px var(--color-text-primary) !important;
+}
+
+[data-theme="high-contrast"] .tag-pill,
+[data-theme="darkroom"] .tag-pill {
+  background-color: transparent !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-text-primary) !important;
+}
+
+[data-theme="high-contrast"] .status-alert,
+[data-theme="darkroom"] .status-alert {
+  background-color: transparent !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-text-primary) !important;
+  border-width: 2px;
+}
+
+[data-theme="high-contrast"] .status-alert-warning,
+[data-theme="darkroom"] .status-alert-warning {
+  border-style: dashed;
+}
+
+/* One colour cannot mark the selected unit, so line and weight do. */
+[data-theme="high-contrast"] .unit-toggle-active,
+[data-theme="darkroom"] .unit-toggle-active {
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+[data-theme="high-contrast"] .confirm-icon,
+[data-theme="darkroom"] .confirm-icon {
+  background-color: transparent !important;
+}
+
+[data-theme="high-contrast"] .number-input,
+[data-theme="darkroom"] .number-input {
+  background-color: transparent !important;
+}
+
+[data-theme="high-contrast"] .modal-scrim,
+[data-theme="darkroom"] .modal-scrim {
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+}
+
+[data-theme="high-contrast"] .dialog-frame,
+[data-theme="darkroom"] .dialog-frame {
+  backdrop-filter: none !important;
+  border-width: 2px;
+}
+
+[data-theme="high-contrast"] .opaque-surface,
+[data-theme="darkroom"] .opaque-surface {
+  background-color: var(--color-background) !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+[data-theme="high-contrast"] .backdrop-blur,
+[data-theme="darkroom"] .backdrop-blur,
+[data-theme="high-contrast"] .backdrop-blur-sm,
+[data-theme="darkroom"] .backdrop-blur-sm,
+[data-theme="high-contrast"] .backdrop-blur-lg,
+[data-theme="darkroom"] .backdrop-blur-lg {
+  backdrop-filter: none !important;
+}
+
+[data-theme="high-contrast"] .shadow-sm,
+[data-theme="high-contrast"] .shadow-md,
+[data-theme="high-contrast"] .shadow-lg,
+[data-theme="high-contrast"] .shadow-xl,
+[data-theme="darkroom"] .shadow-sm,
+[data-theme="darkroom"] .shadow-md,
+[data-theme="darkroom"] .shadow-lg,
+[data-theme="darkroom"] .shadow-xl {
+  --tw-shadow: 0 0 #0000 !important;
+  box-shadow:
+    var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000) !important;
+}
+
+[data-theme="high-contrast"] ::placeholder,
+[data-theme="darkroom"] ::placeholder {
+  color: var(--color-text-primary) !important;
+  opacity: 1 !important;
+  font-style: italic;
+}
+
+[data-theme="high-contrast"] :disabled,
+[data-theme="darkroom"] :disabled {
+  opacity: 1 !important;
+  background-color: transparent !important;
+  color: var(--color-text-primary) !important;
+  border: 1px dashed var(--color-text-primary) !important;
+}
+
+[data-theme="high-contrast"] [class*="hover:opacity-"]:hover,
+[data-theme="darkroom"] [class*="hover:opacity-"]:hover {
+  opacity: 1 !important;
+}
+
+[data-theme="high-contrast"] *:focus-visible {
+  outline-color: #000000;
+}
+
+/* With only line weight to go on, a focus ring reads as selected, so focus on a
+   recipe row or chip is a dashed line inside the border instead. */
+[data-theme="high-contrast"] .recipe-focus-dash:focus-visible,
+[data-theme="darkroom"] .recipe-focus-dash:focus-visible,
+[data-theme="high-contrast"] .peer:focus-visible + .recipe-focus-dash,
+[data-theme="darkroom"] .peer:focus-visible + .recipe-focus-dash {
+  outline: 2px dashed currentColor !important;
+  outline-offset: -4px;
+}
+
+[data-theme="darkroom"] *:focus-visible {
+  --tw-ring-offset-color: #000000;
 }

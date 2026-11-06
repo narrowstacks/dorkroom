@@ -56,7 +56,7 @@ export function SharedRecipeModal({
         className={cn(
           'rounded-full px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50',
           hideAddToCollection
-            ? 'border-0 bg-text-primary font-semibold text-background hover:bg-text-primary/90'
+            ? 'border-0 bg-text-primary font-semibold text-background hover:bg-text-secondary'
             : 'border border-primary text-secondary hover:border-secondary hover:text-primary'
         )}
       >
@@ -66,7 +66,7 @@ export function SharedRecipeModal({
         <button
           type="button"
           onClick={() => onToggleFavorite?.(recipe)}
-          className="rounded-full bg-text-primary px-5 py-2 text-sm font-semibold text-background transition hover:bg-text-primary/90"
+          className="rounded-full bg-text-primary px-5 py-2 text-sm font-semibold text-background transition hover:bg-text-secondary"
           aria-pressed={isFavorite?.(recipe) ?? false}
         >
           {isFavorite?.(recipe) ? 'Remove from favorites' : 'Add to favorites'}
@@ -78,7 +78,7 @@ export function SharedRecipeModal({
           onClick={onAddToCollection}
           disabled={isProcessing}
           className={cn(
-            'rounded-full bg-text-primary px-5 py-2 text-sm font-semibold text-background transition hover:bg-text-primary/90',
+            'rounded-full bg-text-primary px-5 py-2 text-sm font-semibold text-background transition hover:bg-text-secondary',
             isProcessing && 'cursor-wait opacity-70'
           )}
         >
