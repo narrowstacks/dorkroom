@@ -451,6 +451,16 @@ const MIGRATED_HOVER_PAIRS: HoverPair[] = [
     foreground: 'text-primary',
   },
   {
+    name: 'recipe choice chip',
+    background: 'bg-hover-surface',
+    foreground: 'text-on-hover-surface',
+  },
+  {
+    name: 'selected recipe choice chip',
+    background: 'bg-recipe-selected',
+    foreground: 'text-primary',
+  },
+  {
     name: 'delete button',
     background: 'bg-delete-hover',
     foreground: 'text-delete-hover',

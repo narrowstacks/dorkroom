@@ -6,7 +6,11 @@ const VOLUME_OPTIONS = [
   { value: 'floz', label: 'fl oz' },
 ] as const;
 
-export function VolumeUnitToggle(): React.JSX.Element {
+export function VolumeUnitToggle({
+  className,
+}: {
+  className?: string;
+}): React.JSX.Element {
   const { unit, toggleUnit } = useVolume();
 
   return (
@@ -15,6 +19,7 @@ export function VolumeUnitToggle(): React.JSX.Element {
       onToggle={toggleUnit}
       options={[VOLUME_OPTIONS[0], VOLUME_OPTIONS[1]]}
       ariaLabel="Volume unit"
+      className={className}
     />
   );
 }

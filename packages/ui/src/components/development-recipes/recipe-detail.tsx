@@ -11,6 +11,7 @@ import { useTemperature } from '../../contexts/temperature-context';
 import { PushPullAlert } from '../push-pull-alert';
 import { CollapsibleSection } from '../ui/collapsible-section';
 import { Tag } from '../ui/tag';
+import { RecipeAboutSections } from './recipe-about-sections';
 import { DetailRow, formatTime } from './recipe-detail-shared';
 import { VolumeMixer } from './volume-mixer';
 
@@ -44,8 +45,6 @@ export function DevelopmentRecipeDetail({
 }: DevelopmentRecipeDetailProps) {
   const { combination, film, developer } = view;
   const { unit } = useTemperature();
-  const [isFilmExpanded, setIsFilmExpanded] = useState(false);
-  const [isDeveloperExpanded, setIsDeveloperExpanded] = useState(false);
   const [isVolumeMixerExpanded, setIsVolumeMixerExpanded] = useState(true);
 
   // Calculate pushPull from film box speed if available, otherwise use stored value
@@ -193,43 +192,7 @@ export function DevelopmentRecipeDetail({
         <VolumeMixer dilutionString={dilutionLabel} />
       </CollapsibleSection>
 
-      <CollapsibleSection
-        title="Film"
-        subtitle={film ? `${film.brand} ${film.name}` : 'Unknown film'}
-        isExpanded={isFilmExpanded}
-        onToggle={() => setIsFilmExpanded(!isFilmExpanded)}
-      >
-        <div className="space-y-3">
-          {film?.description && (
-            <p className="text-sm text-secondary">{film.description}</p>
-          )}
-          {film?.slug && (
-            <a
-              href={`/films?film=${film.slug}`}
-              className="inline-flex items-center gap-2 text-xs text-tertiary underline-offset-4 hover:text-primary hover:underline"
-            >
-              <ExternalLink className="size-3" /> View in Film Database
-            </a>
-          )}
-        </div>
-      </CollapsibleSection>
-
-      <CollapsibleSection
-        title="Developer"
-        subtitle={
-          developer
-            ? `${developer.manufacturer} ${developer.name}`
-            : 'Unknown developer'
-        }
-        isExpanded={isDeveloperExpanded}
-        onToggle={() => setIsDeveloperExpanded(!isDeveloperExpanded)}
-      >
-        {(developer?.description || developer?.notes) && (
-          <p className="text-sm text-secondary">
-            {developer?.description || developer?.notes}
-          </p>
-        )}
-      </CollapsibleSection>
+      <RecipeAboutSections view={view} className="space-y-5" />
     </div>
   );
 }

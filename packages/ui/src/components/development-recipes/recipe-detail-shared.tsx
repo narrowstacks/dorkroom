@@ -1,3 +1,8 @@
+import {
+  formatClock,
+  formatTemperature,
+  type TemperatureUnit,
+} from '@dorkroom/logic';
 import type { FC, ReactNode } from 'react';
 
 /** Format time as "Xm XXs" instead of decimal minutes */
@@ -25,3 +30,32 @@ export const DetailRow: FC<{ label: string; value: ReactNode }> = ({
     <span className="text-right text-primary">{value}</span>
   </div>
 );
+
+/**
+ * `formatClock` spelled out for a screen reader ("9:30" becomes "9 minutes 30
+ * seconds"), so the spoken and the shown time share one rounding.
+ */
+// eslint-disable-next-line react-doctor/only-export-components -- same helper module as formatTime
+export const spokenTime = (minutes: number): string => {
+  const [m, s] = formatClock(minutes).split(':').map(Number);
+  const unit = (count: number, noun: string) =>
+    `${count} ${noun}${count === 1 ? '' : 's'}`;
+  return [m > 0 && unit(m, 'minute'), (s > 0 || m === 0) && unit(s, 'second')]
+    .filter(Boolean)
+    .join(' ');
+};
+
+export interface RecipeTemperature {
+  temperatureC: number;
+  temperatureF: number;
+}
+
+/** A temperature in the user's unit: "20°C". */
+// eslint-disable-next-line react-doctor/only-export-components -- same helper module as formatTime
+export const temperatureText = (
+  { temperatureC, temperatureF }: RecipeTemperature,
+  unit: TemperatureUnit
+): string =>
+  formatTemperature(unit === 'celsius' ? temperatureC : temperatureF, unit, {
+    trimTrailingZero: true,
+  });
