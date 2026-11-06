@@ -1,4 +1,4 @@
-import { cn } from '@dorkroom/ui';
+import { cn, ResultsFrame } from '@dorkroom/ui';
 import { type ReactNode, useLayoutEffect, useRef } from 'react';
 import {
   FilmsResultsPane,
@@ -36,11 +36,7 @@ export function FilmsWideLayout({
     if (articleRef.current && pageLabel) articleRef.current.scrollTop = 0;
   }, [pageLabel]);
   return (
-    <div
-      id="film-results"
-      tabIndex={-1}
-      className="overflow-hidden rounded-2xl border border-[color:var(--color-border-secondary)] bg-[color:var(--color-surface)]"
-    >
+    <ResultsFrame id="film-results" tabIndex={-1}>
       <div className="flex">
         <div
           className={cn(
@@ -67,6 +63,6 @@ export function FilmsWideLayout({
           </article>
         )}
       </div>
-    </div>
+    </ResultsFrame>
   );
 }

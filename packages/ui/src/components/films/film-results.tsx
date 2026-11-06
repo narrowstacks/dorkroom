@@ -1,6 +1,7 @@
 import type { Film } from '@dorkroom/api';
 import type { FilmSort } from '@dorkroom/logic';
 import { defaultRangeExtractor, useVirtualizer } from '@tanstack/react-virtual';
+import { Film as FilmIcon } from 'lucide-react';
 import {
   type FC,
   type MutableRefObject,
@@ -16,12 +17,14 @@ import {
 } from '../../hooks/use-virtual-list-focus';
 import { cn } from '../../lib/cn';
 import {
-  createDebouncedObserveElementRect,
+  debouncedObserveElementRect,
   DEFAULT_CONTAINER_HEIGHT,
+  getVirtualPadding,
   MAX_CONTAINER_HEIGHT,
-} from '../development-recipes/virtualization-constants';
+} from '../../lib/virtualization';
+import { ResultsEmpty } from '../results/results-empty';
+import { VirtualTableSpacer } from '../results/virtual-table-spacer';
 import { FilmListRow } from './film-list-row';
-import { FilmResultsEmpty } from './film-results-empty';
 import { FilmResultsSkeleton } from './film-results-skeleton';
 import { FilmResultsTableHeader } from './film-results-table-header';
 import {
@@ -102,11 +105,6 @@ export const FilmResults: FC<FilmResultsProps> = ({
     fallbackRef: emptyStateRef,
   });
 
-  const debouncedObserveElementRect = useMemo(
-    () => createDebouncedObserveElementRect(),
-    []
-  );
-
   const rowVirtualizer = useVirtualizer({
     count: isLoading ? 0 : films.length,
     getScrollElement: () => parentRef.current,
@@ -183,7 +181,9 @@ export const FilmResults: FC<FilmResultsProps> = ({
 
   if (films.length === 0) {
     return (
-      <FilmResultsEmpty
+      <ResultsEmpty
+        icon={<FilmIcon className="size-8" />}
+        title="No films found"
         emptyRef={emptyStateRef}
         onClearFilters={onClearFilters}
         hasActiveFilters={hasActiveFilters}
@@ -193,12 +193,10 @@ export const FilmResults: FC<FilmResultsProps> = ({
   }
 
   const virtualRows = rowVirtualizer.getVirtualItems();
-  const paddingTop = virtualRows.length > 0 ? (virtualRows[0]?.start ?? 0) : 0;
-  const paddingBottom =
-    virtualRows.length > 0
-      ? rowVirtualizer.getTotalSize() -
-        (virtualRows[virtualRows.length - 1]?.end ?? 0)
-      : 0;
+  const { paddingTop, paddingBottom } = getVirtualPadding(
+    virtualRows,
+    rowVirtualizer.getTotalSize()
+  );
   const columnCount = 4 + (view === 'table' ? 2 : 0) + (showRecipes ? 1 : 0);
 
   const rows = virtualRows.flatMap((virtualRow, index) => {
@@ -212,13 +210,7 @@ export const FilmResults: FC<FilmResultsProps> = ({
     let gapRow = null;
     if (gap > 0) {
       gapRow = table ? (
-        <tr key={gapKey} aria-hidden="true">
-          <td
-            aria-hidden="true"
-            colSpan={columnCount}
-            style={{ height: gap }}
-          />
-        </tr>
+        <VirtualTableSpacer key={gapKey} height={gap} colSpan={columnCount} />
       ) : (
         <li key={gapKey} aria-hidden="true" style={{ height: gap }} />
       );
@@ -278,25 +270,9 @@ export const FilmResults: FC<FilmResultsProps> = ({
             showRecipes={showRecipes}
           />
           <tbody>
-            {paddingTop > 0 && (
-              <tr aria-hidden="true">
-                <td
-                  aria-hidden="true"
-                  colSpan={columnCount}
-                  style={{ height: paddingTop }}
-                />
-              </tr>
-            )}
+            <VirtualTableSpacer height={paddingTop} colSpan={columnCount} />
             {rows}
-            {paddingBottom > 0 && (
-              <tr aria-hidden="true">
-                <td
-                  aria-hidden="true"
-                  colSpan={columnCount}
-                  style={{ height: paddingBottom }}
-                />
-              </tr>
-            )}
+            <VirtualTableSpacer height={paddingBottom} colSpan={columnCount} />
           </tbody>
         </table>
       ) : (

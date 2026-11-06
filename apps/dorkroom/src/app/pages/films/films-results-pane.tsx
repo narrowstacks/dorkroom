@@ -1,7 +1,9 @@
 import type { Film } from '@dorkroom/api';
 import type { FilmSort } from '@dorkroom/logic';
-import type { VirtualListFocusHandle } from '@dorkroom/ui';
-import { VirtualizedErrorBoundary } from '@dorkroom/ui/development-recipes';
+import {
+  VirtualizedErrorBoundary,
+  type VirtualListFocusHandle,
+} from '@dorkroom/ui';
 import { FilmResults, type FilmResultsView } from '@dorkroom/ui/films';
 import { type MutableRefObject, type Ref, useState } from 'react';
 

@@ -1,3 +1,4 @@
+import { ResultsFrame } from '@dorkroom/ui';
 import type { ReactNode } from 'react';
 import {
   FilmsResultsPane,
@@ -42,13 +43,9 @@ export function FilmsPhoneLayout({
   return (
     <>
       {toolbar}
-      <div
-        id="film-results"
-        tabIndex={-1}
-        className="overflow-hidden rounded-2xl border border-[color:var(--color-border-secondary)] bg-[color:var(--color-surface)]"
-      >
+      <ResultsFrame id="film-results" tabIndex={-1}>
         <FilmsResultsPane {...results} />
-      </div>
+      </ResultsFrame>
     </>
   );
 }

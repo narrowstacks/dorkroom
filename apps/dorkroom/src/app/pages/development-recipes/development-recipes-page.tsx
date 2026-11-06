@@ -597,6 +597,14 @@ export default function DevelopmentRecipesPage({
       onDeleteCustomRecipe={handleDeleteCustomRecipe}
       isFavorite={handleCheckFavorite}
       selectedRecipeId={selectedRecipeId}
+      onClearFilters={handleClearFilters}
+      hasActiveFilters={
+        Boolean(
+          searchQuery || developerTypeFilter || dilutionFilter || isoFilter
+        ) ||
+        customRecipeFilter !== 'all' ||
+        favoritesOnly
+      }
     />
   );
 

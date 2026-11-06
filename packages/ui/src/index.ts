@@ -15,6 +15,8 @@
 export type { DevelopmentCombinationView } from '@dorkroom/logic';
 
 export { ConfirmModal } from './components/confirm-modal';
+export { ResultsFrame } from './components/results/results-frame';
+export { VirtualizedErrorBoundary } from './components/results/virtualized-error-boundary';
 export type { DetailPanelProps } from './components/detail-panel';
 // Detail Panel Components
 export {

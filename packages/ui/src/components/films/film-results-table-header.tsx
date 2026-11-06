@@ -1,7 +1,9 @@
 import type { FilmSort } from '@dorkroom/logic';
-import { ArrowDown, ArrowUp } from 'lucide-react';
 import type { FC } from 'react';
-import { cn } from '../../lib/cn';
+import {
+  ResultsTableHead,
+  SortableResultsTableHead,
+} from '../results/results-table-head';
 import type { FilmTableView } from './film-results-view';
 
 interface FilmResultsTableHeaderProps {
@@ -14,7 +16,7 @@ interface FilmResultsTableHeaderProps {
 interface SortableHeaderProps {
   label: string;
   sortKey: FilmSort;
-  /** The direction the sort runs, for the active column's icon and aria-sort. */
+  /** Each column has the one direction that makes sense; no toggle. */
   direction: 'ascending' | 'descending';
   sort: FilmSort;
   onSortChange: (sort: FilmSort) => void;
@@ -22,48 +24,18 @@ interface SortableHeaderProps {
   className?: string;
 }
 
-const headClass =
-  'px-3 py-0 text-left text-xs font-medium uppercase tracking-wide text-tertiary';
-
-/**
- * A sortable column header. Clicking sets this column's sort; there is no
- * direction toggle, each column has the one direction that makes sense.
- */
 const SortableHeader: FC<SortableHeaderProps> = ({
-  label,
   sortKey,
-  direction,
   sort,
   onSortChange,
-  align = 'left',
-  className,
-}) => {
-  const active = sort === sortKey;
-  const Icon = direction === 'ascending' ? ArrowUp : ArrowDown;
-  return (
-    <th
-      scope="col"
-      aria-sort={active ? direction : undefined}
-      className={cn(headClass, align === 'right' && 'text-right', className)}
-    >
-      <button
-        type="button"
-        onClick={() => onSortChange(sortKey)}
-        className={cn(
-          'inline-flex min-h-11 min-w-11 items-center gap-3 uppercase tracking-wide transition-colors',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]',
-          align === 'right' && 'flex-row-reverse',
-          active
-            ? 'font-medium text-primary'
-            : 'font-medium text-tertiary hover:text-primary'
-        )}
-      >
-        {label}
-        {active && <Icon className="size-3.5" aria-hidden="true" />}
-      </button>
-    </th>
-  );
-};
+  ...props
+}) => (
+  <SortableResultsTableHead
+    {...props}
+    active={sort === sortKey}
+    onSort={() => onSortChange(sortKey)}
+  />
+);
 
 /**
  * The sticky head of the films table; `view` decides which columns it has.
@@ -81,18 +53,16 @@ export const FilmResultsTableHeader: FC<FilmResultsTableHeaderProps> = ({
   return (
     <thead className="sticky top-0 z-10 bg-surface-muted">
       <tr>
-        <th scope="col" className={cn(headClass, 'w-16')}>
+        <ResultsTableHead className="w-16">
           <span className="sr-only">Photo</span>
-        </th>
+        </ResultsTableHead>
         <SortableHeader
           {...sortProps}
           label="Film"
           sortKey="name"
           direction="ascending"
         />
-        <th scope="col" className={cn(headClass, 'w-28 2xl:w-[14%]')}>
-          Type
-        </th>
+        <ResultsTableHead className="w-28 2xl:w-[14%]">Type</ResultsTableHead>
         <SortableHeader
           {...sortProps}
           label="ISO"
@@ -102,12 +72,9 @@ export const FilmResultsTableHeader: FC<FilmResultsTableHeaderProps> = ({
           className="w-20 2xl:w-[10%]"
         />
         {full && (
-          <th
-            scope="col"
-            className={cn(headClass, 'w-36 text-right 2xl:w-[14%]')}
-          >
+          <ResultsTableHead className="w-36 text-right 2xl:w-[14%]">
             Reciprocity
-          </th>
+          </ResultsTableHead>
         )}
         {showRecipes && (
           <SortableHeader
@@ -120,9 +87,9 @@ export const FilmResultsTableHeader: FC<FilmResultsTableHeaderProps> = ({
           />
         )}
         {full && (
-          <th scope="col" className={cn(headClass, 'w-32 2xl:w-[16%]')}>
+          <ResultsTableHead className="w-32 2xl:w-[16%]">
             Status
-          </th>
+          </ResultsTableHead>
         )}
       </tr>
     </thead>

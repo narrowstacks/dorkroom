@@ -6,7 +6,13 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react';
 import type { FC, ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DevelopmentResultsTableVirtualized } from '../../../components/development-recipes/results-table-virtualized';
@@ -190,11 +196,38 @@ describe('DevelopmentResultsTableVirtualized', () => {
         </TableWrapper>
       );
 
+      expect(screen.getByText('No recipes found')).toBeInTheDocument();
+    });
+
+    it('offers Clear filters on an empty result only with filters active', () => {
+      const onClearFilters = vi.fn();
+      const { rerender } = render(
+        <TableWrapper rows={[]}>
+          {(table) => (
+            <DevelopmentResultsTableVirtualized
+              table={table}
+              onClearFilters={onClearFilters}
+              hasActiveFilters={false}
+            />
+          )}
+        </TableWrapper>
+      );
       expect(
-        screen.getByText(
-          'No recipes match your current filters. Try adjusting your search.'
-        )
-      ).toBeInTheDocument();
+        screen.queryByRole('button', { name: 'Clear filters' })
+      ).not.toBeInTheDocument();
+      rerender(
+        <TableWrapper rows={[]}>
+          {(table) => (
+            <DevelopmentResultsTableVirtualized
+              table={table}
+              onClearFilters={onClearFilters}
+              hasActiveFilters
+            />
+          )}
+        </TableWrapper>
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
+      expect(onClearFilters).toHaveBeenCalledOnce();
     });
 
     it('applies custom height when provided', () => {
@@ -391,6 +424,21 @@ describe('DevelopmentResultsTableVirtualized', () => {
       expect(filmHeader).toBeInTheDocument();
       expect(developerHeader).toBeInTheDocument();
       expect(isoHeader).toBeInTheDocument();
+    });
+
+    it('reports the active sort direction on its header', () => {
+      render(
+        <TableWrapper rows={createMockRows(2)}>
+          {(table) => <DevelopmentResultsTableVirtualized table={table} />}
+        </TableWrapper>
+      );
+      const head = screen.getByRole('columnheader', { name: 'ISO' });
+      expect(head).not.toHaveAttribute('aria-sort');
+      fireEvent.click(within(head).getByRole('button'));
+      const first = head.getAttribute('aria-sort');
+      expect(first).toMatch(/^(ascending|descending)$/);
+      fireEvent.click(within(head).getByRole('button'));
+      expect(head.getAttribute('aria-sort')).not.toBe(first);
     });
 
     it('toggles sorting when header is clicked', () => {
