@@ -568,8 +568,28 @@ describe('searchRecipes', () => {
       expect(keyOf('fomapan xtol', 'foma-xtol-200')).toBe('foma-fomapan-400');
     });
 
-    it('does not reach a sibling rebrand, as /films does not', () => {
-      expect(keyOf('arista xtol', 'grey-xtol-400')).toBeUndefined();
+    it('reaches a sibling rebrand, as /films does', () => {
+      expect(keyOf('arista xtol', 'grey-xtol-400')).toBe(
+        'arista-edu-ultra-400'
+      );
+      expect(keyOf('lady grey xtol', 'foma-xtol-200')).toBe(
+        'lomography-lady-grey'
+      );
+    });
+
+    it('keeps a film own row on its own film', () => {
+      const [hit] = searchRecipes('lady grey at 800', index).hits;
+      expect(hit.recipeId).toBe('grey-xtol-800');
+      expect(hit.filmKey).toBe('lomography-lady-grey');
+      expect(hit.view.film).toBe(ladyGrey);
+    });
+
+    it('reports the sibling key and film for a sibling row', () => {
+      const [hit] = searchRecipes('arista at 800', index).hits;
+      expect(hit.recipeId).toBe('grey-xtol-800');
+      expect(hit.filmKey).toBe('arista-edu-ultra-400');
+      expect(hit.film).toBe(arista);
+      expect(hit.view.film).toBe(ladyGrey);
     });
 
     it('names the same film as the key', () => {

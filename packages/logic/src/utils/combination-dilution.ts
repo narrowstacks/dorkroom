@@ -23,3 +23,20 @@ export function getCombinationDilution(
       : undefined;
   return match?.dilution?.trim() || 'Stock';
 }
+
+/**
+ * `getCombinationDilution`, or null when the recipe points at a developer's
+ * dilution and that developer is gone. Reading that as "Stock" would tell someone
+ * to pour neat developer, so say it is unknown instead. A recipe with no dilution
+ * at all really is Stock.
+ */
+export function getKnownCombinationDilution(
+  combination: Pick<Combination, 'customDilution' | 'dilutionId'>,
+  developer: Pick<Developer, 'dilutions'> | null | undefined
+): string | null {
+  const isUnknown =
+    !combination.customDilution?.trim() &&
+    !!combination.dilutionId &&
+    !developer;
+  return isUnknown ? null : getCombinationDilution(combination, developer);
+}

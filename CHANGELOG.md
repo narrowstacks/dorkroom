@@ -18,6 +18,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Changed
 
+- **Rebranded films share recipes with their whole family.** A film's recipes now include those of its base film and of every other film rebranded from that base, so Arista and Holga films show the recipes published under Lomography's Lady Grey and Earl Grey. This applies to the recipe counts and sort on /films and the recipes on a film's page. (#679)
 - **Recipes match the films list.** On /development, the recipe table and cards now sit on a solid background instead of showing the page's gradient. Sort headings use the same arrows as /films and tell screen readers the sort direction, and an empty result now has a Clear filters button.
 - **A tidier film page.** Film details now open with ISO, type, reciprocity and grain together at the top, then About and any manufacturer notes. Grain is capitalized the same way for every film. The film page no longer shows the date a film was added to the database. (#669)
 - **The negative inverter prints like a darkroom print.** Converted negatives now go through a virtual paper curve, with a soft roll-off into paper white and a deep black, instead of a straight line. Contrast works like a paper grade, a dark frame is brightened a little (a bright one is never darkened), and warmth and tint act like enlarger filtration, so whites and blacks stay clean when you colour-correct. Default contrast and brightness stay close to before. (#527)

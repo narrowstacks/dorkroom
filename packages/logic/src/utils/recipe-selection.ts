@@ -106,9 +106,12 @@ export interface RecipeScopeFilters {
 
 const NO_RECIPES: readonly RecipeView[] = [];
 
+const combinationIdOf = ({ uuid, id }: RecipeView['combination']): string =>
+  String(uuid || id);
+
 /** A recipe's key in `viewsById` and `keysById`. */
 export const recipeIdOf = (view: RecipeView): string =>
-  String(view.combination.uuid || view.combination.id);
+  combinationIdOf(view.combination);
 
 const dilutionOf = (view: RecipeView) =>
   getCombinationDilution(view.combination, view.developer);
@@ -158,7 +161,7 @@ const addToPair = (
 
 /**
  * Index recipes for the picker, with the same film-to-recipe semantics as
- * /films (aliases count for the canonical film, rebrands share with their base)
+ * /films (aliases count for the canonical film, a rebrand family shares its recipes)
  * by building on `buildFilmRecipeIndex`. A custom film or developer named exactly
  * like a catalogue one joins it. Custom films sharing a name take the lowest box
  * speed among them, so the default recipe does not depend on recipe order.
@@ -257,16 +260,16 @@ export function buildRecipeIndex(
     if (filmEntries.get(filmKey)?.isCustom) {
       addToPair(pairs, filmKey, developerKey, view);
     } else {
-      // `uuid: id` because the film index dedupes on uuid, and one can be blank.
-      catalogueRows.push({ ...view.combination, uuid: id, filmSlug: filmKey });
+      catalogueRows.push({ ...view.combination, filmSlug: filmKey });
     }
   }
 
   const { recipesBySlug } = buildFilmRecipeIndex(catalogueRows, films);
   for (const [filmKey, recipes] of recipesBySlug) {
-    for (const { uuid } of recipes) {
-      const view = viewsById.get(uuid);
-      const developerKey = keysById.get(uuid)?.developerKey;
+    for (const combination of recipes) {
+      const id = combinationIdOf(combination);
+      const view = viewsById.get(id);
+      const developerKey = keysById.get(id)?.developerKey;
       if (view && developerKey) addToPair(pairs, filmKey, developerKey, view);
     }
   }
@@ -385,7 +388,7 @@ export function getDeveloperOptions(
   }: { filmKey?: string | null; selectedDeveloperKey?: string | null } = {}
 ): RecipeOption[] {
   const chosen = filmKey ? index.films.get(filmKey) : undefined;
-  // A set, because a rebrand and its base film list the same recipe.
+  // A set, because films of one rebrand family list the same recipe.
   const recipesByDeveloper = new Map<string, Set<RecipeView>>();
   const sources = chosen
     ? [index.pairs.get(chosen.key)]
