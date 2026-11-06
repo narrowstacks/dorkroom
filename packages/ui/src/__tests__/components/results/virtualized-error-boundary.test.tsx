@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { VirtualizedErrorBoundary } from '../../../components/development-recipes/virtualized-error-boundary';
+import { VirtualizedErrorBoundary } from '../../../components/results/virtualized-error-boundary';
 
 // Component that throws an error for testing
 interface ThrowingComponentProps {

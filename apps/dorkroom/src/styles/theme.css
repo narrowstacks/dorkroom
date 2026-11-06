@@ -63,17 +63,17 @@
   --color-recipe-custom: color-mix(
     in srgb,
     var(--color-accent) 15%,
-    transparent
+    var(--color-surface)
   );
   --color-recipe-custom-hover: color-mix(
     in srgb,
     var(--color-accent) 20%,
-    transparent
+    var(--color-surface)
   );
   --color-recipe-custom-selected: color-mix(
     in srgb,
     var(--color-accent) 25%,
-    transparent
+    var(--color-surface)
   );
   --color-recipe-custom-edge: color-mix(
     in srgb,

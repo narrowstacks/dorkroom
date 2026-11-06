@@ -200,11 +200,7 @@ describe('DevelopmentResultsCardsVirtualized', () => {
         </TableWrapper>
       );
 
-      expect(
-        screen.getByText(
-          'No recipes match your current filters. Try adjusting your search.'
-        )
-      ).toBeInTheDocument();
+      expect(screen.getByText('No recipes found')).toBeInTheDocument();
     });
 
     it('applies custom height when provided', () => {
@@ -222,7 +218,9 @@ describe('DevelopmentResultsCardsVirtualized', () => {
         </TableWrapper>
       );
 
-      expect(container.firstElementChild).toHaveStyle({ height: '500px' });
+      expect(container.querySelector('.overflow-auto')).toHaveStyle({
+        height: '500px',
+      });
     });
   });
 

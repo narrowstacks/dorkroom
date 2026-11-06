@@ -19,5 +19,4 @@ export { SharedRecipeModal } from './components/development-recipes/shared-recip
 export type { TableColumnContext } from './components/development-recipes/table-columns';
 export { createTableColumns } from './components/development-recipes/table-columns';
 export { TemperatureUnitToggle } from './components/development-recipes/temperature-unit-toggle';
-export { VirtualizedErrorBoundary } from './components/development-recipes/virtualized-error-boundary';
 export { VolumeMixer } from './components/development-recipes/volume-mixer';

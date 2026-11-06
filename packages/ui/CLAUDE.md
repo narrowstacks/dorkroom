@@ -14,7 +14,7 @@ components and shares `@dorkroom/logic` instead.
 src/
 ├── components/            # Reusable UI components, grouped by feature
 │   ├── border-calculator/ calculator/ detail-panel/ development-recipes/
-│   ├── films/ filters/ marketing/ resize/
+│   ├── films/ filters/ marketing/ resize/ results/
 │   └── *.tsx              # Cross-cutting primitives (modal, select, number-input, …)
 ├── contexts/              # Theme + unit contexts (measurement, temperature, volume)
 ├── forms/                 # Form-specific components
@@ -153,6 +153,13 @@ Don't reach for it in new code expecting a visible shadow.
   cards or rows hide most of it. Where a sticky header or full-bleed rows would
   still cover the outline (the recipe table), draw it on the bordered wrapper
   with a `has-[…:focus-visible]:outline-*` variant instead.
+
+## Results lists
+
+`/films` and `/development` share `components/results/` (`ResultsFrame`,
+`ResultsEmpty`, the table heads, `VirtualTableSpacer`, the error boundary) and
+`lib/virtualization.ts`. A table or list goes inside `ResultsFrame`, so the page
+gradient never shows behind it; recipe cards are solid themselves.
 
 ## Accessibility
 

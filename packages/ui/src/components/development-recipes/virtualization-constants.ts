@@ -3,8 +3,6 @@
  * These values are calibrated for the development recipes UI layout.
  */
 
-import { RESIZE_DEBOUNCE_MS } from '../../lib/resize-debounce';
-
 /**
  * Estimated height for each table row in pixels.
  * Accounts for:
@@ -39,99 +37,3 @@ export const CARD_ROW_ESTIMATED_HEIGHT = 240;
  * Cards are larger than table rows, so less overscan is needed.
  */
 export const CARD_OVERSCAN = 2;
-
-/**
- * Default container height for virtualized lists.
- * Calculated as: 100dvh - header (64px) - filters (120px) - pagination (96px)
- */
-export const DEFAULT_CONTAINER_HEIGHT = 'calc(100dvh - 280px)';
-
-/**
- * Minimum container height to prevent layout collapse on small screens.
- */
-export const MIN_CONTAINER_HEIGHT = '400px';
-
-/**
- * Maximum container height to prevent over-expansion.
- * Calculated as: 100dvh - minimal header/footer (120px)
- */
-export const MAX_CONTAINER_HEIGHT = 'calc(100dvh - 120px)';
-
-// Re-exported so existing importers keep working; the constant lives in lib
-// because the shared `useColumnCount` hook needs it too.
-export { RESIZE_DEBOUNCE_MS } from '../../lib/resize-debounce';
-
-/**
- * Type for the rect object used by TanStack Virtual's observeElementRect.
- */
-export interface VirtualizerRect {
-  width: number;
-  height: number;
-}
-
-/**
- * Creates a debounced observeElementRect function for TanStack Virtual.
- * This prevents browser lockups during rapid window resizing by batching
- * resize observations.
- *
- * @param debounceMs - Debounce delay in milliseconds (default: RESIZE_DEBOUNCE_MS)
- * @returns A function compatible with TanStack Virtual's observeElementRect option
- */
-export function createDebouncedObserveElementRect(
-  debounceMs: number = RESIZE_DEBOUNCE_MS
-) {
-  return <T extends Element>(
-    instance: { options: { getScrollElement: () => T | null } },
-    cb: (rect: VirtualizerRect) => void
-  ): (() => void) | undefined => {
-    const element = instance.options.getScrollElement();
-    if (!element) return;
-
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
-    let lastRect: VirtualizerRect | null = null;
-
-    const updateRect = (rect: VirtualizerRect) => {
-      // Skip if dimensions haven't changed
-      if (
-        lastRect &&
-        lastRect.width === rect.width &&
-        lastRect.height === rect.height
-      ) {
-        return;
-      }
-      lastRect = rect;
-      cb(rect);
-    };
-
-    const debouncedUpdate = (rect: VirtualizerRect) => {
-      if (timeoutId !== null) {
-        clearTimeout(timeoutId);
-      }
-      timeoutId = setTimeout(() => {
-        updateRect(rect);
-        timeoutId = null;
-      }, debounceMs);
-    };
-
-    // Initial measurement (not debounced)
-    const initialRect = element.getBoundingClientRect();
-    updateRect({ width: initialRect.width, height: initialRect.height });
-
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) {
-        const { width, height } = entry.contentRect;
-        debouncedUpdate({ width, height });
-      }
-    });
-
-    observer.observe(element);
-
-    return () => {
-      if (timeoutId !== null) {
-        clearTimeout(timeoutId);
-      }
-      observer.disconnect();
-    };
-  };
-}

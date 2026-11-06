@@ -1,15 +1,16 @@
 import {
   cn,
+  ResultsFrame,
   type ShareResult,
   SkeletonCard,
   SkeletonTableRow,
+  VirtualizedErrorBoundary,
   type VirtualListFocusHandle,
 } from '@dorkroom/ui';
 import {
   type DevelopmentCombinationView,
   DevelopmentResultsCardsVirtualized,
   DevelopmentResultsTableVirtualized,
-  VirtualizedErrorBoundary,
 } from '@dorkroom/ui/development-recipes';
 import type { Table } from '@tanstack/react-table';
 import { Loader2 } from 'lucide-react';
@@ -39,6 +40,8 @@ export interface RecipeResultsSectionProps {
   isFavorite: (view: DevelopmentCombinationView) => boolean;
   /** ID of the currently selected recipe to highlight */
   selectedRecipeId?: string | null;
+  onClearFilters: () => void;
+  hasActiveFilters: boolean;
 }
 
 export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
@@ -61,6 +64,8 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
     onDeleteCustomRecipe,
     isFavorite,
     selectedRecipeId,
+    onClearFilters,
+    hasActiveFilters,
   } = props;
 
   return (
@@ -106,13 +111,7 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
               ))}
             </div>
           ) : (
-            <div
-              className="overflow-hidden rounded-2xl border"
-              style={{
-                borderColor: 'var(--color-border-secondary)',
-                backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
-              }}
-            >
+            <ResultsFrame>
               <table className="w-full">
                 <thead
                   className="border-b"
@@ -149,7 +148,7 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ResultsFrame>
           )}
         </div>
       )}
@@ -174,6 +173,8 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
                 scrollContainerRef={virtualScrollContainerRef}
                 selectedRecipeId={selectedRecipeId}
                 focusHandleRef={resultsFocusRef}
+                onClearFilters={onClearFilters}
+                hasActiveFilters={hasActiveFilters}
               />
             ) : (
               <DevelopmentResultsTableVirtualized
@@ -183,6 +184,8 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
                 scrollContainerRef={virtualScrollContainerRef}
                 selectedRecipeId={selectedRecipeId}
                 focusHandleRef={resultsFocusRef}
+                onClearFilters={onClearFilters}
+                hasActiveFilters={hasActiveFilters}
               />
             )}
           </VirtualizedErrorBoundary>

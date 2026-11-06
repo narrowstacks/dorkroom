@@ -16,6 +16,7 @@ import {
   Edit2,
   ExternalLink,
   Flame,
+  FlaskConical,
   Snowflake,
   Star,
   Trash2,
@@ -30,6 +31,14 @@ import {
 } from '../../hooks/use-virtual-list-focus';
 import { cn } from '../../lib/cn';
 import { hasGlobal } from '../../lib/dom';
+import {
+  debouncedObserveElementRect,
+  DEFAULT_CONTAINER_HEIGHT,
+  MAX_CONTAINER_HEIGHT,
+  MIN_CONTAINER_HEIGHT,
+} from '../../lib/virtualization';
+import { ResultsEmpty } from '../results/results-empty';
+import { ResultsFrame } from '../results/results-frame';
 import type { ShareResult } from '../share-button';
 import { ShareButton } from '../share-button';
 import {
@@ -44,10 +53,6 @@ import { formatTime } from './recipe-detail-shared';
 import {
   CARD_OVERSCAN,
   CARD_ROW_ESTIMATED_HEIGHT,
-  createDebouncedObserveElementRect,
-  DEFAULT_CONTAINER_HEIGHT,
-  MAX_CONTAINER_HEIGHT,
-  MIN_CONTAINER_HEIGHT,
 } from './virtualization-constants';
 
 interface DevelopmentResultsCardsVirtualizedProps {
@@ -74,6 +79,9 @@ interface DevelopmentResultsCardsVirtualizedProps {
    * or id), such as when the detail sidebar closes with focus inside it.
    */
   focusHandleRef?: Ref<VirtualListFocusHandle>;
+  /** "Clear filters" in the empty state. */
+  onClearFilters?: () => void;
+  hasActiveFilters?: boolean;
 }
 
 /** A recipe's tags split into official badges and other display tags. */
@@ -235,7 +243,7 @@ function RecipeCard({
             )
           : isCustom
             ? 'border-recipe-custom-edge bg-recipe-custom hover:border-recipe-custom-edge-hover hover:bg-recipe-custom-hover'
-            : 'border-secondary bg-veil-25 hover:border-primary hover:bg-veil-35'
+            : 'border-secondary bg-surface hover:border-primary hover:bg-surface-muted'
       )}
     >
       {/* Full-card overlay button provides the click/keyboard select target */}
@@ -434,6 +442,8 @@ export const DevelopmentResultsCardsVirtualized: FC<
   scrollContainerRef,
   selectedRecipeId,
   focusHandleRef,
+  onClearFilters,
+  hasActiveFilters,
 }) => {
   const { unit } = useTemperature();
   const [hoveredFavoriteId, setHoveredFavoriteId] = useState<string | null>(
@@ -466,12 +476,6 @@ export const DevelopmentResultsCardsVirtualized: FC<
       rowVirtualizer.scrollToIndex(Math.floor(index / columnCount)),
     handleRef: focusHandleRef,
   });
-
-  // Memoize the debounced observer to prevent recreation on every render
-  const debouncedObserveElementRect = useMemo(
-    () => createDebouncedObserveElementRect(),
-    []
-  );
 
   const rowVirtualizer = useVirtualizer({
     count: Math.ceil(rows.length / columnCount),
@@ -608,16 +612,14 @@ export const DevelopmentResultsCardsVirtualized: FC<
       </div>
 
       {rows.length === 0 && (
-        <div
-          className="rounded-2xl border p-4 text-center text-sm"
-          style={{
-            borderColor: 'var(--color-border-secondary)',
-            backgroundColor: 'rgba(var(--color-background-rgb), 0.15)',
-            color: 'var(--color-text-tertiary)',
-          }}
-        >
-          No recipes match your current filters. Try adjusting your search.
-        </div>
+        <ResultsFrame>
+          <ResultsEmpty
+            icon={<FlaskConical className="size-8" />}
+            title="No recipes found"
+            onClearFilters={onClearFilters}
+            hasActiveFilters={hasActiveFilters}
+          />
+        </ResultsFrame>
       )}
     </div>
   );
