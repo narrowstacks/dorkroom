@@ -77,9 +77,18 @@ export interface InverterStageProps {
   onPick: (tool: 'base' | 'neutral', point: PixelPoint) => void;
   /** Long-press on the stage (no tool active): show the negative while held. */
   onHold: (holding: boolean) => void;
+  /** A tap with no tool active (live mode: focus there), in source pixels. */
+  onTap?: (point: PixelPoint) => void;
+  /** Where the camera was last told to focus, in source pixels. */
+  focusMark?: PixelPoint | null;
 }
 
 const HANDLE = 10;
+/** Side of the focus square, in points. */
+const FOCUS_SQUARE = 64;
+/** Longest press that still counts as a focus tap, in ms: shorter than the
+ *  hold, which waits for this tap to fail before it starts. */
+const FOCUS_TAP_MS = 250;
 
 /** A ring of `width` centred on a circle of radius `r`, as a fill path. */
 function ringPath(cx: number, cy: number, r: number, width: number) {
@@ -116,6 +125,61 @@ const tapGesture = () => Gesture.Tap();
 const exclusiveGesture = (...gestures: Parameters<typeof Gesture.Exclusive>) =>
   Gesture.Exclusive(...gestures);
 
+/** What a touch on the stage does, for VoiceOver. */
+function stageHint(tool: InverterTool | null, canTap: boolean): string {
+  if (tool === 'crop')
+    return 'Drag the edges to set the region used for levels';
+  if (tool === 'base' || tool === 'neutral') {
+    return 'Drag to the spot to sample, then lift your finger';
+  }
+  return canTap && tool === null
+    ? 'Tap to focus there. Touch and hold to see the negative'
+    : 'Touch and hold to see the negative';
+}
+
+/** A quick tap (live mode, no tool): reports where it landed, in view
+ *  points. Shorter than the hold, which waits for it to fail. */
+function focusTapGesture(
+  enabled: boolean,
+  onTap: (x: number, y: number) => void
+) {
+  return tapGesture()
+    .runOnJS(true)
+    .maxDuration(FOCUS_TAP_MS)
+    .enabled(enabled)
+    .onEnd((e, success) => {
+      if (success) onTap(e.x, e.y);
+    });
+}
+
+interface FocusSquareProps {
+  /** In source pixels. */
+  point: PixelPoint;
+  frame: ViewFrame;
+  box: ReturnType<typeof fitContain>;
+  shown: PixelSize;
+}
+
+/** Where the camera was told to focus: the camera app's yellow square. */
+function FocusSquare({ point, frame, box, shown }: FocusSquareProps) {
+  if (box.width === 0 || !inFrame(point, frame)) return null;
+  const p = imagePointToScreen(toFrame(point, frame), box, shown);
+  const x = p.x - FOCUS_SQUARE / 2;
+  const y = p.y - FOCUS_SQUARE / 2;
+  return (
+    <Group>
+      <Path
+        path={framePath(x - 1, y - 1, FOCUS_SQUARE + 2, FOCUS_SQUARE + 2, 3)}
+        color="rgba(0,0,0,0.5)"
+      />
+      <Path
+        path={framePath(x, y, FOCUS_SQUARE, FOCUS_SQUARE, 1.5)}
+        color="#fbbf24"
+      />
+    </Group>
+  );
+}
+
 /**
  * The photo, live-inverted by the Skia shader, with the crop overlay, picked
  * markers, and a loupe that floats clear of the finger while picking.
@@ -134,6 +198,8 @@ function InverterStageView({
   onCrop,
   onPick,
   onHold,
+  onTap,
+  focusMark = null,
 }: InverterStageProps) {
   const [width, setWidth] = useState(0);
   const view = { width, height };
@@ -232,7 +298,12 @@ function InverterStageView({
       if (success && pickTool) onPick(pickTool, toImage(e.x, e.y));
     });
 
-  const gesture = exclusiveGesture(pan, tap, hold);
+  const focusTap = focusTapGesture(
+    tool === null && onTap !== undefined && width > 0,
+    (x, y) => onTap?.(toImage(x, y))
+  );
+
+  const gesture = exclusiveGesture(pan, tap, focusTap, hold);
 
   // The whole image in source pixels, moved, scaled and turned onto the
   // box, and clipped to it, so a crop shows only its region.
@@ -318,13 +389,7 @@ function InverterStageView({
         accessibilityLabel={
           positive ? 'Positive of your negative' : 'Your negative'
         }
-        accessibilityHint={
-          tool === 'crop'
-            ? 'Drag the edges to set the region used for levels'
-            : pickTool
-              ? 'Drag to the spot to sample, then lift your finger'
-              : 'Touch and hold to see the negative'
-        }
+        accessibilityHint={stageHint(tool, onTap !== undefined)}
       >
         {width > 0 ? (
           // sRGB, untagged: the default "p3" canvas would colour-convert the
@@ -369,6 +434,9 @@ function InverterStageView({
             ) : null}
             {tool === 'base' ? null : marker(base, '#fbbf24')}
             {tool === 'neutral' ? null : marker(neutral, '#e5e7eb')}
+            {tool === null && focusMark ? (
+              <FocusSquare point={focusMark} {...{ frame, box, shown }} />
+            ) : null}
             {pickTool ? (
               <Group opacity={loupeOn}>
                 <Group clip={loupeClip}>

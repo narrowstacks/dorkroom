@@ -152,3 +152,48 @@ export function livePointToPhoto(
     y: Math.max(0, Math.min(photo.height - 1, p.y)),
   };
 }
+
+/**
+ * A live-image point as a camera point of interest: normalized 0 to 1 in the
+ * buffer's own (unturned) orientation, which is what AVFoundation's focus
+ * point uses. The inverse of `bufferToOutputMatrix`: undo the mirror, then
+ * the rotation.
+ */
+export function livePointToBuffer(
+  point: PixelPoint,
+  live: PixelSize,
+  orientation: BufferOrientation,
+  mirrored: boolean
+): PixelPoint {
+  const clamp = (n: number) => Math.max(0, Math.min(1, n));
+  let u = clamp(point.x / live.width);
+  const v = clamp(point.y / live.height);
+  if (mirrored) u = 1 - u;
+  switch (orientation) {
+    case 'right':
+      return { x: 1 - v, y: u };
+    case 'left':
+      return { x: v, y: 1 - u };
+    case 'down':
+      return { x: 1 - u, y: 1 - v };
+    case 'up':
+      return { x: u, y: v };
+  }
+}
+
+const ORIENTATIONS: readonly BufferOrientation[] = [
+  'up',
+  'right',
+  'down',
+  'left',
+];
+
+/** The frame worklet's `bufferPose` (`'right'`, `'right|m'`) read back, or
+ *  null before the first frame. */
+export function parseBufferPose(
+  pose: string
+): { orientation: BufferOrientation; mirrored: boolean } | null {
+  const [orientation, mirror] = pose.split('|');
+  const known = ORIENTATIONS.find((o) => o === orientation);
+  return known ? { orientation: known, mirrored: mirror === 'm' } : null;
+}

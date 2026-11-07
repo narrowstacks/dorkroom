@@ -21,6 +21,7 @@ import {
   useCamera,
   useFrameOutput,
   usePhotoOutput,
+  VisionCamera,
 } from 'react-native-vision-camera';
 import { createSynchronizable, scheduleOnUI } from 'react-native-worklets';
 import {
@@ -40,6 +41,10 @@ import {
   isBlueClipping,
   nextExposureBias,
 } from '@/components/negative-inverter/live-exposure';
+import {
+  livePointToBuffer,
+  parseBufferPose,
+} from '@/components/negative-inverter/live-geometry';
 import {
   type AutoBaseTrack,
   type LiveCarry,
@@ -80,6 +85,14 @@ const STABILIZATION_OFF: Constraint[] = [
   { videoStabilizationMode: 'off' },
   { previewStabilizationMode: 'off' },
 ];
+
+/** How long the focus square stays on the stage after a tap, in ms. */
+const FOCUS_MARK_MS = 1200;
+
+/** How the lens is focused: continuous autofocus, autofocus held on a
+ *  tapped point, or locked by the slider at a lens position (0 near, 1 far). */
+export type LiveFocus =
+  { mode: 'auto' } | { mode: 'point' } | { mode: 'manual'; lens: number };
 
 /** How long the live view eases to new coefficients, in ms. */
 const EASE_MS = 250;
@@ -140,11 +153,15 @@ export function useLiveInverter(
   const [meterForFilm, setMeterForFilm] = useState(true);
   const [bias, setBias] = useState(0);
   const [capturing, setCapturing] = useState(false);
+  const [focus, setFocus] = useState<LiveFocus>({ mode: 'auto' });
+  // Where the last tap focused, in live pixels, while its square shows.
+  const [focusMark, setFocusMark] = useState<PixelPoint | null>(null);
 
   const snapshotWanted = useMemo(() => createSynchronizable(false), []);
   // Backpressure: one live image in flight at a time (see live-frame.ts).
   const imagePending = useMemo(() => createSynchronizable(false), []);
   const lastFailure = useMemo(() => createSynchronizable(''), []);
+  const bufferPose = useMemo(() => createSynchronizable(''), []);
   const clock = useRef(IDLE_SNAPSHOT_CLOCK);
   const mounted = useRef(true);
 
@@ -344,9 +361,18 @@ export function useLiveInverter(
         onSnapshot,
         onFailure,
         lastFailure,
+        bufferPose,
       });
     },
-    [snapshotWanted, imagePending, onImage, onSnapshot, onFailure, lastFailure]
+    [
+      snapshotWanted,
+      imagePending,
+      onImage,
+      onSnapshot,
+      onFailure,
+      lastFailure,
+      bufferPose,
+    ]
   );
 
   const frameOutput = useFrameOutput({
@@ -472,6 +498,102 @@ export function useLiveInverter(
     }
   }, [capturing, framing, liveSize, photoOutput]);
 
+  // Focus mark timer, cleared on unmount and by the next tap.
+  const markTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (markTimer.current) clearTimeout(markTimer.current);
+    },
+    []
+  );
+
+  /** Autofocus on a point of the live image and hold it there. Focus only:
+   *  exposure stays with the film metering, white balance with the
+   *  inversion. */
+  const focusAt = useCallback(
+    (point: PixelPoint) => {
+      const pose = parseBufferPose(bufferPose.getBlocking());
+      if (!controller?.device.supportsFocusMetering || !liveSize || !pose) {
+        return;
+      }
+      const target = livePointToBuffer(
+        point,
+        liveSize,
+        pose.orientation,
+        pose.mirrored
+      );
+      setFocus({ mode: 'point' });
+      setFocusMark(point);
+      if (markTimer.current) clearTimeout(markTimer.current);
+      markTimer.current = setTimeout(() => {
+        if (mounted.current) setFocusMark(null);
+      }, FOCUS_MARK_MS);
+      controller
+        .focusTo(
+          VisionCamera.createNormalizedMeteringPoint(target.x, target.y),
+          {
+            modes: ['AF'],
+            responsiveness: 'snappy',
+            adaptiveness: 'continuous',
+            // A negative on a light table does not move: keep the point.
+            autoResetAfter: null,
+          }
+        )
+        // Cancelled by the next tap or the slider: nothing to report.
+        .catch(() => undefined);
+    },
+    [bufferPose, controller, liveSize]
+  );
+
+  // The slider moves faster than the lens: one setFocusLocked in flight,
+  // and the latest position sent when it lands.
+  const lensWanted = useRef<number | null>(null);
+  const lensBusy = useRef(false);
+  const sendLens = useCallback(async () => {
+    if (!controller || lensBusy.current) return;
+    lensBusy.current = true;
+    try {
+      while (lensWanted.current !== null) {
+        const next = lensWanted.current;
+        lensWanted.current = null;
+        await controller.setFocusLocked(next).catch(() => undefined);
+      }
+    } finally {
+      lensBusy.current = false;
+    }
+  }, [controller]);
+
+  /** Lock the lens at a position, 0 (near) to 1 (far). Mid-drag (`commit`
+   *  false) only the lens moves, so the screen does not re-render per step. */
+  const setLens = useCallback(
+    (lens: number, commit = true) => {
+      if (!controller?.device.supportsFocusLocking) return;
+      const clamped = Math.max(0, Math.min(1, lens));
+      if (commit) {
+        setFocus({ mode: 'manual', lens: clamped });
+        setFocusMark(null);
+      }
+      lensWanted.current = clamped;
+      void sendLens();
+    },
+    [controller, sendLens]
+  );
+
+  /** Back to continuous autofocus on the centre. */
+  const autoFocus = useCallback(() => {
+    if (!controller) return;
+    lensWanted.current = null;
+    setFocus({ mode: 'auto' });
+    setFocusMark(null);
+    controller.resetFocus().catch(() => undefined);
+  }, [controller]);
+
+  /** Where the lens is now, for the slider to start from. */
+  const lensPosition = useCallback(
+    () => controller?.lensPosition ?? 0.5,
+    [controller]
+  );
+
   const pickBase = useCallback(
     (basePoint: PixelPoint) => setFraming((f) => ({ ...f, basePoint })),
     []
@@ -488,8 +610,22 @@ export function useLiveInverter(
       setMeterForFilm: toggleMeterForFilm,
       previewAdjust,
       capture,
+      focusAt,
+      setLens,
+      autoFocus,
+      lensPosition,
     }),
-    [pickBase, autoBase, toggleMeterForFilm, previewAdjust, capture]
+    [
+      pickBase,
+      autoBase,
+      toggleMeterForFilm,
+      previewAdjust,
+      capture,
+      focusAt,
+      setLens,
+      autoFocus,
+      lensPosition,
+    ]
   );
 
   return {
@@ -502,6 +638,10 @@ export function useLiveInverter(
     bias,
     capturing,
     failure,
+    focus,
+    focusMark,
+    canFocusAt: controller?.device.supportsFocusMetering ?? false,
+    canSetLens: controller?.device.supportsFocusLocking ?? false,
     actions,
   };
 }

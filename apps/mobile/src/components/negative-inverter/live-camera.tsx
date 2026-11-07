@@ -29,6 +29,7 @@ import {
   clippingChip,
   toolHint,
 } from './editor-layout';
+import { FocusPanel } from './focus-panel';
 import { InverterButton } from './inverter-button';
 import { InverterStage } from './inverter-stage';
 import { IDENTITY_ORIENTATION, type ViewFrame } from './orientation';
@@ -100,8 +101,9 @@ export function LiveCamera(props: LiveCameraProps) {
 }
 
 // Live mode only picks the base; it measures the whole frame, and the
-// captured photo is cropped in the editor.
-type LiveTool = 'base';
+// captured photo is cropped in the editor. Focus has no stage gesture of its
+// own (a tap focuses with no tool on), only the manual focus panel.
+type LiveTool = 'base' | 'focus';
 
 /** The stage's crop handler; live mode has no crop tool to call it. */
 const NO_CROP = () => undefined;
@@ -122,7 +124,9 @@ function LiveSession({
   const [adjustment, setAdjustment] = useState<AdjustmentKey>('exposure');
   const { liveSize, view, actions } = live;
   const { base, exposure } = view;
-  const { pickBase } = actions;
+  const { pickBase, focusAt } = actions;
+  // The stage's own tool: focus leaves the stage as it is, tap included.
+  const stageTool = tool === 'base' ? 'base' : null;
   // Stable props, so a reading that changes nothing the stage shows does not
   // re-render it (InverterStage is memoized). The whole frame, upright.
   const stageFrame = useMemo<ViewFrame | null>(
@@ -149,7 +153,7 @@ function LiveSession({
   };
 
   const clipping = clippingChip(exposure);
-  const chip = tool === null ? baseChip(base, true) : null;
+  const chip = tool === 'base' ? null : baseChip(base, true);
   const ev = `${live.bias > 0 ? '+' : ''}${live.bias.toFixed(1)} EV`;
 
   return (
@@ -204,9 +208,9 @@ function LiveSession({
               )
             }
             bottomRight={
-              tool === null ? (
+              tool === 'base' ? null : (
                 <HoldButton onHold={setHolding} disabled={!view.ready} />
-              ) : null
+              )
             }
           >
             {(height) =>
@@ -217,7 +221,7 @@ function LiveSession({
                   height={height}
                   uniforms={live.uniforms}
                   positive={view.ready && !holding && tool !== 'base'}
-                  tool={tool}
+                  tool={stageTool}
                   frame={stageFrame}
                   crop={stageFrame.region}
                   base={base}
@@ -225,6 +229,8 @@ function LiveSession({
                   onCrop={NO_CROP}
                   onPick={onPick}
                   onHold={setHolding}
+                  onTap={live.canFocusAt ? focusAt : undefined}
+                  focusMark={live.focusMark}
                 />
               ) : (
                 <View
@@ -252,6 +258,16 @@ function LiveSession({
               selected={tool === 'base'}
               onPress={() => setTool(tool === 'base' ? null : 'base')}
             />
+            {live.canSetLens ? (
+              <EditorButton
+                label="Focus"
+                icon="scope"
+                showLabel
+                selected={tool === 'focus'}
+                accessibilityHint="Shows the manual focus slider"
+                onPress={() => setTool(tool === 'focus' ? null : 'focus')}
+              />
+            ) : null}
             {live.framing.basePoint ? (
               <EditorButton
                 label="Auto base"
@@ -270,7 +286,16 @@ function LiveSession({
           </View>
 
           <ControlSlot>
-            {tool ? (
+            {tool === 'focus' ? (
+              <FocusPanel
+                focus={live.focus}
+                lens={actions.lensPosition()}
+                onLens={actions.setLens}
+                onAuto={actions.autoFocus}
+                onDone={() => setTool(null)}
+                compact={compact}
+              />
+            ) : tool ? (
               <ToolHint hint={toolHint(tool)} onDone={() => setTool(null)} />
             ) : (
               <AdjustmentPanel
