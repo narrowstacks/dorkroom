@@ -498,6 +498,10 @@ export function useLiveInverter(
     }
   }, [capturing, framing, liveSize, photoOutput]);
 
+  // The slider moves faster than the lens: one setFocusLocked in flight,
+  // and the latest position sent when it lands.
+  const lensWanted = useRef<number | null>(null);
+  const lensBusy = useRef(false);
   // Focus mark timer, cleared on unmount and by the next tap.
   const markTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
@@ -522,6 +526,8 @@ export function useLiveInverter(
         pose.orientation,
         pose.mirrored
       );
+      // A slider position still queued would land after this and win.
+      lensWanted.current = null;
       setFocus({ mode: 'point' });
       setFocusMark(point);
       if (markTimer.current) clearTimeout(markTimer.current);
@@ -545,10 +551,6 @@ export function useLiveInverter(
     [bufferPose, controller, liveSize]
   );
 
-  // The slider moves faster than the lens: one setFocusLocked in flight,
-  // and the latest position sent when it lands.
-  const lensWanted = useRef<number | null>(null);
-  const lensBusy = useRef(false);
   const sendLens = useCallback(async () => {
     if (!controller || lensBusy.current) return;
     lensBusy.current = true;
