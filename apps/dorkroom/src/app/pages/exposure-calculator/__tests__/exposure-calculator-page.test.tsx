@@ -90,4 +90,26 @@ describe('ExposureCalculatorPage f-stop table', () => {
 
     expect(within(getTable()).getAllByRole('row')).toHaveLength(27);
   });
+
+  it('lets keyboard users focus the sideways scroller', () => {
+    render(<ExposureCalculatorPage linkSearch={{ time: '16', stops: '0' }} />);
+
+    const scroller = screen.getByRole('region', {
+      name: 'Dodge and burn times, scrolls sideways',
+    });
+    expect(scroller).toHaveAttribute('tabindex', '0');
+  });
+
+  it('keeps short exposures readable', () => {
+    render(<ExposureCalculatorPage linkSearch={{ time: '0.1', stops: '0' }} />);
+
+    const base = within(getTable()).getByRole('rowheader', {
+      name: '0.10 yours',
+    });
+    const row = base.closest('tr');
+    if (!row) throw new Error('base row missing');
+    // +1/3 stop on 0.1s burns 0.026s, which must not read as 0.0.
+    expect(within(row).getAllByText('0.03').length).toBeGreaterThan(0);
+    expect(within(row).queryByText('0.0')).not.toBeInTheDocument();
+  });
 });

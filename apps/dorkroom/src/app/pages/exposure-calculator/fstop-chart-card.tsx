@@ -2,6 +2,7 @@ import {
   buildFStopTable,
   exactThirds,
   formatExposureTime,
+  formatFStopTableSeconds,
   FSTOP_TABLE_ROW_STEPS,
   type FStopTableRowDenominator,
 } from '@dorkroom/logic';
@@ -42,7 +43,7 @@ const SCROLL_END_SLACK = 1;
  * screen, so a phone user can tell the burn columns are there.
  */
 const SideScroller: FC<{ children: ReactNode }> = ({ children }) => {
-  const scrollerRef = useRef<HTMLDivElement>(null);
+  const scrollerRef = useRef<HTMLElement>(null);
   const [hasMoreRight, setHasMoreRight] = useState(false);
 
   const update = useCallback(() => {
@@ -65,13 +66,16 @@ const SideScroller: FC<{ children: ReactNode }> = ({ children }) => {
 
   return (
     <div className="relative">
-      <div
+      <section
         ref={scrollerRef}
         onScroll={update}
-        className="overflow-x-auto rounded-xl border border-[color:var(--color-border-secondary)]"
+        aria-label="Dodge and burn times, scrolls sideways"
+        // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a sideways scroller; Safari never makes scroll containers focusable, so without this keyboard users cannot reach the off-screen burn columns
+        tabIndex={0}
+        className="overflow-x-auto rounded-xl border border-[color:var(--color-border-secondary)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--color-focus-ring)]"
       >
         {children}
-      </div>
+      </section>
       <div
         aria-hidden="true"
         className={cn(
@@ -82,8 +86,6 @@ const SideScroller: FC<{ children: ReactNode }> = ({ children }) => {
     </div>
   );
 };
-
-const formatSeconds = (seconds: number): string => Math.abs(seconds).toFixed(1);
 
 export const FStopChartCard: FC<FStopChartCardProps> = ({
   baseTime,
@@ -212,7 +214,7 @@ export const FStopChartCard: FC<FStopChartCardProps> = ({
                         : 'font-medium text-[color:var(--color-text-primary)]'
                     )}
                   >
-                    {formatSeconds(row.time)}
+                    {formatFStopTableSeconds(row.time)}
                     <span className="ml-2 font-sans text-xs font-normal text-[color:var(--color-text-tertiary)]">
                       {isBase ? 'yours' : row.label}
                     </span>
@@ -228,7 +230,7 @@ export const FStopChartCard: FC<FStopChartCardProps> = ({
                           isBase && 'text-[color:var(--color-text-primary)]'
                         )}
                       >
-                        {formatSeconds(seconds)}
+                        {formatFStopTableSeconds(seconds)}
                       </td>
                     );
                   })}

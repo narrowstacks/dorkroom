@@ -344,3 +344,20 @@ export const buildFStopTable = (
   }
   return { columns, rows };
 };
+
+/**
+ * Writes a table time or dodge/burn amount unsigned, to one decimal like a
+ * printed f-stop table, or two below a second so short exposures and their
+ * small adjustments don't all read as 0.0.
+ *
+ * @example
+ * ```typescript
+ * formatFStopTableSeconds(16); // '16.0'
+ * formatFStopTableSeconds(-8); // '8.0'
+ * formatFStopTableSeconds(0.026); // '0.03'
+ * ```
+ */
+export const formatFStopTableSeconds = (seconds: number): string => {
+  const abs = Math.abs(seconds);
+  return abs.toFixed(abs < 0.95 ? 2 : 1);
+};

@@ -5,6 +5,7 @@ import {
   calculatePercentageIncrease,
   calculatePushPull,
   formatExposureTime,
+  formatFStopTableSeconds,
   formatStopFraction,
   parseExposureTime,
   roundStopsToThirds,
@@ -333,5 +334,30 @@ describe('exposure calculations', () => {
         expect(buildFStopTable(baseTime, 6)).toBeNull();
       }
     );
+  });
+
+  describe('formatFStopTableSeconds', () => {
+    it.each([
+      [16, '16.0'],
+      [-8, '8.0'],
+      [1.04, '1.0'],
+      [0.96, '1.0'],
+      [0.94, '0.94'],
+      [0.026, '0.03'],
+      [-0.0109, '0.01'],
+    ])('writes %s as %s', (seconds, expected) => {
+      expect(formatFStopTableSeconds(seconds)).toBe(expected);
+    });
+
+    it('keeps a 0.1s base table readable', () => {
+      const table = buildFStopTable(0.1, 6);
+      const base = table?.rows.find((row) => row.step === 0);
+      const third = table?.columns.findIndex(
+        (column) => column.stops === 1 / 3
+      );
+      expect(formatFStopTableSeconds(base?.adjustments[third ?? -1] ?? 0)).toBe(
+        '0.03'
+      );
+    });
   });
 });
