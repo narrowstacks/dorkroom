@@ -31,6 +31,7 @@ import type { CalculatorLinkProps } from '../../../components/calculator-route';
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
 import { useShareLink } from '../../lib/use-share-link';
+import { FStopChartCard } from './fstop-chart-card';
 
 const validateExposureForm = createZodFormValidator(exposureCalculatorSchema);
 
@@ -332,6 +333,12 @@ export default function ExposureCalculatorPage({
           </CalculatorCard>
         }
         results={results}
+        wide={
+          <FStopChartCard
+            baseTime={formValues.originalTime}
+            stops={formValues.stops}
+          />
+        }
       >
         <CalculatorCard
           title="Exposure inputs"

@@ -1,9 +1,11 @@
 import {
+  buildFStopTable,
   calculateExposureAdjustment,
   calculateNewExposureTime,
   calculatePercentageIncrease,
   calculatePushPull,
   formatExposureTime,
+  formatStopFraction,
   parseExposureTime,
   roundStopsToThirds,
 } from '../../utils/exposure-calculations';
@@ -260,5 +262,76 @@ describe('exposure calculations', () => {
         calculateExposureAdjustment(10, Number.POSITIVE_INFINITY)
       ).toBeNull();
     });
+  });
+
+  describe('formatStopFraction', () => {
+    it.each([
+      [0, 3, '0'],
+      [1, 3, '+1/3'],
+      [-2, 3, '-2/3'],
+      [3, 3, '+1'],
+      [4, 3, '+1 1/3'],
+      [-5, 2, '-2 1/2'],
+      [-2, 1, '-2'],
+      [7, 6, '+1 1/6'],
+      [2, 12, '+1/6'],
+      [-9, 6, '-1 1/2'],
+    ])('writes %i steps of 1/%i as %s', (step, denominator, expected) => {
+      expect(formatStopFraction(step, denominator)).toBe(expected);
+    });
+  });
+
+  describe('buildFStopTable', () => {
+    it('centres the rows on the entered time', () => {
+      const table = buildFStopTable(16, 6);
+      expect(table?.rows).toHaveLength(13);
+      expect(table?.rows.find((row) => row.step === 0)?.time).toBe(16);
+      expect(table?.rows[0].time).toBeCloseTo(8);
+      expect(table?.rows.at(-1)?.time).toBeCloseTo(32);
+    });
+
+    it('labels rows and columns in lowest terms', () => {
+      const table = buildFStopTable(10, 12);
+      expect(table?.rows.map((row) => row.label).slice(0, 3)).toEqual([
+        '-1',
+        '-11/12',
+        '-5/6',
+      ]);
+      expect(table?.columns.map((column) => column.label)).toEqual([
+        '-1',
+        '-2/3',
+        '-1/2',
+        '-1/3',
+        '-1/6',
+        '+1/6',
+        '+1/3',
+        '+1/2',
+        '+2/3',
+        '+1',
+        '+1 1/3',
+        '+1 1/2',
+        '+2',
+      ]);
+    });
+
+    it('gives seconds to dodge or burn from each row', () => {
+      const table = buildFStopTable(16, 6);
+      const base = table?.rows.find((row) => row.step === 0);
+      const at = (stops: number) =>
+        base?.adjustments[
+          table?.columns.findIndex((column) => column.stops === stops) ?? -1
+        ];
+      expect(at(-1)).toBeCloseTo(-8);
+      expect(at(1)).toBeCloseTo(16);
+      expect(at(2)).toBeCloseTo(48);
+      expect(at(1 / 3)).toBeCloseTo(16 * (2 ** (1 / 3) - 1));
+    });
+
+    it.each([0, -5, Number.NaN, Number.POSITIVE_INFINITY])(
+      'returns null for base time %s',
+      (baseTime) => {
+        expect(buildFStopTable(baseTime, 6)).toBeNull();
+      }
+    );
   });
 });

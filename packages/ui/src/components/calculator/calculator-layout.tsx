@@ -30,6 +30,8 @@ export interface CalculatorLayoutProps {
   children: ReactNode;
   /** Results content rendered in the right column on desktop when provided */
   results?: ReactNode;
+  /** Full-width content between the main grid and the info cards */
+  wide?: ReactNode;
   /** Info cards rendered full-width below the main grid */
   sidebar?: ReactNode;
   /** Footer content that renders below everything (full width) */
@@ -53,6 +55,7 @@ export function CalculatorLayout({
   headerChildren,
   children,
   results,
+  wide,
   sidebar,
   footer,
   className,
@@ -84,6 +87,7 @@ export function CalculatorLayout({
               {results}
             </div>
           </div>
+          {wide && <div className="mt-4 md:mt-5">{wide}</div>}
           {sidebar && <div className="mt-4 space-y-4 md:mt-5">{sidebar}</div>}
         </>
       ) : (
@@ -92,6 +96,8 @@ export function CalculatorLayout({
           {sidebar && <div className="space-y-4">{sidebar}</div>}
         </div>
       )}
+
+      {wide && !results && <div className="mt-4 md:mt-5">{wide}</div>}
 
       {footer}
     </div>

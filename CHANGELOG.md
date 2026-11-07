@@ -9,6 +9,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Added
 
+- **An f-stop printing table on /stops.** Below the calculator, a table built around the time you enter lists base times within a stop either side, with the seconds to dodge (up to -1 stop) or burn (up to +2 stops) for each. Rows can be every 1/12, 1/6 or 1/3 stop. Your time's row and the column for your current adjustment are highlighted.
 - **API client filters.** `fetchFilms`, `fetchDevelopers` and `fetchCombinations` in `@dorkroom/api` accept typed, optional query params (slug, brand, colour type, film, developer, page and so on) matching the API reference. Calls without params behave as before, and failures already throw `DorkroomApiError`. (fixes #254)
 - **Film photos credit their source.** A film's page now shows who took the packaging photo and its licence, linked to where it came from.
 - **A sortable films table.** /films lists films in a full-width table. Click the Film, ISO or Recipes heading to sort; the sort is kept in the link. Opening a film narrows the table to a list beside the film's page, and on phones each film is a row that opens as its own page. The Darkroom theme shows no film photos, since they were too bright for its red-only screen. (#669)
