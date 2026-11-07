@@ -230,3 +230,134 @@ export const calculateExposureAdjustment = (
     isValid: true,
   };
 };
+
+const greatestCommonDivisor = (a: number, b: number): number =>
+  b === 0 ? a : greatestCommonDivisor(b, a % b);
+
+/**
+ * Writes a whole number of 1/denominator stops as a mixed fraction in
+ * lowest terms.
+ *
+ * @example
+ * ```typescript
+ * formatStopFraction(4, 3); // '+1 1/3'
+ * formatStopFraction(-1, 2); // '-1/2'
+ * formatStopFraction(2, 12); // '+1/6'
+ * ```
+ */
+export const formatStopFraction = (
+  step: number,
+  denominator: number
+): string => {
+  if (step === 0) return '0';
+  const sign = step > 0 ? '+' : '-';
+  const abs = Math.abs(step);
+  const whole = Math.floor(abs / denominator);
+  const remainder = abs % denominator;
+  const divisor = greatestCommonDivisor(remainder, denominator);
+  const fraction =
+    remainder === 0 ? '' : `${remainder / divisor}/${denominator / divisor}`;
+  return `${sign}${[whole || '', fraction].filter(Boolean).join(' ')}`;
+};
+
+/** Row spacings the f-stop table offers, as steps per stop. */
+export const FSTOP_TABLE_ROW_STEPS = [
+  { label: '1/12', denominator: 12 },
+  { label: '1/6', denominator: 6 },
+  { label: '1/3', denominator: 3 },
+] as const;
+
+export type FStopTableRowDenominator =
+  (typeof FSTOP_TABLE_ROW_STEPS)[number]['denominator'];
+
+/**
+ * Dodge and burn columns, in sixths of a stop so every label reads as a
+ * simple fraction: -1 to -1/6 dodging, +1/6 to +2 burning.
+ */
+const FSTOP_TABLE_COLUMN_SIXTHS = [
+  -6, -4, -3, -2, -1, 1, 2, 3, 4, 6, 8, 9, 12,
+] as const;
+
+export interface FStopTableColumn {
+  stops: number;
+  label: string;
+}
+
+export interface FStopTableRow {
+  /** Steps from the entered time; stops = step / denominator. */
+  step: number;
+  stops: number;
+  /** Stop offset from the entered time, e.g. "-1/3", "0", "+1 1/6". */
+  label: string;
+  /** Base exposure for this row in seconds. */
+  time: number;
+  /**
+   * Seconds to dodge (negative) or burn (positive) for each column: the
+   * time that column's stop change takes off or adds to this row's base.
+   */
+  adjustments: number[];
+}
+
+export interface FStopTable {
+  columns: FStopTableColumn[];
+  rows: FStopTableRow[];
+}
+
+/**
+ * Builds an f-stop printing table around an exposure: one row per
+ * 1/denominator stop from -range to +range stops, and for each row the
+ * seconds to dodge or burn for common stop changes.
+ *
+ * @param baseTime - Exposure the table centres on, in seconds
+ * @param denominator - Rows per stop (6 = sixth-stop rows)
+ * @param range - Whole stops either side of the base time
+ * @returns The table, or null when the base time is unusable
+ * @example
+ * ```typescript
+ * const table = buildFStopTable(16, 6);
+ * // row 0 is 16s; its +1 column burns 16s more, its -1 column dodges 8s
+ * ```
+ */
+export const buildFStopTable = (
+  baseTime: number,
+  denominator: FStopTableRowDenominator,
+  range = 1
+): FStopTable | null => {
+  if (!Number.isFinite(baseTime) || baseTime <= 0) return null;
+
+  const columns = FSTOP_TABLE_COLUMN_SIXTHS.map((sixths) => ({
+    stops: sixths / 6,
+    label: formatStopFraction(sixths, 6),
+  }));
+
+  const rows: FStopTableRow[] = [];
+  for (let step = -range * denominator; step <= range * denominator; step++) {
+    const stops = step / denominator;
+    const time = baseTime * 2 ** stops;
+    rows.push({
+      step,
+      stops,
+      label: formatStopFraction(step, denominator),
+      time,
+      adjustments: columns.map((column) => time * (2 ** column.stops - 1)),
+    });
+  }
+  return { columns, rows };
+};
+
+/**
+ * Writes a table time or dodge/burn amount unsigned, to one decimal like a
+ * printed f-stop table, or two below a second so short exposures and their
+ * small adjustments don't all read as 0.0.
+ *
+ * @example
+ * ```typescript
+ * formatFStopTableSeconds(16); // '16.0'
+ * formatFStopTableSeconds(-8); // '8.0'
+ * formatFStopTableSeconds(0.026); // '0.03'
+ * ```
+ */
+export const formatFStopTableSeconds = (seconds: number): string => {
+  const abs = Math.abs(seconds);
+  return abs.toFixed(abs < 0.95 ? 2 : 1);
+};

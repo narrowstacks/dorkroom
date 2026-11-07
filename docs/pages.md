@@ -179,6 +179,10 @@ build-time prerender snapshots stay deterministic.
 - Calculated new exposure time
 - Shows percentage change and multiplier
 - Formula display: `time × 2^stops`
+- F-stop printing table built around the entered time: base times from -1 to
+  +1 stop (rows every 1/12, 1/6 or 1/3 stop) against dodge (-1 to -1/6) and
+  burn (+1/6 to +2) columns, each cell the seconds to dodge or burn. Marks the
+  entered time's row and the column matching the current adjustment
 - State persistence to localStorage
 - Share button in the header: hands on a link that reopens the current
   inputs (see [Link Parameters](#link-parameters))
@@ -187,6 +191,7 @@ build-time prerender snapshots stay deterministic.
 
 - `calculateNewExposureTime(originalTime, stops)` → `originalTime × 2^stops`
 - `calculatePercentageIncrease(original, new)`
+- `buildFStopTable(baseTime, denominator, range = 1)` → table columns and rows
 
 ---
 
