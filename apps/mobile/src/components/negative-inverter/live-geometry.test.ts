@@ -4,7 +4,9 @@ import {
   bufferToOutputMatrix,
   downscaleSteps,
   fitWithin,
+  livePointToBuffer,
   livePointToPhoto,
+  parseBufferPose,
   uprightSize,
 } from './live-geometry';
 
@@ -142,5 +144,57 @@ describe('live to photo', () => {
     const photo = { width: 300, height: 400 };
     const p = livePointToPhoto({ x: 768, y: 1024 }, live, photo);
     expect(p).toEqual({ x: 299, y: 399 });
+  });
+});
+
+describe('livePointToBuffer', () => {
+  const orientations: BufferOrientation[] = ['up', 'right', 'down', 'left'];
+
+  it.each(
+    orientations.flatMap(
+      (o) =>
+        [
+          [o, false],
+          [o, true],
+        ] as const
+    )
+  )('inverts the frame matrix (%s, mirrored %s)', (orientation, mirrored) => {
+    const live = fitWithin(uprightSize(buffer, orientation), 1024);
+    const m = bufferToOutputMatrix(buffer, orientation, mirrored, live);
+    for (const [bx, by] of [
+      [0.1, 0.2],
+      [0.5, 0.5],
+      [0.9, 0.3],
+    ]) {
+      const p = apply(m, bx * buffer.width, by * buffer.height);
+      const back = livePointToBuffer(p, live, orientation, mirrored);
+      expect(back.x).toBeCloseTo(bx, 6);
+      expect(back.y).toBeCloseTo(by, 6);
+    }
+  });
+
+  it('clamps points outside the live image', () => {
+    const live = { width: 768, height: 1024 };
+    expect(livePointToBuffer({ x: -10, y: 2000 }, live, 'up', false)).toEqual({
+      x: 0,
+      y: 1,
+    });
+  });
+});
+
+describe('parseBufferPose', () => {
+  it('reads the orientation and mirroring', () => {
+    expect(parseBufferPose('left')).toEqual({
+      orientation: 'left',
+      mirrored: false,
+    });
+    expect(parseBufferPose('right|m')).toEqual({
+      orientation: 'right',
+      mirrored: true,
+    });
+  });
+
+  it('is null before the first frame', () => {
+    expect(parseBufferPose('')).toBeNull();
   });
 });

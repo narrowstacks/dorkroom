@@ -70,6 +70,9 @@ export interface LiveFrameTargets {
   /** The last message sent to `onFailure`, so a failure that repeats every
    *  frame is reported once rather than 30 times a second. */
   lastFailure: Synchronizable<string>;
+  /** The buffer's orientation and mirroring, as `'right'` or `'right|m'`,
+   *  so a tap on the live image can be turned back into a focus point. */
+  bufferPose: Synchronizable<string>;
 }
 
 /** A fresh offscreen surface on this thread's context. Untagged, like every
@@ -181,6 +184,10 @@ export function renderLiveFrame(frame: Frame, targets: LiveFrameTargets) {
       frame.orientation
     );
     shown = drawUpright(texture, frame, fitWithin(upright, LIVE_LONG_EDGE));
+    const pose = `${frame.orientation}${frame.isMirrored ? '|m' : ''}`;
+    if (targets.bufferPose.getDirty() !== pose) {
+      targets.bufferPose.setBlocking(pose);
+    }
 
     if (wantImage) {
       const cpu = shown.makeNonTextureImage();
