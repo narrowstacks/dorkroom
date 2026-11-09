@@ -204,7 +204,7 @@ export function FilmsPageBody({
     // Resized thumbnails for every FilmImage below (rows and the film page).
     <FilmImageLoaderContext value={filmImageLoader}>
       <FilmImageModeContext value={filmImageMode}>
-        <div className="mt-4 space-y-4 md:mt-6">
+        <div className="mt-4 space-y-4">
           {isMobile ? (
             <FilmsPhoneLayout
               toolbar={toolbar}

@@ -97,7 +97,7 @@ disagrees, prefer the scale for new code; don't mass-refactor.
 | Element | Class |
 |---|---|
 | Cards (ToolCard, CalculatorCard) | `rounded-2xl` |
-| Buttons, inputs, icon tiles | `rounded-xl` |
+| Buttons, inputs, icon tiles | `rounded-xl` (the 28px title-bar tile: `rounded-lg`) |
 | Badges, tags, small controls | `rounded-lg` |
 | Modals, dialogs | `rounded-2xl` |
 | Large hero/preview panels (border calculator) | `rounded-3xl` |
@@ -107,7 +107,8 @@ disagrees, prefer the scale for new code; don't mass-refactor.
 
 | Role | Classes |
 |---|---|
-| Page title | `text-3xl md:text-4xl font-semibold tracking-tight` |
+| Tool page title (`PageTitleBar`) | `text-lg font-semibold tracking-tight` |
+| Content page title (settings, privacy, 404) | `text-3xl md:text-4xl font-semibold tracking-tight` |
 | Section heading | `text-xl font-semibold` |
 | Card title | `font-semibold` (base size) |
 | Body / descriptions | `text-sm` |
@@ -153,6 +154,32 @@ Don't reach for it in new code expecting a visible shadow.
   cards or rows hide most of it. Where a sticky header or full-bleed rows would
   still cover the outline (the recipe table), draw it on the bordered wrapper
   with a `has-[…:focus-visible]:outline-*` variant instead.
+
+## Page titles
+
+Every tool page has exactly one `h1`, rendered by `PageTitleBar`
+(`@dorkroom/ui/calculator`): a 28px accent tile, the title, an info button
+that toggles the description (collapsed by default; no description, no
+button) and Share/Reset at the end of the row. It has no card frame. Two
+placements:
+
+- **Title bar (default).** `CalculatorLayout` renders it through
+  `CalculatorPageHeader` above the grid; a page without the layout renders
+  `CalculatorPageHeader` itself. The first card starts `mt-4` below it.
+  `eyebrow` shows after the title from `sm` up; `children` is an extra row
+  under it.
+- **Fused into the first card (opt-in).** For layout-heavy pages whose first
+  card is the obvious home for the title (today: `/border`, both layouts).
+  Pass `titleInCard` to `CalculatorLayout` (it then renders no header and
+  takes no title props) and render `<PageTitleBar>` as the first child of that
+  card, with `onShare`/`onReset` on it when the page has header actions.
+  Never render both placements: one `h1` per page. If the host card can be
+  absent (e.g. no calculation yet), render the `PageTitleBar` in its place so
+  the `h1` survives.
+
+New tool pages use one of these two, not a bespoke heading. The one
+existing exception is `/development`, whose toolbar
+(`DevelopmentActionsBar`) carries the `h1` beside the result count.
 
 ## Results lists
 

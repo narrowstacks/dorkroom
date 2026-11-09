@@ -1,23 +1,16 @@
 import type { FC } from 'react';
 import { SaveBeforeShareModal } from '../../components/save-before-share-modal';
 import { ShareModal } from '../../components/share-modal';
-import {
-  getRouteAccent,
-  getRouteIcon,
-  ROUTE_DESCRIPTIONS,
-} from '../../lib/navigation';
 import { CalculatorLayout } from '../calculator/calculator-layout';
 import { BladeReadingsSection } from './blade-readings-section';
 import { BladeVisualizationSection } from './blade-visualization-section';
 import { useBorderCalculator } from './border-calculator-context';
 import { BorderInfoSection } from './border-info-section';
+import { BorderPageTitle } from './border-page-title';
 import { BordersOffsetsSection } from './borders-offsets-section';
 import { PaperSetupSection } from './paper-setup-section';
 import { PresetsSection } from './presets-section';
 import { PreviewAndControlsSection } from './preview-and-controls-section';
-
-// Border calculator carries the Printing category's indigo accent (plan 007).
-const BorderIcon = getRouteIcon('/border');
 
 /**
  * Unified responsive layout for the border calculator.
@@ -45,10 +38,8 @@ export const ResponsiveBorderLayout: FC = () => {
 
   return (
     <CalculatorLayout
-      title="Border Calculator"
-      icon={BorderIcon}
-      accentTone={getRouteAccent('/border')}
-      description={ROUTE_DESCRIPTIONS['/border']}
+      // The title lives in the preview card (PreviewAndControlsSection).
+      titleInCard
       sidebar={
         // Right column: Configuration (primary controls)
         <>
@@ -84,11 +75,14 @@ export const ResponsiveBorderLayout: FC = () => {
       }
     >
       {/* Left column: Preview + Results (critical, always visible) */}
-      {calculation && (
+      {calculation ? (
         <>
           <PreviewAndControlsSection />
           <BladeReadingsSection />
         </>
+      ) : (
+        // Without a preview card to host it, the page still keeps its h1.
+        <BorderPageTitle />
       )}
     </CalculatorLayout>
   );

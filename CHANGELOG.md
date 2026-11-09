@@ -19,6 +19,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Changed
 
+- **Slimmer page headers.** Every tool page now opens with a single title row instead of a large header card, so the calculator starts higher on the screen. The short description of each tool is one tap away behind the info button next to the title. On the Border Calculator the title sits at the top of the preview card.
 - **Recipes match the films list.** On /development, the recipe table and cards now sit on a solid background instead of showing the page's gradient. Sort headings use the same arrows as /films and tell screen readers the sort direction, and an empty result now has a Clear filters button.
 - **A tidier film page.** Film details now open with ISO, type, reciprocity and grain together at the top, then About and any manufacturer notes. Grain is capitalized the same way for every film. The film page no longer shows the date a film was added to the database. (#669)
 - **The negative inverter prints like a darkroom print.** Converted negatives now go through a virtual paper curve, with a soft roll-off into paper white and a deep black, instead of a straight line. Contrast works like a paper grade, a dark frame is brightened a little (a bright one is never darkened), and warmth and tint act like enlarger filtration, so whites and blacks stay clean when you colour-correct. Default contrast and brightness stay close to before. (#527)
