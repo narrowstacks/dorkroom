@@ -2,7 +2,9 @@
 export type {
   AccentTone,
   CalculatorLayoutProps,
+  CalculatorPageHeaderProps,
   CalculatorResetButtonProps,
+  PageTitleBarProps,
   ResultAnnouncerProps,
 } from './components/calculator';
 export {
@@ -12,6 +14,7 @@ export {
   CalculatorPageHeader,
   CalculatorResetButton,
   CalculatorStat,
+  PageTitleBar,
   RESULT_ANNOUNCEMENT_DELAY_MS,
   ResultAnnouncer,
   spokenDuration,

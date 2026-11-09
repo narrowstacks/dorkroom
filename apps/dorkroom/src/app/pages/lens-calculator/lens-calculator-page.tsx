@@ -143,7 +143,7 @@ export default function LensCalculatorPage({
       />
 
       {/* 2-column grid on desktop */}
-      <div className="mt-10 grid gap-6 lg:grid-cols-2">
+      <div className="mt-4 grid gap-6 lg:grid-cols-2">
         {/* Column 1: Inputs */}
         <CalculatorCard title="Lens & Format">
           <div className="space-y-4">

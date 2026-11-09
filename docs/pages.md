@@ -618,10 +618,13 @@ All calculator pages follow a consistent pattern:
 
 1. **Layout:** `CalculatorLayout` with title, description, sidebar, and results
    slots. The border calculator also uses `CalculatorLayout` on desktop
-   (`ResponsiveBorderLayout`); its mobile drawer layout keeps its bespoke
-   structure but gets the same accent header.
+   (`ResponsiveBorderLayout`) with `titleInCard`, so its title bar sits in
+   the preview card; its mobile drawer layout keeps its bespoke structure and
+   puts the same title bar in its preview card. Every other page shows the
+   title bar above the first card. See "Page titles" in
+   `packages/ui/CLAUDE.md`.
 2. **Per-calculator accent identity:** each page passes an `icon` +
-   `accentTone` to its header (the `--accent-<tone>-*` family from plan 003,
+   `accentTone` to its title bar (the `--accent-<tone>-*` family from plan 003,
    aligned with nav categories so color = category, shade = tool). The same
    tone backs the primary results `CalculatorCard accent` and any toned
    `CalculatorStat`. Tones collapse to monochrome in high-contrast/darkroom.

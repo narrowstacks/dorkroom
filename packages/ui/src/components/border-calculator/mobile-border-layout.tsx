@@ -2,13 +2,8 @@ import type { BorderPreset } from '@dorkroom/logic';
 import { useMemo, useState } from 'react';
 import { useTheme } from '../../contexts/theme-context';
 import { commitFocusedField } from '../../lib/commit-focused-field';
-import {
-  getRouteAccent,
-  getRouteIcon,
-  ROUTE_DESCRIPTIONS,
-} from '../../lib/navigation';
-import { CalculatorPageHeader } from '../calculator/calculator-page-header';
 import { useBorderCalculator } from './border-calculator-context';
+import { BorderPageTitle } from './border-page-title';
 import {
   type ActiveSection,
   MobilePreviewCard,
@@ -18,9 +13,6 @@ import {
   MobileSharingModals,
   MobileWarningsCard,
 } from './mobile-border-layout-parts';
-
-// Border calculator carries the Printing category's indigo accent (plan 007).
-const BorderIcon = getRouteIcon('/border');
 
 /**
  * Render the mobile UI for configuring border/calculation settings, managing presets, and sharing results.
@@ -201,14 +193,8 @@ export function MobileBorderLayout() {
       }}
     >
       <div className="mx-auto max-w-md space-y-4">
-        <CalculatorPageHeader
-          title="Border Calculator"
-          icon={BorderIcon}
-          accentTone={getRouteAccent('/border')}
-          description={ROUTE_DESCRIPTIONS['/border']}
-        />
-
         <MobilePreviewCard
+          header={<BorderPageTitle className="mb-4" />}
           calculation={calculation}
           showBlades={showBlades}
           showBladeReadings={showBladeReadings}

@@ -3,10 +3,27 @@ import { cn } from '../../lib/cn';
 import type { AccentTone } from './accent-tone';
 import { CalculatorPageHeader } from './calculator-page-header';
 
-export interface CalculatorLayoutProps {
+interface CalculatorLayoutContentProps {
+  /** Main content (inputs) */
+  children: ReactNode;
+  /** Results content rendered in the right column on desktop when provided */
+  results?: ReactNode;
+  /** Full-width content between the main grid and the info cards */
+  wide?: ReactNode;
+  /** Info cards rendered full-width below the main grid */
+  sidebar?: ReactNode;
+  /** Footer content that renders below everything (full width) */
+  footer?: ReactNode;
+  /** Additional className for the container */
+  className?: string;
+}
+
+interface CalculatorLayoutHeaderProps {
+  /** Default: the layout renders the title bar above the grid. */
+  titleInCard?: false;
   /** Main page title */
   title: string;
-  /** Description text below the title */
+  /** About-the-tool copy, collapsed behind the header's info button */
   description: ReactNode;
   /** Tool icon for the accent-tinted header tile (same icon as home/nav). */
   icon?: ComponentType<{ className?: string }>;
@@ -26,40 +43,29 @@ export interface CalculatorLayoutProps {
   shareDisabled?: boolean;
   /** Optional children to render in the header (e.g., toggle buttons) */
   headerChildren?: ReactNode;
-  /** Main content (inputs) */
-  children: ReactNode;
-  /** Results content rendered in the right column on desktop when provided */
-  results?: ReactNode;
-  /** Full-width content between the main grid and the info cards */
-  wide?: ReactNode;
-  /** Info cards rendered full-width below the main grid */
-  sidebar?: ReactNode;
-  /** Footer content that renders below everything (full width) */
-  footer?: ReactNode;
-  /** Additional className for the container */
-  className?: string;
 }
+
+interface CalculatorLayoutCardTitleProps {
+  /**
+   * The page renders `PageTitleBar` as the first child of its first card, so
+   * the layout renders no header of its own. Title, icon and actions go on
+   * that `PageTitleBar`.
+   */
+  titleInCard: true;
+}
+
+export type CalculatorLayoutProps = CalculatorLayoutContentProps &
+  (CalculatorLayoutHeaderProps | CalculatorLayoutCardTitleProps);
 
 /**
  * Standard layout wrapper for calculator pages.
  * Provides consistent page structure with header and two-column grid.
  */
-export function CalculatorLayout({
-  title,
-  description,
-  icon,
-  accentTone,
-  onReset,
-  onShare,
-  shareDisabled,
-  headerChildren,
-  children,
-  results,
-  wide,
-  sidebar,
-  footer,
-  className,
-}: CalculatorLayoutProps) {
+export function CalculatorLayout(props: CalculatorLayoutProps) {
+  const { children, results, wide, sidebar, footer, className } = props;
+  // With no header above it, the grid starts flush with the page padding.
+  const gridTop = props.titleInCard ? '' : 'mt-4';
+
   return (
     <div
       className={cn(
@@ -67,21 +73,28 @@ export function CalculatorLayout({
         className
       )}
     >
-      <CalculatorPageHeader
-        title={title}
-        description={description}
-        icon={icon}
-        accentTone={accentTone}
-        onReset={onReset}
-        onShare={onShare}
-        shareDisabled={shareDisabled}
-      >
-        {headerChildren}
-      </CalculatorPageHeader>
+      {!props.titleInCard && (
+        <CalculatorPageHeader
+          title={props.title}
+          description={props.description}
+          icon={props.icon}
+          accentTone={props.accentTone}
+          onReset={props.onReset}
+          onShare={props.onShare}
+          shareDisabled={props.shareDisabled}
+        >
+          {props.headerChildren}
+        </CalculatorPageHeader>
+      )}
 
       {results ? (
         <>
-          <div className="mt-6 grid gap-4 md:mt-8 md:gap-5 md:grid-cols-2 md:items-start">
+          <div
+            className={cn(
+              'grid gap-4 md:gap-5 md:grid-cols-2 md:items-start',
+              gridTop
+            )}
+          >
             <div className="space-y-4">{children}</div>
             <div className="space-y-4 md:sticky md:top-4 md:self-start lg:top-20">
               {results}
@@ -91,7 +104,12 @@ export function CalculatorLayout({
           {sidebar && <div className="mt-4 space-y-4 md:mt-5">{sidebar}</div>}
         </>
       ) : (
-        <div className="mt-6 grid gap-4 md:mt-8 md:gap-5 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+        <div
+          className={cn(
+            'grid gap-4 md:gap-5 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]',
+            gridTop
+          )}
+        >
           <div className="space-y-4">{children}</div>
           {sidebar && <div className="space-y-4">{sidebar}</div>}
         </div>

@@ -10,6 +10,7 @@ import {
   Share,
   Target,
 } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { Drawer, DrawerBody, DrawerContent } from '../../components/drawer';
 import { SaveBeforeShareModal } from '../../components/save-before-share-modal';
 import { SettingsButton } from '../../components/settings-button';
@@ -30,6 +31,8 @@ type Calculation = NonNullable<BorderCalculatorContextValue['calculation']>;
 type FormatDimensions = BorderCalculatorContextValue['formatDimensions'];
 
 interface PreviewCardProps {
+  /** Rendered above the preview: the page title bar (the page's h1). */
+  header?: ReactNode;
   calculation: Calculation;
   showBlades: boolean;
   showBladeReadings: boolean;
@@ -39,6 +42,7 @@ interface PreviewCardProps {
 }
 
 export function MobilePreviewCard({
+  header,
   calculation,
   showBlades,
   showBladeReadings,
@@ -58,6 +62,7 @@ export function MobilePreviewCard({
         backgroundColor: 'var(--color-background)',
       }}
     >
+      {header}
       <AnimatedPreview
         calculation={calculation}
         showBlades={showBlades}

@@ -4,6 +4,7 @@ import { commitFocusedField } from '../../lib/commit-focused-field';
 import { CalculatorCard } from '../calculator/calculator-card';
 import { AnimatedPreview } from './animated-preview';
 import { useBorderCalculator } from './border-calculator-context';
+import { BorderPageTitle } from './border-page-title';
 
 /**
  * Section for displaying the print preview and control buttons
@@ -28,6 +29,7 @@ export function PreviewAndControlsSection() {
 
   return (
     <CalculatorCard accent="violet" padding="compact">
+      <BorderPageTitle />
       <div className="flex justify-center">
         <div className="relative">
           <AnimatedPreview
