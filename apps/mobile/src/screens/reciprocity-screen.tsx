@@ -1,22 +1,31 @@
 import {
+  EXPOSURE_TIME_MIN_SECONDS,
+  parseReciprocityTime,
+  RECIPROCITY_FACTOR_MAX,
+  RECIPROCITY_FACTOR_MIN,
   reciprocityCalculatorLink,
   useReciprocityCalculator,
 } from '@dorkroom/logic';
 import { Text, View } from 'react-native';
 import { FormulaRow } from '@/components/formula-row';
 import { GlassCard } from '@/components/glass-card';
-import { LabeledTextField } from '@/components/labeled-text-field';
+import { InsetGroup, InsetRow } from '@/components/inset-group';
 import { PresetChipRow } from '@/components/preset-chip-row';
+import { Readout } from '@/components/readout';
 import { FilmPicker } from '@/components/reciprocity/film-picker';
 import { ReciprocityChart } from '@/components/reciprocity/reciprocity-chart';
-import { ResultCard } from '@/components/result-card';
-import { ResultRow } from '@/components/result-row';
-import { ResultStat } from '@/components/result-stat';
 import { Screen } from '@/components/screen';
+import { ScrubRow } from '@/components/scrub/scrub-row';
+import { adaptiveTimeStep } from '@/components/scrub/scrub-value';
 import { SectionLabel } from '@/components/section-label';
 import { ShareButton } from '@/components/share-button';
 import { useLinkOverrides } from '@/hooks/use-link-overrides';
 import { buildReciprocityShare } from '@/lib/share-text';
+import { formatSignedTime } from '@/lib/signed-time';
+import { spokenDuration, spokenSeconds } from '@/lib/spoken-time';
+
+/** Metered times are written back as seconds the duration parser reads. */
+const formatSeconds = (n: number) => `${n}s`;
 
 interface ReciprocityScreenBodyProps {
   /** Values the screen was opened with (a Home answer or a deep link). */
@@ -40,81 +49,117 @@ function ReciprocityScreenBody({ overrides }: ReciprocityScreenBodyProps) {
 
   const films = filmTypes.map((f) => ({ label: f.label, value: f.value }));
 
-  return (
-    <Screen>
-      <GlassCard className="gap-4">
-        <FilmPicker films={films} value={filmType} onChange={setFilmType} />
+  // Valid only when the text reads as a time now: the hook keeps the last
+  // good calculation beside an empty or unreadable one.
+  const addedTime = calculation
+    ? calculation.adjustedTime - calculation.originalTime
+    : 0;
+  const valid =
+    parseReciprocityTime(meteredTime) !== null && calculation !== null;
+  const readout =
+    valid && calculation ? (
+      <Readout
+        accent="amber"
+        label="Adjusted exposure"
+        value={formatTime(calculation.adjustedTime)}
+        accessibilityValueText={[
+          spokenDuration(formatTime(calculation.adjustedTime)),
+          calculation.filmName,
+          `factor ${calculation.factor.toFixed(2)}`,
+          `${addedTime < 0 ? 'minus' : 'plus'} ${spokenDuration(
+            formatTime(Math.abs(addedTime))
+          )}, ${calculation.percentageIncrease.toFixed(0)} percent`,
+        ].join(', ')}
+        facts={[
+          calculation.filmName,
+          `factor ${calculation.factor.toFixed(2)}`,
+          `${formatSignedTime(addedTime, formatTime)} (${calculation.percentageIncrease.toFixed(0)}%)`,
+        ]}
+      />
+    ) : (
+      <Readout
+        accent="amber"
+        label="Adjusted exposure"
+        value={null}
+        note={
+          timeFormatError ? (
+            <Text className="text-amber-500">{timeFormatError}</Text>
+          ) : (
+            <Text className="text-white/60">Enter a metered time.</Text>
+          )
+        }
+      />
+    );
 
+  return (
+    <Screen header={readout}>
+      <InsetGroup>
+        <View className="p-4">
+          <FilmPicker films={films} value={filmType} onChange={setFilmType} />
+        </View>
         {filmType === 'custom' ? (
-          <LabeledTextField
+          <ScrubRow
             label="Reciprocity factor"
+            accent="amber"
             value={customFactor}
             onChangeText={setCustomFactor}
-            keyboardType="decimal-pad"
+            step={0.01}
+            min={RECIPROCITY_FACTOR_MIN}
+            max={RECIPROCITY_FACTOR_MAX}
             placeholder="1.3"
           />
         ) : null}
-
-        <LabeledTextField
+        <ScrubRow
           label="Metered time"
+          accent="amber"
           value={meteredTime}
           onChangeText={setMeteredTime}
+          parse={parseReciprocityTime}
+          format={formatSeconds}
+          speakValue={spokenSeconds}
+          step={adaptiveTimeStep}
+          min={EXPOSURE_TIME_MIN_SECONDS}
+          keyboardType="default"
           placeholder="Try 30s, 1m30s, or 2h"
         />
-        {timeFormatError ? (
-          <Text className="text-amber-500">{timeFormatError}</Text>
-        ) : null}
+      </InsetGroup>
+      <View className="gap-2">
+        <SectionLabel>Common times</SectionLabel>
+        <PresetChipRow
+          accent="amber"
+          options={exposurePresets.map((n) => ({ label: `${n}s`, value: n }))}
+          onSelect={(n) => setMeteredTime(`${n}s`)}
+        />
+      </View>
 
-        <View className="gap-2">
-          <SectionLabel>Common times</SectionLabel>
-          <PresetChipRow
-            accent="amber"
-            options={exposurePresets.map((n) => ({ label: `${n}s`, value: n }))}
-            onSelect={(n) => setMeteredTime(`${n}s`)}
-          />
-        </View>
-      </GlassCard>
-
-      {calculation ? (
+      {valid && calculation ? (
         <>
-          <ResultCard accent="amber" className="gap-3">
-            <ResultStat
-              accent="amber"
-              label="Adjusted exposure"
-              value={formatTime(calculation.adjustedTime)}
-              helper={calculation.filmName}
+          <InsetGroup>
+            <InsetRow
+              label="Added exposure"
+              value={`${formatTime(addedTime)} (${calculation.percentageIncrease.toFixed(0)}%)`}
             />
-            <FormulaRow
-              formula={`${formatTime(calculation.originalTime)} ^ ${calculation.factor.toFixed(
-                2
-              )} = ${formatTime(calculation.adjustedTime)}`}
+            <InsetRow
+              label="Metered time"
+              value={formatTime(calculation.originalTime)}
             />
-            <View>
-              <ResultRow
-                label="Added exposure"
-                value={`${formatTime(
-                  calculation.adjustedTime - calculation.originalTime
-                )} (${calculation.percentageIncrease.toFixed(0)}%)`}
-              />
-              <ResultRow
-                label="Metered time"
-                value={formatTime(calculation.originalTime)}
-              />
-              <ResultRow label="Factor" value={calculation.factor.toFixed(2)} />
-            </View>
-            <ShareButton
-              message={buildReciprocityShare({
-                filmName: calculation.filmName,
-                meteredTime: formatTime(calculation.originalTime),
-                adjustedTime: formatTime(calculation.adjustedTime),
-                addedTime: formatTime(
-                  calculation.adjustedTime - calculation.originalTime
-                ),
-                percentageIncrease: calculation.percentageIncrease,
-                factor: calculation.factor,
-              })}
-            />
-          </ResultCard>
+            <InsetRow label="Factor" value={calculation.factor.toFixed(2)} />
+          </InsetGroup>
+          <FormulaRow
+            formula={`${formatTime(calculation.originalTime)} ^ ${calculation.factor.toFixed(
+              2
+            )} = ${formatTime(calculation.adjustedTime)}`}
+          />
+          <ShareButton
+            message={buildReciprocityShare({
+              filmName: calculation.filmName,
+              meteredTime: formatTime(calculation.originalTime),
+              adjustedTime: formatTime(calculation.adjustedTime),
+              addedTime: formatTime(addedTime),
+              percentageIncrease: calculation.percentageIncrease,
+              factor: calculation.factor,
+            })}
+          />
           <GlassCard>
             <ReciprocityChart
               originalTime={calculation.originalTime}
@@ -125,11 +170,7 @@ function ReciprocityScreenBody({ overrides }: ReciprocityScreenBodyProps) {
             />
           </GlassCard>
         </>
-      ) : (
-        <GlassCard>
-          <Text className="text-white/60">Enter a valid metered time.</Text>
-        </GlassCard>
-      )}
+      ) : null}
     </Screen>
   );
 }

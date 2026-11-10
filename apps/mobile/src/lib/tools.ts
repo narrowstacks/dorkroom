@@ -37,6 +37,12 @@ export interface Tool {
    * expanded for good, since nothing scrolls to collapse it.
    */
   fixedLayout?: boolean;
+  /**
+   * The screen pins a readout above its scroll view, so a large title could
+   * never collapse (it needs the scroll view first). In the More stack it
+   * takes a standard header instead.
+   */
+  answerFirst?: boolean;
 }
 
 // The iOS tool manifest (#455). Every other tool table is derived from it:
@@ -70,6 +76,7 @@ const TOOL_LIST = [
     route: '/more/resize',
     tabRoute: 'resize',
     category: 'printing',
+    answerFirst: true,
   },
   {
     id: 'exposure',
@@ -78,6 +85,7 @@ const TOOL_LIST = [
     route: '/more/exposure',
     tabRoute: 'exposure',
     category: 'printing',
+    answerFirst: true,
   },
   {
     id: 'mat',
@@ -94,6 +102,7 @@ const TOOL_LIST = [
     route: '/more/reciprocity',
     tabRoute: 'reciprocity',
     category: 'film',
+    answerFirst: true,
   },
   {
     id: 'negative-inverter',
@@ -140,6 +149,7 @@ const TOOL_LIST = [
     route: '/more/lens',
     tabRoute: 'lenses',
     category: 'camera',
+    answerFirst: true,
   },
   {
     id: 'camera-exposure',
@@ -148,6 +158,7 @@ const TOOL_LIST = [
     route: '/more/camera-exposure',
     tabRoute: 'camera-exposure',
     category: 'camera',
+    answerFirst: true,
   },
   {
     id: 'meter',

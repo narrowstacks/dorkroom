@@ -85,9 +85,26 @@ describe('fixed-layout tools', () => {
 
   it('gives them a standard header in the More stack', () => {
     // A large title would sit expanded, since nothing scrolls to collapse it.
-    expect(read('app', '(tabs)', 'more', '[tool].tsx')).toMatch(
-      /headerLargeTitle:\s*!meta\.fixedLayout/
+    expect(read('app', '(tabs)', 'more', '_layout.tsx')).toMatch(
+      /headerLargeTitle:\s*!\(meta\?\.fixedLayout \|\| meta\?\.answerFirst\)/
     );
+  });
+
+  it('flags exactly the five answer-first tools', () => {
+    // A pinned header means a large title could never collapse either.
+    expect(
+      TOOLS.filter((t) => t.answerFirst)
+        .map((t) => t.id)
+        .sort()
+    ).toEqual(['camera-exposure', 'exposure', 'lens', 'reciprocity', 'resize']);
+  });
+
+  it('binds every answer-first tool to a screen', () => {
+    const bindings = read('src', 'lib', 'tool-screens.ts');
+    for (const tool of TOOLS.filter((t) => t.answerFirst)) {
+      const key = tool.id.includes('-') ? `'${tool.id}'` : tool.id;
+      expect(bindings, tool.id).toMatch(new RegExp(`\\n  ${key}: \\w+Screen,`));
+    }
   });
 });
 

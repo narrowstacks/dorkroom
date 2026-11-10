@@ -1,4 +1,4 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Text, View } from 'react-native';
 import { getToolScreen } from '@/lib/tool-screens';
 import { getTool } from '@/lib/tools';
@@ -14,15 +14,8 @@ export default function MoreToolDetail() {
       </View>
     );
   }
-  return (
-    <>
-      <Stack.Screen
-        options={{
-          title: meta.label,
-          headerLargeTitle: !meta.fixedLayout,
-        }}
-      />
-      <ScreenComponent />
-    </>
-  );
+  // Each tool is its own screen in the stack (the layout makes the route
+  // singular by tool id), so one instance is never reused for another tool.
+  // The header (title, large or standard) is set by the layout from the params.
+  return <ScreenComponent />;
 }

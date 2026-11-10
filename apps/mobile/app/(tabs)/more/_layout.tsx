@@ -1,6 +1,8 @@
 import { router, Stack } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
+import type { ComponentProps } from 'react';
 import { Pressable, Text } from 'react-native';
+import { getTool } from '@/lib/tools';
 import { stackHeaderOptions } from '@/theme/stack-header-options';
 
 // Pushed detail pages (more/[tool]) — chevron + "Back" label. A custom headerLeft
@@ -42,6 +44,16 @@ function DoneButton() {
   );
 }
 
+// A deep link builds the stack with the More list underneath the tool.
+export const unstable_settings = { initialRouteName: 'index' };
+
+// One native screen per tool, so a tool's header options (large or standard
+// title) are never flipped on a screen that is already showing.
+const toolScreenId: ComponentProps<
+  typeof Stack.Screen
+>['dangerouslySingular'] = (_name, params) =>
+  Array.isArray(params.tool) ? params.tool[0] : params.tool;
+
 export default function MoreLayout() {
   return (
     <Stack
@@ -53,6 +65,19 @@ export default function MoreLayout() {
       }}
     >
       <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="[tool]"
+        dangerouslySingular={toolScreenId}
+        // From the route params, so the header is right on the first frame.
+        options={({ route }) => {
+          const params: { tool?: string } = route.params ?? {};
+          const meta = params.tool ? getTool(params.tool) : undefined;
+          return {
+            title: meta?.label ?? 'More',
+            headerLargeTitle: !(meta?.fixedLayout || meta?.answerFirst),
+          };
+        }}
+      />
       <Stack.Screen
         name="edit"
         options={{

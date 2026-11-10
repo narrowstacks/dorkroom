@@ -20,11 +20,16 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Changed
 
+- **The answer comes first on five calculators.** Exposure, Reciprocity, Camera Exposure, Lenses and Resize keep the result in large type at the top of the screen. It stays put while you scroll and while the keyboard is up, and updates as you change a value. (#712)
+- **Scrub numbers instead of typing them.** On Exposure, Reciprocity, Lenses and Resize the inputs sit in grouped lists. Drag sideways on a number to change it, or tap the row to type an exact value. A ruler under each number shows the values around it, with labels. Dragging right lowers the value, like sliding a ruler under a fixed mark. The step grows as times and focal lengths get longer.
+- **Exposure stop ladder.** The stop presets, the +/- buttons and the custom stops box are replaced by a row of five times, a third, half or whole stop apart, that you tap to choose. The Stops row above it still takes an exact value. Times are disabled when they would round to 0 or fall outside the ±5 stop range.
+- **Camera Exposure** keeps its pickers; only its result moved to the top.
+- Numbers on the meter now use a rounded typeface.
 - **Home is a permanent tab, so the tab bar has room for one of your own.** Home, Film Log, Recipes and More are always in the tab bar, leaving one slot for a tool you pin (it was two). If you had two pinned, the first stays and the other is still in More. The Border calculator no longer opens at launch, and is no longer pinned by default: find it from Home, from More, or from the Border shortcut. (#528)
 
 ### Fixed
 
-- **Holding + or − on a stepper keeps changing the value.** It used to move once while the haptic kept ticking. Holding now steps repeatedly, and stops at the end of the range. This covers Exposure stops, the volume mixer, the Process Timer preset editor and the film log's frame number. (fixes #317)
+- **Holding + or − on a stepper keeps changing the value.** It used to move once while the haptic kept ticking. Holding now steps repeatedly, and stops at the end of the range. This covers the volume mixer, the Process Timer preset editor and the film log's frame number. (fixes #317)
 - **One unreadable record no longer erases the rest of the film log.** If a single roll, camera, lens, custom film or timer preset couldn't be read, the whole list showed as empty, and the next change saved that empty list over everything. Readable records now load as usual, and anything unreadable is kept aside on the device instead of being deleted. (fixes #532)
 - **Mat measurements read the way you write them.** `3-1/2`, `3 1/2"` (including the curly quote the keyboard types), `3 1/2 in`, `3½` and `3 ½` are now 3.5 instead of being cut down to 3. A border or reveal with anything else left over, such as `3abc`, now shows the "Check inputs" message instead of quietly using the leading number or no reveal. (fixes #340)
 - **A third of a stop is exact in the Stops tool.** A third of a stop was worked out as 0.33, so 12s +1/3 gave 15.08s instead of 15.12s. Thirds and two-thirds are now exact, whether stepped or typed, three +1/3 steps add exactly one stop, and the multiplier reads ×1.260. (fixes #551)

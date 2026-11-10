@@ -113,6 +113,36 @@ Add that wrapper to any new calculator screen that Home can link to.
   heading.
 - Wrap normal content in `<Screen>` (scrolls, padding 16, gap 16, bg `#0b0b0c`).
   Full-bleed screens (the camera meter) skip it.
+- **Answer-first calculators** (Exposure, Reciprocity, Camera Exposure, Lenses,
+  Resize): the result is a `Readout` passed to `<Screen header={...}>`, a
+  non-scrolling slot above the scroll view that clears the native header when
+  pushed in More (or the top safe-area inset as a tab root) and stays visible
+  with the keyboard up. Four of them (not Camera Exposure, whose fields are
+  pickers) also put typed inputs in an `InsetGroup` (`InsetRow` for plain rows)
+  as `ScrubRow`s: drag to scrub, tap the row to type. Scrub bounds come from
+  the `@dorkroom/logic` validator constants where one exists (the focal length
+  limits, `MIN_FOCAL_LENGTH_MM` and `MAX_FOCAL_LENGTH_MM`, live in
+  `lens-calculator-defaults`), never a copy. Dragging right lowers the value on
+  every scrub row (`SCRUB_DIRECTION` in `scrub-value.ts`, the ruler moving
+  under a fixed indicator); VoiceOver increment still raises it. The ruler is a
+  real number line in fixed coordinates (`ruler-machine.ts`, a pure reducer: an
+  origin value at index 0, a tick every 10px per step, so adaptive steps stay
+  10px each). The pan is a UI-thread worklet that moves one shared translate
+  and tells JS only when the whole-step count changes (`use-scrub-machine.ts`),
+  counted from recognition (the 8px before it is given back only when the
+  finger reverses to where it went down);
+  the ruler is one Skia canvas that is never remounted, with a static alpha
+  mask for the edge fade. The origin stays put across outside changes and is
+  replaced only on a step or bounds change or a far jump. The machine remembers
+  the texts it has written (unordered), so during a drag any of them coming
+  back is an echo, not an outside change. Keep it cheap: no per-tick views, no per-frame JS, no per-step state
+  on the ruler. Mark the tool `answerFirst: true` in `TOOLS`. A pinned header
+  means the scroll view is not the first view, so a large title could never
+  collapse. The More layout (`more/_layout.tsx`, from the route params) gives
+  such a tool a standard header. Each tool is its own screen in the More
+  stack (`dangerouslySingular` by tool id), so navigating to a tool already in
+  the stack brings that screen to the top with its state. A missing result is a `Readout` with `value={null}` and the hint as its `note`, not a
+  separate card.
 
 ### Styling
 
