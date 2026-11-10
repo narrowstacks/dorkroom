@@ -16,15 +16,8 @@ import {
   parseExposureTime,
   roundStopsToThirds,
 } from '../utils/exposure-calculations';
-import { parseDecimalInput } from '../utils/input-validation';
+import { inSeparatorOf, parseDecimalInput } from '../utils/input-validation';
 import { roundToStandardPrecision } from '../utils/precision';
-
-/**
- * Stops are rounded and written back into state. Keep the separator the user
- * typed so a comma-decimal entry ("0,5") is not flipped to "0.5" under them.
- */
-const inSeparatorOf = (typed: string, value: string): string =>
-  typed.includes(',') ? value.replace('.', ',') : value;
 
 /**
  * Exposure calculator hook for photography stop calculations.
