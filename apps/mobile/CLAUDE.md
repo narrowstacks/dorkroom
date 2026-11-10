@@ -279,6 +279,10 @@ state.
   `useDirectionColors`, `useSelectedInk`, `useDimInk`, `useNeutralFill`, and
   `useChartInk` for chart lines and ticks. They consult safelight in one place
   (`resolve-accent.ts`).
+- A hue from a hook is a colour string, `#rrggbb` normally and `rgb(255, 0, 0)`
+  under the mode: never append hex alpha digits (`${hue}33`). Use
+  `withAlpha(hue, 0.2)` (`src/theme/with-alpha.ts`), or `useAccentFill` and
+  `useAccentLine` for a named accent.
 - Direction (push or pull, hot or cold) must never rest on colour alone: under
   the mode both are the same red, so keep the sign, arrow or word. Error text
   carries an "Error:" prefix for the same reason.

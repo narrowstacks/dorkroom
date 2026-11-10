@@ -7,6 +7,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { usePhaseHue } from '@/theme/use-phase-accent';
+import { withAlpha } from '@/theme/with-alpha';
 import {
   computeMatPreviewGeometry,
   type MatPreviewGeometry,
@@ -175,7 +176,7 @@ export function MatPreview({
               className="absolute"
               style={[
                 rectStyle(geometry.artwork),
-                { backgroundColor: `${hue}33` },
+                { backgroundColor: withAlpha(hue, 0.2) },
               ]}
             />
           ) : null}

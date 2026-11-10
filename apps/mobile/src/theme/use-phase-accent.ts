@@ -62,6 +62,8 @@ export function selectableRowStyle(
 /**
  * The phase hue as a colour value, for what a class can't carry (a slider
  * track, a check mark, tinted text). Outside a phase it is the neutral white.
+ * A colour string, not necessarily hex: `rgb(255, 0, 0)` under safelight. To
+ * make a tint of it use `withAlpha(hue, alpha)`, never `${hue}33`.
  */
 export function usePhaseHue(): string {
   const accent = usePhaseAccent();
@@ -69,7 +71,10 @@ export function usePhaseHue(): string {
   return resolveHue(accent, on);
 }
 
-/** A named accent as a colour; the safelight red under the mode. */
+/**
+ * A named accent as a colour string: `#rrggbb` normally, `rgb(255, 0, 0)` under
+ * safelight. Never append hex alpha digits to it; use `withAlpha`.
+ */
 export function useAccentColor(accent: AccentColor): string {
   const { on } = useSafelight();
   return resolveAccentColor(accent, on);

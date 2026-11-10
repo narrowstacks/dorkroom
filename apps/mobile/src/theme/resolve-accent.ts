@@ -62,7 +62,8 @@ export function resolveCommit(
   return { fill: { backgroundColor: fill }, label: { color: ink }, ink };
 }
 
-/** The phase hue as a colour; neutral white outside a phase. */
+/** The phase hue as a colour string (`#rrggbb`, or `rgb(...)` under safelight);
+ * neutral white outside a phase. Tint it with `withAlpha`, not a hex suffix. */
 export function resolveHue(
   accent: AccentColor | null,
   safelight: boolean
