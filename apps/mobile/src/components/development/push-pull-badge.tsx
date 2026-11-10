@@ -1,5 +1,5 @@
 import { Text, View } from 'react-native';
-import { ACCENT } from '@/theme/accents';
+import { DIRECTION_COLOR } from '@/theme/accents';
 import { pushPullDisplay } from './recipe-format';
 
 interface PushPullBadgeProps {
@@ -15,7 +15,7 @@ export function PushPullBadge({ stops }: PushPullBadgeProps) {
   const display = pushPullDisplay(stops);
   if (!display) return null;
   const pushed = display.direction === 'push';
-  const color = pushed ? ACCENT.amber : ACCENT.blue;
+  const color = pushed ? DIRECTION_COLOR.up : DIRECTION_COLOR.down;
   return (
     <View className="flex-row items-center gap-0.5">
       <Text style={{ color }} className="text-xs">

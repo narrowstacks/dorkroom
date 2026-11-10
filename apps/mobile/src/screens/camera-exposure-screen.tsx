@@ -82,7 +82,8 @@ function CameraExposureScreenBody({
     <Screen
       header={
         <Readout
-          accent="violet"
+          accent="yellow"
+          toolId="camera-exposure"
           label="Exposure value"
           value={`EV ${exposureValue.ev}`}
           facts={[settings, exposureValue.description]}
@@ -129,7 +130,7 @@ function CameraExposureScreenBody({
           {SOLVE_FOR_LABEL}
         </Text>
         <SegmentedControl
-          accent="violet"
+          accent="yellow"
           accessibilityLabel={SOLVE_FOR_LABEL}
           options={SOLVE_FOR_OPTIONS}
           value={values.solveFor}

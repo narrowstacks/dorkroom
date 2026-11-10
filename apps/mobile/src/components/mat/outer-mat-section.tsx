@@ -51,7 +51,7 @@ export function OuterMatSection({ values, set }: OuterMatSectionProps) {
       </View>
       <SectionLabel>Common sizes</SectionLabel>
       <PresetChipRow
-        accent="cyan"
+        accent="rose"
         options={MAT_PRESETS.map((preset) => ({
           label: preset.label,
           value: `${preset.w}x${preset.h}`,

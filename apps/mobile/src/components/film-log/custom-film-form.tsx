@@ -1,6 +1,7 @@
 import { parseDecimalInput, sanitizeText } from '@dorkroom/logic';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
+import { CommitButton } from '@/components/commit-button';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import { SegmentedControl } from '@/components/segmented-control';
 import { useFormState } from '@/hooks/use-form-state';
@@ -81,13 +82,7 @@ export function CustomFilmForm({
           />
         </View>
 
-        <Pressable
-          onPress={onSave}
-          accessibilityRole="button"
-          className="items-center rounded-xl bg-rose-600 px-4 py-3"
-        >
-          <Text className="text-base font-semibold text-white">Add film</Text>
-        </Pressable>
+        <CommitButton onPress={onSave} label="Add film" />
       </View>
     </BottomSheet>
   );

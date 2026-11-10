@@ -1,4 +1,5 @@
 import { Pressable, Text } from 'react-native';
+import { useCommitStyle } from '@/theme/use-phase-accent';
 
 export interface InverterButtonProps {
   label: string;
@@ -8,7 +9,7 @@ export interface InverterButtonProps {
   className?: string;
 }
 
-/** A full-width button of the inverter screen, rose when primary. */
+/** A full-width button of the inverter screen, in the phase hue when primary. */
 export function InverterButton({
   label,
   onPress,
@@ -16,6 +17,7 @@ export function InverterButton({
   disabled = false,
   className = '',
 }: InverterButtonProps) {
+  const commit = useCommitStyle();
   return (
     <Pressable
       onPress={onPress}
@@ -23,11 +25,13 @@ export function InverterButton({
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       className={`flex-1 items-center rounded-xl py-3 ${
-        primary ? (disabled ? 'bg-rose-600/40' : 'bg-rose-600') : 'bg-white/10'
+        primary ? (disabled ? 'opacity-40' : '') : 'bg-white/10'
       } ${className}`}
+      style={primary ? commit.fill : undefined}
     >
       <Text
-        className={`font-semibold ${disabled ? 'text-white/40' : 'text-white'}`}
+        className={`font-semibold ${primary ? '' : disabled ? 'text-white/40' : 'text-white'}`}
+        style={primary ? commit.label : undefined}
       >
         {label}
       </Text>

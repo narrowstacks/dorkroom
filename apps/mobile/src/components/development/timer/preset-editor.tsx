@@ -2,6 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { CommitButton } from '@/components/commit-button';
 import { GlassCard } from '@/components/glass-card';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import { PresetChipRow } from '@/components/preset-chip-row';
@@ -132,7 +133,7 @@ export function PresetEditor({
             />
 
             <PresetChipRow
-              accent="green"
+              accent="teal"
               options={KIND_OPTIONS}
               value={stage.kind}
               onSelect={(kind) => patch(index, { kind })}
@@ -183,7 +184,7 @@ export function PresetEditor({
             <View className="gap-1">
               <Text className="text-sm text-white/60">Agitation</Text>
               <PresetChipRow
-                accent="green"
+                accent="teal"
                 options={AGITATION_OPTIONS}
                 value={pattern?.id ?? ''}
                 onSelect={(id) => {
@@ -298,21 +299,11 @@ export function PresetEditor({
           placeholder="Preset name"
           onSubmitEditing={handleSave}
         />
-        <Pressable
+        <CommitButton
           onPress={handleSave}
-          accessibilityRole="button"
-          accessibilityLabel="Save preset"
-          accessibilityState={{
-            disabled: presetName.trim() === '' || stages.length === 0,
-          }}
-          className={`items-center rounded-xl bg-rose-600 py-3 ${
-            presetName.trim() === '' || stages.length === 0 ? 'opacity-30' : ''
-          }`}
-        >
-          <Text className="text-base font-semibold text-white">
-            Save preset
-          </Text>
-        </Pressable>
+          label="Save preset"
+          disabled={presetName.trim() === '' || stages.length === 0}
+        />
       </GlassCard>
     </View>
   );

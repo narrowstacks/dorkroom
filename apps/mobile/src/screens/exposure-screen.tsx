@@ -71,7 +71,7 @@ function ExposureScreenBody({ overrides }: ExposureScreenBodyProps) {
 
   const readout = calculation ? (
     <Readout
-      accent="blue"
+      accent="rose"
       label="New time"
       value={formatTime(calculation.newTimeValue)}
       accessibilityValueText={[
@@ -89,7 +89,7 @@ function ExposureScreenBody({ overrides }: ExposureScreenBodyProps) {
     />
   ) : (
     <Readout
-      accent="blue"
+      accent="rose"
       label="New time"
       value={null}
       note={
@@ -104,7 +104,7 @@ function ExposureScreenBody({ overrides }: ExposureScreenBodyProps) {
         <ScrubRow
           label="Base time"
           unit="s"
-          accent="blue"
+          accent="rose"
           value={originalTime}
           onChangeText={setOriginalTime}
           step={adaptiveTimeStep}
@@ -117,7 +117,7 @@ function ExposureScreenBody({ overrides }: ExposureScreenBodyProps) {
       <InsetGroup>
         <ScrubRow
           label="Stops"
-          accent="blue"
+          accent="rose"
           value={stops}
           onChangeText={setStops}
           step={incrementStops}
@@ -129,7 +129,7 @@ function ExposureScreenBody({ overrides }: ExposureScreenBodyProps) {
         />
         {ladderBase === null ? null : (
           <StopLadder
-            accent="blue"
+            accent="rose"
             baseSeconds={ladderBase}
             stops={ladderStops}
             formatTime={formatTime}

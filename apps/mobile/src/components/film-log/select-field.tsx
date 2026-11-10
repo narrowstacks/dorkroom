@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
+import { selectableRowStyle, useSelectionTint } from '@/theme/use-phase-accent';
 
 export interface SelectOption<T extends string | number> {
   label: string;
@@ -26,6 +27,7 @@ export function SelectField<T extends string | number>({
   placeholder = 'Select',
 }: SelectFieldProps<T>) {
   const [open, setOpen] = useState(false);
+  const tint = useSelectionTint();
   const selected = options.find((option) => option.value === value);
 
   return (
@@ -61,7 +63,8 @@ export function SelectField<T extends string | number>({
                   }}
                   accessibilityRole="button"
                   accessibilityState={{ selected: isSelected }}
-                  className={`rounded-xl px-4 py-3 ${isSelected ? 'bg-rose-600' : 'bg-white/5'}`}
+                  className="rounded-xl border px-4 py-3"
+                  style={selectableRowStyle(tint, isSelected)}
                 >
                   <Text className="text-base text-white">{option.label}</Text>
                   {option.detail ? (

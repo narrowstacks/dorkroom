@@ -106,9 +106,9 @@ function MatScreenBody({ overrides }: MatScreenBodyProps) {
         onPress={resetToDefaults}
         accessibilityRole="button"
         accessibilityLabel="Reset mat calculator to defaults"
-        className="items-center rounded-full border border-white/15 py-3"
+        className="items-center rounded-full border border-white/15 py-3 active:opacity-60"
       >
-        <Text className="font-semibold text-rose-400">Reset to defaults</Text>
+        <Text className="font-semibold text-white/80">Reset to defaults</Text>
       </Pressable>
 
       <BottomSheet

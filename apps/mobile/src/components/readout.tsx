@@ -1,5 +1,8 @@
 import type { ReactNode } from 'react';
 import { Text, View } from 'react-native';
+import { useRecordResult } from '@/hooks/use-record-result';
+import { formatReadoutSummary } from '@/lib/result-recorder';
+import type { RecordingToolId } from '@/lib/tools';
 import { ACCENT, type AccentColor } from '@/theme/accents';
 import { readoutText } from '@/theme/tokens';
 
@@ -12,6 +15,8 @@ interface ReadoutProps {
   /** Supporting figures in one wrapping row under the value. */
   facts?: string[];
   accent: AccentColor;
+  /** Remember this value as the tool's last result, shown on its hub tile. */
+  toolId?: RecordingToolId;
   /** Below the readout, outside the spoken summary: warnings and hints. */
   note?: ReactNode;
   /** The whole spoken answer after the label, facts included, e.g.
@@ -32,10 +37,12 @@ export function Readout({
   unit,
   facts,
   accent,
+  toolId,
   note,
   accessibilityValueText,
   className,
 }: ReadoutProps) {
+  useRecordResult(toolId, formatReadoutSummary(value, unit));
   const spoken =
     value === null
       ? 'no result yet'

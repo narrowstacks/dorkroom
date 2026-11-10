@@ -13,16 +13,18 @@ interface ScreenProps {
   header?: ReactNode;
 }
 
+/** Side padding of the scrolling content. */
+export const SCREEN_PADDING = 16;
+
 /** Breathing room under a navigation bar, and under the status bar at a tab root. */
 const BELOW_NAV_BAR = 12;
 const BELOW_STATUS_BAR = 8;
 
 /**
- * Space the pinned header must clear. Pushed in the More stack the transparent
+ * Space the pinned header must clear. Pushed in a phase stack the transparent
  * native header overlays the content, so it is that header's height; as a tab
  * root there is no navigation header, so it is the top safe-area inset. The
- * context (not the throwing hook) is read because it is absent or 0 at a tab
- * root.
+ * context (not the throwing hook) is read because it is absent or 0 without one.
  */
 function usePinnedHeaderTop(): number {
   const headerHeight = useContext(HeaderHeightContext);
@@ -38,7 +40,7 @@ function PinnedHeader({ children }: { children: ReactNode }) {
     <View
       style={{
         paddingTop: top,
-        paddingHorizontal: 16,
+        paddingHorizontal: SCREEN_PADDING,
         paddingBottom: 8,
       }}
     >
@@ -58,7 +60,7 @@ export function Screen({ children, header }: ScreenProps) {
         // instead of being covered (e.g. Notes on the shot/roll forms).
         automaticallyAdjustKeyboardInsets
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ padding: 16, gap: 16 }}
+        contentContainerStyle={{ padding: SCREEN_PADDING, gap: 16 }}
       >
         {children}
       </ScrollView>

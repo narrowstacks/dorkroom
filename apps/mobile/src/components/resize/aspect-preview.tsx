@@ -28,8 +28,8 @@ export function AspectPreview({
           y={target.y}
           width={target.w}
           height={target.h}
-          fill={`${ACCENT.teal}22`}
-          stroke={ACCENT.teal}
+          fill={`${ACCENT.rose}22`}
+          stroke={ACCENT.rose}
           strokeWidth={1.5}
           rx={2}
         />

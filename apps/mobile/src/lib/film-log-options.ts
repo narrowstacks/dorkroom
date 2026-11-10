@@ -3,6 +3,7 @@ import type {
   Camera,
   CameraFormat,
   FilmProcess,
+  FilmRoll,
   Shot,
 } from '@/schemas/film-log.schema';
 
@@ -71,4 +72,24 @@ export function cameraUsesBacks(camera: Camera | undefined): boolean {
     camera.format === '4x5' ||
     camera.format === '8x10'
   );
+}
+
+/** What a roll is called in lists and pickers: its name, else its film. */
+export function rollLabel(
+  roll: Pick<FilmRoll, 'name' | 'filmStockName'>
+): string {
+  return roll.name?.trim() ? roll.name : (roll.filmStockName ?? 'Roll');
+}
+
+export function shotCountLabel(count: number): string {
+  return `${count} ${count === 1 ? 'shot' : 'shots'}`;
+}
+
+/** The line under a roll's label: its film (when the label is a name, not the
+ * film itself) and how many shots it holds. */
+export function rollSubtitle(
+  roll: Pick<FilmRoll, 'name' | 'filmStockName' | 'shots'>
+): string {
+  const film = roll.name?.trim() ? roll.filmStockName : undefined;
+  return [film, shotCountLabel(roll.shots.length)].filter(Boolean).join(' · ');
 }

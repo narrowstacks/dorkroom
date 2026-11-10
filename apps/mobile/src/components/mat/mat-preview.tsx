@@ -6,6 +6,7 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
+import { usePhaseHue } from '@/theme/use-phase-accent';
 import {
   computeMatPreviewGeometry,
   type MatPreviewGeometry,
@@ -126,6 +127,7 @@ export function MatPreview({
   windowH,
   fmt,
 }: MatPreviewProps) {
+  const hue = usePhaseHue();
   const [availableWidth, setAvailableWidth] = useState(0);
   const geometry = computeMatPreviewGeometry({
     outerWidth: ow,
@@ -170,14 +172,17 @@ export function MatPreview({
           {geometry.artwork ? (
             <View
               accessible={false}
-              style={rectStyle(geometry.artwork)}
-              className="absolute bg-cyan-400/20"
+              className="absolute"
+              style={[
+                rectStyle(geometry.artwork),
+                { backgroundColor: `${hue}33` },
+              ]}
             />
           ) : null}
           <View
             accessible={false}
-            style={rectStyle(geometry.window)}
-            className="absolute border border-cyan-400 bg-[#161618]"
+            style={[rectStyle(geometry.window), { borderColor: hue }]}
+            className="absolute border bg-[#161618]"
           />
           <View
             accessible={false}

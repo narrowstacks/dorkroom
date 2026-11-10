@@ -1,107 +1,235 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { resolveToolPath, toolIdForPath } from './deep-link';
+import { redirectSystemPath } from '../../app/+native-intent';
+import {
+  APP_SCHEME,
+  resolveIncomingLink,
+  resolveLegacyPath,
+  toolIdForPath,
+} from './deep-link';
 
-// Default pins are capped at MAX_PINNED = 1: meter.
-const DEFAULT_PINS = ['meter'];
-
-describe('resolveToolPath', () => {
-  it('leaves a pinned tool tab path unchanged', () => {
-    expect(resolveToolPath('/exposure', ['exposure', 'border'])).toBe(
-      '/exposure'
-    );
+describe('resolveLegacyPath', () => {
+  const cases: [string, string, string][] = [
+    // [description, input, expected]
+    ['More detail route, Shoot tool', '/more/meter', '/shoot/meter'],
+    ['More detail route, Print tool', '/more/exposure', '/print/exposure'],
+    [
+      'More detail route, Develop tool',
+      '/more/negative-inverter',
+      '/develop/negative-inverter',
+    ],
+    [
+      'More detail route keeps its query',
+      '/more/border?paper=8x10',
+      '/print/border?paper=8x10',
+    ],
+    ['More detail route keeps its hash', '/more/mat#top', '/print/mat#top'],
+    [
+      'More detail route keeps a sub-path',
+      '/more/lens/x?a=1',
+      '/shoot/lens/x?a=1',
+    ],
+    ['old tab root', '/exposure', '/print/exposure'],
+    ['old tab root, hyphenated', '/camera-exposure', '/shoot/camera-exposure'],
+    [
+      'old tab root, hyphenated id',
+      '/negative-inverter',
+      '/develop/negative-inverter',
+    ],
+    ['old lenses route name', '/lenses', '/shoot/lens'],
+    [
+      'old lenses route with a Home prefill',
+      '/lenses?focal=80&to=full-frame',
+      '/shoot/lens?focal=80&to=full-frame',
+    ],
+    ['old tab root without a leading slash', 'meter', '/shoot/meter'],
+    ['old tab root with a trailing slash', '/border/', '/print/border'],
+    ['Film Log root', '/film-log', '/shoot/film-log'],
+    ['Film Log sub-path', '/film-log/roll/abc', '/shoot/film-log/roll/abc'],
+    [
+      'Film Log with a query',
+      '/film-log/shot?rollId=1&shotId=2',
+      '/shoot/film-log/shot?rollId=1&shotId=2',
+    ],
+    ['Recipes root', '/development', '/develop/recipes'],
+    [
+      'Recipes query',
+      '/development?film=hp5-plus&at=9',
+      '/develop/recipes?film=hp5-plus&at=9',
+    ],
+    ['recipe detail', '/development/recipe/abc', '/develop/recipes/recipe/abc'],
+    ['Process Timer', '/development/timer', '/develop/recipes/timer'],
+    [
+      'Process Timer as a More detail route',
+      '/more/timer',
+      '/develop/recipes/timer',
+    ],
+    ['Process Timer as a pinned tab root', '/timer', '/develop/recipes/timer'],
+    [
+      'Process Timer tab root keeps its query',
+      '/timer?x=1',
+      '/develop/recipes/timer?x=1',
+    ],
+    ['More settings', '/more/settings', '/shoot/settings'],
+    ['More settings with a query', '/more/settings?x=1', '/shoot/settings?x=1'],
+    ['old Settings tab root', '/settings', '/shoot/settings'],
+    ['More list', '/more', '/'],
+    ['More list with a trailing slash', '/more/', '/'],
+    ['pin editor', '/more/edit', '/'],
+  ];
+  it.each(cases)('%s: %s', (_what, input, expected) => {
+    expect(resolveLegacyPath(input)).toBe(expected);
   });
 
-  it('rewrites an unpinned tool tab path to the More-stack detail route', () => {
-    expect(resolveToolPath('/exposure', DEFAULT_PINS)).toBe('/more/exposure');
+  const unchanged = [
+    '/',
+    '/?x=1',
+    '/shoot',
+    '/shoot/meter',
+    '/print/exposure?stops=1',
+    '/develop/recipes',
+    '/develop/recipes/timer',
+    '/shoot/film-log/roll/abc',
+    '/shoot/settings',
+    '/print/settings',
+    '/does-not-exist',
+    '/more/does-not-exist',
+    '/recipes',
+    '',
+  ];
+  it.each(unchanged)('passes %j through unchanged', (path) => {
+    expect(resolveLegacyPath(path)).toBe(path);
   });
 
-  it('rewrites reciprocity to More when unpinned (broken quick action, pre-fix)', () => {
-    expect(resolveToolPath('/reciprocity', DEFAULT_PINS)).toBe(
-      '/more/reciprocity'
-    );
-  });
-
-  it('leaves the root path alone: it is Home, whatever is pinned', () => {
-    expect(resolveToolPath('/', ['border'])).toBe('/');
-    expect(resolveToolPath('/', DEFAULT_PINS)).toBe('/');
-    expect(resolveToolPath('/?x=1', [])).toBe('/?x=1');
-  });
-
-  it('keeps the border calculator reachable at /border', () => {
-    expect(resolveToolPath('/border', ['border'])).toBe('/border');
-    expect(resolveToolPath('/border', DEFAULT_PINS)).toBe('/more/border');
-  });
-
-  it("carries a Home answer's prefill through to the More route", () => {
-    expect(resolveToolPath('/lenses?focal=80&to=full-frame', [])).toBe(
-      '/more/lens?focal=80&to=full-frame'
-    );
-  });
-
-  it('rewrites /lenses (route name) to /more/lens (tool id) when unpinned', () => {
-    expect(resolveToolPath('/lenses', DEFAULT_PINS)).toBe('/more/lens');
-  });
-
-  it('leaves /lenses unchanged when lens is pinned', () => {
-    expect(resolveToolPath('/lenses', ['lens', 'border'])).toBe('/lenses');
-  });
-
-  it('passes through the permanent film-log tab unchanged', () => {
-    expect(resolveToolPath('/film-log', DEFAULT_PINS)).toBe('/film-log');
-  });
-
-  it('passes through a film-log sub-path unchanged', () => {
-    expect(resolveToolPath('/film-log/roll/abc', DEFAULT_PINS)).toBe(
-      '/film-log/roll/abc'
-    );
-  });
-
-  it('passes through the More tab root unchanged', () => {
-    expect(resolveToolPath('/more', DEFAULT_PINS)).toBe('/more');
-  });
-
-  it('passes through an existing More-stack detail path unchanged', () => {
-    expect(resolveToolPath('/more/anything', DEFAULT_PINS)).toBe(
-      '/more/anything'
-    );
-  });
-
-  it('passes through an unknown path unchanged', () => {
-    expect(resolveToolPath('/does-not-exist', DEFAULT_PINS)).toBe(
-      '/does-not-exist'
-    );
-  });
-
-  it('passes through the permanent development tab unchanged', () => {
-    expect(resolveToolPath('/development', DEFAULT_PINS)).toBe('/development');
-  });
-
-  it('passes through a development recipe sub-path unchanged', () => {
-    expect(resolveToolPath('/development/recipe/abc', DEFAULT_PINS)).toBe(
-      '/development/recipe/abc'
-    );
-  });
-
-  it('preserves a query string when rewriting to More', () => {
-    expect(resolveToolPath('/exposure?x=1', DEFAULT_PINS)).toBe(
-      '/more/exposure?x=1'
-    );
+  it('is idempotent: a resolved path resolves to itself', () => {
+    for (const [, input] of cases) {
+      const once = resolveLegacyPath(input);
+      expect(resolveLegacyPath(once)).toBe(once);
+    }
   });
 });
 
 describe('toolIdForPath', () => {
-  it('names the tool for a tab route, its More route and the sections', () => {
-    expect(toolIdForPath('/lenses')).toBe('lens');
-    expect(toolIdForPath('/border?paper=8x10')).toBe('border');
-    expect(toolIdForPath('/more/reciprocity')).toBe('reciprocity');
-    expect(toolIdForPath('/film-log/roll/abc')).toBe('film-log');
-    expect(toolIdForPath('/development/recipe/abc')).toBe('recipes');
+  const named: [string, string][] = [
+    ['/shoot/meter', 'meter'],
+    ['/print/border?paper=8x10', 'border'],
+    ['/shoot/lens', 'lens'],
+    ['/develop/negative-inverter', 'negative-inverter'],
+    ['/shoot/film-log', 'film-log'],
+    ['/shoot/film-log/roll/abc', 'film-log'],
+    ['/develop/recipes', 'recipes'],
+    ['/develop/recipes/recipe/abc', 'recipes'],
+    ['/develop/recipes/timer', 'timer'],
+    // Legacy paths still name their tool.
+    ['/lenses', 'lens'],
+    ['/more/reciprocity', 'reciprocity'],
+    ['/film-log/roll/abc', 'film-log'],
+    ['/development/recipe/abc', 'recipes'],
+    ['/development/timer', 'timer'],
+    ['/more/timer', 'timer'],
+    ['/timer', 'timer'],
+  ];
+  it.each(named)('%s belongs to %s', (path, id) => {
+    expect(toolIdForPath(path)).toBe(id);
   });
 
-  it('names no tool for Home, the More directory or unknown paths', () => {
-    expect(toolIdForPath('/')).toBeUndefined();
-    expect(toolIdForPath('/more')).toBeUndefined();
-    expect(toolIdForPath('/more/edit')).toBeUndefined();
-    expect(toolIdForPath('/nope')).toBeUndefined();
+  const none = [
+    '/',
+    '/shoot',
+    '/develop',
+    '/print',
+    '/settings',
+    '/shoot/settings',
+    '/more',
+    '/more/edit',
+    '/nope',
+    // Another phase's tool is not found, so it is no tool's use.
+    '/print/meter',
+    '/shoot/recipes',
+    '/shoot/timer',
+  ];
+  it.each(none)('%s belongs to no tool', (path) => {
+    expect(toolIdForPath(path)).toBeUndefined();
+  });
+});
+
+describe('resolveIncomingLink', () => {
+  const links: [string, string][] = [
+    // App Intents and Siri open the bare host form.
+    ['dorkroom://meter', '/shoot/meter'],
+    ['dorkroom://negative-inverter', '/develop/negative-inverter'],
+    ['dorkroom://border', '/print/border'],
+    ['dorkroom://lenses', '/shoot/lens'],
+    ['dorkroom://more/meter', '/shoot/meter'],
+    ['dorkroom:///more/meter', '/shoot/meter'],
+    ['dorkroom://exposure?stops=1#x', '/print/exposure?stops=1#x'],
+    ['dorkroom://film-log/roll/abc', '/shoot/film-log/roll/abc'],
+    ['dorkroom://development/recipe/x', '/develop/recipes/recipe/x'],
+    ['dorkroom://development', '/develop/recipes'],
+    ['dorkroom://timer', '/develop/recipes/timer'],
+    ['dorkroom://more/timer', '/develop/recipes/timer'],
+    ['dorkroom://settings', '/shoot/settings'],
+    ['dorkroom://more', '/'],
+    ['DORKROOM://meter', '/shoot/meter'],
+    ['dorkroom://Meter', '/shoot/meter'],
+    ['dorkroom://More/Meter?x=1', '/shoot/meter?x=1'],
+    ['dorkroom://Lenses', '/shoot/lens'],
+    // Only the host folds; ids after it keep their case.
+    ['dorkroom://Shoot/meter', '/shoot/meter'],
+    ['dorkroom://Develop/recipes/recipe/AbC', '/develop/recipes/recipe/AbC'],
+    // A bare path still resolves.
+    ['/more/meter', '/shoot/meter'],
+  ];
+  it.each(links)('%s -> %s', (input, expected) => {
+    expect(resolveIncomingLink(input)).toBe(expected);
+  });
+
+  const untouched = [
+    'dorkroom://',
+    'dorkroom://shoot/meter',
+    'dorkroom://print/exposure?stops=1',
+    'dorkroom://nowhere',
+    'https://dorkroom.art/meter',
+    'https://dorkroom.art/more/meter',
+    'exp+dorkroom://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081',
+    'exp://192.168.1.2:8081/--/meter',
+    'otherapp://meter',
+    '/shoot/meter',
+    '/',
+    '',
+  ];
+  it.each(untouched)('passes %j through unchanged', (input) => {
+    expect(resolveIncomingLink(input)).toBe(input);
+  });
+});
+
+describe('redirectSystemPath', () => {
+  // expo-router calls it with the full URL, cold (initial) and warm.
+  for (const initial of [true, false]) {
+    const when = initial ? 'cold' : 'warm';
+    it(`rewrites dorkroom:// links, ${when}`, () => {
+      const go = (path: string) => redirectSystemPath({ path, initial });
+      expect(go('dorkroom://meter')).toBe('/shoot/meter');
+      expect(go('dorkroom://more/meter')).toBe('/shoot/meter');
+      expect(go('dorkroom://development/recipe/x')).toBe(
+        '/develop/recipes/recipe/x'
+      );
+      expect(go('dorkroom://print/exposure')).toBe('dorkroom://print/exposure');
+      expect(go('https://example.com/meter')).toBe('https://example.com/meter');
+    });
+  }
+});
+
+describe('APP_SCHEME', () => {
+  it('matches the scheme in app.json', () => {
+    const config: { expo: { scheme: string } } = JSON.parse(
+      readFileSync(
+        join(fileURLToPath(new URL('../..', import.meta.url)), 'app.json'),
+        'utf8'
+      )
+    );
+    expect(config.expo.scheme).toBe(APP_SCHEME);
   });
 });

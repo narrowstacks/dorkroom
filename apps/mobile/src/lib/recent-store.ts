@@ -13,9 +13,6 @@ const SEEN_KEY = 'homeSeen';
 export const MAX_RECENT_TOOLS = 4;
 export const MAX_RECENT_RECIPES = 3;
 
-// Tools that are not worth resuming: Home itself, and Settings.
-const UNTRACKED_TOOLS = new Set(['home', 'settings']);
-
 export function getRecentToolIds(): string[] {
   return parseRecentIds(storage.getString(RECENT_TOOLS_KEY)).filter(
     (id) => getTool(id) !== undefined
@@ -23,7 +20,7 @@ export function getRecentToolIds(): string[] {
 }
 
 export function recordToolUse(id: string): void {
-  if (UNTRACKED_TOOLS.has(id) || getTool(id) === undefined) return;
+  if (getTool(id) === undefined) return;
   const next = recordRecentId(getRecentToolIds(), id, MAX_RECENT_TOOLS);
   storage.set(RECENT_TOOLS_KEY, JSON.stringify(next));
 }

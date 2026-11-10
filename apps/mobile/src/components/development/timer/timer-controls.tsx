@@ -9,6 +9,7 @@ import {
 import type { ComponentType } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import type { TimerStatus } from '@/lib/timer/types';
+import { useCommitStyle } from '@/theme/use-phase-accent';
 
 interface TimerControlsProps {
   status: TimerStatus;
@@ -71,6 +72,7 @@ export function TimerControls({
   onSkip,
   onPrev,
 }: TimerControlsProps) {
+  const commit = useCommitStyle();
   const running = status === 'running';
   const completed = status === 'completed';
 
@@ -95,10 +97,11 @@ export function TimerControls({
         accessibilityRole="button"
         accessibilityLabel={primary.label}
         accessibilityState={{ disabled: primaryDisabled }}
-        className={`flex-row items-center justify-center gap-2 rounded-2xl bg-rose-600 py-4 ${primaryDisabled ? 'opacity-30' : ''}`}
+        className={`flex-row items-center justify-center gap-2 rounded-2xl py-4 ${primaryDisabled ? 'opacity-40' : 'active:opacity-80'}`}
+        style={commit.fill}
       >
-        <PrimaryIcon size={22} color="#ffffff" />
-        <Text className="text-lg font-semibold text-white">
+        <PrimaryIcon size={22} color={commit.ink} />
+        <Text className="text-lg font-semibold" style={commit.label}>
           {primary.label}
         </Text>
       </Pressable>

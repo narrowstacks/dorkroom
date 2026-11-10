@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import { useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
+import { CommitButton } from '@/components/commit-button';
 import { SelectField } from '@/components/film-log/select-field';
 import { photoUri } from '@/lib/film-log-photos';
 import type { Lens, ShotPhoto } from '@/schemas/film-log.schema';
@@ -75,7 +76,7 @@ export function CaptureConfirmSheet({
         />
         {needsLens ? (
           <Text className="text-xs text-amber-300">
-            Pick the lens you shot this frame on to save.
+            ⚠ Pick the lens you shot this frame on to save.
           </Text>
         ) : null}
 
@@ -87,17 +88,12 @@ export function CaptureConfirmSheet({
           >
             <Text className="text-base text-white">Edit…</Text>
           </Pressable>
-          <Pressable
+          <CommitButton
             onPress={() => onSave(lensId)}
             disabled={needsLens}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: needsLens }}
-            className={`flex-1 items-center rounded-xl px-4 py-3 ${
-              needsLens ? 'bg-rose-600/40' : 'bg-rose-600'
-            }`}
-          >
-            <Text className="text-base font-semibold text-white">Save</Text>
-          </Pressable>
+            label="Save"
+            className="flex-1"
+          />
         </View>
       </View>
     </BottomSheet>

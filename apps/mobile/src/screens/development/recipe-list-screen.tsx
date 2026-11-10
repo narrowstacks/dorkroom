@@ -28,6 +28,7 @@ import { OptionPickerSheet } from '@/components/development/option-picker-sheet'
 import { RecipeCard } from '@/components/development/recipe-card';
 import { SearchBar } from '@/components/development/search-bar';
 import { GradientBackground } from '@/components/gradient-background';
+import { NeutralButton } from '@/components/neutral-button';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { resolveRecipeTarget } from '@/lib/home/recipe-target';
 import { LINK_OPENED_PARAM } from '@/lib/link-prefill';
@@ -40,7 +41,7 @@ import {
   filterRecipeViews,
 } from './recipe-views';
 
-const filtersBadgeTint = selectionTint('green');
+const filtersBadgeTint = selectionTint('teal');
 
 const RecipeRow = memo(function RecipeRow({
   recipe,
@@ -202,7 +203,7 @@ export function RecipeListScreen() {
     (tagFilter ? 1 : 0);
 
   const onPressRecipe = useCallback((uuid: string) => {
-    router.push(`/development/recipe/${uuid}`);
+    router.push(`/develop/recipes/recipe/${uuid}`);
   }, []);
 
   const keyExtractor = useCallback(
@@ -259,15 +260,12 @@ export function RecipeListScreen() {
           <Text className="text-center text-base text-white/70">
             Couldn’t load recipes. Check your connection and try again.
           </Text>
-          <Pressable
+          <NeutralButton
             onPress={() => {
               void recipes.forceRefresh();
             }}
-            accessibilityRole="button"
-            className="rounded-xl bg-rose-600 px-5 py-3"
-          >
-            <Text className="text-base font-semibold text-white">Retry</Text>
-          </Pressable>
+            label="Retry"
+          />
         </View>
       </View>
     );

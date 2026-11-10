@@ -248,6 +248,14 @@ export const EDITOR_GUTTER = 16;
  *  still serves bigger sizes. */
 export const CHROME_TEXT_SCALE = 1.3;
 
+/** The focus square and the manual-focus slider: yellow, as in the iOS Camera
+ *  app. Deliberately not a phase hue, so it reads as "focus" on any photo. */
+export const FOCUS_COLOR = '#fbbf24';
+
+/** The film-base sample marker on the photo: amber, to tell it apart from the
+ *  grey neutral marker. A marker on a photo, so it stays out of the phase hues. */
+export const BASE_MARKER_COLOR = '#fbbf24';
+
 /** Width of the editor toolbar: the film type toggle and `buttons` icon
  *  buttons, with a gap between each. */
 export function toolbarWidth(buttons: number): number {

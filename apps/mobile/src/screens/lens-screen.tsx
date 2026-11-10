@@ -84,7 +84,8 @@ function LensScreenBody({ overrides }: LensScreenBodyProps) {
   const readout =
     calculation && labels ? (
       <Readout
-        accent="emerald"
+        accent="yellow"
+        toolId="lens"
         label="Equivalent focal length"
         value={formatFocalLength(calculation.equivalentFocalLength)}
         accessibilityValueText={[
@@ -102,7 +103,8 @@ function LensScreenBody({ overrides }: LensScreenBodyProps) {
       />
     ) : (
       <Readout
-        accent="emerald"
+        accent="yellow"
+        toolId="lens"
         label="Equivalent focal length"
         value={null}
         note={
@@ -117,7 +119,7 @@ function LensScreenBody({ overrides }: LensScreenBodyProps) {
         <ScrubRow
           label="Focal length"
           unit="mm"
-          accent="emerald"
+          accent="yellow"
           value={focalLengthFieldText(draft, values.focalLength)}
           onChangeText={onFocalLengthText}
           step={adaptiveFocalStep}
@@ -130,7 +132,7 @@ function LensScreenBody({ overrides }: LensScreenBodyProps) {
       <View className="gap-2">
         <SectionLabel>Common focal lengths</SectionLabel>
         <PresetChipRow
-          accent="emerald"
+          accent="yellow"
           options={FOCAL_LENGTH_PRESETS}
           value={values.focalLength}
           onSelect={(value) => {

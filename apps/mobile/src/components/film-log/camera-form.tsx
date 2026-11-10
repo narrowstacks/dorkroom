@@ -1,6 +1,7 @@
 import { sanitizeText } from '@dorkroom/logic';
 import { Pressable, Text, View } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
+import { CommitButton } from '@/components/commit-button';
 import { SelectField } from '@/components/film-log/select-field';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import { useFormState } from '@/hooks/use-form-state';
@@ -125,15 +126,10 @@ export function CameraForm({ visible, camera, onClose }: CameraFormProps) {
           onChangeText={(v) => set('notes', v)}
         />
 
-        <Pressable
+        <CommitButton
           onPress={onSave}
-          accessibilityRole="button"
-          className="items-center rounded-xl bg-rose-600 px-4 py-3"
-        >
-          <Text className="text-base font-semibold text-white">
-            {camera ? 'Save camera' : 'Add camera'}
-          </Text>
-        </Pressable>
+          label={camera ? 'Save camera' : 'Add camera'}
+        />
         {camera ? (
           <Pressable
             onPress={onDelete}

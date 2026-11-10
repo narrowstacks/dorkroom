@@ -11,7 +11,10 @@ export function ShutterButton({ onPress }: ShutterButtonProps) {
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel="Capture a photo and log a shot"
-      style={({ pressed }) => [styles.ring, pressed && styles.pressed]}
+      // A style callback is ignored by NativeWind's interop; pressed feedback
+      // is a class.
+      className="active:opacity-70"
+      style={styles.ring}
     >
       <View style={styles.core}>
         <Text style={styles.plus}>+</Text>
@@ -32,7 +35,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'transparent',
   },
-  pressed: { opacity: 0.7 },
   core: {
     width: 60,
     height: 60,

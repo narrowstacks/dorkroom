@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomSheet } from '@/components/bottom-sheet';
 import { SearchBar } from '@/components/development/search-bar';
 import type { FilmStock } from '@/schemas/film-log.schema';
+import { selectableRowStyle, useSelectionTint } from '@/theme/use-phase-accent';
 import { buildFilmSections, type FilmSection } from './film-stock-picker-logic';
 
 interface FilmStockPickerProps {
@@ -34,6 +35,7 @@ export function FilmStockPicker({
   placeholder = 'Select',
 }: FilmStockPickerProps) {
   const [open, setOpen] = useState(false);
+  const tint = useSelectionTint();
   const [query, setQuery] = useState('');
   const insets = useSafeAreaInsets();
   const selected = films.find((f) => f.id === value);
@@ -60,7 +62,8 @@ export function FilmStockPicker({
         }}
         accessibilityRole="button"
         accessibilityState={{ selected: isSelected }}
-        className={`rounded-xl px-4 py-3 ${isSelected ? 'bg-rose-600' : 'bg-white/5'}`}
+        className="rounded-xl border px-4 py-3"
+        style={selectableRowStyle(tint, isSelected)}
       >
         <Text className="text-base text-white">
           {item.brand} {item.name}

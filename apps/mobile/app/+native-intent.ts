@@ -1,11 +1,11 @@
-import { resolveToolPath } from '@/lib/deep-link';
-import { getPinnedIds } from '@/lib/tab-bar-settings';
+import { resolveIncomingLink } from '@/lib/deep-link';
 
-// Rewrites incoming external URLs (e.g. `dorkroom://exposure`) so they land
-// on a route that's actually reachable: single-screen tool tab routes are
-// only navigable while pinned into the native tab bar, so unpinned tools get
-// redirected to their always-available More-stack detail route. See
-// `src/lib/deep-link.ts` for the pure resolver.
+// Rewrites incoming external URLs so they land on a route that exists now.
+// expo-router passes the FULL URL here (`dorkroom://meter`), not a path, and
+// only strips the scheme afterwards. App Intents open `dorkroom://meter` and
+// old links use `/more/<tool>`, from before the Shoot / Develop / Print tabs.
+// See `src/lib/deep-link.ts` for the pure resolver. Quick actions skip this hook; `src/lib/quick-action.ts`
+// resolves them.
 export function redirectSystemPath({
   path,
 }: {
@@ -13,7 +13,7 @@ export function redirectSystemPath({
   initial: boolean;
 }): string {
   try {
-    return resolveToolPath(path, getPinnedIds());
+    return resolveIncomingLink(path);
   } catch {
     // Never break inbound links on a resolver bug.
     return path;

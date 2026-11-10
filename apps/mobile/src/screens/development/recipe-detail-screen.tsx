@@ -1,7 +1,8 @@
 import { calculatePushPull, useDevelopmentRecipes } from '@dorkroom/logic';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
+import { CommitButton } from '@/components/commit-button';
 import { CollapsibleSection } from '@/components/development/collapsible-section';
 import { LinkRow } from '@/components/development/link-row';
 import { PushPullBadge } from '@/components/development/push-pull-badge';
@@ -91,19 +92,19 @@ export function RecipeDetailScreen() {
           gives equal width; the row's default alignItems:'stretch' then makes
           all three the same height — the tallest (Temp, which has the °F line)
           sets it, and the shorter cards keep their content top-aligned. The
-          dev-time card carries the green accent border + green value (the
-          `text-green-*` class doesn't resolve on the Liquid Glass build). */}
+          dev-time card carries the teal accent border + teal value (the
+          `text-teal-*` class doesn't resolve on the Liquid Glass build). */}
       <View className="flex-row gap-3">
         <GlassCard
           className="gap-0.5"
-          style={{ flex: 1, borderWidth: 1, borderColor: `${ACCENT.green}40` }}
+          style={{ flex: 1, borderWidth: 1, borderColor: `${ACCENT.teal}40` }}
         >
           <Text className="text-xs uppercase tracking-wide text-white/50">
             Dev time
           </Text>
           <Text
             className="text-xl font-bold"
-            style={{ color: ACCENT.green }}
+            style={{ color: ACCENT.teal }}
             numberOfLines={1}
             adjustsFontSizeToFit
           >
@@ -171,21 +172,16 @@ export function RecipeDetailScreen() {
         ) : null}
       </GlassCard>
 
-      <Pressable
+      <CommitButton
         onPress={() => {
           // Hand the recipe to the timer screen (it consumes this on mount and
           // prefills the dev stage from the recipe's time/temp/agitation).
           setTimerPrefill(combination);
-          router.push('/development/timer');
+          router.push('/develop/recipes/timer');
         }}
-        accessibilityRole="button"
         accessibilityLabel="Start process timer for this recipe"
-        className="items-center rounded-xl bg-rose-600 px-4 py-3 active:opacity-80"
-      >
-        <Text className="text-base font-semibold text-white">
-          Start Process Timer
-        </Text>
-      </Pressable>
+        label="Start Process Timer"
+      />
 
       {combination.notes?.trim() ? (
         <GlassCard className="gap-1">

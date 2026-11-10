@@ -22,7 +22,7 @@ export function ArtworkBestFitSection({
   applyBestFit,
   bestFitPreview,
 }: ArtworkBestFitSectionProps) {
-  const tint = selectionTint('cyan');
+  const tint = selectionTint('rose');
 
   return (
     <View className="gap-4">
@@ -91,7 +91,7 @@ export function ArtworkBestFitSection({
           className={bestFitPreview ? undefined : 'text-white/40'}
           style={
             bestFitPreview
-              ? { color: ACCENT.cyan, fontWeight: '600' }
+              ? { color: ACCENT.rose, fontWeight: '600' }
               : undefined
           }
         >

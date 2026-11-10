@@ -51,9 +51,9 @@ export function MatResults({
 
   return (
     <View className="gap-4">
-      <ResultCard accent="cyan" className="gap-3">
+      <ResultCard accent="rose" className="gap-3">
         <ResultStat
-          accent="cyan"
+          accent="rose"
           label="Window opening"
           value={`${fmt(windowW)} × ${fmt(windowH)}`}
           helper="Sight opening, short point to short point"
@@ -63,7 +63,7 @@ export function MatResults({
       <GlassCard className="gap-3">
         <Text
           className="text-base font-semibold"
-          style={{ color: ACCENT.cyan }}
+          style={{ color: ACCENT.rose }}
         >
           Cutter guide-bar settings
         </Text>
@@ -83,7 +83,7 @@ export function MatResults({
       <GlassCard className="gap-3">
         <Text
           className="text-base font-semibold"
-          style={{ color: ACCENT.cyan }}
+          style={{ color: ACCENT.rose }}
         >
           All dimensions
         </Text>

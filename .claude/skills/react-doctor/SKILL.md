@@ -47,8 +47,7 @@ warnings.
   dead-code rules are disabled because react-doctor's import analysis cannot
   resolve this repo's `@/` path alias, Vercel `api/` serverless entrypoints,
   Vitest manual mocks (`__mocks__`), `.mjs` build scripts, or shell-script CLI
-  usage (e.g. `turbo-ignore` in `scripts/should-deploy.sh`, `lucide-static` in
-  `apps/mobile/scripts/generate-tab-icons.mjs`) — so it reports those as
+  usage (e.g. `turbo-ignore` in `scripts/should-deploy.sh`), so it reports those as
   "unused" false-positives. Circular-import detection stays on.
 - `react-doctor/no-high-complexity-react-function` and
   `react-doctor/duplicate-jsx-subtree` are also ignored. Both arrived in 0.9.18

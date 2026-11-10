@@ -1,12 +1,13 @@
 import * as Haptics from 'expo-haptics';
 import { Pressable, Text, View } from 'react-native';
-import { type AccentColor, selectionTint } from '@/theme/accents';
+import type { AccentColor } from '@/theme/accents';
+import { useSelectionTint } from '@/theme/use-phase-accent';
 
 interface SegmentedControlProps<T extends string | number | boolean> {
   options: { label: string; value: T }[];
   value: T;
   onChange: (value: T) => void;
-  /** Tool signature accent for the selected segment. Omit for the brand rose fill. */
+  /** Hue for the selected segment. Omit to take the surrounding phase's (neutral on Home and Settings). */
   accent?: AccentColor;
   /** What the choice is about, read by VoiceOver after each segment's label. */
   accessibilityHint?: string;
@@ -24,7 +25,7 @@ export function SegmentedControl<T extends string | number | boolean>({
   accessibilityHint,
   accessibilityLabel,
 }: SegmentedControlProps<T>) {
-  const tint = accent ? selectionTint(accent) : null;
+  const tint = useSelectionTint(accent);
   return (
     <View className="flex-row rounded-xl bg-white/10 p-1">
       {options.map((option) => {
@@ -46,11 +47,9 @@ export function SegmentedControl<T extends string | number | boolean>({
             }
             accessibilityState={{ selected }}
             accessibilityHint={accessibilityHint}
-            className={`flex-1 items-center rounded-lg py-2 ${
-              selected && !tint ? 'bg-rose-600' : ''
-            }`}
+            className="flex-1 items-center rounded-lg py-2"
             style={
-              selected && tint
+              selected
                 ? {
                     backgroundColor: tint.backgroundColor,
                     borderWidth: 1,
@@ -60,17 +59,9 @@ export function SegmentedControl<T extends string | number | boolean>({
             }
           >
             <Text
-              className={
-                selected
-                  ? tint
-                    ? undefined
-                    : 'font-semibold text-white'
-                  : 'text-white/70'
-              }
+              className={selected ? undefined : 'text-white/70'}
               style={
-                selected && tint
-                  ? { color: tint.color, fontWeight: '600' }
-                  : undefined
+                selected ? { color: tint.color, fontWeight: '600' } : undefined
               }
             >
               {option.label}

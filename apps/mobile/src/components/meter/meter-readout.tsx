@@ -11,8 +11,10 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
+import { DIRECTION_COLOR } from '@/theme/accents';
 /* eslint-enable react-doctor/rn-prefer-reanimated, react-doctor/rn-no-panresponder */
 import { readoutText as MONO } from '@/theme/tokens';
+import { useSelectionTint } from '@/theme/use-phase-accent';
 import { scrubLandingIndex } from './scrub-math';
 
 const SHADOW = {
@@ -76,11 +78,11 @@ interface MeterReadoutProps {
 /** Formats the snap error in stops: "+0.4" over, "−0.3" under, "✓" if exact. */
 function formatStopError(stops: number) {
   const rounded = Math.round(stops * 10) / 10;
-  if (Math.abs(rounded) < 0.05) return { text: '✓', tone: 'text-white/45' };
+  if (Math.abs(rounded) < 0.05) return { text: '✓', color: null };
   const sign = rounded > 0 ? '+' : '−';
   return {
     text: `${sign}${Math.abs(rounded).toFixed(1)}`,
-    tone: rounded > 0 ? 'text-amber-400' : 'text-sky-400',
+    color: rounded > 0 ? DIRECTION_COLOR.up : DIRECTION_COLOR.down,
   };
 }
 
@@ -109,12 +111,23 @@ function StatBody({
   stopError?: number;
   style?: ViewStyle;
 }) {
+  const lockedTint = useSelectionTint();
   const error = stopError === undefined ? null : formatStopError(stopError);
   // ISO pinned to the roll's EI is the one "hard" lock (non-scrubbable here);
-  // flag it so the cell reads as locked — a light-red tint + a lock badge.
+  // flag it so the cell reads as locked: a phase-hue tint + a lock badge.
   const hardLocked = locked && disabled;
   return (
-    <View style={[styles.statCell, style, hardLocked && styles.statCellLocked]}>
+    <View
+      style={[
+        styles.statCell,
+        style,
+        hardLocked && {
+          backgroundColor: lockedTint.backgroundColor,
+          borderWidth: 1,
+          borderColor: lockedTint.borderColor,
+        },
+      ]}
+    >
       <Text
         style={[MONO, SHADOW, styles.caption]}
         className="uppercase text-white/55"
@@ -135,8 +148,15 @@ function StatBody({
         </Text>
       </View>
       <Text
-        style={[MONO, SHADOW, styles.errorText, !error && styles.hiddenText]}
-        className={error?.tone ?? 'text-white/45'}
+        // Over (amber) or under (blue), the same pair as push/pull.
+        style={[
+          MONO,
+          SHADOW,
+          styles.errorText,
+          !error && styles.hiddenText,
+          error?.color ? { color: error.color } : null,
+        ]}
+        className={error?.color ? undefined : 'text-white/45'}
       >
         {error?.text ?? '+0.0'}
       </Text>
@@ -455,8 +475,8 @@ export function MeterReadout({
         >
           {/* The solved (unlocked) axis is the one that went out of range. */}
           {shutter.locked
-            ? 'out of range (f/1–f/64)'
-            : 'out of range (1/8000s–30s)'}
+            ? '⚠ out of range (f/1–f/64)'
+            : '⚠ out of range (1/8000s–30s)'}
         </Text>
       ) : null}
     </View>
@@ -486,11 +506,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderCurve: 'continuous',
     backgroundColor: 'rgba(255,255,255,0.055)',
-  },
-  statCellLocked: {
-    backgroundColor: 'rgba(244,63,94,0.22)',
-    borderWidth: 1,
-    borderColor: 'rgba(244,63,94,0.45)',
   },
   scrubberSlot: {
     flex: 1,
