@@ -1,13 +1,16 @@
 import type { TextStyle } from 'react-native';
 
 /**
- * The meter readout's text style. iOS renders the system font (San Francisco)
- * when no `fontFamily` is set, so this just pins tabular figures so numeric
- * columns stay aligned. Centralized so the readout typeface is a one-token swap
- * (e.g. if we later bundle a custom mono via expo-font). Replaced the per-file
- * `Menlo` constants in the meter components.
+ * The readout text style, shared by the meter readout and the answer-first
+ * calculator readouts. `ui-rounded` is the system rounded face (SF Rounded on
+ * iOS), and tabular figures keep numeric columns and a live-updating value from
+ * shifting width. Centralized so the readout typeface is a one-token swap. It
+ * replaced the per-file `Menlo` constants in the meter components.
  */
-export const readoutText: TextStyle = { fontVariant: ['tabular-nums'] };
+export const readoutText: TextStyle = {
+  fontFamily: 'ui-rounded',
+  fontVariant: ['tabular-nums'],
+};
 
 /** Shared design tokens mirrored from the web palette. */
 export const tokens = {
