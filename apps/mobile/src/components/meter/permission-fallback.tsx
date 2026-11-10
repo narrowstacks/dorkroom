@@ -5,7 +5,7 @@ import { NeutralButton } from '@/components/neutral-button';
 export function PermissionFallback({ onRequest }: { onRequest: () => void }) {
   return (
     <View className="flex-1 items-center justify-center gap-4 bg-[#0b0b0c] p-8">
-      <Text className="text-center text-base text-white/80">
+      <Text className="text-center text-base text-ink-80">
         Dorkroom needs camera access to meter your scene.
       </Text>
       <NeutralButton onPress={onRequest} label="Allow camera" />
@@ -13,7 +13,7 @@ export function PermissionFallback({ onRequest }: { onRequest: () => void }) {
         onPress={() => void Linking.openSettings()}
         accessibilityRole="button"
       >
-        <Text className="text-white/60">Open Settings</Text>
+        <Text className="text-ink-60">Open Settings</Text>
       </Pressable>
     </View>
   );

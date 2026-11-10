@@ -27,7 +27,7 @@ export function GearScreen() {
         <SectionLabel>Cameras</SectionLabel>
         <GlassCard className="gap-2">
           {cameras.length === 0 ? (
-            <Text className="text-white/50">No cameras saved yet.</Text>
+            <Text className="text-ink-50">No cameras saved yet.</Text>
           ) : (
             cameras.map((camera) => (
               <Pressable
@@ -39,14 +39,14 @@ export function GearScreen() {
               >
                 <View className="flex-1">
                   <Text className="text-base text-white">{camera.name}</Text>
-                  <Text className="text-sm text-white/50">
+                  <Text className="text-sm text-ink-50">
                     {formatCameraFormat(camera.format)}
                     {camera.backs?.length
                       ? ` · ${camera.backs.length} ${camera.backs.length === 1 ? 'back' : 'backs'}`
                       : ''}
                   </Text>
                 </View>
-                <Text className="text-white/30">›</Text>
+                <Text className="text-ink-30">›</Text>
               </Pressable>
             ))
           )}
@@ -54,7 +54,7 @@ export function GearScreen() {
         <Pressable
           onPress={() => setCameraEdit({ mode: 'new' })}
           accessibilityRole="button"
-          className="items-center rounded-xl bg-white/10 px-4 py-3"
+          className="items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
         >
           <Text className="text-base text-white">+ Add camera</Text>
         </Pressable>
@@ -64,7 +64,7 @@ export function GearScreen() {
         <SectionLabel>Lenses</SectionLabel>
         <GlassCard className="gap-2">
           {lenses.length === 0 ? (
-            <Text className="text-white/50">No lenses saved yet.</Text>
+            <Text className="text-ink-50">No lenses saved yet.</Text>
           ) : (
             lenses.map((lens) => {
               const owner = cameraName(lens.cameraId) ?? 'Any camera';
@@ -82,12 +82,12 @@ export function GearScreen() {
                 >
                   <View className="flex-1">
                     <Text className="text-base text-white">{lens.name}</Text>
-                    <Text className="text-sm text-white/50">
+                    <Text className="text-sm text-ink-50">
                       {focal}
                       {owner}
                     </Text>
                   </View>
-                  <Text className="text-white/30">›</Text>
+                  <Text className="text-ink-30">›</Text>
                 </Pressable>
               );
             })
@@ -96,7 +96,7 @@ export function GearScreen() {
         <Pressable
           onPress={() => setLensEdit({ mode: 'new' })}
           accessibilityRole="button"
-          className="items-center rounded-xl bg-white/10 px-4 py-3"
+          className="items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
         >
           <Text className="text-base text-white">+ Add lens</Text>
         </Pressable>

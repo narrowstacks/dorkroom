@@ -54,12 +54,12 @@ export function Stepper({
           onIncrement
         );
       }}
-      className="flex-row items-center justify-between rounded-xl bg-white/10 p-2"
+      className="flex-row items-center justify-between rounded-xl border-hw border-line bg-surface p-2"
     >
       <Pressable
         onPressIn={() => repeater.press('decrement')}
         onPressOut={repeater.release}
-        className="h-10 w-12 items-center justify-center rounded-lg bg-white/10"
+        className="h-10 w-12 items-center justify-center rounded-lg border-hw border-line bg-surface"
       >
         <Text className="text-xl text-white">−</Text>
       </Pressable>
@@ -67,7 +67,7 @@ export function Stepper({
       <Pressable
         onPressIn={() => repeater.press('increment')}
         onPressOut={repeater.release}
-        className="h-10 w-12 items-center justify-center rounded-lg bg-white/10"
+        className="h-10 w-12 items-center justify-center rounded-lg border-hw border-line bg-surface"
       >
         <Text className="text-xl text-white">+</Text>
       </Pressable>

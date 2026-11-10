@@ -137,7 +137,7 @@ export function HomeScreen() {
             {cameraLink.title}
           </Text>
           {cameraLink.notes.map((note) => (
-            <Text key={note} className="text-sm text-white/60">
+            <Text key={note} className="text-sm text-ink-60">
               {note}
             </Text>
           ))}
@@ -153,7 +153,7 @@ export function HomeScreen() {
 
       {result && !answer && result.pending ? (
         <GlassCard>
-          <Text className="text-sm text-white/60">
+          <Text className="text-sm text-ink-60">
             {loadError ?? 'Loading recipes and films…'}
           </Text>
         </GlassCard>
@@ -165,7 +165,7 @@ export function HomeScreen() {
       result.groups.length === 0 &&
       toolIds.length === 0 ? (
         <GlassCard className="gap-3">
-          <Text className="text-sm text-white/60">
+          <Text className="text-sm text-ink-60">
             Nothing matches that yet. Name a film, a developer or a size, or try
             one of these.
           </Text>

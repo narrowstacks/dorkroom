@@ -140,7 +140,7 @@ export function TimerScreen() {
       />
 
       {timer.alertsDenied && !idle ? (
-        <Text className="text-center text-xs text-white/50">
+        <Text className="text-center text-xs text-ink-50">
           Notifications are off, so there are no alerts while Dorkroom is in the
           background. Turn them on in the iOS Settings app.
         </Text>
@@ -161,7 +161,7 @@ export function TimerScreen() {
           accessibilityRole="button"
           accessibilityLabel="Edit stages"
           accessibilityState={{ expanded: editing }}
-          className="flex-row items-center justify-center gap-2 rounded-xl bg-white/10 py-3"
+          className="flex-row items-center justify-center gap-2 rounded-xl border-hw border-line bg-surface py-3"
         >
           <Pencil size={16} color="#ffffff" />
           <Text className="text-base font-semibold text-white">
@@ -169,7 +169,7 @@ export function TimerScreen() {
           </Text>
         </Pressable>
       ) : (
-        <Text className="text-center text-xs text-white/40">
+        <Text className="text-center text-xs text-ink-40">
           Reset to edit stages
         </Text>
       )}

@@ -32,7 +32,7 @@ export function BordersSection({ values, set }: BordersSectionProps) {
           </View>
         ))}
       </View>
-      <Text className="text-xs text-white/50">
+      <Text className="text-xs text-ink-50">
         Accepts decimals, fractions, and mixed fractions.
       </Text>
     </View>

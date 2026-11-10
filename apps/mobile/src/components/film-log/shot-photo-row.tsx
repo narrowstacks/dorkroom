@@ -16,7 +16,7 @@ export function ShotPhotoRow({ photo, onChoose, onRemove }: ShotPhotoRowProps) {
   const [viewerOpen, setViewerOpen] = useState(false);
   return (
     <View className="gap-2">
-      <Text className="text-sm text-white/60">Photo</Text>
+      <Text className="text-sm text-ink-60">Photo</Text>
       {photo ? (
         <View className="flex-row items-center gap-3">
           <Pressable
@@ -33,14 +33,14 @@ export function ShotPhotoRow({ photo, onChoose, onRemove }: ShotPhotoRowProps) {
           <Pressable
             onPress={() => setViewerOpen(true)}
             accessibilityRole="button"
-            className="rounded-xl bg-white/10 px-4 py-3"
+            className="rounded-xl border-hw border-line bg-surface px-4 py-3"
           >
             <Text className="text-base text-white">View</Text>
           </Pressable>
           <Pressable
             onPress={onRemove}
             accessibilityRole="button"
-            className="rounded-xl bg-white/10 px-4 py-3"
+            className="rounded-xl border-hw border-line bg-surface px-4 py-3"
           >
             <Text className="text-base text-rose-400">Remove</Text>
           </Pressable>
@@ -49,7 +49,7 @@ export function ShotPhotoRow({ photo, onChoose, onRemove }: ShotPhotoRowProps) {
         <Pressable
           onPress={onChoose}
           accessibilityRole="button"
-          className="items-center rounded-xl bg-white/10 px-4 py-3"
+          className="items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
         >
           <Text className="text-base text-white">Choose from library</Text>
         </Pressable>

@@ -31,7 +31,7 @@ export function SliderRow({
   return (
     <View className="gap-2">
       <View className="flex-row items-center justify-between">
-        <Text className="text-sm text-white/60">{label}</Text>
+        <Text className="text-sm text-ink-60">{label}</Text>
         <Text className="text-base font-semibold text-white">
           {displayValue}
         </Text>
@@ -49,8 +49,8 @@ export function SliderRow({
       />
       {minLabel !== undefined && maxLabel !== undefined ? (
         <View className="flex-row justify-between">
-          <Text className="text-xs text-white/40">{minLabel}</Text>
-          <Text className="text-xs text-white/40">{maxLabel}</Text>
+          <Text className="text-xs text-ink-40">{minLabel}</Text>
+          <Text className="text-xs text-ink-40">{maxLabel}</Text>
         </View>
       ) : null}
     </View>

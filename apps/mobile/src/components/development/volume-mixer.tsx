@@ -95,7 +95,7 @@ export function VolumeMixer({ dilutionString }: VolumeMixerProps) {
         </View>
 
         {stock ? (
-          <Text className="text-sm text-white/60">
+          <Text className="text-sm text-ink-60">
             No mixing needed — use developer stock (undiluted).
           </Text>
         ) : null}
@@ -143,7 +143,7 @@ export function VolumeMixer({ dilutionString }: VolumeMixerProps) {
                 label="Water"
                 value={volumes ? formatVolume(volumes.water, unit) : '—'}
               />
-              <Text className="mt-1 text-sm text-white/50">
+              <Text className="mt-1 text-sm text-ink-50">
                 {formatDilutionDescription(parsed)}
               </Text>
             </View>

@@ -13,11 +13,11 @@ export function Badge({ label, tone = 'neutral' }: BadgeProps) {
   const accent = tone === 'accent';
   return (
     <View
-      className={`rounded-full px-2.5 py-1 ${accent ? '' : 'bg-white/10'}`}
+      className={`rounded-full px-2.5 py-1 ${accent ? '' : 'border-hw border-line bg-surface'}`}
       style={accent ? { backgroundColor: tint.backgroundColor } : undefined}
     >
       <Text
-        className={`text-xs font-medium ${accent ? '' : 'text-white/70'}`}
+        className={`text-xs font-medium ${accent ? '' : 'text-ink-70'}`}
         style={accent ? { color: tint.color } : undefined}
       >
         {label}

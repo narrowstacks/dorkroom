@@ -52,7 +52,7 @@ export function SettingsScreen() {
             value={cuesInSilent}
             onChange={setCuesInSilent}
           />
-          <Text className="text-xs text-white/50">
+          <Text className="text-xs text-ink-50">
             Off by default, so the silent switch mutes the timer beeps. Alerts
             while Dorkroom is in the background always follow the switch.
           </Text>

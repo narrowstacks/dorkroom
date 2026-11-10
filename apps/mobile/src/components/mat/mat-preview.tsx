@@ -103,7 +103,7 @@ function BorderLabel({ geometry, edge, value }: BorderLabelProps) {
         adjustsFontSizeToFit
         minimumFontScale={0.7}
         numberOfLines={1}
-        className="text-xs font-semibold text-black/70"
+        className="text-xs font-semibold text-paper-ink"
       >
         {value}
       </Text>
@@ -167,7 +167,7 @@ export function MatPreview({
           <View
             accessible={false}
             style={rectStyle(geometry.board)}
-            className="absolute overflow-hidden rounded-lg bg-neutral-400"
+            className="absolute overflow-hidden rounded-lg bg-paper"
           />
           {geometry.artwork ? (
             <View
@@ -182,7 +182,7 @@ export function MatPreview({
           <View
             accessible={false}
             style={[rectStyle(geometry.window), { borderColor: hue }]}
-            className="absolute border bg-[#161618]"
+            className="absolute border bg-window"
           />
           <View
             accessible={false}
@@ -195,7 +195,7 @@ export function MatPreview({
               adjustsFontSizeToFit
               minimumFontScale={0.7}
               numberOfLines={1}
-              className="text-center text-xs font-semibold text-white/70"
+              className="text-center text-xs font-semibold text-ink-70"
             >
               {fmt(windowW)} × {fmt(windowH)}
             </Text>
@@ -208,9 +208,9 @@ export function MatPreview({
       ) : (
         <View
           accessible={false}
-          className="h-56 w-full items-center justify-center rounded-lg bg-white/5"
+          className="h-56 w-full items-center justify-center rounded-lg border-hw border-line bg-surface-dim"
         >
-          <Text accessible={false} className="text-sm text-white/50">
+          <Text accessible={false} className="text-sm text-ink-50">
             Enter a valid mat and borders.
           </Text>
         </View>

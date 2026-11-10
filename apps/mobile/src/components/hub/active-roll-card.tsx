@@ -20,7 +20,7 @@ function StartRollPrompt() {
       className="active:opacity-60"
     >
       <GlassCard compact className="flex-row items-center justify-between">
-        <Text className="text-sm text-white/60">No active roll</Text>
+        <Text className="text-sm text-ink-60">No active roll</Text>
         <Text className="text-sm font-medium" style={{ color: hue }}>
           Start a roll
         </Text>
@@ -49,7 +49,7 @@ export function ActiveRollCard() {
         <View className="shrink gap-1">
           <SectionLabel>Active roll</SectionLabel>
           <Text className="text-lg font-semibold text-white">{title}</Text>
-          <Text className="text-sm text-white/60">{subtitle}</Text>
+          <Text className="text-sm text-ink-60">{subtitle}</Text>
         </View>
         <ChevronRight size={18} color="rgba(255,255,255,0.4)" />
       </GlassCard>

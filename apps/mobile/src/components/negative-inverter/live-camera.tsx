@@ -66,7 +66,7 @@ export function LiveCamera(props: LiveCameraProps) {
         {() => (
           <View className="flex-1 justify-center">
             <GlassCard className="gap-4">
-              <Text className="text-base text-white/80">
+              <Text className="text-base text-ink-80">
                 {!device
                   ? 'No camera is available on this device.'
                   : canRequestPermission
@@ -238,7 +238,7 @@ function LiveSession({
                   className="items-center justify-center gap-2 rounded-xl bg-black"
                 >
                   <ActivityIndicator color="#ffffff" />
-                  <Text className="text-sm text-white/70">
+                  <Text className="text-sm text-ink-70">
                     Starting camera...
                   </Text>
                 </View>

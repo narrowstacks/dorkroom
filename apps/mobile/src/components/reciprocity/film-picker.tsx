@@ -67,16 +67,16 @@ export function FilmPicker({ films, value, onChange }: FilmPickerProps) {
 
   return (
     <View className="gap-1">
-      <Text className="text-sm text-white/60">Film</Text>
+      <Text className="text-sm text-ink-60">Film</Text>
       <Pressable
         onPress={() => setOpen(true)}
         accessibilityRole="button"
-        className="flex-row items-center justify-between rounded-xl bg-white/10 px-4 py-3"
+        className="flex-row items-center justify-between rounded-xl border-hw border-line bg-surface px-4 py-3"
       >
         <Text className="text-base text-white">
           {selected?.label ?? 'Select film'}
         </Text>
-        <Text className="text-white/70">▾</Text>
+        <Text className="text-ink-70">▾</Text>
       </Pressable>
       <BottomSheet
         visible={open}

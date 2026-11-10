@@ -14,10 +14,10 @@ export interface StatusChipViewProps {
 }
 
 const TONES = {
-  neutral: { fill: 'border border-white/15 bg-black/70', ink: 'text-white/90' },
-  info: { fill: 'border border-white/15 bg-black/70', ink: 'text-amber-300' },
+  neutral: { fill: 'border border-edge-15 bg-black/70', ink: 'text-white/90' },
+  info: { fill: 'border border-edge-15 bg-black/70', ink: 'text-amber-300' },
   alert: { fill: 'bg-rose-600', ink: 'text-white' },
-  ok: { fill: 'border border-white/15 bg-black/70', ink: 'text-emerald-300' },
+  ok: { fill: 'border border-edge-15 bg-black/70', ink: 'text-ok' },
 } satisfies Record<ChipTone, { fill: string; ink: string }>;
 
 /**

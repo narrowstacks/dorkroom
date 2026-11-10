@@ -12,13 +12,13 @@ export function NavRow({ label, value, onPress }: NavRowProps) {
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      className="flex-row items-center justify-between rounded-xl bg-white/10 px-4 py-3"
+      className="flex-row items-center justify-between rounded-xl border-hw border-line bg-surface px-4 py-3"
     >
       <View className="gap-0.5">
-        <Text className="text-xs text-white/50">{label}</Text>
+        <Text className="text-xs text-ink-50">{label}</Text>
         <Text className="text-base font-semibold text-white">{value}</Text>
       </View>
-      <Text className="text-lg text-white/40">›</Text>
+      <Text className="text-lg text-ink-40">›</Text>
     </Pressable>
   );
 }

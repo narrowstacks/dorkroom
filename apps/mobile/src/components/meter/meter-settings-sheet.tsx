@@ -35,16 +35,16 @@ export function MeterSettingsSheet({
             value={linkFilmLog}
             onChange={setLinkFilmLog}
           />
-          <Text className="px-1 text-xs text-white/50">
+          <Text className="px-1 text-xs text-ink-50">
             Show the active roll and EI lock, pin ISO to the roll's EI, and log
             shots from the shutter. Turn off for a clean, standalone meter.
           </Text>
         </View>
 
-        <View className="flex-row items-center justify-between rounded-xl bg-white/5 px-4 py-3">
+        <View className="flex-row items-center justify-between rounded-xl border-hw border-line bg-surface-dim px-4 py-3">
           <View className="flex-1 pr-3">
             <Text className="text-base text-white">Calibration</Text>
-            <Text className="text-xs text-white/50">
+            <Text className="text-xs text-ink-50">
               Offset every reading to match a reference meter.
             </Text>
           </View>

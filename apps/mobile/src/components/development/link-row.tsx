@@ -24,7 +24,7 @@ export function LinkRow({ label, url, sublabel }: LinkRowProps) {
           {label}
         </Text>
         {sublabel ? (
-          <Text className="text-sm text-white/50" numberOfLines={1}>
+          <Text className="text-sm text-ink-50" numberOfLines={1}>
             {sublabel}
           </Text>
         ) : null}

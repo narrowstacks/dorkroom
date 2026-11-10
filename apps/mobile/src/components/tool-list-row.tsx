@@ -22,7 +22,7 @@ export function ToolListRow({
     >
       <Text className="text-base text-white">{label}</Text>
       {accessoryText === undefined ? null : (
-        <Text className="text-white/40">{accessoryText}</Text>
+        <Text className="text-ink-40">{accessoryText}</Text>
       )}
     </Pressable>
   );

@@ -81,13 +81,13 @@ export function FocusPanel({
         >
           <Text
             maxFontSizeMultiplier={CHROME_TEXT_SCALE}
-            className="text-xs text-white/50"
+            className="text-xs text-ink-50"
           >
             Near
           </Text>
           <Text
             maxFontSizeMultiplier={CHROME_TEXT_SCALE}
-            className="text-xs text-white/50"
+            className="text-xs text-ink-50"
           >
             Far
           </Text>

@@ -76,7 +76,7 @@ export function CameraForm({ visible, camera, onClose }: CameraFormProps) {
         />
 
         <View className="gap-2">
-          <Text className="text-sm text-white/60">
+          <Text className="text-sm text-ink-60">
             Holders / backs (optional)
           </Text>
           {form.backs.length > 0 ? (
@@ -92,10 +92,10 @@ export function CameraForm({ visible, camera, onClose }: CameraFormProps) {
                   }
                   accessibilityRole="button"
                   accessibilityLabel={`Remove ${back}`}
-                  className="flex-row items-center gap-1 rounded-full bg-white/10 px-3 py-1.5"
+                  className="flex-row items-center gap-1 rounded-full border-hw border-line bg-surface px-3 py-1.5"
                 >
                   <Text className="text-white">{back}</Text>
-                  <Text className="text-white/40">×</Text>
+                  <Text className="text-ink-40">×</Text>
                 </Pressable>
               ))}
             </View>
@@ -113,7 +113,7 @@ export function CameraForm({ visible, camera, onClose }: CameraFormProps) {
               onPress={addBack}
               accessibilityRole="button"
               accessibilityLabel="Add holder"
-              className="self-end rounded-xl bg-white/10 px-4 py-3"
+              className="self-end rounded-xl border-hw border-line bg-surface px-4 py-3"
             >
               <Text className="text-base text-white">Add</Text>
             </Pressable>
@@ -134,7 +134,7 @@ export function CameraForm({ visible, camera, onClose }: CameraFormProps) {
           <Pressable
             onPress={onDelete}
             accessibilityRole="button"
-            className="items-center rounded-xl bg-white/10 px-4 py-3"
+            className="items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
           >
             <Text className="text-base text-rose-400">Delete camera</Text>
           </Pressable>

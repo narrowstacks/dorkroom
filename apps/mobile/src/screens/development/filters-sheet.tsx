@@ -123,14 +123,14 @@ export function FiltersSheet({
         <Pressable
           onPress={resetSortAndFilters}
           accessibilityRole="button"
-          className="mt-1 items-center rounded-xl bg-white/10 px-4 py-3"
+          className="mt-1 items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
         >
           <Text className="text-base font-semibold text-white">
             Reset sort &amp; filters
           </Text>
         </Pressable>
 
-        <Text className="text-center text-sm text-white/40">
+        <Text className="text-center text-sm text-ink-40">
           {matchCount} {matchCount === 1 ? 'recipe matches' : 'recipes match'}
         </Text>
       </ScrollView>

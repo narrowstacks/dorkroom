@@ -44,7 +44,7 @@ export function MeterRollPill() {
         <View className="gap-2">
           {activeRolls.length === 0 ? (
             <>
-              <Text className="text-white/60">
+              <Text className="text-ink-60">
                 No active rolls. Start one to log shots from the meter.
               </Text>
               <NeutralButton
@@ -71,7 +71,7 @@ export function MeterRollPill() {
                   style={selectableRowStyle(tint, selected)}
                 >
                   <Text className="text-base text-white">{rollLabel(r)}</Text>
-                  <Text className="text-sm text-white/50">
+                  <Text className="text-sm text-ink-50">
                     {r.filmStockName ?? 'No film'} ·{' '}
                     {shotCountLabel(r.shots.length)}
                   </Text>

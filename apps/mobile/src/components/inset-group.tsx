@@ -15,12 +15,12 @@ export function InsetGroup({ children, className }: InsetGroupProps) {
   const items = Children.toArray(children).filter(isValidElement);
   return (
     <View
-      className={`overflow-hidden rounded-2xl border border-white/10 bg-white/[0.07] ${className ?? ''}`}
+      className={`overflow-hidden rounded-2xl border border-edge bg-surface-inset ${className ?? ''}`}
     >
       {items.map((child, index) => (
         <View
           key={child.key}
-          className={index > 0 ? 'border-t border-white/10' : ''}
+          className={index > 0 ? 'border-t border-edge' : ''}
         >
           {child}
         </View>

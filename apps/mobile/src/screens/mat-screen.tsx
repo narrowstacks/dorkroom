@@ -67,7 +67,7 @@ function MatScreenBody({ overrides }: MatScreenBodyProps) {
           windowH={calc.windowH}
           fmt={calc.fmt}
         />
-        <Text className="text-center text-sm text-white/60">
+        <Text className="text-center text-sm text-ink-60">
           Window {calc.fmt(calc.windowW)} × {calc.fmt(calc.windowH)}
         </Text>
       </GlassCard>
@@ -106,9 +106,9 @@ function MatScreenBody({ overrides }: MatScreenBodyProps) {
         onPress={resetToDefaults}
         accessibilityRole="button"
         accessibilityLabel="Reset mat calculator to defaults"
-        className="items-center rounded-full border border-white/15 py-3 active:opacity-60"
+        className="items-center rounded-full border border-edge-15 py-3 active:opacity-60"
       >
-        <Text className="font-semibold text-white/80">Reset to defaults</Text>
+        <Text className="font-semibold text-ink-80">Reset to defaults</Text>
       </Pressable>
 
       <BottomSheet

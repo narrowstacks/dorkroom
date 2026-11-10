@@ -18,7 +18,7 @@ const STATUS_LABEL = {
 // Static — hoisted so it isn't rebuilt on every render.
 const EMPTY_STATE = (
   <View className="items-center gap-2 px-6 py-16">
-    <Text className="text-center text-base text-white/60">
+    <Text className="text-center text-base text-ink-60">
       No rolls yet. Start one to log your shots.
     </Text>
   </View>
@@ -70,18 +70,18 @@ export function FilmListScreen() {
               >
                 {item.name?.trim() ? item.name : film}
               </Text>
-              <Text className="text-xs uppercase tracking-wide text-white/50">
+              <Text className="text-xs uppercase tracking-wide text-ink-50">
                 {STATUS_LABEL[item.status]}
               </Text>
             </View>
-            <Text className="text-sm text-white/60" numberOfLines={1}>
+            <Text className="text-sm text-ink-60" numberOfLines={1}>
               {subtitle}
             </Text>
             <View className="flex-row items-center justify-between">
-              <Text className="text-sm text-white/40">
+              <Text className="text-sm text-ink-40">
                 {item.shots.length} {item.shots.length === 1 ? 'shot' : 'shots'}
               </Text>
-              <Text className="text-sm text-white/40">{startedLabel}</Text>
+              <Text className="text-sm text-ink-40">{startedLabel}</Text>
             </View>
           </GlassCard>
         </Pressable>
@@ -100,14 +100,14 @@ export function FilmListScreen() {
         <Pressable
           onPress={() => router.push('/shoot/film-log/gear')}
           accessibilityRole="button"
-          className="flex-1 items-center rounded-xl bg-white/10 px-4 py-3"
+          className="flex-1 items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
         >
           <Text className="text-base text-white">Cameras & lenses</Text>
         </Pressable>
         <Pressable
           onPress={onExport}
           accessibilityRole="button"
-          className="flex-1 items-center rounded-xl bg-white/10 px-4 py-3"
+          className="flex-1 items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
         >
           <Text className="text-base text-white">Export data</Text>
         </Pressable>

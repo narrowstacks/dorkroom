@@ -40,25 +40,25 @@ export function PickerField<T extends string | number>({
 
   return (
     <View className="gap-1">
-      <Text className="text-sm text-white/60">{label}</Text>
+      <Text className="text-sm text-ink-60">{label}</Text>
       <Pressable
         onPress={() => setOpen(true)}
         accessibilityRole="button"
         accessibilityLabel={`${label}: ${selected?.label ?? placeholder}`}
         accessibilityHint="Opens a list to choose from"
-        className="min-h-11 flex-row items-center justify-between gap-3 rounded-xl bg-white/10 px-4 py-3"
+        className="min-h-11 flex-row items-center justify-between gap-3 rounded-xl border-hw border-line bg-surface px-4 py-3"
       >
         <View className="flex-1">
           <Text className="text-base text-white" numberOfLines={1}>
             {selected?.label ?? placeholder}
           </Text>
           {selected?.sublabel ? (
-            <Text className="text-sm text-white/50" numberOfLines={1}>
+            <Text className="text-sm text-ink-50" numberOfLines={1}>
               {selected.sublabel}
             </Text>
           ) : null}
         </View>
-        <Text className="text-white/70">▾</Text>
+        <Text className="text-ink-70">▾</Text>
       </Pressable>
       <OptionPickerSheet
         visible={open}

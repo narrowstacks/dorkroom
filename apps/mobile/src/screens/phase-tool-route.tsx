@@ -14,7 +14,7 @@ export function PhaseToolRoute({ phase }: { phase: Phase }) {
   if (!ScreenComponent) {
     return (
       <View className="flex-1 items-center justify-center">
-        <Text className="text-white/60">Unknown tool.</Text>
+        <Text className="text-ink-60">Unknown tool.</Text>
       </View>
     );
   }

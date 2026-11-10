@@ -93,16 +93,16 @@ export function RollDetailScreen() {
                   : exposureSummary(item, roll?.iso)}
               </Text>
               {meta ? (
-                <Text className="text-sm text-white/50">{meta}</Text>
+                <Text className="text-sm text-ink-50">{meta}</Text>
               ) : null}
               {item.notes ? (
-                <Text className="text-sm text-white/40" numberOfLines={1}>
+                <Text className="text-sm text-ink-60" numberOfLines={1}>
                   {item.notes}
                 </Text>
               ) : null}
             </View>
             {item.source === 'meter' ? (
-              <Text className="text-xs uppercase text-white/40">meter</Text>
+              <Text className="text-xs uppercase text-ink-40">meter</Text>
             ) : null}
           </GlassCard>
         </Pressable>
@@ -114,7 +114,7 @@ export function RollDetailScreen() {
   if (!roll) {
     return (
       <View className="flex-1 items-center justify-center bg-[#0b0b0c]">
-        <Text className="text-white/60">Roll not found.</Text>
+        <Text className="text-ink-60">Roll not found.</Text>
       </View>
     );
   }
@@ -126,16 +126,16 @@ export function RollDetailScreen() {
   const header = (
     <View className="gap-3 pb-2">
       <GlassCard className="gap-1">
-        <Text className="text-sm text-white/60">{cameraName}</Text>
+        <Text className="text-sm text-ink-60">{cameraName}</Text>
         <Text className="text-base text-white">
           {roll.filmStockName ?? 'No film set'} · {formatProcess(roll.process)}
           {roll.iso !== undefined ? ` · EI ${roll.iso}` : ''}
         </Text>
         {roll.back ? (
-          <Text className="text-sm text-white/50">Back: {roll.back}</Text>
+          <Text className="text-sm text-ink-50">Back: {roll.back}</Text>
         ) : null}
         {roll.notes ? (
-          <Text className="text-sm text-white/40">{roll.notes}</Text>
+          <Text className="text-sm text-ink-60">{roll.notes}</Text>
         ) : null}
       </GlassCard>
       <View className="flex-row gap-3">
@@ -144,14 +144,14 @@ export function RollDetailScreen() {
             router.push(`/shoot/film-log/roll-form?rollId=${roll.id}`)
           }
           accessibilityRole="button"
-          className="flex-1 items-center rounded-xl bg-white/10 px-4 py-3"
+          className="flex-1 items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
         >
           <Text className="text-base text-white">Edit roll</Text>
         </Pressable>
         <Pressable
           onPress={onDelete}
           accessibilityRole="button"
-          className="flex-1 items-center rounded-xl bg-white/10 px-4 py-3"
+          className="flex-1 items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
         >
           <Text className="text-base text-rose-400">Delete</Text>
         </Pressable>
@@ -174,7 +174,7 @@ export function RollDetailScreen() {
         keyExtractor={(shot) => shot.id}
         ListHeaderComponent={header}
         ListEmptyComponent={
-          <Text className="px-2 py-6 text-center text-white/50">
+          <Text className="px-2 py-6 text-center text-ink-50">
             No shots logged yet.
           </Text>
         }

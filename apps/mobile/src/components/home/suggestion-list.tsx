@@ -40,8 +40,8 @@ export function SuggestionList({
           >
             {suggestion.label}
           </Text>
-          <View className="rounded-lg bg-white/10 px-2 py-0.5">
-            <Text className="text-xs text-white/60">
+          <View className="rounded-lg border-hw border-line bg-surface px-2 py-0.5">
+            <Text className="text-xs text-ink-60">
               {HINT_LABELS[suggestion.hint]}
             </Text>
           </View>
