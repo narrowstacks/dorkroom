@@ -2,6 +2,7 @@ import { useQuickActionRouting } from 'expo-quick-actions/router';
 import { usePathname } from 'expo-router';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { useEffect } from 'react';
+import { useLinkHandoff } from '@/hooks/use-link-handoff';
 import { toolIdForPath } from '@/lib/deep-link';
 import { routeQuickAction } from '@/lib/quick-action';
 import { recordToolUse } from '@/lib/recent-store';
@@ -27,6 +28,7 @@ const NEUTRAL_SELECTED = '#ffffff';
 export default function TabsLayout() {
   useQuickActionRouting(routeQuickAction);
   const pathname = usePathname();
+  useLinkHandoff();
 
   // Home resumes from the tools last opened; this is where "opened" is seen,
   // whichever way the tool was reached (hub, Home, deep link, quick action).

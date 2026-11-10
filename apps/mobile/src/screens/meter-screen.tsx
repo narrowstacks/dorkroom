@@ -33,6 +33,7 @@ import { SegmentedPill } from '@/components/meter/segmented-pill';
 import { useDragOffset } from '@/components/meter/use-drag-offset';
 import { useCalibration } from '@/hooks/use-calibration';
 import { useCameraMeter } from '@/hooks/use-camera-meter';
+import { useHeaderClearance } from '@/hooks/use-header-clearance';
 import { useMeterCapture } from '@/hooks/use-meter-capture';
 import { useMeterIsoLock } from '@/hooks/use-meter-iso-lock';
 import {
@@ -210,6 +211,9 @@ function MeterBottomControls({
 
 export function MeterScreen() {
   const insets = useSafeAreaInsets();
+  // The viewfinder is full-bleed under a transparent native header (Back,
+  // title), so the top controls start below the header, not the status bar.
+  const topControlsTop = useHeaderClearance(10);
   const { offset: calibrationOffset, adjust: handleCalibrationChange } =
     useCalibration();
   const meter = useCameraMeter(calibrationOffset);
@@ -400,7 +404,7 @@ export function MeterScreen() {
       ) : null}
 
       <MeterTopControls
-        top={insets.top + 10}
+        top={topControlsTop}
         rollIso={rollIso}
         isoLocked={isoLocked}
         toggleLock={toggleLock}

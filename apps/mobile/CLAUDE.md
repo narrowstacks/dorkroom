@@ -104,8 +104,27 @@ scheme (`APP_SCHEME`, checked against `app.json`) is rewritten and everything
 else, `https://` and `exp+dorkroom://` included, passes through. Quick actions bypass that hook: the router calls
 `router.navigate` itself, so `src/lib/quick-action-route.ts` (wired in
 `quick-action.ts`) is the `useQuickActionRouting` callback that resolves the href and navigates with an
-anchor. Don't repoint them without a native rebuild; keep the resolver table
+anchor, through the warm-link handoff below when the tool's phase is not on screen. Don't repoint them without a native rebuild; keep the resolver table
 true instead.
+
+**Warm links into a hidden tab go in two steps.** A link that arrives while the
+app is running and goes straight to a tool in a tab that is not on screen can
+pop screens off that tab while it is being selected, and the native stack then
+draws the wrong header (or the hub) over the right screen (the JS state is
+correct; the native view is stale). So a warm link into a tab that is not on
+screen resets that tab's stack to its hub before opening the target, while a
+link into the tab on screen navigates directly and keeps the user's place.
+`handOffWarmLink` (`src/lib/link-handoff.ts`) decides: for a phase link whose
+phase is not the current route's (another phase, Home or an unknown route) it
+keeps the real target in an in-memory handoff and `redirectSystemPath` returns
+the phase hub (`/develop`). `useLinkHandoff` (mounted in the tabs layout, which
+also reports the current route to the handoff) then opens the target with
+`router.navigate` once the hub is the current route. It hands the target over
+exactly once, drops it after 2s or when the user lands elsewhere first, and a
+newer link replaces an older pending one. Quick actions use the same decision.
+Cold links skip all of this: they build the stack fresh and were always right.
+Because the hub is the page underneath, a handed-off link's Back button names the
+phase hub, never the tool that happened to be open.
 
 **Calculator links.** Home answers open a calculator pre-filled by passing the
 link's params (`xCalculatorLink.build`) as search params on the tool's route.
@@ -136,7 +155,9 @@ Add that wrapper to any new calculator screen that Home can link to.
   names the screen, so don't render a redundant `<Text>Reciprocity</Text>`
   heading.
 - Wrap normal content in `<Screen>` (scrolls, padding 16, gap 16, bg `#0b0b0c`).
-  Full-bleed screens (the camera meter) skip it.
+  Full-bleed screens (the camera meter) skip it. The Meter is `fixedLayout`
+  (standard title, never large), and offsets its top controls by the real header
+  height (`HeaderHeightContext`) so they sit below the Back button and title.
 - **Answer-first calculators** (Exposure, Reciprocity, Camera Exposure, Lenses,
   Resize): the result is a `Readout` passed to `<Screen header={...}>`, a
   non-scrolling slot above the scroll view that clears the native header when

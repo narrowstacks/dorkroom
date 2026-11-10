@@ -66,6 +66,7 @@ const TOOL_LIST = [
     phase: 'shoot',
     blurb: 'Light meter',
     kind: 'screen',
+    fixedLayout: true,
   },
   {
     id: 'film-log',

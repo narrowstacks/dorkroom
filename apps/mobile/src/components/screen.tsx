@@ -1,8 +1,7 @@
-import { HeaderHeightContext } from 'expo-router/react-navigation';
-import { type ReactNode, useContext } from 'react';
+import type { ReactNode } from 'react';
 import { ScrollView, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GradientBackground } from '@/components/gradient-background';
+import { useHeaderClearance } from '@/hooks/use-header-clearance';
 
 interface ScreenProps {
   children: ReactNode;
@@ -20,22 +19,8 @@ export const SCREEN_PADDING = 16;
 const BELOW_NAV_BAR = 12;
 const BELOW_STATUS_BAR = 8;
 
-/**
- * Space the pinned header must clear. Pushed in a phase stack the transparent
- * native header overlays the content, so it is that header's height; as a tab
- * root there is no navigation header, so it is the top safe-area inset. The
- * context (not the throwing hook) is read because it is absent or 0 without one.
- */
-function usePinnedHeaderTop(): number {
-  const headerHeight = useContext(HeaderHeightContext);
-  const insets = useSafeAreaInsets();
-  return headerHeight !== undefined && headerHeight > 0
-    ? headerHeight + BELOW_NAV_BAR
-    : insets.top + BELOW_STATUS_BAR;
-}
-
 function PinnedHeader({ children }: { children: ReactNode }) {
-  const top = usePinnedHeaderTop();
+  const top = useHeaderClearance(BELOW_NAV_BAR, BELOW_STATUS_BAR);
   return (
     <View
       style={{

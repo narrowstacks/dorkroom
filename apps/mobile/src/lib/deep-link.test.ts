@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { redirectSystemPath } from '../../app/+native-intent';
 import {
   APP_SCHEME,
@@ -9,6 +9,11 @@ import {
   resolveLegacyPath,
   toolIdForPath,
 } from './deep-link';
+import {
+  clearPendingLink,
+  setCurrentPath,
+  takePendingLink,
+} from './link-handoff';
 
 describe('resolveLegacyPath', () => {
   const cases: [string, string, string][] = [
@@ -206,20 +211,80 @@ describe('resolveIncomingLink', () => {
 });
 
 describe('redirectSystemPath', () => {
+  beforeEach(() => {
+    clearPendingLink();
+    setCurrentPath('/');
+  });
+
   // expo-router calls it with the full URL, cold (initial) and warm.
-  for (const initial of [true, false]) {
-    const when = initial ? 'cold' : 'warm';
-    it(`rewrites dorkroom:// links, ${when}`, () => {
-      const go = (path: string) => redirectSystemPath({ path, initial });
-      expect(go('dorkroom://meter')).toBe('/shoot/meter');
-      expect(go('dorkroom://more/meter')).toBe('/shoot/meter');
-      expect(go('dorkroom://development/recipe/x')).toBe(
-        '/develop/recipes/recipe/x'
-      );
-      expect(go('dorkroom://print/exposure')).toBe('dorkroom://print/exposure');
-      expect(go('https://example.com/meter')).toBe('https://example.com/meter');
-    });
-  }
+  it('rewrites dorkroom:// links, cold', () => {
+    const go = (path: string) => redirectSystemPath({ path, initial: true });
+    expect(go('dorkroom://meter')).toBe('/shoot/meter');
+    expect(go('dorkroom://more/meter')).toBe('/shoot/meter');
+    expect(go('dorkroom://development/recipe/x')).toBe(
+      '/develop/recipes/recipe/x'
+    );
+    expect(go('dorkroom://print/exposure')).toBe('dorkroom://print/exposure');
+    expect(go('https://example.com/meter')).toBe('https://example.com/meter');
+    expect(takePendingLink()).toBeNull();
+  });
+
+  // A warm link selects the phase hub and leaves the target for the handoff.
+  it('sends a warm phase link to its hub and keeps the target pending', () => {
+    const go = (path: string) => redirectSystemPath({ path, initial: false });
+    for (const [url, hub, target] of [
+      ['dorkroom://meter', '/shoot', '/shoot/meter'],
+      ['dorkroom://more/meter', '/shoot', '/shoot/meter'],
+      [
+        'dorkroom://development/recipe/x',
+        '/develop',
+        '/develop/recipes/recipe/x',
+      ],
+      ['dorkroom://print/exposure', '/print', '/print/exposure'],
+    ]) {
+      expect(go(url), url).toBe(hub);
+      expect(takePendingLink(), url).toBe(target);
+    }
+  });
+
+  it('keeps the query and hash on a handed-over target', () => {
+    const go = (path: string) => redirectSystemPath({ path, initial: false });
+    expect(go('dorkroom://shoot/film-log?roll=7#top')).toBe('/shoot');
+    expect(takePendingLink()).toBe('/shoot/film-log?roll=7#top');
+    expect(go('dorkroom://development/recipe/x?a=1')).toBe('/develop');
+    expect(takePendingLink()).toBe('/develop/recipes/recipe/x?a=1');
+  });
+
+  it('folds the case of a warm link that only needed that', () => {
+    const go = (path: string) => redirectSystemPath({ path, initial: false });
+    expect(go('dorkroom://Shoot/meter')).toBe('/shoot');
+    expect(takePendingLink()).toBe('/shoot/meter');
+  });
+
+  it('never hands over a protocol-relative target', () => {
+    const go = (path: string) => redirectSystemPath({ path, initial: false });
+    expect(go('dorkroom:///shoot/meter')).toBe('/shoot');
+    expect(takePendingLink()).toBe('/shoot/meter');
+  });
+
+  it('navigates a warm link into the tab on screen directly', () => {
+    const go = (path: string) => redirectSystemPath({ path, initial: false });
+    setCurrentPath('/shoot/film-log/shot');
+    expect(go('dorkroom://meter')).toBe('/shoot/meter');
+    expect(go('dorkroom://shoot/film-log')).toBe('dorkroom://shoot/film-log');
+    expect(takePendingLink()).toBeNull();
+    // From another phase it still goes through the hub.
+    setCurrentPath('/print/mat');
+    expect(go('dorkroom://meter')).toBe('/shoot');
+    expect(takePendingLink()).toBe('/shoot/meter');
+  });
+
+  it('leaves a warm link outside a phase alone', () => {
+    const go = (path: string) => redirectSystemPath({ path, initial: false });
+    expect(go('https://example.com/meter')).toBe('https://example.com/meter');
+    expect(go('dorkroom://')).toBe('dorkroom://');
+    expect(takePendingLink()).toBeNull();
+  });
 });
 
 describe('APP_SCHEME', () => {

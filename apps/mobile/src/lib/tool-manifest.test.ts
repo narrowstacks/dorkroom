@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { redirectSystemPath } from '../../app/+native-intent';
 import { resolveLegacyPath } from './deep-link';
+import { takePendingLink } from './link-handoff';
 import { PHASES, recordsLastResult, settingsRoute, TOOLS } from './tools';
 
 // Parity and pin tests for the iOS tool manifest (#455). `TOOLS` in
@@ -82,6 +83,7 @@ describe('iOS tool registry (pinned)', () => {
 describe('fixed-layout and answer-first tools', () => {
   it('pins which screens fill the space instead of scrolling', () => {
     expect(TOOLS.filter((t) => t.fixedLayout).map((t) => t.id)).toEqual([
+      'meter',
       'negative-inverter',
     ]);
   });
@@ -283,11 +285,15 @@ describe('legacy entry points still land on a tool', () => {
         const toolId = toolIdOf.get(page);
         // The Swift string, scheme included, as expo-router receives it.
         const url = `dorkroom:/${path}`;
-        for (const initial of [true, false]) {
-          expect(redirectSystemPath({ path: url, initial }), url).toBe(
-            canonicalOf(toolId ?? '')
-          );
-        }
+        const canonical = canonicalOf(toolId ?? '') ?? '';
+        expect(redirectSystemPath({ path: url, initial: true }), url).toBe(
+          canonical
+        );
+        // Warm, the phase hub shows first and the tool is opened on top of it.
+        expect(redirectSystemPath({ path: url, initial: false }), url).toBe(
+          `/${canonical.split('/')[1]}`
+        );
+        expect(takePendingLink(), url).toBe(canonical);
       }
     });
 
@@ -301,11 +307,14 @@ describe('legacy entry points still land on a tool', () => {
       const match = meter.match(/dorkroom:\/\/([^"]*)"/);
       expect(match?.[1]).toBe('meter');
       expect(resolveLegacyPath(`/${match?.[1]}`)).toBe('/shoot/meter');
-      for (const initial of [true, false]) {
-        expect(
-          redirectSystemPath({ path: `dorkroom://${match?.[1]}`, initial })
-        ).toBe('/shoot/meter');
-      }
+      const meterUrl = `dorkroom://${match?.[1]}`;
+      expect(redirectSystemPath({ path: meterUrl, initial: true })).toBe(
+        '/shoot/meter'
+      );
+      expect(redirectSystemPath({ path: meterUrl, initial: false })).toBe(
+        '/shoot'
+      );
+      expect(takePendingLink()).toBe('/shoot/meter');
     });
   });
 });

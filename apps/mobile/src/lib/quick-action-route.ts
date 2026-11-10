@@ -13,8 +13,9 @@ export type NavigateWithAnchor = (
  * `/more/meter`. The hook calls `router.navigate(href)` itself, which skips
  * `redirectSystemPath`, so the href is resolved here and the hook told (by
  * returning true) not to navigate. Same navigation call the hook makes
- * (`navigate` with an anchor, deferred a tick), so the hub sits under the tool.
- * An action without a string href is left to the hook (false).
+ * (`navigate` with an anchor, deferred a tick); `quick-action.ts` decides
+ * whether the path is opened directly or through the phase hub (the handoff in
+ * `link-handoff.ts`). An action without a string href is left to the hook (false).
  */
 export function createQuickActionRouter(navigate: NavigateWithAnchor) {
   return function routeQuickAction(action: Action): boolean {
