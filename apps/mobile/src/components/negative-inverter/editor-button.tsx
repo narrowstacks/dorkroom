@@ -1,6 +1,6 @@
 import { type SFSymbol, SymbolView } from 'expo-symbols';
 import { ActivityIndicator, Pressable, Text } from 'react-native';
-import { useCommitStyle } from '@/theme/use-phase-accent';
+import { useCommitStyle, useSelectedInk } from '@/theme/use-phase-accent';
 import { CHROME_TEXT_SCALE } from './editor-layout';
 
 export interface EditorButtonProps {
@@ -39,15 +39,16 @@ export function EditorButton({
   className = '',
 }: EditorButtonProps) {
   const commit = useCommitStyle();
+  const selectedInk = useSelectedInk();
   const inactive = disabled || busy;
   const fill = primary
     ? inactive
       ? 'opacity-40'
       : ''
     : selected
-      ? 'bg-white'
-      : 'bg-white/10';
-  const ink = primary ? commit.ink : selected ? '#0b0b0c' : '#ffffff';
+      ? 'border-hw border-edge-strong bg-selected'
+      : 'border-hw border-line bg-surface';
+  const ink = primary ? commit.ink : selected ? selectedInk : '#ffffff';
   return (
     <Pressable
       onPress={onPress}
@@ -79,7 +80,7 @@ export function EditorButton({
             primary
               ? ''
               : selected
-                ? 'text-[#0b0b0c]'
+                ? 'text-selected-ink'
                 : inactive
                   ? 'text-white/35'
                   : 'text-white'

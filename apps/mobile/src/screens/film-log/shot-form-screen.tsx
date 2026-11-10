@@ -32,6 +32,7 @@ import {
   shouldGrayscale,
 } from '@/lib/film-log-photos';
 import { addShot, updateShot } from '@/lib/film-log-storage';
+import { gatePhotoPicker } from '@/lib/photo-picker-gate';
 import type { ShotPhoto } from '@/schemas/film-log.schema';
 
 const APERTURE_OPTIONS = STANDARD_APERTURES.map((a) => ({
@@ -163,11 +164,13 @@ export function ShotFormScreen() {
   const showBacks = cameraUsesBacks(camera);
 
   const onChoosePhoto = async () => {
-    const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: 'images',
-      quality: 1,
-    });
-    if (res.canceled || !res.assets[0]) return;
+    const res = await gatePhotoPicker(() =>
+      ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'images',
+        quality: 1,
+      })
+    );
+    if (!res || res.canceled || !res.assets[0]) return;
     const a = res.assets[0];
     const saved = await savePhoto(a.uri, {
       source: 'library',
@@ -238,7 +241,7 @@ export function ShotFormScreen() {
   if (!roll) {
     return (
       <Screen>
-        <Text className="text-white/60">Roll not found.</Text>
+        <Text className="text-ink-60">Roll not found.</Text>
       </Screen>
     );
   }
@@ -251,7 +254,7 @@ export function ShotFormScreen() {
           <Text className="text-sm font-semibold text-amber-300">
             ⚠ ISO doesn't match this roll
           </Text>
-          <Text className="text-sm text-white/70">
+          <Text className="text-sm text-ink-70">
             Metered at ISO {meteredIso}, but this roll is rated EI {roll.iso}.
             The aperture and shutter were solved for ISO {meteredIso}.
           </Text>
@@ -267,9 +270,7 @@ export function ShotFormScreen() {
           />
         ) : null}
         <View className="gap-2">
-          <Text className="text-sm text-white/60">
-            Frame #{form.frameNumber}
-          </Text>
+          <Text className="text-sm text-ink-60">Frame #{form.frameNumber}</Text>
           <Stepper
             label="Frame number"
             value={String(form.frameNumber)}
@@ -301,9 +302,9 @@ export function ShotFormScreen() {
           />
         ) : (
           <View className="gap-1">
-            <Text className="text-sm text-white/60">Lens</Text>
-            <View className="rounded-xl bg-white/5 px-4 py-3">
-              <Text className="text-sm text-white/40">
+            <Text className="text-sm text-ink-60">Lens</Text>
+            <View className="rounded-xl border-hw border-line bg-surface-dim px-4 py-3">
+              <Text className="text-sm text-ink-40">
                 No saved lenses — add one under Cameras & lenses.
               </Text>
             </View>

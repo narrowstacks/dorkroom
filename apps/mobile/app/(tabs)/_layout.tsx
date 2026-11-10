@@ -2,12 +2,14 @@ import { useQuickActionRouting } from 'expo-quick-actions/router';
 import { usePathname } from 'expo-router';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { useEffect } from 'react';
+import { useSafelight } from '@/components/safelight/safelight-provider';
 import { useLinkHandoff } from '@/hooks/use-link-handoff';
 import { toolIdForPath } from '@/lib/deep-link';
 import { routeQuickAction } from '@/lib/quick-action';
 import { recordToolUse } from '@/lib/recent-store';
 import { PHASES } from '@/lib/tools';
 import { ACCENT, PHASE_ACCENT } from '@/theme/accents';
+import { SAFELIGHT } from '@/theme/safelight';
 
 // SF Symbols, so the tab bar needs no image assets.
 const PHASE_SYMBOL = {
@@ -29,6 +31,7 @@ export default function TabsLayout() {
   useQuickActionRouting(routeQuickAction);
   const pathname = usePathname();
   useLinkHandoff();
+  const { on } = useSafelight();
 
   // Home resumes from the tools last opened; this is where "opened" is seen,
   // whichever way the tool was reached (hub, Home, deep link, quick action).
@@ -38,10 +41,28 @@ export default function TabsLayout() {
   }, [pathname]);
 
   return (
-    <NativeTabs>
+    <NativeTabs
+      // Safelight mode: a black bar with red labels and icons. The multiply
+      // overlay tints the glass regardless; this keeps it as dark as it goes.
+      {...(on
+        ? {
+            backgroundColor: SAFELIGHT.background,
+            blurEffect: 'none' as const,
+            tintColor: SAFELIGHT.text,
+            iconColor: {
+              default: SAFELIGHT.textTertiary,
+              selected: SAFELIGHT.text,
+            },
+            labelStyle: {
+              default: { color: SAFELIGHT.textTertiary },
+              selected: { color: SAFELIGHT.text },
+            },
+          }
+        : {})}
+    >
       {/* The selected tab takes its phase's hue. */}
       {PHASES.map((phase) => {
-        const hue = ACCENT[PHASE_ACCENT[phase.id]];
+        const hue = on ? SAFELIGHT.text : ACCENT[PHASE_ACCENT[phase.id]];
         return (
           <NativeTabs.Trigger key={phase.id} name={phase.id}>
             <NativeTabs.Trigger.Icon
@@ -58,9 +79,11 @@ export default function TabsLayout() {
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Icon
           sf="magnifyingglass"
-          selectedColor={NEUTRAL_SELECTED}
+          selectedColor={on ? SAFELIGHT.text : NEUTRAL_SELECTED}
         />
-        <NativeTabs.Trigger.Label selectedStyle={{ color: NEUTRAL_SELECTED }}>
+        <NativeTabs.Trigger.Label
+          selectedStyle={{ color: on ? SAFELIGHT.text : NEUTRAL_SELECTED }}
+        >
           Search
         </NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>

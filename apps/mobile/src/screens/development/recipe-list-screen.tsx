@@ -32,7 +32,7 @@ import { NeutralButton } from '@/components/neutral-button';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { resolveRecipeTarget } from '@/lib/home/recipe-target';
 import { LINK_OPENED_PARAM } from '@/lib/link-prefill';
-import { selectionTint } from '@/theme/accents';
+import { useSelectionTint } from '@/theme/use-phase-accent';
 import { FiltersSheet } from './filters-sheet';
 import {
   buildRecipeViews,
@@ -40,8 +40,6 @@ import {
   filmPickerOptions,
   filterRecipeViews,
 } from './recipe-views';
-
-const filtersBadgeTint = selectionTint('teal');
 
 const RecipeRow = memo(function RecipeRow({
   recipe,
@@ -257,7 +255,7 @@ export function RecipeListScreen() {
       <View className="flex-1">
         <GradientBackground />
         <View className="flex-1 items-center justify-center gap-3 px-8">
-          <Text className="text-center text-base text-white/70">
+          <Text className="text-center text-base text-ink-70">
             Couldn’t load recipes. Check your connection and try again.
           </Text>
           <NeutralButton
@@ -353,6 +351,7 @@ function RecipeListHeader({
   activeFilterCount: number;
   onOpenFilters: () => void;
 }) {
+  const filtersBadgeTint = useSelectionTint('teal');
   return (
     <View className="gap-3 pb-2">
       <SearchBar value={query} onChangeText={onQueryChange} />
@@ -365,7 +364,7 @@ function RecipeListHeader({
         onClearDeveloper={onClearDeveloper}
       />
       <View className="flex-row items-center justify-between">
-        <Text className="text-sm text-white/50">
+        <Text className="text-sm text-ink-50">
           {count} {count === 1 ? 'recipe' : 'recipes'}
         </Text>
         <View className="flex-row items-center gap-2">
@@ -373,7 +372,7 @@ function RecipeListHeader({
             onPress={onOpenFilters}
             accessibilityRole="button"
             accessibilityLabel="Filters and sort"
-            className="flex-row items-center gap-2 rounded-full bg-white/10 px-4 py-2"
+            className="flex-row items-center gap-2 rounded-full border-hw border-line bg-surface px-4 py-2"
           >
             <SlidersHorizontal size={16} color="#ffffff" />
             <Text className="text-sm font-semibold text-white">Filters</Text>
@@ -412,7 +411,7 @@ function EmptyState({
 }) {
   return (
     <View className="items-center gap-3 px-6 py-16">
-      <Text className="text-center text-base text-white/60">
+      <Text className="text-center text-base text-ink-60">
         {unavailable === null
           ? 'No recipes match your search and filters.'
           : `No development recipes for ${unavailable} yet.`}
@@ -421,7 +420,7 @@ function EmptyState({
         <Pressable
           onPress={onClearAll}
           accessibilityRole="button"
-          className="rounded-full bg-white/10 px-4 py-2"
+          className="rounded-full border-hw border-line bg-surface px-4 py-2"
         >
           <Text className="text-sm font-semibold text-white">
             {unavailable === null ? 'Clear all filters' : 'Browse all recipes'}

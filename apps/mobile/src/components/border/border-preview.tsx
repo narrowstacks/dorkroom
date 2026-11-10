@@ -1,6 +1,8 @@
 import type { BorderCalculation, MeasurementUnit } from '@dorkroom/logic';
 import { useState } from 'react';
 import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
+import { useSafelight } from '@/components/safelight/safelight-provider';
+import { SAFELIGHT } from '@/theme/safelight';
 import { BladeReadings } from './blade-readings';
 import { computePaperBox, computePrintRect } from './geometry';
 
@@ -22,6 +24,8 @@ export function BorderPreview({
   unit,
 }: BorderPreviewProps) {
   const [containerWidth, setContainerWidth] = useState(0);
+  const { on: safelight } = useSafelight();
+  const blade = safelight ? styles.bladeSafelight : styles.blade;
 
   const onLayout = (e: LayoutChangeEvent) => {
     setContainerWidth(e.nativeEvent.layout.width);
@@ -43,11 +47,11 @@ export function BorderPreview({
     <View onLayout={onLayout} className="items-center">
       {box.width > 0 && (
         <View
-          className="overflow-hidden rounded-lg bg-neutral-400"
+          className="overflow-hidden rounded-lg bg-paper"
           style={{ width: box.width, height: box.height }}
         >
           <View
-            className="absolute bg-neutral-700"
+            className="absolute border-hw border-line bg-paper-print"
             style={{
               left: print.left,
               top: print.top,
@@ -61,7 +65,7 @@ export function BorderPreview({
             <>
               <View
                 style={[
-                  styles.blade,
+                  blade,
                   {
                     left: print.left - bladeThickness,
                     top: 0,
@@ -72,7 +76,7 @@ export function BorderPreview({
               />
               <View
                 style={[
-                  styles.blade,
+                  blade,
                   {
                     left: print.left + print.width,
                     top: 0,
@@ -83,7 +87,7 @@ export function BorderPreview({
               />
               <View
                 style={[
-                  styles.blade,
+                  blade,
                   {
                     left: 0,
                     top: print.top - bladeThickness,
@@ -94,7 +98,7 @@ export function BorderPreview({
               />
               <View
                 style={[
-                  styles.blade,
+                  blade,
                   {
                     left: 0,
                     top: print.top + print.height,
@@ -123,6 +127,14 @@ const styles = StyleSheet.create({
   // Matches the web preview's dark-theme blade: a brighter-than-black grey
   // with a soft drop shadow (--blade-background #1b1b1d, --blade-shadow
   // 0 2px 4px rgba(0,0,0,0.3)).
+  // Safelight mode: a black blade with a bright edge, so it reads on the dim
+  // paper and against the black image area.
+  bladeSafelight: {
+    position: 'absolute',
+    backgroundColor: '#000000',
+    borderWidth: 1,
+    borderColor: SAFELIGHT.outlineSelected,
+  },
   blade: {
     position: 'absolute',
     backgroundColor: '#1b1b1d',

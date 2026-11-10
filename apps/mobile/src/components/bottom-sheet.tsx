@@ -7,11 +7,19 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SafelightOverlay,
+  SafelightRoot,
+} from '@/components/safelight/safelight-overlay';
+import { useSafelight } from '@/components/safelight/safelight-provider';
 
 interface BottomSheetProps {
   visible: boolean;
   title: string;
   onClose: () => void;
+  /** Fires after the sheet has fully dismissed (iOS), e.g. to present
+   * something else that must not be stacked on it. */
+  onDismiss?: () => void;
   children: ReactNode;
   /**
    * When true (default), a flat dark scrim covers the whole screen behind the
@@ -43,11 +51,13 @@ export function BottomSheet({
   visible,
   title,
   onClose,
+  onDismiss,
   children,
   showScrim = true,
   dismissLabel = 'Done',
 }: BottomSheetProps) {
   const insets = useSafeAreaInsets();
+  const { on: safelight } = useSafelight();
   const keyboard = useAnimatedKeyboard();
   // Lift the panel by the keyboard's height; reading the shared value here means
   // the movement follows the keyboard's own animation curve (smooth + quick).
@@ -60,46 +70,54 @@ export function BottomSheet({
       transparent
       animationType="none"
       onRequestClose={onClose}
+      onDismiss={onDismiss}
     >
-      {showScrim ? (
-        <Animated.View
-          entering={FadeIn.duration(ENTER_MS)}
-          pointerEvents="none"
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: 'rgba(0,0,0,0.6)' },
-          ]}
+      <SafelightRoot overlay={false}>
+        {showScrim ? (
+          <Animated.View
+            entering={FadeIn.duration(ENTER_MS)}
+            pointerEvents="none"
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: 'rgba(0,0,0,0.6)' },
+            ]}
+          />
+        ) : null}
+        <Pressable
+          className="flex-1"
+          onPress={onClose}
+          accessibilityRole="button"
+          accessibilityLabel={`Dismiss ${title}`}
         />
-      ) : null}
-      <Pressable
-        className="flex-1"
-        onPress={onClose}
-        accessibilityRole="button"
-        accessibilityLabel={`Dismiss ${title}`}
-      />
-      {/* Outer view tracks the keyboard; inner keeps the slide-in entrance. */}
-      <Animated.View style={liftStyle}>
-        <Animated.View
-          entering={SlideInDown.duration(ENTER_MS)}
-          className="rounded-t-3xl bg-[#161618] px-5 pt-4"
-          style={{ paddingBottom: insets.bottom + 16 }}
-        >
-          <View className="mb-4 flex-row items-center justify-between">
-            <Text className="text-lg font-semibold text-white">{title}</Text>
-            <Pressable
-              className="min-h-11 min-w-11 items-center justify-center"
-              onPress={onClose}
-              accessibilityRole="button"
-              accessibilityLabel={dismissLabel}
-            >
-              <Text className="text-base font-semibold text-white/70">
-                {dismissLabel}
-              </Text>
-            </Pressable>
-          </View>
-          {children}
+        {/* Outer view tracks the keyboard; inner keeps the slide-in entrance. */}
+        <Animated.View style={liftStyle}>
+          <Animated.View
+            entering={SlideInDown.duration(ENTER_MS)}
+            className="rounded-t-3xl bg-[#161618] px-5 pt-4"
+            style={[
+              { paddingBottom: insets.bottom + 16 },
+              safelight ? { overflow: 'hidden', isolation: 'isolate' } : null,
+            ]}
+          >
+            <View className="mb-4 flex-row items-center justify-between">
+              <Text className="text-lg font-semibold text-white">{title}</Text>
+              <Pressable
+                className="min-h-11 min-w-11 items-center justify-center"
+                onPress={onClose}
+                accessibilityRole="button"
+                accessibilityLabel={dismissLabel}
+              >
+                <Text className="text-base font-semibold text-ink-70">
+                  {dismissLabel}
+                </Text>
+              </Pressable>
+            </View>
+            {children}
+            {/* The sheet window is transparent, so the overlay lives on the panel. */}
+            <SafelightOverlay />
+          </Animated.View>
         </Animated.View>
-      </Animated.View>
+      </SafelightRoot>
     </Modal>
   );
 }

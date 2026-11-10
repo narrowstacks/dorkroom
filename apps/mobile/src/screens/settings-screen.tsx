@@ -1,6 +1,7 @@
 import Constants from 'expo-constants';
 import { Linking, Text } from 'react-native';
 import { GlassCard } from '@/components/glass-card';
+import { useSafelight } from '@/components/safelight/safelight-provider';
 import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
 import { SegmentedControl } from '@/components/segmented-control';
@@ -16,6 +17,7 @@ export function SettingsScreen() {
   const [savePhotos, setSavePhotos] = useSaveMeterPhotosToLibrary();
   const [unit, setUnit] = useMeasurementUnit();
   const [cuesInSilent, setCuesInSilent] = useCuesInSilentMode();
+  const safelight = useSafelight();
 
   return (
     // Settings belongs to no phase: it sits in each phase's stack but keeps the
@@ -33,7 +35,7 @@ export function SettingsScreen() {
             onChange={setUnit}
             accessibilityHint="Units for lengths in Border and Resize"
           />
-          <Text className="text-xs text-white/50">
+          <Text className="text-xs text-ink-50">
             Applies to Border and Resize. Mat stays in inches for now.
           </Text>
         </GlassCard>
@@ -58,6 +60,21 @@ export function SettingsScreen() {
           </Text>
         </GlassCard>
 
+        <GlassCard className="gap-2">
+          <ToggleRow
+            label="Safelight mode"
+            value={safelight.on}
+            onChange={safelight.setOn}
+          />
+          <Text className="text-xs text-ink-50">
+            Turns the app deep red on black for working under a safelight. The
+            status bar, keyboard, photo picker and system alerts and sheets stay
+            bright. Camera and photo previews show as bright red images. Not
+            tested as safe for photographic paper. Red light is not safe for
+            film or colour paper.
+          </Text>
+        </GlassCard>
+
         <GlassCard>
           <ToolListRow
             label="GitHub"
@@ -74,7 +91,7 @@ export function SettingsScreen() {
         </GlassCard>
 
         {version ? (
-          <Text className="text-center text-xs text-white/40">
+          <Text className="text-center text-xs text-ink-40">
             Dorkroom v{version}
           </Text>
         ) : null}

@@ -1,7 +1,9 @@
 import { StyleSheet, View } from 'react-native';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
+import { useSafelight } from '@/components/safelight/safelight-provider';
 import { ACCENT, PHASE_ACCENT } from '@/theme/accents';
 import { usePhase } from '@/theme/phase-context';
+import { SAFELIGHT } from '@/theme/safelight';
 
 /** The glow on Home and Settings, which belong to no phase. */
 const NEUTRAL_GLOW = '#ffffff';
@@ -15,6 +17,19 @@ const GLOW_OPACITY = 0.12;
  */
 export function GradientBackground() {
   const phase = usePhase();
+  const { on } = useSafelight();
+  // Safelight mode: true black, no glow.
+  if (on) {
+    return (
+      <View
+        pointerEvents="none"
+        style={[
+          StyleSheet.absoluteFill,
+          { backgroundColor: SAFELIGHT.background },
+        ]}
+      />
+    );
+  }
   const glow = phase === null ? NEUTRAL_GLOW : ACCENT[PHASE_ACCENT[phase]];
   return (
     <View

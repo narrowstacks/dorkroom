@@ -18,6 +18,12 @@ import { Appearance } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { TimerRunEffects } from '@/components/development/timer/timer-run-effects';
+import { PhotoPickerGateHost } from '@/components/safelight/photo-picker-gate-host';
+import { SafelightRoot } from '@/components/safelight/safelight-overlay';
+import {
+  SafelightProvider,
+  useSafelight,
+} from '@/components/safelight/safelight-provider';
 import { clearLegacyPins } from '@/lib/legacy-pins';
 import { calculatorStorage } from '@/lib/mmkv-storage';
 import { queryClient } from '@/providers/query-client';
@@ -31,6 +37,20 @@ import {
 // render dark glass regardless of the device's system appearance.
 Appearance.setColorScheme('dark');
 
+function RootStack() {
+  const { on } = useSafelight();
+  // The home indicator hides under safelight: it is a system surface the
+  // multiply overlay cannot tint.
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        autoHideHomeIndicator: on,
+      }}
+    />
+  );
+}
+
 export default function RootLayout() {
   // Pinned tabs are gone; drop the setting they left behind (once is enough).
   useEffect(() => {
@@ -38,27 +58,33 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <PersistQueryClientProvider
-          client={queryClient}
-          persistOptions={{
-            persister: queryPersister,
-            maxAge: QUERY_CACHE_MAX_AGE,
-          }}
-        >
-          {/* Persisted calculators (mat, lens, camera exposure, border) read
+    <SafelightProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafelightRoot>
+          <SafeAreaProvider>
+            <PersistQueryClientProvider
+              client={queryClient}
+              persistOptions={{
+                persister: queryPersister,
+                maxAge: QUERY_CACHE_MAX_AGE,
+              }}
+            >
+              {/* Persisted calculators (mat, lens, camera exposure, border) read
               and write MMKV through this, not the window.localStorage alias. */}
-          <PersistenceStorageProvider value={calculatorStorage}>
-            <ThemeProvider value={DarkTheme}>
-              <Stack screenOptions={{ headerShown: false }} />
-              <TimerRunEffects />
-              {/* oxlint-disable-next-line react/style-prop-object -- expo-status-bar's `style` is a preset string ('auto' | 'light' | 'dark'), not a React style object */}
-              <StatusBar style="light" />
-            </ThemeProvider>
-          </PersistenceStorageProvider>
-        </PersistQueryClientProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+              <PersistenceStorageProvider value={calculatorStorage}>
+                <ThemeProvider value={DarkTheme}>
+                  <RootStack />
+                  <TimerRunEffects />
+                  {/* oxlint-disable-next-line react/style-prop-object -- expo-status-bar's `style` is a preset string ('auto' | 'light' | 'dark'), not a React style object */}
+                  <StatusBar style="light" />
+                  {/* Asks before the system photo picker opens under safelight mode. */}
+                  <PhotoPickerGateHost />
+                </ThemeProvider>
+              </PersistenceStorageProvider>
+            </PersistQueryClientProvider>
+          </SafeAreaProvider>
+        </SafelightRoot>
+      </GestureHandlerRootView>
+    </SafelightProvider>
   );
 }

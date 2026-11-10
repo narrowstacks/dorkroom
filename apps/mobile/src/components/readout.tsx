@@ -3,8 +3,9 @@ import { Text, View } from 'react-native';
 import { useRecordResult } from '@/hooks/use-record-result';
 import { formatReadoutSummary } from '@/lib/result-recorder';
 import type { RecordingToolId } from '@/lib/tools';
-import { ACCENT, type AccentColor } from '@/theme/accents';
+import type { AccentColor } from '@/theme/accents';
 import { readoutText } from '@/theme/tokens';
+import { useAccentColor } from '@/theme/use-phase-accent';
 
 interface ReadoutProps {
   /** What the number is, e.g. "New time". Shown as a small uppercase eyebrow. */
@@ -42,6 +43,7 @@ export function Readout({
   accessibilityValueText,
   className,
 }: ReadoutProps) {
+  const hue = useAccentColor(accent);
   useRecordResult(toolId, formatReadoutSummary(value, unit));
   const spoken =
     value === null
@@ -59,12 +61,12 @@ export function Readout({
         accessibilityLabel={`${label}, ${spoken}${spokenFacts}`}
         className="gap-1"
       >
-        <Text className="text-xs font-semibold uppercase tracking-wide text-white/60">
+        <Text className="text-xs font-semibold uppercase tracking-wide text-ink-60">
           {label}
         </Text>
         {value === null ? (
           <Text
-            className="text-white/40"
+            className="text-ink-40"
             style={[readoutText, { fontSize: 54, fontWeight: '700' }]}
           >
             –
@@ -78,15 +80,13 @@ export function Readout({
               className="shrink font-bold"
               style={[
                 readoutText,
-                { fontSize: 54, fontWeight: '700', color: ACCENT[accent] },
+                { fontSize: 54, fontWeight: '700', color: hue },
               ]}
             >
               {value}
             </Text>
             {unit ? (
-              <Text
-                style={[readoutText, { fontSize: 20, color: ACCENT[accent] }]}
-              >
+              <Text style={[readoutText, { fontSize: 20, color: hue }]}>
                 {unit}
               </Text>
             ) : null}
@@ -97,7 +97,7 @@ export function Readout({
             {facts.map((fact) => (
               <Text
                 key={fact}
-                className="text-sm text-white/60"
+                className="text-sm text-ink-60"
                 style={readoutText}
               >
                 {fact}

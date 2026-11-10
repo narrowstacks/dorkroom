@@ -47,13 +47,22 @@ export interface SelectionTint {
   backgroundColor: string;
   borderColor: string;
   color: string;
+  /** The unselected row in a pick-one list: a faint fill, or under safelight
+   * mode a transparent one with a hairline. */
+  idle: { backgroundColor: string; borderColor: string };
 }
+
+const IDLE_ROW = {
+  backgroundColor: 'rgba(255,255,255,0.05)',
+  borderColor: 'transparent',
+};
 
 /** Selected state outside any phase (Home, Settings): a white tint, no hue. */
 const NEUTRAL_TINT: SelectionTint = {
   backgroundColor: 'rgba(255,255,255,0.2)',
   borderColor: 'rgba(255,255,255,0.4)',
   color: '#ffffff',
+  idle: IDLE_ROW,
 };
 
 /**
@@ -67,6 +76,7 @@ export function selectionTint(accent: AccentColor | null): SelectionTint {
     backgroundColor: `${hex}26`,
     borderColor: `${hex}66`,
     color: hex,
+    idle: IDLE_ROW,
   };
 }
 

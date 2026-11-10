@@ -6,7 +6,7 @@ import {
 import { Pressable, Text, View } from 'react-native';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import { ToggleRow } from '@/components/toggle-row';
-import { ACCENT, selectionTint } from '@/theme/accents';
+import { useAccentColor, useSelectionTint } from '@/theme/use-phase-accent';
 import { FlipButton } from './flip-button';
 
 interface ArtworkBestFitSectionProps {
@@ -22,7 +22,8 @@ export function ArtworkBestFitSection({
   applyBestFit,
   bestFitPreview,
 }: ArtworkBestFitSectionProps) {
-  const tint = selectionTint('rose');
+  const tint = useSelectionTint('rose');
+  const rose = useAccentColor('rose');
 
   return (
     <View className="gap-4">
@@ -63,7 +64,7 @@ export function ArtworkBestFitSection({
         onChange={(value) => set('bottomWeight', value)}
       />
       {bestFitPreview ? (
-        <Text className="text-xs text-white/50">
+        <Text className="text-xs text-ink-50">
           Proposed: {matBorderToInput(bestFitPreview.top)} T ·{' '}
           {matBorderToInput(bestFitPreview.bottom)} B ·{' '}
           {matBorderToInput(bestFitPreview.left)} L ·{' '}
@@ -76,7 +77,7 @@ export function ArtworkBestFitSection({
         accessibilityRole="button"
         accessibilityLabel="Apply best fit borders"
         accessibilityState={{ disabled: !bestFitPreview }}
-        className="min-h-12 items-center justify-center rounded-xl bg-white/10 px-4 py-3"
+        className="min-h-12 items-center justify-center rounded-xl border-hw border-line bg-surface px-4 py-3"
         style={
           bestFitPreview
             ? {
@@ -88,11 +89,9 @@ export function ArtworkBestFitSection({
         }
       >
         <Text
-          className={bestFitPreview ? undefined : 'text-white/40'}
+          className={bestFitPreview ? undefined : 'text-ink-40'}
           style={
-            bestFitPreview
-              ? { color: ACCENT.rose, fontWeight: '600' }
-              : undefined
+            bestFitPreview ? { color: rose, fontWeight: '600' } : undefined
           }
         >
           Apply best fit

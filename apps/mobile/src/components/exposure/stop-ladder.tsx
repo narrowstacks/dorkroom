@@ -10,8 +10,9 @@ import {
 } from '@/components/exposure/stop-ladder-logic';
 import { SegmentedControl } from '@/components/segmented-control';
 import { spokenDuration } from '@/lib/spoken-time';
-import { type AccentColor, selectionTint } from '@/theme/accents';
+import type { AccentColor } from '@/theme/accents';
 import { readoutText } from '@/theme/tokens';
+import { useSelectionTint } from '@/theme/use-phase-accent';
 
 const INCREMENT_OPTIONS = LADDER_INCREMENTS.map(({ label, value }) => ({
   label,
@@ -56,7 +57,7 @@ export function StopLadder({
     stops,
     increment: step?.stops ?? LADDER_INCREMENTS[0].stops,
   });
-  const tint = selectionTint(accent);
+  const tint = useSelectionTint(accent);
   const fontSize = ladderFontSize(cells.map((c) => formatTime(c.seconds)));
 
   return (
@@ -99,7 +100,7 @@ export function StopLadder({
             >
               {formatTime(cell.seconds)}
             </Text>
-            <Text className="text-xs text-white/60">
+            <Text className="text-xs text-ink-60">
               {formatStopsLabel(cell.stops)}
             </Text>
           </Pressable>

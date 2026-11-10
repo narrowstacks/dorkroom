@@ -2,7 +2,8 @@ import { Pressable, Text, View } from 'react-native';
 import { GlassCard } from '@/components/glass-card';
 import { ToolIcon } from '@/components/tool-icon';
 import type { Tool } from '@/lib/tools';
-import { ACCENT, PHASE_ACCENT } from '@/theme/accents';
+import { PHASE_ACCENT } from '@/theme/accents';
+import { useAccentColor } from '@/theme/use-phase-accent';
 
 interface ToolTileProps {
   tool: Tool;
@@ -22,6 +23,7 @@ const TILE_MIN_HEIGHT = 128;
  * share a height because the row stretches them and the card fills its tile.
  */
 export function ToolTile({ tool, secondary, onPress, width }: ToolTileProps) {
+  const hue = useAccentColor(PHASE_ACCENT[tool.phase]);
   return (
     <Pressable
       onPress={onPress}
@@ -34,16 +36,12 @@ export function ToolTile({ tool, secondary, onPress, width }: ToolTileProps) {
         className="gap-3"
         style={{ flex: 1, width: '100%', minHeight: TILE_MIN_HEIGHT }}
       >
-        <ToolIcon
-          name={tool.icon}
-          size={24}
-          color={ACCENT[PHASE_ACCENT[tool.phase]]}
-        />
+        <ToolIcon name={tool.icon} size={24} color={hue} />
         <View className="items-start gap-0.5">
           <Text className="text-left text-base font-semibold text-white">
             {tool.label}
           </Text>
-          <Text className="text-left text-sm text-white/60">{secondary}</Text>
+          <Text className="text-left text-sm text-ink-60">{secondary}</Text>
         </View>
       </GlassCard>
     </Pressable>

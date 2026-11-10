@@ -92,9 +92,7 @@ function ExposureScreenBody({ overrides }: ExposureScreenBodyProps) {
       accent="rose"
       label="New time"
       value={null}
-      note={
-        <Text className="text-white/60">Enter a valid time and stops.</Text>
-      }
+      note={<Text className="text-ink-60">Enter a valid time and stops.</Text>}
     />
   );
 

@@ -4,6 +4,7 @@ import { type SFSymbol, SymbolView } from 'expo-symbols';
 import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { GlassCard } from '@/components/glass-card';
+import { useSelectedInk } from '@/theme/use-phase-accent';
 import { EditorButton } from './editor-button';
 import { CHROME_TEXT_SCALE } from './editor-layout';
 
@@ -35,7 +36,7 @@ export function FilmTypeToggle({
       accessibilityRole="button"
       accessibilityLabel={`Film type, ${c41 ? 'C-41 colour' : 'black and white'}`}
       accessibilityHint={`Switches to ${c41 ? 'black and white' : 'C-41 colour'} film`}
-      className={`min-h-11 flex-row items-center gap-1.5 rounded-full bg-white/10 px-3.5 active:opacity-70 ${className}`}
+      className={`min-h-11 flex-row items-center gap-1.5 rounded-full border-hw border-line bg-surface px-3.5 active:opacity-70 ${className}`}
     >
       <View
         className={`h-2.5 w-2.5 rounded-full ${c41 ? 'bg-amber-400' : 'bg-white/80'}`}
@@ -79,7 +80,7 @@ export function ToolHint({
     >
       <Text
         maxFontSizeMultiplier={CHROME_TEXT_SCALE}
-        className="text-sm text-white/80"
+        className="text-sm text-ink-80"
         accessibilityRole="text"
       >
         {hint}
@@ -149,6 +150,7 @@ export function ToolButton({
   onPress,
   className = '',
 }: ToolButtonProps) {
+  const selectedInk = useSelectedInk();
   return (
     <Pressable
       onPress={onPress}
@@ -156,19 +158,21 @@ export function ToolButton({
       accessibilityLabel={label}
       accessibilityState={{ selected }}
       className={`min-h-11 flex-1 items-center justify-center gap-0.5 rounded-xl px-1 py-1 active:opacity-70 ${
-        selected ? 'bg-white' : 'bg-white/10'
+        selected
+          ? 'border-hw border-edge-strong bg-selected'
+          : 'border-hw border-line bg-surface'
       } ${className}`}
     >
       <SymbolView
         name={icon}
         size={16}
-        tintColor={selected ? '#0b0b0c' : '#ffffff'}
+        tintColor={selected ? selectedInk : '#ffffff'}
       />
       <Text
         numberOfLines={1}
         maxFontSizeMultiplier={CHROME_TEXT_SCALE}
         className={`text-[11px] font-semibold ${
-          selected ? 'text-[#0b0b0c]' : 'text-white/90'
+          selected ? 'text-selected-ink' : 'text-white/90'
         }`}
       >
         {label}

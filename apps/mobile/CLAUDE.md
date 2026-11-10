@@ -219,6 +219,120 @@ Add that wrapper to any new calculator screen that Home can link to.
   `bg-white/10` fallback elsewhere. Capability checks are computed **once at
   import**, never per render (see `glass-card.tsx`).
 
+### Safelight mode
+
+One switch (`useSafelight()`, an MMKV boolean in `src/lib/safelight-store.ts`,
+read synchronously so the first frame is already red) turns the app deep red on
+true black. The label is **"Safelight mode"**. Never write or imply "paper
+safe": it has not been tested as safe for photographic paper, and red light is
+not safe for film or colour paper (the Settings footnote says so).
+
+**Two layers.**
+
+1. **The guarantee: a multiply overlay.** `SafelightRoot`
+   (`src/components/safelight/safelight-overlay.tsx`) renders a full-window,
+   `pointerEvents="none"`, pure-red (`#ff0000`) view with `mixBlendMode:
+   'multiply'` as the LAST child of the app root. Multiplying by red zeroes
+   green and blue on everything beneath it, including native-stack headers, the
+   iOS 26 glass tab bar, `GlassView`, Skia canvases, Reanimated views, images
+   and scrolling content. Verified by screenshot sampling: max G and B are 0
+   outside the status bar. Brightness is the palette's job, not the overlay's.
+2. **The look: the palette.** Only the red channel survives, so a colour's
+   brightness is its R value (teal `#2dd4bf` is R 45 and vanishes; blue push/pull
+   text likewise). `src/theme/safelight.ts` holds the red levels (text 255,
+   secondary 236, tertiary 190, faint 150, outline 120, selected outline 200,
+   commit fill 80, paper 70) and the contrast helpers (primary 5.25:1, secondary
+   4.57:1, tertiary 3.19:1 by red luminance; tests enforce 4.5:1 for primary and
+   secondary). Body text and labels are at least secondary, anything readable at
+   least tertiary, and faint is for decoration (chevrons, dividers) only.
+   Hierarchy comes from size and weight, not from many reds.
+
+**The vars() rule (do not break this).** `SafelightRoot` passes a NativeWind
+`vars()` style on EVERY render, `NORMAL_VARS` or `SAFELIGHT_VARS`, never `null`
+for one of them. react-native-css-interop remounts a component the first time a
+`vars()` style appears on it, so applying it only under the mode would remount
+the whole app tree the first time the mode was switched on and reset forms,
+scroll positions and the Process Timer's editor. (A running timer is not at risk:
+its run lives in the module-level store `src/lib/timer/timer-store.ts`, outside
+the tree.) Both sets come from one table
+(`src/theme/safelight-tokens.ts`), `global.css` repeats the normal values, and a
+test checks all of it, including each normal value against the Tailwind colour
+it replaced. `GlassCard` likewise keeps one wrapper type in both modes (the glass
+is switched off with `glassEffectStyle="none"`), so card contents keep their
+state.
+
+**What a new component must do to look right:**
+
+- Surfaces and borders use the semantic classes, never raw `bg-white/..`:
+  `border-hw border-line bg-surface` (also `bg-surface-dim`, `bg-surface-inset`,
+  `bg-surface-strong`), `border-edge` / `border-edge-faint` / `border-edge-15` /
+  `border-edge-30` / `border-edge-strong` for an existing border (a divider is
+  `h-px bg-edge`, without `border-hw`), `text-ink-80/70/60/55/50/45/40/30` for
+  alpha text, `bg-selected` + `text-selected-ink` for a filled selected state,
+  `bg-paper`, `bg-paper-print`, `bg-window` for the Border and Mat drawings and
+  `bg-easel-paper`, `bg-easel-print` for Home's easel diagram,
+  `text-ok`. They resolve through CSS variables. Normal mode is unchanged:
+  `--sl-bw` is 0 and the colours equal the old alpha whites.
+- Colours from code go through the theme hooks, never `ACCENT[...]` or
+  `DIRECTION_COLOR` directly in a component: `usePhaseHue`, `useSelectionTint`,
+  `useCommitStyle`, `useAccentColor`, `useAccentFill`, `useAccentLine`,
+  `useDirectionColors`, `useSelectedInk`, `useDimInk`, `useNeutralFill`, and
+  `useChartInk` for chart lines and ticks. They consult safelight in one place
+  (`resolve-accent.ts`).
+- Direction (push or pull, hot or cold) must never rest on colour alone: under
+  the mode both are the same red, so keep the sign, arrow or word. Error text
+  carries an "Error:" prefix for the same reason.
+- A RN `Modal` is a separate window the root overlay cannot reach: wrap its
+  content in `SafelightRoot`. In a TRANSPARENT modal pass `overlay={false}` and
+  put `<SafelightOverlay />` inside the painted panel (with `overflow: 'hidden'`
+  and `isolation: 'isolate'` on it, only while the mode is on); a full-window
+  overlay over transparent pixels is plain red. `BottomSheet`, the Custom ISO
+  dialog, the photo viewer and the reciprocity chart modal already do this.
+- Text inputs set `keyboardAppearance="dark"`.
+- Anything that opens the system photo picker goes through `gatePhotoPicker`
+  (`src/lib/photo-picker-gate.ts`), which asks in an in-app sheet first while the
+  mode is on (`PhotoPickerGateHost`, mounted once in the root layout). The picker
+  opens only from the gate sheet's `onDismiss`, never from the press handler:
+  expo-image-picker presents from the top-most controller, so one opened while
+  the sheet is still up is presented on it and torn down with it. The
+  Inverter's action sheet is given 400 ms to leave before the gate presents.
+  A request always settles (cancel, backdrop, swipe, mode off, unmount, or a
+  watchdog if `onDismiss` never fires).
+
+**Not covered (system surfaces and separate windows):**
+
+- The **status bar** stays bright. The app's Info.plist has
+  `UIViewControllerBasedStatusBarAppearance` false and the scene lifecycle
+  ignores `StatusBar hidden`; the native-stack `statusBarHidden` option asserts
+  until the key is YES. Follow-up for a native build: set
+  `UIViewControllerBasedStatusBarAppearance` true in `app.json`
+  `expo.ios.infoPlist`, then add `statusBarHidden` to the stack options in
+  `chromeOptions`. No status bar code was added for the mode.
+- The **launch screen** is not covered.
+- **Timer notifications and sounds** (`expo-notifications` banners, lock-screen
+  alerts, the cue beeps): notification banners are not dimmed, and the sound
+  is audio, not light.
+- The **system keyboard** and its Done accessory (the scrub row's accessory gets
+  its own black bar and overlay).
+- **System sheets**: `Alert.alert` (shot and roll forms, export, film list),
+  `ActionSheetIOS` (the Inverter's photo chooser), `Share.share` (share buttons,
+  film log export, Inverter share) and the **photo picker** (gated, above). They
+  stay full colour and the Settings footnote says so.
+- The **photo viewer and camera previews** become full-brightness red images
+  under the mode: the overlay keeps their red channel as it is, so a bright photo
+  is a lot of red light. The Meter, the Inverter stage and the film log photo
+  viewer are not dimmed beyond that.
+- The home indicator auto-hides through the native-stack `autoHideHomeIndicator`
+  option, which has not been confirmed on a device.
+
+**Controls.** `SafelightButton` (a `switch` with a visible on-state) is the
+`headerRight` of every Print screen, and of every Shoot and Develop screen while
+the mode is on (`offersSafelightButton`); the hubs show it beside the gear.
+Settings has a "Safelight mode" `ToggleRow`. Home has no header and no button.
+Toggling takes effect everywhere at once with no reload or navigation reset.
+Native chrome follows through `chromeOptions` (`theme/stack-chrome.ts`) and the
+`NativeTabs` colour props in `app/(tabs)/_layout.tsx`.
+
 ### Components
 
 - PascalCase names, kebab-case files; props interface named `ComponentNameProps`;
