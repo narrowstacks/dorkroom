@@ -54,8 +54,9 @@ function ReciprocityScreenBody({ overrides }: ReciprocityScreenBodyProps) {
   const addedTime = calculation
     ? calculation.adjustedTime - calculation.originalTime
     : 0;
-  const valid =
-    parseReciprocityTime(meteredTime) !== null && calculation !== null;
+  const parsedTime = parseReciprocityTime(meteredTime);
+  // Zero parses but cannot be calculated, so it is not a result either.
+  const valid = parsedTime !== null && parsedTime > 0 && calculation !== null;
   const readout =
     valid && calculation ? (
       <Readout
