@@ -41,7 +41,7 @@ src/
   polyfills/             # Hermes polyfills, MMKV localStorage shim
   theme/tokens.ts        # palette mirrored from web, for non-className values
   test/                  # vitest mocks for native modules
-plugins/                 # local config plugins (with-app-intents, with-ios-scene-lifecycle)
+plugins/                 # local config plugins (with-app-intents, with-ios-scene-lifecycle, with-ios-status-bar-forwarding)
 scripts/                 # ios.sh, nativewind tailwind link
 ```
 
@@ -145,8 +145,9 @@ Add that wrapper to any new calculator screen that Home can link to.
   launch tab is Home because `/` matches `(tabs)/index`. Home is a plain last tab, not `role="search"`: that role is only
   the legacy system item (stock title and icon) and adds nothing here.
 - **Dark only.** Don't add light-mode branches. `app/_layout.tsx` forces
-  `Appearance.setColorScheme('dark')`, uses `DarkTheme`, `StatusBar style="light"`,
-  and `headerShown: false`. `app.json` sets `userInterfaceStyle: "dark"`.
+  `Appearance.setColorScheme('dark')`, uses `DarkTheme`, and `headerShown: false`. The light status bar comes from the
+  stack's `statusBarStyle` option (`statusBarOptions` in `theme/stack-chrome.ts`);
+  never reintroduce a `StatusBar` component. `app.json` sets `userInterfaceStyle: "dark"`.
 - **Screens are thin view layers.** A screen is an exported `PascalCaseScreen`,
   pulls all state and logic from a shared `@dorkroom/logic` hook (e.g.
   `useExposureCalculator`), and composes `<Screen>` plus `GlassCard` plus row
@@ -311,8 +312,16 @@ to `true` (the only place it is set; no local plugin writes it), and
 root stack in `app/_layout.tsx` and into `chromeOptions`. Only the root stack's
 `(tabs)` screen is consulted: react-native-screens walks child view controllers
 and stops at `NativeTabs`' tab bar controller, so the phase stacks' copy is inert
-today. **This needs a native build to take effect** (it is an Info.plist change)
-and has not been checked on a device. With the key `true`, React Native's
+today. **The options alone do nothing in a dev-client build.** iOS asks the
+window's root view controller, a plain `UIViewController`, and react-native-screens
+only forwards from a container to a child that is one of its own view
+controllers. expo-dev-launcher's `DevLauncherViewController` sits between the
+root and the `RNSNavigationController`, so the question stopped at the root (seen
+live: the root's `childViewControllerForStatusBarHidden` was nil and the bar
+stayed visible). The local plugin `plugins/with-ios-status-bar-forwarding` makes
+the root a `StatusBarForwardingViewController` that forwards status bar style,
+visibility and the home indicator to its last child. **It and the Info.plist key
+need a native build to take effect**, and it has not been checked on a device. With the key `true`, React Native's
 imperative `StatusBar` (and `expo-status-bar`'s component) logs an error, so never
 add one: use these screen options. A React Native `Modal` is its own window and
 may still show the bar.
@@ -501,7 +510,7 @@ config**, because Metro can't hot-reload native:
 - adding, removing, or upgrading a dependency with **native iOS code** (e.g.
   `expo-quick-actions`, `react-native-vision-camera`, anything with a config plugin)
 - editing the **`plugins`** array in `app.json` or a plugin's options, including
-  the local plugins in `plugins/` (`with-app-intents`, `with-ios-scene-lifecycle`)
+  the local plugins in `plugins/` (`with-app-intents`, `with-ios-scene-lifecycle`, `with-ios-status-bar-forwarding`)
 - changing native iOS config: `Info.plist` keys, **permission/usage strings**,
   the **URL scheme**, bundle id, **deployment target**, app icon / splash
 - **home-screen quick actions / SF Symbol shortcut items**, entitlements
