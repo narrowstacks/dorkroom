@@ -97,3 +97,44 @@ export function computeMatPreviewGeometry(
     : null;
   return { board, window, artwork, scale };
 }
+
+/** Thinnest a top or bottom border band may be, in px, and still hold its label. */
+const BAND_MIN_HEIGHT = 16;
+/** Thinnest a left or right band may be, in px: it holds the text across. */
+const BAND_MIN_WIDTH = 34;
+/** Shortest a left or right band may be: the text is one line tall. */
+const BAND_MIN_LENGTH = 16;
+
+/**
+ * Whether a border's value label fits in its band on the drawing. A band too
+ * thin for the text, or too short along its edge (a window squeezed to 1/2"),
+ * hides it rather than shrinking it to nothing; the value is still in the
+ * drawing's spoken summary.
+ */
+export function borderLabelFits(
+  edge: 'top' | 'bottom' | 'left' | 'right',
+  bandPx: number,
+  alongPx: number = Number.POSITIVE_INFINITY
+): boolean {
+  if (edge === 'top' || edge === 'bottom') return bandPx >= BAND_MIN_HEIGHT;
+  return bandPx >= BAND_MIN_WIDTH && alongPx >= BAND_MIN_LENGTH;
+}
+
+/** Narrowest and shortest a window may be, in px, and still hold its size label. */
+const WINDOW_LABEL_MIN_WIDTH = 96;
+const WINDOW_LABEL_MIN_HEIGHT = 20;
+
+/**
+ * Whether the window's own size label fits inside it. A window too small for it
+ * leaves the label out (the caption under the drawing always carries the size)
+ * rather than truncating it to "1..".
+ */
+export function windowLabelFits(window: {
+  width: number;
+  height: number;
+}): boolean {
+  return (
+    window.width >= WINDOW_LABEL_MIN_WIDTH &&
+    window.height >= WINDOW_LABEL_MIN_HEIGHT
+  );
+}

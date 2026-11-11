@@ -11,9 +11,10 @@ interface ToolBase {
   /** Two to four words under the label on a hub tile until a result exists. */
   blurb: string;
   /**
-   * The screen fills the space it is given and never scrolls (an editor),
-   * so in a phase stack it gets a standard header: a large title would sit
-   * expanded for good, since nothing scrolls to collapse it.
+   * The screen fills the space it is given and never scrolls (an editor, or a
+   * stage screen: a drawing over a control panel), so in a phase stack it gets
+   * a standard header: a large title would sit expanded for good, since nothing
+   * scrolls to collapse it.
    */
   fixedLayout?: boolean;
   /**
@@ -141,6 +142,7 @@ const TOOL_LIST = [
     blurb: 'Print borders and easel',
     kind: 'screen',
     persistsInputs: true,
+    fixedLayout: true,
   },
   {
     id: 'exposure',
@@ -159,6 +161,7 @@ const TOOL_LIST = [
     blurb: 'Scale a print',
     kind: 'screen',
     answerFirst: true,
+    fixedLayout: true,
   },
   {
     id: 'mat',
@@ -168,6 +171,7 @@ const TOOL_LIST = [
     blurb: 'Mat board cuts',
     kind: 'screen',
     persistsInputs: true,
+    fixedLayout: true,
   },
 ] as const satisfies readonly ToolDef[];
 

@@ -190,6 +190,83 @@ Add that wrapper to any new calculator screen that Home can link to.
   the stack brings that screen to the top with its state. A missing result is a `Readout` with `value={null}` and the hint as its `note`, not a
   separate card.
 
+### Stage screens
+
+Border, Mat Cut and Resize are **stage screens**: `fixedLayout: true` in `TOOLS`
+(standard header; iOS 26 lets Back start anywhere on a screen, so `PhaseStack`
+gives every `fixedLayout` tool `gestureResponseDistance: { end: 24 }` and Back
+starts only in the left 24pt: `fullScreenGestureEnabled: false` was tried and
+also stopped the left-edge swipe on the simulator, so it is not used), no scroll
+view, the drawing fills the screen and holds
+still while the controls sit in a panel over the bottom. `StageScreen`
+(`src/components/stage/`) lays it out: `<StageScreen header? collapsed expanded>`
+with the drawing as a render-prop child that gets the `{ width, height }` it may
+fill. The stage runs from under the native header (`useHeaderClearance`, plus a
+pinned `header` such as a `Readout`) to just above the COLLAPSED panel, so
+`stageRect` reads only the collapsed height and the expanded panel and the
+keyboard can never move or resize it (the header keeps its tallest height at a
+given width, so a note that comes and goes cannot move it either; reserve a
+note's line in the header so it is there from the first render). The drawing is
+fitted (contain, centred) inside it, leaves `DRAWING_CAPTION_HEIGHT` under it for
+a caption and a two-line warning, and must not remount on a detent change.
+
+`DetentPanel` is in-screen (not a `Modal`, not a route), anchored above the tab
+bar from this screen's own insets (`SafeAreaListener`, like the Inverter's frame;
+the root provider does not know the tab bar), at most 560pt wide and centred on
+an iPad. Two detents, one shared height moved by a UI-thread pan on the 40pt grab
+strip (a fling picks the direction, a spring settles, a tap toggles;
+`snapsToExpanded` in `stage-layout.ts`). The collapsed height is the collapsed
+block, capped at 45% of the room under the header (a taller block, like Resize's
+scrub rows, scrolls inside the panel). The expanded height is the whole content,
+capped so the drawing keeps `max(240pt, 45%)` of that room in view (a screen whose
+drawing is a schematic and whose inputs are the work passes `minDrawingExpanded`
+for a fixed, smaller floor: Resize uses 120pt, and `collapsedMaxShare` raises the
+45% collapsed cap to 60%); content taller than that scrolls. A collapsed block
+must end on a row boundary: build it from whole rows (Resize: the mode segment and
+the first two scrub rows) and put the rest in `expanded`. While collapsed the scroll view's content is clipped to the
+collapsed block, so nothing of the expanded block can be scrolled to or touched
+(it also has `pointerEvents="none"` and is hidden from VoiceOver); closing the
+panel scrolls it back to the top, and the clip applies once the spring has
+finished. The strip is a button labelled "Controls" with
+`accessibilityState.expanded`. With a field focused the panel rides above the
+keyboard (never tall enough to cover more of the drawing than the expanded
+panel would) and scrolls the field into view (`use-keep-field-visible.ts`). The
+surface is `GlassCard flush` over a dark underlay, hairline under safelight. Pure
+maths (stage rect, detent heights, snap, keyboard lift, field scroll) is
+`stage-layout.ts`; keep new maths there with a test.
+
+To build a new stage screen: put the most-used controls in `collapsed`, the rest
+in `expanded`, mark the tool `fixedLayout: true`, and draw into the stage size.
+Edge dragging (Border, Mat) uses `EdgeHandles` and `useEdgePan`: a 44pt target per
+edge (`edgeHitRects` keeps the four from ever overlapping, even on a zero-size
+image) with a short bar in the phase hue on the edge itself, and a pan along the
+edge's axis that tells JS only when the whole-step count changes (`nearestStep`,
+`valueFromSteps` in `edge-drag.ts`; `stepsFromDelta` is only the image-drag pan's), one haptic tick per step and none at a bound.
+Rules: keep drawings and handles out of the stage gutter (32pt); keep each gesture
+on one axis (`activeOffset` and `failOffset`) so it never fights the panel's drag
+or a scrub row; take one drag at a time (`useActiveDrag`, a second finger is a
+no-op); make handler callbacks stable and give each edge its position table as shared
+values (a redraw per step must not rebuild a gesture mid-drag, and a table is
+rewritten only between drags, on a drag's end); count travel from the touch-down
+point (`absoluteX/Y` recorded in `.onBegin`, because iOS resets a pan's
+translation when it activates and the travel before that would be lost);
+compare against what the drag last wrote, not the last rendered value; the
+drawing is ONE accessible element whose label carries everything a sighted user
+reads from it, warning included (handles are not exposed), and every value stays
+editable in the panel. Border maps any edge to the minimum border (the slider's
+step and bounds) by direct inversion: `edgePositionsByStep` builds each edge's
+on-screen position for every step from the real `computeBorderLayout`, and
+`nearestStep` picks the step nearest `start + finger travel`, searching only the
+monotonic run of the table that holds the start (an edge pinned by an offset limit
+turns back, so the peak is a soft bound and nothing flickers), so the edge under
+the finger follows it through an axis switch, any ratio, flip or even borders
+(the tables are rebuilt when offsets, ratio, paper or orientation change); with
+offsets on, dragging the image interior moves it (a positive horizontal offset
+moves the print LEFT in the model, so a right drag lowers it:
+`offsetsAfterDrag`). Mat maps each window edge to its own border, on a grid that
+coarsens on a small drawing (`matDragStep`), through the same tables
+(`matEdgeTrack`).
+
 ### Styling
 
 - **NativeWind v4 with Tailwind v3 syntax** via `className`. This is Tailwind

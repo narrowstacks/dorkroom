@@ -3,6 +3,7 @@ import type { ComponentProps, ReactNode } from 'react';
 import { offersSafelightButton } from '@/components/safelight/offer';
 import { SafelightButton } from '@/components/safelight/safelight-button';
 import { useSafelight } from '@/components/safelight/safelight-provider';
+import { BACK_SWIPE_ZONE } from '@/components/stage/stage-layout';
 import {
   getScreenToolForPhase,
   type Phase,
@@ -12,6 +13,9 @@ import {
 import { PhaseProvider } from '@/theme/phase-context';
 import { chromeOptions } from '@/theme/stack-chrome';
 import { HubHeaderRight } from './header-buttons';
+
+/** How far from the left edge a Back swipe may start on a fixed-layout tool. */
+const BACK_SWIPE_EDGE = { end: BACK_SWIPE_ZONE } as const;
 
 // One native screen per tool, so a tool's header options (large or standard
 // title) are never flipped on a screen that is already showing.
@@ -72,6 +76,12 @@ export function PhaseStack({ phase, children }: PhaseStackProps) {
             return {
               title: tool?.label ?? 'Not found',
               headerLargeTitle: usesLargeTitle(tool),
+              // iOS 26 lets Back start anywhere on the screen. A fixed-layout
+              // tool is a drawing, an editor or a camera, so a sideways drag
+              // belongs to it: Back may only start in the left edge zone.
+              gestureResponseDistance: tool?.fixedLayout
+                ? BACK_SWIPE_EDGE
+                : undefined,
             };
           }}
         />

@@ -21,41 +21,55 @@ const paperOptions = PAPER_SIZES.reduce<Option[]>((acc, p) => {
   return acc;
 }, []);
 
-interface PaperImageSectionProps {
+interface PaperImagePickersProps {
   aspectRatio: string;
   paperSize: string;
-  isLandscape: boolean;
-  isRatioFlipped: boolean;
   onAspectChange: (value: string) => void;
   onPaperChange: (value: string) => void;
-  onToggleLandscape: (value: boolean) => void;
-  onToggleFlip: (value: boolean) => void;
 }
 
-export function PaperImageSection({
+/** The image's aspect ratio and the paper it is printed on, one row each. */
+export function PaperImagePickers({
   aspectRatio,
   paperSize,
-  isLandscape,
-  isRatioFlipped,
   onAspectChange,
   onPaperChange,
-  onToggleLandscape,
-  onToggleFlip,
-}: PaperImageSectionProps) {
+}: PaperImagePickersProps) {
   return (
-    <View className="gap-4">
+    <View className="gap-2">
       <OptionRow
-        label="Aspect ratio"
+        inlineLabel
+        label="Ratio"
         options={aspectOptions}
         value={aspectRatio}
         onChange={onAspectChange}
       />
       <OptionRow
-        label="Paper size"
+        inlineLabel
+        label="Paper"
         options={paperOptions}
         value={paperSize}
         onChange={onPaperChange}
       />
+    </View>
+  );
+}
+
+interface OrientationTogglesProps {
+  isLandscape: boolean;
+  isRatioFlipped: boolean;
+  onToggleLandscape: (value: boolean) => void;
+  onToggleFlip: (value: boolean) => void;
+}
+
+export function OrientationToggles({
+  isLandscape,
+  isRatioFlipped,
+  onToggleLandscape,
+  onToggleFlip,
+}: OrientationTogglesProps) {
+  return (
+    <View className="gap-3">
       <ToggleRow
         label="Landscape"
         value={isLandscape}

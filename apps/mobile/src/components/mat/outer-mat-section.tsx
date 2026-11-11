@@ -15,7 +15,39 @@ interface OuterMatSectionProps {
   set: UseMatCalculatorReturn['set'];
 }
 
-export function OuterMatSection({ values, set }: OuterMatSectionProps) {
+/** The outer mat's width and height, with a button that swaps them. */
+export function OuterMatFields({ values, set }: OuterMatSectionProps) {
+  return (
+    <View className="flex-row items-end gap-3">
+      <View className="flex-1">
+        <LabeledTextField
+          label="Width (in)"
+          value={values.outerW}
+          onChangeText={(value) => set('outerW', value)}
+          keyboardType="default"
+        />
+      </View>
+      <View className="flex-1">
+        <LabeledTextField
+          label="Height (in)"
+          value={values.outerH}
+          onChangeText={(value) => set('outerH', value)}
+          keyboardType="default"
+        />
+      </View>
+      <FlipButton
+        accessibilityLabel="Flip outer mat orientation"
+        onPress={() => {
+          set('outerW', values.outerH);
+          set('outerH', values.outerW);
+        }}
+      />
+    </View>
+  );
+}
+
+/** Stock mat sizes, one tap each. */
+export function CommonMatSizes({ values, set }: OuterMatSectionProps) {
   const activePreset = MAT_PRESETS.find(
     (preset) =>
       parseMatInput(values.outerW) === preset.w &&
@@ -23,32 +55,7 @@ export function OuterMatSection({ values, set }: OuterMatSectionProps) {
   );
 
   return (
-    <View className="gap-4">
-      <View className="flex-row items-end gap-3">
-        <View className="flex-1">
-          <LabeledTextField
-            label="Width (in)"
-            value={values.outerW}
-            onChangeText={(value) => set('outerW', value)}
-            keyboardType="default"
-          />
-        </View>
-        <View className="flex-1">
-          <LabeledTextField
-            label="Height (in)"
-            value={values.outerH}
-            onChangeText={(value) => set('outerH', value)}
-            keyboardType="default"
-          />
-        </View>
-        <FlipButton
-          accessibilityLabel="Flip outer mat orientation"
-          onPress={() => {
-            set('outerW', values.outerH);
-            set('outerH', values.outerW);
-          }}
-        />
-      </View>
+    <View className="gap-2">
       <SectionLabel>Common sizes</SectionLabel>
       <PresetChipRow
         accent="rose"

@@ -21,12 +21,18 @@ import {
 } from '@shopify/react-native-skia';
 import { memo, type ReactNode, useRef, useState } from 'react';
 import { type LayoutChangeEvent, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { GestureDetector } from 'react-native-gesture-handler';
 import {
   type SharedValue,
   useDerivedValue,
   useSharedValue,
 } from 'react-native-reanimated';
+import {
+  exclusiveGesture,
+  longPressGesture,
+  panGesture,
+  tapGesture,
+} from '@/components/stage/gestures';
 import { inversionEffect } from '@/lib/negative-inverter';
 import { usePhaseHue } from '@/theme/use-phase-accent';
 import { BASE_MARKER_COLOR, FOCUS_COLOR } from './editor-layout';
@@ -109,8 +115,8 @@ function framePath(x: number, y: number, w: number, h: number, width: number) {
     .setFillType(FillType.EvenOdd);
 }
 
-// Lowercase wrappers for the Skia and gesture-handler factories, so the
-// component body calls no capitalized functions.
+// Lowercase wrappers for the Skia factories, so the component body calls no
+// capitalized functions. The gesture ones are shared in `stage/gestures`.
 const xywh = (x: number, y: number, width: number, height: number) => {
   'worklet';
   return Skia.XYWHRect(x, y, width, height);
@@ -121,11 +127,6 @@ const roundRect = (rect: SkRect, rx: number, ry: number) => {
 };
 const newPath = () => Skia.Path.Make();
 const matrixOf = (values: number[]) => Skia.Matrix(values);
-const panGesture = () => Gesture.Pan();
-const longPressGesture = () => Gesture.LongPress();
-const tapGesture = () => Gesture.Tap();
-const exclusiveGesture = (...gestures: Parameters<typeof Gesture.Exclusive>) =>
-  Gesture.Exclusive(...gestures);
 
 /** What a touch on the stage does, for VoiceOver. */
 function stageHint(tool: InverterTool | null, canTap: boolean): string {

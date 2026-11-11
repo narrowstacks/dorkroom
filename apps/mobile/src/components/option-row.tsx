@@ -9,6 +9,9 @@ interface OptionRowProps<T extends string | number> {
   onChange: (value: T) => void;
   /** Hue for selected chips. Omit to take the surrounding phase's (neutral on Home and Settings). */
   accent?: AccentColor;
+  /** Put the label to the left of the chips instead of above them, for a panel
+   * short on height. */
+  inlineLabel?: boolean;
 }
 
 export function OptionRow<T extends string | number>({
@@ -17,12 +20,23 @@ export function OptionRow<T extends string | number>({
   value,
   onChange,
   accent,
+  inlineLabel = false,
 }: OptionRowProps<T>) {
   const tint = useSelectionTint(accent);
   return (
-    <View className="gap-2">
-      {label ? <Text className="text-sm text-ink-60">{label}</Text> : null}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+    <View className={inlineLabel ? 'flex-row items-center gap-3' : 'gap-2'}>
+      {label ? (
+        <Text
+          className={`text-sm text-ink-60 ${inlineLabel ? 'min-w-14' : ''}`}
+        >
+          {label}
+        </Text>
+      ) : null}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        className={inlineLabel ? 'flex-1' : undefined}
+      >
         <View className="flex-row gap-2">
           {options.map((option) => {
             const selected = option.value === value;

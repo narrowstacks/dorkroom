@@ -13,18 +13,29 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { InsetGroup } from '@/components/inset-group';
 import { Readout } from '@/components/readout';
-import { AspectPreview } from '@/components/resize/aspect-preview';
+import {
+  ColumnDrawing,
+  PrintDrawing,
+} from '@/components/resize/resize-drawing';
 import { convertResizeLengths } from '@/components/resize/units';
-import { Screen } from '@/components/screen';
 import { ScrubRow } from '@/components/scrub/scrub-row';
 import { adaptiveTimeStep } from '@/components/scrub/scrub-value';
 import { SectionLabel } from '@/components/section-label';
 import { SegmentedControl } from '@/components/segmented-control';
 import { ShareButton } from '@/components/share-button';
+import { StageScreen } from '@/components/stage/stage-screen';
 import { useLinkOverrides } from '@/hooks/use-link-overrides';
 import { useMeasurementUnit } from '@/hooks/use-measurement-unit';
 import { buildResizeShare } from '@/lib/share-text';
 import { spokenSeconds } from '@/lib/spoken-time';
+
+/**
+ * The diagram is a schematic and the inputs are the work, so the expanded panel
+ * may cover most of it, and the collapsed block (the mode and two whole scrub
+ * rows) is not capped at the default 45% where that would cut a row.
+ */
+const RESIZE_MIN_DRAWING = 120;
+const RESIZE_COLLAPSED_SHARE = 0.6;
 
 const num = (s: string) => parseDecimalInput(s) || 0;
 
@@ -119,10 +130,15 @@ function ResizeScreenBody() {
       unit="s"
       accessibilityValueText={`${spokenSeconds(newTime)}, ${stopsDifference} stops, ${stopsHelper}`}
       facts={[`${stopsDifference} stops`, stopsHelper]}
+      // The line is always there, so the warning appearing moves nothing.
       note={
-        !isAspectRatioMatched && !isEnlargerHeightMode ? (
-          <Text className="text-amber-500">⚠ Aspect ratios do not match.</Text>
-        ) : undefined
+        <View className="min-h-6 justify-center">
+          {!isAspectRatioMatched && !isEnlargerHeightMode ? (
+            <Text className="text-amber-500">
+              ⚠ Aspect ratios do not match.
+            </Text>
+          ) : null}
+        </View>
       }
     />
   ) : (
@@ -134,8 +150,24 @@ function ResizeScreenBody() {
     />
   );
 
-  return (
-    <Screen header={readout}>
+  const originalTimeRow = (
+    <ScrubRow
+      label="Original time"
+      unit="s"
+      accent="rose"
+      value={originalTime}
+      onChangeText={setOriginalTime}
+      step={adaptiveTimeStep}
+      speakValue={spokenSeconds}
+      min={EXPOSURE_TIME_MIN_SECONDS}
+      max={EXPOSURE_TIME_MAX_SECONDS}
+    />
+  );
+  // The mode decides which rows there are, so it leads. The collapsed block is
+  // the mode and the first two rows, whole, so the panel never ends mid-row;
+  // the rest of the rows, the units and Share are the expanded block.
+  const collapsed = (
+    <View className="gap-3">
       <SegmentedControl
         accent="rose"
         options={[
@@ -145,6 +177,32 @@ function ResizeScreenBody() {
         value={isEnlargerHeightMode}
         onChange={setIsEnlargerHeightMode}
       />
+      <InsetGroup>
+        {/* Arrays, not fragments: InsetGroup only divides its direct children. */}
+        {isEnlargerHeightMode
+          ? [
+              dimension('Original height', originalHeight, setOriginalHeight),
+              dimension('New height', newHeight, setNewHeight),
+            ]
+          : [
+              dimension('Original width', originalWidth, setOriginalWidth),
+              dimension('Original length', originalLength, setOriginalLength),
+            ]}
+      </InsetGroup>
+    </View>
+  );
+
+  const expanded = (
+    <View className="gap-4">
+      <InsetGroup>
+        {isEnlargerHeightMode
+          ? [originalTimeRow]
+          : [
+              dimension('New width', newWidth, setNewWidth),
+              dimension('New length', newLength, setNewLength),
+              originalTimeRow,
+            ]}
+      </InsetGroup>
 
       <View className="gap-2">
         <SectionLabel>Units</SectionLabel>
@@ -158,41 +216,6 @@ function ResizeScreenBody() {
           onChange={setMeasurementUnit}
         />
       </View>
-
-      <InsetGroup>
-        {/* Arrays, not fragments: InsetGroup only divides its direct children. */}
-        {isEnlargerHeightMode
-          ? [
-              dimension('Original height', originalHeight, setOriginalHeight),
-              dimension('New height', newHeight, setNewHeight),
-            ]
-          : [
-              dimension('Original width', originalWidth, setOriginalWidth),
-              dimension('Original length', originalLength, setOriginalLength),
-              dimension('New width', newWidth, setNewWidth),
-              dimension('New length', newLength, setNewLength),
-            ]}
-        <ScrubRow
-          label="Original time"
-          unit="s"
-          accent="rose"
-          value={originalTime}
-          onChangeText={setOriginalTime}
-          step={adaptiveTimeStep}
-          speakValue={spokenSeconds}
-          min={EXPOSURE_TIME_MIN_SECONDS}
-          max={EXPOSURE_TIME_MAX_SECONDS}
-        />
-      </InsetGroup>
-
-      {isEnlargerHeightMode ? null : (
-        <AspectPreview
-          origW={num(originalWidth)}
-          origL={num(originalLength)}
-          newW={num(newWidth)}
-          newL={num(newLength)}
-        />
-      )}
 
       {newTime ? (
         <ShareButton
@@ -210,7 +233,37 @@ function ResizeScreenBody() {
           })}
         />
       ) : null}
-    </Screen>
+    </View>
+  );
+
+  return (
+    <StageScreen
+      header={readout}
+      collapsed={collapsed}
+      expanded={expanded}
+      minDrawingExpanded={RESIZE_MIN_DRAWING}
+      collapsedMaxShare={RESIZE_COLLAPSED_SHARE}
+    >
+      {(stage) =>
+        isEnlargerHeightMode ? (
+          <ColumnDrawing
+            stage={stage}
+            unit={unit}
+            origH={num(originalHeight)}
+            newH={num(newHeight)}
+          />
+        ) : (
+          <PrintDrawing
+            stage={stage}
+            unit={unit}
+            origW={num(originalWidth)}
+            origL={num(originalLength)}
+            newW={num(newWidth)}
+            newL={num(newLength)}
+          />
+        )
+      }
+    </StageScreen>
   );
 }
 

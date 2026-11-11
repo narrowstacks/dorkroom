@@ -24,6 +24,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Changed
 
+- **Back by swipe starts at the left edge.** On the Meter, Inverter, Border, Mat Cut and Resize, a sideways drag on the screen no longer goes back; swipe from the left edge of the screen instead. (#712)
 - **Pinned tabs and Edit Tabs are gone.** The Shoot, Develop and Print tabs put every tool within two taps, so there is nothing left to pin. Tools you had pinned, and everything that was in More, now live on their phase's hub. Your home-screen shortcuts and links keep working. (#712)
 - **Settings moved to a gear button.** It sits at the top right of each hub and opens Settings; Back returns to the hub. (#712)
 - **Three colours instead of nine.** Shoot is yellow, Develop is teal and Print is rose, and each screen's backdrop has one soft glow in its phase colour (a neutral one on Search and Settings) in place of the old three glows and film grain. The selected tab takes the same colour. (#712)
@@ -32,6 +33,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - **Exposure stop ladder.** The stop presets, the +/- buttons and the custom stops box are replaced by a row of five times, a third, half or whole stop apart, that you tap to choose. The Stops row above it still takes an exact value. Times are disabled when they would round to 0 or fall outside the ±5 stop range.
 - **Camera Exposure** keeps its pickers; only its result moved to the top.
 - Numbers on the meter now use a rounded typeface.
+- **Border, Mat Cut and Resize keep the drawing still.** The preview now fills the screen and stays put while you adjust: the controls live in a panel over the bottom that shows the main controls and pulls up (or taps open) to show the rest, always leaving part of the drawing in view. On Border and Mat Cut the blade readings and border sizes sit on the edges they describe, and you can drag an edge to change it: any edge of the Border image sets the minimum border, dragging inside it moves the print when offsets are on, and each Mat Cut window edge sets its own border. Resize keeps its answer on top with the original and new sizes labelled on the drawing. (#712)
 - **Home opens the app and is the Search tab.** It is the last tab, labelled Search, and the app still opens on it. The Border calculator no longer opens at launch: find it from Search, from the Print tab, or from the Border shortcut. (#528)
 
 ### Fixed
