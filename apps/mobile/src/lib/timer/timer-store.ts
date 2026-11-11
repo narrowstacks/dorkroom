@@ -18,6 +18,8 @@ export interface TimerStoreSnapshot {
   selectedPresetId: string;
   /** Alert permission was refused, so backgrounded runs will be silent. */
   alertsDenied: boolean;
+  /** The wall-clock time `timer` was captured at (what a running timer is projected from). */
+  anchorMs: number;
 }
 
 export interface TimerStore {
@@ -35,12 +37,13 @@ export function createTimerStore(
   initialPresetId: string,
   now: () => number = Date.now
 ): TimerStore {
+  let anchorMs = now();
   let snapshot: TimerStoreSnapshot = {
     timer: createTimerState(initialStages),
     selectedPresetId: initialPresetId,
     alertsDenied: false,
+    anchorMs,
   };
-  let anchorMs = now();
   const listeners = new Set<() => void>();
 
   const commit = (next: TimerStoreSnapshot) => {
@@ -53,7 +56,7 @@ export function createTimerStore(
     const projected = projectState(snapshot.timer, anchorMs, at);
     anchorMs = at;
     if (projected !== snapshot.timer) {
-      commit({ ...snapshot, timer: projected });
+      commit({ ...snapshot, timer: projected, anchorMs });
     }
   };
 
@@ -70,7 +73,9 @@ export function createTimerStore(
       sync();
       const next = timerReducer(snapshot.timer, action);
       anchorMs = now();
-      if (next !== snapshot.timer) commit({ ...snapshot, timer: next });
+      if (next !== snapshot.timer) {
+        commit({ ...snapshot, timer: next, anchorMs });
+      }
     },
     setSelectedPresetId: (id) => {
       if (id !== snapshot.selectedPresetId) {
