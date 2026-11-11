@@ -9,11 +9,13 @@ import { ToggleRow } from '@/components/toggle-row';
 import { ToolListRow } from '@/components/tool-list-row';
 import { useMeasurementUnit } from '@/hooks/use-measurement-unit';
 import { useSaveMeterPhotosToLibrary } from '@/lib/photo-settings';
+import { useCuesInSilentMode } from '@/lib/timer/timer-settings';
 
 export function SettingsScreen() {
   const version = Constants.expoConfig?.version;
   const [savePhotos, setSavePhotos] = useSaveMeterPhotosToLibrary();
   const [unit, setUnit] = useMeasurementUnit();
+  const [cuesInSilent, setCuesInSilent] = useCuesInSilentMode();
 
   return (
     <Screen>
@@ -39,6 +41,18 @@ export function SettingsScreen() {
           value={savePhotos}
           onChange={setSavePhotos}
         />
+      </GlassCard>
+
+      <GlassCard className="gap-2">
+        <ToggleRow
+          label="Timer sounds in silent mode"
+          value={cuesInSilent}
+          onChange={setCuesInSilent}
+        />
+        <Text className="text-xs text-white/50">
+          Off by default, so the silent switch mutes the timer beeps. Alerts
+          while Dorkroom is in the background always follow the switch.
+        </Text>
       </GlassCard>
 
       <GlassCard>
