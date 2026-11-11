@@ -1,4 +1,4 @@
-import { matBorderToInput, type UseMatCalculatorReturn } from '@dorkroom/logic';
+import type { UseMatCalculatorReturn } from '@dorkroom/logic';
 import * as Haptics from 'expo-haptics';
 import { useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { Text, View, type ViewStyle } from 'react-native';
@@ -26,6 +26,7 @@ import {
 } from './geometry';
 import {
   BORDER_KEY,
+  borderTextAfterDrag,
   matBorderOf,
   matBorderRange,
   matDragStep,
@@ -48,6 +49,7 @@ type MatDrawingState = Pick<
   | 'windowH'
   | 'fmt'
   | 'set'
+  | 'values'
 >;
 
 interface MatDrawingProps extends MatDrawingState {
@@ -181,11 +183,15 @@ interface Latest {
   };
   step: number;
   set: UseMatCalculatorReturn['set'];
+  /** The border fields' text, as typed. */
+  texts: Record<Edge, string>;
 }
 
 interface Written {
   start: number;
   last: number;
+  /** The field's text when the drag began. */
+  text: string;
 }
 
 /**
@@ -214,6 +220,7 @@ export function MatDrawing({
   windowH,
   fmt,
   set,
+  values,
 }: MatDrawingProps) {
   const hue = usePhaseHue();
   const geometry = computeMatPreviewGeometry({
@@ -234,7 +241,17 @@ export function MatDrawing({
 
   const latest = useRef<Latest | null>(null);
   useLayoutEffect(() => {
-    latest.current = { layout: { ow, oh, bt, bb, bl, br }, step, set };
+    latest.current = {
+      layout: { ow, oh, bt, bb, bl, br },
+      step,
+      set,
+      texts: {
+        left: values.borderLeft,
+        right: values.borderRight,
+        top: values.borderTop,
+        bottom: values.borderBottom,
+      },
+    };
   });
 
   // Each edge's inward positions, linear because a border moves 1:1 with the
@@ -268,13 +285,14 @@ export function MatDrawing({
 
   // Made once, so a redraw per step never rebuilds a gesture mid-drag.
   const [handlers] = useState(() => {
-    const written: Written = { start: 0, last: 0 };
+    const written: Written = { start: 0, last: 0, text: '' };
     const make = (edge: Edge) => ({
       onBegin: () => {
         const now = latest.current;
         if (!now) return;
         written.start = matBorderOf(edge, now.layout);
         written.last = written.start;
+        written.text = now.texts[edge];
       },
       onSteps: (steps: number) => {
         const now = latest.current;
@@ -289,7 +307,10 @@ export function MatDrawing({
         if (next === written.last) return;
         written.last = next;
         Haptics.selectionAsync();
-        now.set(BORDER_KEY[edge], matBorderToInput(next));
+        now.set(
+          BORDER_KEY[edge],
+          borderTextAfterDrag({ startText: written.text, steps, value: next })
+        );
       },
       onEnd: refresh,
     });
@@ -397,7 +418,8 @@ export function MatDrawing({
           position: 'absolute',
           left: 0,
           right: 0,
-          top: geometry.board.height + 2 * STAGE_BLEED,
+          // The board starts at STAGE_BLEED, so the caption follows one bleed below its height.
+          top: geometry.board.height + STAGE_BLEED,
           height: DRAWING_CAPTION_HEIGHT,
           justifyContent: 'center',
         }}

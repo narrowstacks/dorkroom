@@ -40,6 +40,7 @@ function MatScreenBody({ overrides }: MatScreenBodyProps) {
           windowH={calc.windowH}
           fmt={calc.fmt}
           set={calc.set}
+          values={calc.values}
         />
       )}
     </StageScreen>

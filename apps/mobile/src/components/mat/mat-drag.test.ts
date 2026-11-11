@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { nearestStep } from '@/components/stage/edge-drag';
 import {
   BORDER_KEY,
+  borderTextAfterDrag,
   matBorderOf,
   matBorderRange,
   matDragStep,
@@ -79,5 +80,19 @@ describe('matEdgeTrack follows the finger one to one', () => {
 
   it('is empty without a scale', () => {
     expect(matEdgeTrack('left', layout, step, 0).positions).toEqual([]);
+  });
+});
+
+describe('borderTextAfterDrag', () => {
+  it('restores the typed text verbatim at zero steps', () => {
+    expect(
+      borderTextAfterDrag({ startText: '0.3', steps: 0, value: 0.3 })
+    ).toBe('0.3');
+  });
+
+  it('formats the grid value otherwise', () => {
+    expect(
+      borderTextAfterDrag({ startText: '0.3', steps: 2, value: 0.8125 })
+    ).toBe('13/16');
   });
 });

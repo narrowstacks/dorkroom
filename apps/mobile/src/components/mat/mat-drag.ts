@@ -1,3 +1,4 @@
+import { matBorderToInput } from '@dorkroom/logic';
 import type { Edge } from '@/components/stage/edge-drag';
 import { adaptiveStep, gridIndex } from '@/components/stage/edge-drag';
 
@@ -90,4 +91,18 @@ export function matEdgeTrack(
     positions,
     startIndex: gridIndex(matBorderOf(edge, layout), min, step, count),
   };
+}
+
+/**
+ * The text to write into a border field after a drag step. With no steps it is
+ * the text the field held when the drag began, verbatim (a typed `0.3` must not
+ * come back as `0.3125` after dragging out and back); otherwise the grid value
+ * in the field's own format.
+ */
+export function borderTextAfterDrag(input: {
+  startText: string;
+  steps: number;
+  value: number;
+}): string {
+  return input.steps === 0 ? input.startText : matBorderToInput(input.value);
 }
