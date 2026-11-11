@@ -303,15 +303,22 @@ state.
   A request always settles (cancel, backdrop, swipe, mode off, unmount, or a
   watchdog if `onDismiss` never fires).
 
+**The status bar is hidden, not dimmed** (it is a system surface the overlay
+cannot reach). `app.json` sets `expo.ios.infoPlist.UIViewControllerBasedStatusBarAppearance`
+to `true` (the only place it is set; no local plugin writes it), and
+`statusBarOptions(on)` in `theme/stack-chrome.ts` supplies `statusBarStyle:
+'light'` and `statusBarHidden: on` as native-stack screen options, spread into the
+root stack in `app/_layout.tsx` and into `chromeOptions`. Only the root stack's
+`(tabs)` screen is consulted: react-native-screens walks child view controllers
+and stops at `NativeTabs`' tab bar controller, so the phase stacks' copy is inert
+today. **This needs a native build to take effect** (it is an Info.plist change)
+and has not been checked on a device. With the key `true`, React Native's
+imperative `StatusBar` (and `expo-status-bar`'s component) logs an error, so never
+add one: use these screen options. A React Native `Modal` is its own window and
+may still show the bar.
+
 **Not covered (system surfaces and separate windows):**
 
-- The **status bar** stays bright. The app's Info.plist has
-  `UIViewControllerBasedStatusBarAppearance` false and the scene lifecycle
-  ignores `StatusBar hidden`; the native-stack `statusBarHidden` option asserts
-  until the key is YES. Follow-up for a native build: set
-  `UIViewControllerBasedStatusBarAppearance` true in `app.json`
-  `expo.ios.infoPlist`, then add `statusBarHidden` to the stack options in
-  `chromeOptions`. No status bar code was added for the mode.
 - The **launch screen** is not covered.
 - **Timer notifications and sounds** (`expo-notifications` banners, lock-screen
   alerts, the cue beeps): notification banners are not dimmed, and the sound

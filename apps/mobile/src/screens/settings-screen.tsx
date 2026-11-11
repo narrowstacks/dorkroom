@@ -67,11 +67,11 @@ export function SettingsScreen() {
             onChange={safelight.setOn}
           />
           <Text className="text-xs text-ink-50">
-            Turns the app deep red on black for working under a safelight. The
-            status bar, keyboard, photo picker and system alerts and sheets stay
-            bright. Camera and photo previews show as bright red images. Not
-            tested as safe for photographic paper. Red light is not safe for
-            film or colour paper.
+            Turns the app deep red on black for working under a safelight and
+            hides the status bar. The keyboard, photo picker and system alerts
+            and sheets stay bright. Camera and photo previews show as bright red
+            images. Not tested as safe for photographic paper. Red light is not
+            safe for film or colour paper.
           </Text>
         </GlassCard>
 

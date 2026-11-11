@@ -12,7 +12,6 @@ configureDorkroomApi();
 import { PersistenceStorageProvider } from '@dorkroom/logic';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { Appearance } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -31,6 +30,7 @@ import {
   QUERY_CACHE_MAX_AGE,
   queryPersister,
 } from '@/providers/query-persister';
+import { statusBarOptions } from '@/theme/stack-chrome';
 
 // The app is dark-themed only (screens hard-code dark backgrounds and light
 // text). Force dark so native surfaces — notably expo-glass-effect's GlassView —
@@ -39,13 +39,16 @@ Appearance.setColorScheme('dark');
 
 function RootStack() {
   const { on } = useSafelight();
-  // The home indicator hides under safelight: it is a system surface the
-  // multiply overlay cannot tint.
+  // The home indicator and the status bar hide under safelight: they are system
+  // surfaces the multiply overlay cannot tint. The status bar is a screen
+  // option (UIViewControllerBasedStatusBarAppearance is true), set here for the
+  // `(tabs)` screen, which is the one iOS asks.
   return (
     <Stack
       screenOptions={{
         headerShown: false,
         autoHideHomeIndicator: on,
+        ...statusBarOptions(on),
       }}
     />
   );
@@ -75,8 +78,6 @@ export default function RootLayout() {
                 <ThemeProvider value={DarkTheme}>
                   <RootStack />
                   <TimerRunEffects />
-                  {/* oxlint-disable-next-line react/style-prop-object -- expo-status-bar's `style` is a preset string ('auto' | 'light' | 'dark'), not a React style object */}
-                  <StatusBar style="light" />
                   {/* Asks before the system photo picker opens under safelight mode. */}
                   <PhotoPickerGateHost />
                 </ThemeProvider>
