@@ -1,3 +1,37 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Normal look: the same values as NORMAL_VAR_VALUES in
+   src/theme/safelight-tokens.ts (a test checks they match). `SafelightRoot`
+   always passes one set or the other; this covers a view outside any root. */
+:root {
+  --sl-bw: 0px;
+  --sl-line: transparent;
+  --sl-surface: rgba(255, 255, 255, 0.1);
+  --sl-surface-dim: rgba(255, 255, 255, 0.05);
+  --sl-surface-inset: rgba(255, 255, 255, 0.07);
+  --sl-surface-strong: rgba(255, 255, 255, 0.2);
+  --sl-edge-faint: rgba(255, 255, 255, 0.05);
+  --sl-edge: rgba(255, 255, 255, 0.1);
+  --sl-edge-15: rgba(255, 255, 255, 0.15);
+  --sl-edge-strong: rgba(255, 255, 255, 0.2);
+  --sl-edge-30: rgba(255, 255, 255, 0.3);
+  --sl-selected: #ffffff;
+  --sl-selected-ink: #0b0b0c;
+  --sl-ok: #6ee7b7;
+  --sl-paper: #a3a3a3;
+  --sl-paper-ink: rgba(0, 0, 0, 0.7);
+  --sl-paper-print: #404040;
+  --sl-easel-paper: rgba(255, 255, 255, 0.9);
+  --sl-easel-print: #3f3f46;
+  --sl-window: #161618;
+  --sl-ink-80: rgba(255, 255, 255, 0.8);
+  --sl-ink-70: rgba(255, 255, 255, 0.7);
+  --sl-ink-60: rgba(255, 255, 255, 0.6);
+  --sl-ink-55: rgba(255, 255, 255, 0.55);
+  --sl-ink-50: rgba(255, 255, 255, 0.5);
+  --sl-ink-45: rgba(255, 255, 255, 0.45);
+  --sl-ink-40: rgba(255, 255, 255, 0.4);
+  --sl-ink-30: rgba(255, 255, 255, 0.3);
+}

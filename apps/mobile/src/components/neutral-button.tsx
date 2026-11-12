@@ -24,7 +24,7 @@ export function NeutralButton({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      className={`items-center rounded-xl bg-white/10 px-4 py-3 active:opacity-70 ${className}`}
+      className={`items-center rounded-xl border-hw border-line bg-surface px-4 py-3 active:opacity-70 ${className}`}
     >
       <Text className="text-base font-semibold text-white">{label}</Text>
     </Pressable>

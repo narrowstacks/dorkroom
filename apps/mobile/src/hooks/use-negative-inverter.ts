@@ -68,6 +68,7 @@ import {
   loadNegative,
   saveToPhotos,
 } from '@/lib/negative-inverter';
+import { gatePhotoPicker } from '@/lib/photo-picker-gate';
 
 const PICKER_OPTIONS: ImagePicker.ImagePickerOptions = {
   mediaTypes: ['images'],
@@ -193,8 +194,10 @@ export function useNegativeInverter() {
   }, []);
 
   const chooseFromLibrary = useCallback(async () => {
-    const result = await ImagePicker.launchImageLibraryAsync(PICKER_OPTIONS);
-    const asset = result.canceled ? undefined : result.assets[0];
+    const result = await gatePhotoPicker(() =>
+      ImagePicker.launchImageLibraryAsync(PICKER_OPTIONS)
+    );
+    const asset = !result || result.canceled ? undefined : result.assets[0];
     if (asset) await open(asset.uri);
   }, [open]);
 

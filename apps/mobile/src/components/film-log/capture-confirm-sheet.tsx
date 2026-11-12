@@ -60,9 +60,9 @@ export function CaptureConfirmSheet({
               {formatAperture(aperture)} · {formatShutterSpeed(shutterSpeed)} ·
               EI {iso}
             </Text>
-            <Text className="text-sm text-white/60">Roll: {rollName}</Text>
+            <Text className="text-sm text-ink-60">Roll: {rollName}</Text>
             {photo.grayscale ? (
-              <Text className="text-xs text-white/40">Saved in B&amp;W</Text>
+              <Text className="text-xs text-ink-40">Saved in B&amp;W</Text>
             ) : null}
           </View>
         </View>
@@ -84,7 +84,7 @@ export function CaptureConfirmSheet({
           <Pressable
             onPress={onEdit}
             accessibilityRole="button"
-            className="flex-1 items-center rounded-xl bg-white/10 px-4 py-3"
+            className="flex-1 items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
           >
             <Text className="text-base text-white">Edit…</Text>
           </Pressable>

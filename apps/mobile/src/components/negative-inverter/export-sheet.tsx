@@ -66,7 +66,7 @@ export function ExportSheet({
             onChange={onFormat}
             accessibilityLabel="File format"
           />
-          <Text className="text-sm text-white/70">
+          <Text className="text-sm text-ink-70">
             {output.downscaled
               ? `Scaled to ${formatMegapixels(output)} (${output.width} x ${output.height}), the largest this phone can export.`
               : `Full resolution, ${formatMegapixels(output)} (${output.width} x ${output.height}).`}
@@ -76,7 +76,7 @@ export function ExportSheet({
         <View className="gap-2">
           <SectionLabel>Light table tips</SectionLabel>
           {LIGHT_TABLE_TIPS.map((tip) => (
-            <Text key={tip} className="text-sm text-white/80">
+            <Text key={tip} className="text-sm text-ink-80">
               {`• ${tip}`}
             </Text>
           ))}
@@ -100,7 +100,7 @@ export function ExportSheet({
           accessibilityRole="button"
           accessibilityHint="Forgets this photo's edits"
           accessibilityState={{ disabled: exporting }}
-          className="min-h-11 items-center justify-center rounded-xl bg-white/10 active:opacity-70"
+          className="min-h-11 items-center justify-center rounded-xl border-hw border-line bg-surface active:opacity-70"
         >
           <Text
             className={`font-semibold ${exporting ? 'text-rose-400/40' : 'text-rose-400'}`}

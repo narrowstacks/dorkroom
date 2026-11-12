@@ -89,7 +89,7 @@ export function ResumeSections({
                   <Text className="text-base text-white" numberOfLines={1}>
                     {recipe.title}
                   </Text>
-                  <Text className="text-sm text-white/50" numberOfLines={1}>
+                  <Text className="text-sm text-ink-50" numberOfLines={1}>
                     {recipe.detail}
                   </Text>
                 </View>

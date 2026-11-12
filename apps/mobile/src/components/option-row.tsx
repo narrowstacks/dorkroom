@@ -21,7 +21,7 @@ export function OptionRow<T extends string | number>({
   const tint = useSelectionTint(accent);
   return (
     <View className="gap-2">
-      {label ? <Text className="text-sm text-white/60">{label}</Text> : null}
+      {label ? <Text className="text-sm text-ink-60">{label}</Text> : null}
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View className="flex-row gap-2">
           {options.map((option) => {
@@ -32,7 +32,7 @@ export function OptionRow<T extends string | number>({
                 onPress={() => onChange(option.value)}
                 accessibilityRole="button"
                 accessibilityState={{ selected }}
-                className={`rounded-full px-4 py-2 ${selected ? '' : 'bg-white/10'}`}
+                className={`rounded-full px-4 py-2 ${selected ? '' : 'border-hw border-line bg-surface'}`}
                 style={
                   selected
                     ? {
@@ -44,7 +44,7 @@ export function OptionRow<T extends string | number>({
                 }
               >
                 <Text
-                  className={selected ? undefined : 'text-white/70'}
+                  className={selected ? undefined : 'text-ink-70'}
                   style={
                     selected
                       ? { color: tint.color, fontWeight: '600' }

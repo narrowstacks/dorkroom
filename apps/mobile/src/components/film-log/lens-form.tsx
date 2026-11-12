@@ -113,7 +113,7 @@ export function LensForm({ visible, lens, onClose }: LensFormProps) {
           <Pressable
             onPress={onDelete}
             accessibilityRole="button"
-            className="items-center rounded-xl bg-white/10 px-4 py-3"
+            className="items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
           >
             <Text className="text-base text-rose-400">Delete lens</Text>
           </Pressable>

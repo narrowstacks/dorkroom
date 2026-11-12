@@ -7,7 +7,7 @@ import {
 import { ArrowDown, ArrowUp, Flame, Snowflake } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 import { GlassCard } from '@/components/glass-card';
-import { ACCENT, DIRECTION_COLOR } from '@/theme/accents';
+import { useAccentColor, useDirectionColors } from '@/theme/use-phase-accent';
 import { Badge } from './badge';
 import { OfficialTagPill } from './official-tag-pill';
 import {
@@ -35,6 +35,8 @@ export function RecipeCard({
   maxTags = 3,
 }: RecipeCardProps) {
   const { combination, film, developer } = recipe;
+  const teal = useAccentColor('teal');
+  const direction = useDirectionColors();
 
   const filmName = film ? `${film.brand} ${film.name}`.trim() : 'Unknown film';
   const developerName = developer
@@ -53,8 +55,8 @@ export function RecipeCard({
   const pp = pushPullDisplay(stops);
   const isoColor = pp
     ? pp.direction === 'push'
-      ? DIRECTION_COLOR.up
-      : DIRECTION_COLOR.down
+      ? direction.up
+      : direction.down
     : undefined;
 
   // Temp segment: Flame (hotter) / Snowflake (colder) when non-standard,
@@ -63,8 +65,8 @@ export function RecipeCard({
   const tempHigher = isHigherTemperature(combination.temperatureF);
   const tempColor = nonStandardTemp
     ? tempHigher
-      ? DIRECTION_COLOR.up
-      : DIRECTION_COLOR.down
+      ? direction.up
+      : direction.down
     : undefined;
 
   const isoTempAccessibilityExtra = [
@@ -95,7 +97,7 @@ export function RecipeCard({
             {filmName}
           </Text>
 
-          <Text className="text-sm text-white/60" numberOfLines={1}>
+          <Text className="text-sm text-ink-60" numberOfLines={1}>
             {developerName} · {dilution}
           </Text>
 
@@ -118,11 +120,11 @@ export function RecipeCard({
                 </Text>
               </>
             ) : (
-              <Text className="text-sm text-white/40">
+              <Text className="text-sm text-ink-40">
                 ISO {combination.shootingIso}
               </Text>
             )}
-            <Text className="text-sm text-white/40"> · </Text>
+            <Text className="text-sm text-ink-40"> · </Text>
             {nonStandardTemp ? (
               <>
                 {tempHigher ? (
@@ -142,7 +144,7 @@ export function RecipeCard({
                 </Text>
               </>
             ) : (
-              <Text className="text-sm text-white/40">
+              <Text className="text-sm text-ink-40">
                 {formatRecipeTemp(
                   combination.temperatureC,
                   combination.temperatureF,
@@ -173,10 +175,10 @@ export function RecipeCard({
             Color comes from an inline style (ACCENT.teal); the `text-teal-*`
             NativeWind class doesn't resolve on the Liquid Glass build. */}
         <View className="items-end">
-          <Text className="text-3xl font-bold" style={{ color: ACCENT.teal }}>
+          <Text className="text-3xl font-bold" style={{ color: teal }}>
             {formatRecipeTime(combination.timeMinutes)}
           </Text>
-          <Text className="text-[11px] uppercase tracking-wide text-white/40">
+          <Text className="text-[11px] uppercase tracking-wide text-ink-40">
             dev time
           </Text>
         </View>

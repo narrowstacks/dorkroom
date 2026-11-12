@@ -16,8 +16,13 @@ import {
   agitationWindows,
 } from '@/lib/timer/agitation';
 import type { TimerStage, TimerStatus } from '@/lib/timer/types';
-import { ACCENT, selectionTint } from '@/theme/accents';
+import { SAFELIGHT } from '@/theme/safelight';
 import { readoutText } from '@/theme/tokens';
+import {
+  useAccentColor,
+  useModeColor,
+  useSelectionTint,
+} from '@/theme/use-phase-accent';
 import {
   formatClock,
   formatFinishAt,
@@ -79,7 +84,10 @@ export function Countdown({
     pattern !== null && agitation.agitating && status === 'running';
   const showNextAgitation =
     pattern !== null && !agitatingNow && agitation.nextWindowInSeconds != null;
-  const tint = selectionTint('teal');
+  const tint = useSelectionTint('teal');
+  const teal = useAccentColor('teal');
+  // Under safelight the track is an outline-level red and the fill the bright one.
+  const trackColor = useModeColor('rgba(255,255,255,0.12)', SAFELIGHT.outline);
 
   // Pulse the AGITATE pill while a window is active so it can't be missed on a
   // counter in a dim room. Honors Reduce Motion — skip the loop, keep the pill
@@ -112,29 +120,29 @@ export function Countdown({
             {completed ? 'Done' : stage ? stageDisplayName(stage) : 'No stages'}
           </Text>
           {hint ? (
-            <Text className="text-xs uppercase tracking-wide text-white/40">
+            <Text className="text-xs uppercase tracking-wide text-ink-40">
               {hint}
             </Text>
           ) : null}
         </View>
 
         <Text
-          style={[styles.readout, { color: ACCENT.teal }]}
+          style={[styles.readout, { color: teal }]}
           accessibilityLabel={`${formatClock(remainingSeconds)} remaining`}
         >
           {formatClock(remainingSeconds)}
         </Text>
 
-        <View style={styles.track}>
+        <View style={[styles.track, { backgroundColor: trackColor }]}>
           <Animated.View
-            style={[styles.bar, { backgroundColor: ACCENT.teal }, barStyle]}
+            style={[styles.bar, { backgroundColor: teal }, barStyle]}
           />
         </View>
 
         {showTotals ? (
           <View className="flex-row justify-between gap-2">
             <Text
-              className="text-xs text-white/40"
+              className="text-xs text-ink-40"
               numberOfLines={1}
               style={{ fontVariant: ['tabular-nums'] }}
             >
@@ -144,7 +152,7 @@ export function Countdown({
                 formatFinishAt(new Date(), totalRemainingSeconds)
               }
             </Text>
-            <Text className="text-xs text-white/40" numberOfLines={1}>
+            <Text className="text-xs text-ink-40" numberOfLines={1}>
               {nextStage
                 ? `Next: ${stageDisplayName(nextStage)}`
                 : 'Last stage'}
@@ -173,20 +181,20 @@ export function Countdown({
             </Text>
           </Animated.View>
         ) : showNextAgitation && agitation.nextWindowInSeconds != null ? (
-          <Text className="text-sm text-white/60">
+          <Text className="text-sm text-ink-60">
             Next agitation in {formatClock(agitation.nextWindowInSeconds)}
           </Text>
         ) : !pattern && stage?.agitation ? (
-          <Text className="text-sm text-white/60">{stage.agitation}</Text>
+          <Text className="text-sm text-ink-60">{stage.agitation}</Text>
         ) : null}
 
         {pattern ? (
-          <Text className="text-xs text-white/40">
+          <Text className="text-xs text-ink-40">
             {agitationSummary(pattern)}
           </Text>
         ) : null}
 
-        {temp ? <Text className="text-sm text-white/50">{temp}</Text> : null}
+        {temp ? <Text className="text-sm text-ink-50">{temp}</Text> : null}
       </View>
     </ResultCard>
   );

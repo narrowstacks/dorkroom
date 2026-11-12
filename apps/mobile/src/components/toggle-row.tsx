@@ -1,5 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
+import { useSafelight } from '@/components/safelight/safelight-provider';
 import { ACCENT } from '@/theme/accents';
+import { SAFELIGHT } from '@/theme/safelight';
 import { usePhaseAccent } from '@/theme/use-phase-accent';
 
 interface ToggleRowProps {
@@ -19,22 +21,29 @@ const OFF_THUMB = '#ffffff';
 /** A labelled on/off switch row. */
 export function ToggleRow({ label, value, onChange }: ToggleRowProps) {
   const accent = usePhaseAccent();
-  const onTrack = accent === null ? NEUTRAL_ON_TRACK : ACCENT[accent];
+  const { on: safelight } = useSafelight();
+  const onTrack = safelight
+    ? SAFELIGHT.outlineSelected
+    : accent === null
+      ? NEUTRAL_ON_TRACK
+      : ACCENT[accent];
+  const offTrack = safelight ? SAFELIGHT.wash : OFF_TRACK;
+  const offThumb = safelight ? SAFELIGHT.textTertiary : OFF_THUMB;
   return (
     <Pressable
       onPress={() => onChange(!value)}
       accessibilityRole="switch"
       accessibilityState={{ checked: value }}
-      className="flex-row items-center justify-between rounded-xl bg-white/10 px-4 py-3"
+      className="flex-row items-center justify-between rounded-xl border-hw border-line bg-surface px-4 py-3"
     >
       <Text className="text-base text-white">{label}</Text>
       <View
         className="h-6 w-11 justify-center rounded-full"
-        style={{ backgroundColor: value ? onTrack : OFF_TRACK }}
+        style={{ backgroundColor: value ? onTrack : offTrack }}
       >
         <View
           className={`mx-0.5 h-5 w-5 rounded-full ${value ? 'self-end' : 'self-start'}`}
-          style={{ backgroundColor: value ? ON_THUMB : OFF_THUMB }}
+          style={{ backgroundColor: value ? ON_THUMB : offThumb }}
         />
       </View>
     </Pressable>

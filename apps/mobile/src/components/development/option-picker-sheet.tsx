@@ -66,7 +66,7 @@ const PickerRowInner = <T extends string | number>({
           {option.label}
         </Text>
         {option.sublabel ? (
-          <Text className="text-sm text-white/50" numberOfLines={1}>
+          <Text className="text-sm text-ink-50" numberOfLines={1}>
             {option.sublabel}
           </Text>
         ) : null}
@@ -147,9 +147,9 @@ export function OptionPickerSheet<T extends string | number>({
 const LIST_STYLE = { maxHeight: 360 } as const;
 
 function ItemSeparator() {
-  return <View className="h-px bg-white/10" />;
+  return <View className="h-px bg-edge" />;
 }
 
 function EmptyState() {
-  return <Text className="py-6 text-center text-white/50">No matches</Text>;
+  return <Text className="py-6 text-center text-ink-50">No matches</Text>;
 }

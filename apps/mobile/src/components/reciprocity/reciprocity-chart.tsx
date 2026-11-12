@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Svg, { Circle, Line, Path } from 'react-native-svg';
-import { ACCENT } from '@/theme/accents';
+import { useAccentColor } from '@/theme/use-phase-accent';
 import {
   buildCurve,
   type ChartPoint,
@@ -9,6 +9,7 @@ import {
   scaleX,
   scaleY,
 } from './chart-geometry';
+import { useChartInk } from './chart-ink';
 import { ReciprocityChartModal } from './reciprocity-chart-modal';
 
 const W = 320;
@@ -38,6 +39,8 @@ export function ReciprocityChart({
   filmName,
   formatTime,
 }: ReciprocityChartProps) {
+  const ink = useChartInk();
+  const yellow = useAccentColor('yellow');
   const [open, setOpen] = useState(false);
   const layout = computeChartLayout({
     originalTime,
@@ -55,8 +58,8 @@ export function ReciprocityChart({
   return (
     <View className="gap-3">
       <View className="flex-row items-center justify-between">
-        <Text className="text-sm text-white/60">Reciprocity curve</Text>
-        <Text className="text-xs text-white/40">Tap to explore</Text>
+        <Text className="text-sm text-ink-60">Reciprocity curve</Text>
+        <Text className="text-xs text-ink-40">Tap to explore</Text>
       </View>
 
       <Pressable
@@ -70,13 +73,12 @@ export function ReciprocityChart({
             y1={baseY}
             x2={W - PADDING.right}
             y2={baseY}
-            stroke="#ffffff"
-            strokeOpacity={0.15}
+            {...ink.line(0.15)}
           />
           <Path
             d={curve}
             fill="none"
-            stroke={ACCENT.yellow}
+            stroke={yellow}
             strokeWidth={2.5}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -86,15 +88,14 @@ export function ReciprocityChart({
             y1={baseY}
             x2={cx}
             y2={cy}
-            stroke="#ffffff"
-            strokeOpacity={0.3}
+            {...ink.line(0.3)}
             strokeDasharray="3 3"
           />
-          <Circle cx={cx} cy={cy} r={5} fill={ACCENT.yellow} />
+          <Circle cx={cx} cy={cy} r={5} fill={yellow} />
         </Svg>
       </Pressable>
 
-      <Text className="text-xs text-white/50">
+      <Text className="text-xs text-ink-50">
         metered {formatTime(originalTime)} → adjusted {formatTime(adjustedTime)}
       </Text>
 

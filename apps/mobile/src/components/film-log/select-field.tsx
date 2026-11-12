@@ -32,21 +32,21 @@ export function SelectField<T extends string | number>({
 
   return (
     <View className="gap-1">
-      <Text className="text-sm text-white/60">{label}</Text>
+      <Text className="text-sm text-ink-60">{label}</Text>
       <Pressable
         onPress={() => setOpen(true)}
         accessibilityRole="button"
         accessibilityLabel={`${label}: ${selected?.label ?? placeholder}`}
-        className="flex-row items-center justify-between rounded-xl bg-white/10 px-4 py-3"
+        className="flex-row items-center justify-between rounded-xl border-hw border-line bg-surface px-4 py-3"
       >
         <Text
           className={
-            selected ? 'text-base text-white' : 'text-base text-white/40'
+            selected ? 'text-base text-white' : 'text-base text-ink-40'
           }
         >
           {selected?.label ?? placeholder}
         </Text>
-        <Text className="text-white/70">▾</Text>
+        <Text className="text-ink-70">▾</Text>
       </Pressable>
 
       <BottomSheet visible={open} title={label} onClose={() => setOpen(false)}>
@@ -68,15 +68,13 @@ export function SelectField<T extends string | number>({
                 >
                   <Text className="text-base text-white">{option.label}</Text>
                   {option.detail ? (
-                    <Text className="text-sm text-white/50">
-                      {option.detail}
-                    </Text>
+                    <Text className="text-sm text-ink-50">{option.detail}</Text>
                   ) : null}
                 </Pressable>
               );
             })}
             {options.length === 0 ? (
-              <Text className="px-1 py-3 text-white/50">
+              <Text className="px-1 py-3 text-ink-50">
                 Nothing to choose yet.
               </Text>
             ) : null}

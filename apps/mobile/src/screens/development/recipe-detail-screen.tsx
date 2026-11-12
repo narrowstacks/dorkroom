@@ -20,9 +20,11 @@ import { Screen } from '@/components/screen';
 import { recordRecipeOpen } from '@/lib/recent-store';
 import { agitationSummary, patternFromRecipe } from '@/lib/timer/agitation';
 import { setTimerPrefill } from '@/lib/timer/prefill';
-import { ACCENT } from '@/theme/accents';
+import { useAccentColor, useAccentLine } from '@/theme/use-phase-accent';
 
 export function RecipeDetailScreen() {
+  const teal = useAccentColor('teal');
+  const tealLine = useAccentLine('teal', '40');
   const { id } = useLocalSearchParams<{ id: string }>();
   const recipes = useDevelopmentRecipes();
 
@@ -50,7 +52,7 @@ export function RecipeDetailScreen() {
     return (
       <Screen>
         <Stack.Screen options={{ title: 'Recipe' }} />
-        <Text className="py-16 text-center text-base text-white/60">
+        <Text className="py-16 text-center text-base text-ink-60">
           Recipe not found.
         </Text>
       </Screen>
@@ -81,7 +83,7 @@ export function RecipeDetailScreen() {
       {/* Context: developer name (the nav title already shows the film) and
           push/pull. */}
       <View className="flex-row items-center justify-between gap-2">
-        <Text className="flex-1 text-sm text-white/60" numberOfLines={1}>
+        <Text className="flex-1 text-sm text-ink-60" numberOfLines={1}>
           {developerName}
         </Text>
         <PushPullBadge stops={stops} />
@@ -97,14 +99,14 @@ export function RecipeDetailScreen() {
       <View className="flex-row gap-3">
         <GlassCard
           className="gap-0.5"
-          style={{ flex: 1, borderWidth: 1, borderColor: `${ACCENT.teal}40` }}
+          style={{ flex: 1, borderWidth: 1, borderColor: tealLine }}
         >
-          <Text className="text-xs uppercase tracking-wide text-white/50">
+          <Text className="text-xs uppercase tracking-wide text-ink-50">
             Dev time
           </Text>
           <Text
             className="text-xl font-bold"
-            style={{ color: ACCENT.teal }}
+            style={{ color: teal }}
             numberOfLines={1}
             adjustsFontSizeToFit
           >
@@ -112,7 +114,7 @@ export function RecipeDetailScreen() {
           </Text>
         </GlassCard>
         <GlassCard className="gap-0.5" style={{ flex: 1 }}>
-          <Text className="text-xs uppercase tracking-wide text-white/50">
+          <Text className="text-xs uppercase tracking-wide text-ink-50">
             Temp
           </Text>
           <Text
@@ -126,7 +128,7 @@ export function RecipeDetailScreen() {
               'C'
             )}
           </Text>
-          <Text className="text-xs text-white/50">
+          <Text className="text-xs text-ink-50">
             {formatRecipeTemp(
               combination.temperatureC,
               combination.temperatureF,
@@ -135,7 +137,7 @@ export function RecipeDetailScreen() {
           </Text>
         </GlassCard>
         <GlassCard className="gap-0.5" style={{ flex: 1 }}>
-          <Text className="text-xs uppercase tracking-wide text-white/50">
+          <Text className="text-xs uppercase tracking-wide text-ink-50">
             Dilution
           </Text>
           <Text
@@ -186,7 +188,7 @@ export function RecipeDetailScreen() {
       {combination.notes?.trim() ? (
         <GlassCard className="gap-1">
           <Text className="text-sm font-semibold text-white">Notes</Text>
-          <Text className="text-sm text-white/70">{combination.notes}</Text>
+          <Text className="text-sm text-ink-70">{combination.notes}</Text>
         </GlassCard>
       ) : null}
 
@@ -194,7 +196,7 @@ export function RecipeDetailScreen() {
 
       {film?.description?.trim() ? (
         <CollapsibleSection title="Film" subtitle={filmName}>
-          <Text className="text-sm text-white/70">{film.description}</Text>
+          <Text className="text-sm text-ink-70">{film.description}</Text>
         </CollapsibleSection>
       ) : null}
 
@@ -203,12 +205,12 @@ export function RecipeDetailScreen() {
         <CollapsibleSection title="Developer" subtitle={developerName}>
           <View className="gap-2">
             {developer.description?.trim() ? (
-              <Text className="text-sm text-white/70">
+              <Text className="text-sm text-ink-70">
                 {developer.description}
               </Text>
             ) : null}
             {developer.mixingInstructions?.trim() ? (
-              <Text className="text-sm text-white/50">
+              <Text className="text-sm text-ink-50">
                 {developer.mixingInstructions}
               </Text>
             ) : null}

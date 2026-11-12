@@ -12,6 +12,8 @@ import {
   View,
 } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
+import { SafelightOverlay } from '@/components/safelight/safelight-overlay';
+import { useSafelight } from '@/components/safelight/safelight-provider';
 import {
   type RulerConfig,
   rulerWindowTicks,
@@ -25,8 +27,10 @@ import {
   STEPPER_ACCESSIBILITY_ACTIONS,
   stepperAccessibilityValue,
 } from '@/lib/stepper-a11y';
-import { ACCENT, type AccentColor } from '@/theme/accents';
+import type { AccentColor } from '@/theme/accents';
+import { SAFELIGHT } from '@/theme/safelight';
 import { readoutText } from '@/theme/tokens';
+import { useAccentColor, useDimInk } from '@/theme/use-phase-accent';
 
 const EDIT_ACTION = { name: 'activate', label: 'Edit value' } as const;
 const ROW_CLASS = 'min-h-11 flex-row items-center justify-between gap-3 px-4';
@@ -56,6 +60,13 @@ const DONE_TEXT_STYLE = {
   fontSize: 17,
   fontWeight: '600',
 } as const;
+// The Done bar rides on the keyboard, outside the root overlay, so safelight
+// mode gives it its own black ground, red text and overlay.
+const DONE_BAR_SAFELIGHT = {
+  backgroundColor: '#000000',
+  borderTopColor: SAFELIGHT.outline,
+} as const;
+const DONE_TEXT_SAFELIGHT = { color: SAFELIGHT.text } as const;
 const PLACEHOLDER_COLOR = 'rgba(255,255,255,0.4)';
 
 interface ScrubRowProps {
@@ -124,6 +135,9 @@ export const ScrubRow = memo(function ScrubRow({
     { start: number; end: number } | undefined
   >(undefined);
   const doneId = useId();
+  const safelight = useSafelight();
+  const placeholderColor = useDimInk('#71717a');
+  const rulerColor = useAccentColor(accent);
   const config = useMemo<RulerConfig>(
     () => ({ step, min, max, parse, format, width: rulerWidth }),
     [step, min, max, parse, format, rulerWidth]
@@ -169,7 +183,7 @@ export const ScrubRow = memo(function ScrubRow({
       : `${value}${unit ? ` ${unit}` : ''}`;
   const spokenLabel = accessibilityLabel ?? label;
   const unitText = unit ? (
-    <Text className="text-base text-white/60">{unit}</Text>
+    <Text className="text-base text-ink-60">{unit}</Text>
   ) : null;
 
   return (
@@ -221,7 +235,8 @@ export const ScrubRow = memo(function ScrubRow({
                     autoCapitalize="none"
                     autoCorrect={false}
                     placeholder={placeholder}
-                    placeholderTextColor="#71717a"
+                    placeholderTextColor={placeholderColor}
+                    keyboardAppearance="dark"
                     selectTextOnFocus
                     // `selectTextOnFocus` alone does not fire with `autoFocus`
                     // (the field is focused as it mounts), so the caret lands
@@ -243,7 +258,12 @@ export const ScrubRow = memo(function ScrubRow({
                   />
                   {needsDone ? (
                     <InputAccessoryView nativeID={doneId}>
-                      <View style={DONE_BAR_STYLE}>
+                      <View
+                        style={[
+                          DONE_BAR_STYLE,
+                          safelight.on ? DONE_BAR_SAFELIGHT : null,
+                        ]}
+                      >
                         <Pressable
                           accessibilityRole="button"
                           accessibilityLabel="Done"
@@ -254,8 +274,17 @@ export const ScrubRow = memo(function ScrubRow({
                           }}
                           style={DONE_BUTTON_STYLE}
                         >
-                          <Text style={DONE_TEXT_STYLE}>Done</Text>
+                          <Text
+                            style={[
+                              DONE_TEXT_STYLE,
+                              safelight.on ? DONE_TEXT_SAFELIGHT : null,
+                            ]}
+                          >
+                            Done
+                          </Text>
                         </Pressable>
+                        {/* The accessory bar is its own surface; the root overlay cannot reach it. */}
+                        <SafelightOverlay />
                       </View>
                     </InputAccessoryView>
                   ) : null}
@@ -287,7 +316,7 @@ export const ScrubRow = memo(function ScrubRow({
               <ScrubRuler
                 ticks={ticks}
                 width={rulerWidth}
-                color={ACCENT[accent]}
+                color={rulerColor}
                 offset={offset}
               />
             ) : null}

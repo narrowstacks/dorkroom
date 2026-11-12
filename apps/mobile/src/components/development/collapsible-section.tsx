@@ -50,7 +50,7 @@ export function CollapsibleSection({
         <View className="flex-1">
           <Text className="text-base font-semibold text-white">{title}</Text>
           {subtitle ? (
-            <Text className="text-sm text-white/50" numberOfLines={1}>
+            <Text className="text-sm text-ink-50" numberOfLines={1}>
               {subtitle}
             </Text>
           ) : null}

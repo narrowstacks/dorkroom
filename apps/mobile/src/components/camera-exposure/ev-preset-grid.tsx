@@ -20,10 +20,10 @@ export function EvPresetGrid({ onSelect }: EvPresetGridProps) {
           accessibilityRole="button"
           accessibilityLabel={`${preset.label}, EV ${preset.ev}`}
           accessibilityHint={preset.description}
-          className="min-h-11 grow basis-[45%] rounded-xl bg-white/10 px-3 py-2 active:opacity-60"
+          className="min-h-11 grow basis-[45%] rounded-xl border-hw border-line bg-surface px-3 py-2 active:opacity-60"
         >
           <Text className="text-sm font-medium text-white">{preset.label}</Text>
-          <Text className="text-xs text-white/50">EV {preset.ev}</Text>
+          <Text className="text-xs text-ink-50">EV {preset.ev}</Text>
         </Pressable>
       ))}
     </View>

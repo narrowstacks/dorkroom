@@ -4,7 +4,7 @@ import { GlassCard } from '@/components/glass-card';
 import { buildMobileMatDimensionRows } from '@/components/mat/format';
 import { ResultCard } from '@/components/result-card';
 import { ResultStat } from '@/components/result-stat';
-import { ACCENT } from '@/theme/accents';
+import { useAccentColor } from '@/theme/use-phase-accent';
 
 interface MatResultsProps {
   fmt: UseMatCalculatorReturn['fmt'];
@@ -24,7 +24,7 @@ interface CutterReadingProps {
 function CutterReading({ label, value }: CutterReadingProps) {
   return (
     <View className="flex-row items-center justify-between gap-3">
-      <Text className="text-sm text-white/60">{label}</Text>
+      <Text className="text-sm text-ink-60">{label}</Text>
       <Text className="shrink text-right text-sm font-semibold text-white">
         {value}
       </Text>
@@ -42,6 +42,7 @@ export function MatResults({
   overlapLeft,
   overlapTop,
 }: MatResultsProps) {
+  const rose = useAccentColor('rose');
   const mobileDimensionRows = buildMobileMatDimensionRows(
     dimensionRows,
     fmt,
@@ -61,41 +62,38 @@ export function MatResults({
       </ResultCard>
 
       <GlassCard className="gap-3">
-        <Text
-          className="text-base font-semibold"
-          style={{ color: ACCENT.rose }}
-        >
+        <Text className="text-base font-semibold" style={{ color: rose }}>
           Cutter guide-bar settings
         </Text>
         {guideBarCuts.map((cut) => (
-          <View key={cut.title} className="gap-2 rounded-xl bg-white/5 p-4">
+          <View
+            key={cut.title}
+            className="gap-2 rounded-xl border-hw border-line bg-surface-dim p-4"
+          >
             <Text className="text-sm font-semibold text-white">
               {cut.title}
             </Text>
             <CutterReading label="Offset" value={cut.offset} />
             <CutterReading label="Plunge" value={cut.plunge} />
             <CutterReading label="Stop" value={cut.stop} />
-            <Text className="text-sm text-white/50">{cut.setup}</Text>
+            <Text className="text-sm text-ink-50">{cut.setup}</Text>
           </View>
         ))}
       </GlassCard>
 
       <GlassCard className="gap-3">
-        <Text
-          className="text-base font-semibold"
-          style={{ color: ACCENT.rose }}
-        >
+        <Text className="text-base font-semibold" style={{ color: rose }}>
           All dimensions
         </Text>
         {mobileDimensionRows.map(([label, value, note]) => (
           <View key={`${label}-${value}`} className="gap-0.5 py-1">
             <View className="flex-row items-center justify-between gap-3">
-              <Text className="text-sm text-white/60">{label}</Text>
+              <Text className="text-sm text-ink-60">{label}</Text>
               <Text className="shrink text-right text-sm font-semibold text-white">
                 {value}
               </Text>
             </View>
-            <Text className="text-sm text-white/50">{note}</Text>
+            <Text className="text-sm text-ink-50">{note}</Text>
           </View>
         ))}
       </GlassCard>

@@ -14,12 +14,19 @@ import {
 import { memo, useMemo } from 'react';
 import { View } from 'react-native';
 import { type SharedValue, useDerivedValue } from 'react-native-reanimated';
+import { useSafelight } from '@/components/safelight/safelight-provider';
 import type { RulerTick } from '@/components/scrub/ruler-machine';
 import { INDICATOR_TOP, RULER_METRICS } from '@/components/scrub/ruler-metrics';
+import { SAFELIGHT } from '@/theme/safelight';
 
 const MINOR_COLOR = 'rgba(255,255,255,0.2)';
 const MAJOR_COLOR = 'rgba(255,255,255,0.4)';
 const LABEL_COLOR = 'rgba(255,255,255,0.35)';
+// Safelight mode: the multiply overlay keeps only red, so the ticks take red
+// levels that stay legible rather than a low-alpha white.
+const SAFELIGHT_MINOR = SAFELIGHT.outline;
+const SAFELIGHT_MAJOR = SAFELIGHT.outlineSelected;
+const SAFELIGHT_LABEL = SAFELIGHT.text;
 const LABEL_SIZE = 10;
 /** Cap height as a share of the font size, for centring a label in its band. */
 const CAP_HEIGHT = 0.72;
@@ -134,6 +141,7 @@ export const ScrubRuler = memo(function ScrubRuler({
   offset,
 }: ScrubRulerProps) {
   const centre = width / 2;
+  const { on } = useSafelight();
   const font = getLabelFont();
   const paths = useMemo(
     () => buildPaths(ticks, centre, font),
@@ -169,8 +177,14 @@ export const ScrubRuler = memo(function ScrubRuler({
         <Canvas style={{ width, height: RULER_METRICS.height }}>
           <Group layer>
             <Group transform={transform}>
-              <Path path={paths.minor} color={MINOR_COLOR} />
-              <Path path={paths.major} color={MAJOR_COLOR} />
+              <Path
+                path={paths.minor}
+                color={on ? SAFELIGHT_MINOR : MINOR_COLOR}
+              />
+              <Path
+                path={paths.major}
+                color={on ? SAFELIGHT_MAJOR : MAJOR_COLOR}
+              />
               {paths.labels.map((label) => (
                 <SkiaText
                   key={label.key}
@@ -178,7 +192,7 @@ export const ScrubRuler = memo(function ScrubRuler({
                   y={LABEL_BASELINE}
                   text={label.text}
                   font={font}
-                  color={LABEL_COLOR}
+                  color={on ? SAFELIGHT_LABEL : LABEL_COLOR}
                 />
               ))}
             </Group>

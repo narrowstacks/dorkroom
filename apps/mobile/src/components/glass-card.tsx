@@ -5,6 +5,8 @@ import {
 } from 'expo-glass-effect';
 import type { ReactNode } from 'react';
 import { type StyleProp, View, type ViewStyle } from 'react-native';
+import { useSafelight } from '@/components/safelight/safelight-provider';
+import { SAFELIGHT } from '@/theme/safelight';
 
 function glassAvailable(): boolean {
   try {
@@ -39,11 +41,19 @@ export function GlassCard({
   compact = false,
 }: GlassCardProps) {
   const padding = compact ? 'p-3' : 'p-5';
+  const { on: safelight } = useSafelight();
   if (USE_GLASS) {
+    // One wrapper type in both modes, so the card's children stay mounted when
+    // the mode flips. Under safelight the glass is switched off (`none`) and a
+    // hairline outline takes its place.
     return (
       <GlassView
-        glassEffectStyle="regular"
-        style={[{ borderRadius: 20, overflow: 'hidden' }, style]}
+        glassEffectStyle={safelight ? 'none' : 'regular'}
+        style={[
+          { borderRadius: 20, overflow: 'hidden' },
+          safelight ? { borderWidth: 1, borderColor: SAFELIGHT.outline } : null,
+          style,
+        ]}
       >
         <View className={`${padding} ${className ?? ''}`}>{children}</View>
       </GlassView>
@@ -52,7 +62,7 @@ export function GlassCard({
   return (
     <View
       style={style}
-      className={`rounded-2xl border border-white/10 bg-white/10 ${padding} ${className ?? ''}`}
+      className={`rounded-2xl border border-edge bg-surface ${padding} ${className ?? ''}`}
     >
       {children}
     </View>

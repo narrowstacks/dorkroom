@@ -74,7 +74,7 @@ export function CustomFilmForm({
           placeholder="250"
         />
         <View className="gap-2">
-          <Text className="text-sm text-white/60">Type</Text>
+          <Text className="text-sm text-ink-60">Type</Text>
           <SegmentedControl
             options={PROCESS_OPTIONS}
             value={form.process}

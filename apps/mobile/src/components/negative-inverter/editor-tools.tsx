@@ -174,7 +174,7 @@ export function InverterEmpty({
     <View className="flex-1">
       <Screen>
         <GlassCard className="gap-4">
-          <Text className="text-base text-white/80">
+          <Text className="text-base text-ink-80">
             Photograph a negative on a light table, then convert it to a
             positive. Everything happens on your phone.
           </Text>
@@ -194,17 +194,17 @@ export function InverterEmpty({
           {loading ? (
             <View className="flex-row items-center gap-2">
               <ActivityIndicator color="#ffffff" />
-              <Text className="text-sm text-white/70">Reading photo...</Text>
+              <Text className="text-sm text-ink-70">Reading photo...</Text>
             </View>
           ) : null}
           {error ? (
-            <Text className="text-sm text-rose-400">{error}</Text>
+            <Text className="text-sm text-rose-400">{`Error: ${error}`}</Text>
           ) : null}
         </GlassCard>
         <GlassCard className="gap-2">
           <SectionLabel>Light table tips</SectionLabel>
           {LIGHT_TABLE_TIPS.map((tip) => (
-            <Text key={tip} className="text-sm text-white/70">
+            <Text key={tip} className="text-sm text-ink-70">
               {`• ${tip}`}
             </Text>
           ))}

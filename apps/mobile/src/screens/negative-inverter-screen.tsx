@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActionSheetIOS, View } from 'react-native';
 import { MeterToast } from '@/components/meter/meter-toast';
 import { AdjustmentPanel } from '@/components/negative-inverter/adjustment-panel';
@@ -28,6 +28,10 @@ import type { ViewFrame } from '@/components/negative-inverter/orientation';
 import { StatusChip } from '@/components/negative-inverter/status-chip';
 import { useNegativeInverter } from '@/hooks/use-negative-inverter';
 import { useToast } from '@/hooks/use-toast';
+import { getSafelight } from '@/lib/safelight-store';
+
+/** Long enough for the action sheet to leave before the gate sheet presents. */
+const ACTION_SHEET_EXIT_MS = 400;
 
 export function NegativeInverterScreen() {
   const { state, coefficients, uniforms, exporting, exportError, actions } =
@@ -64,6 +68,14 @@ export function NegativeInverterScreen() {
   const c41 = state.filmType === 'c41';
   // No new photo while one is being read or the current one exported.
   const loadLocked = state.loading || exporting !== null;
+  // The deferred gate (see `openPhoto`) must not outlive this screen.
+  const gateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (gateTimer.current !== null) clearTimeout(gateTimer.current);
+    },
+    []
+  );
 
   if (live) {
     return (
@@ -89,8 +101,18 @@ export function NegativeInverterScreen() {
         cancelButtonIndex: 2,
       },
       (index) => {
-        if (index === 0) void actions.chooseFromLibrary();
-        else if (index === 1) setLive(true);
+        if (index === 0) {
+          // Under safelight the photo picker is gated by a sheet, which must not
+          // present while the action sheet is still on its way out.
+          if (getSafelight()) {
+            gateTimer.current = setTimeout(
+              () => void actions.chooseFromLibrary(),
+              ACTION_SHEET_EXIT_MS
+            );
+          } else {
+            void actions.chooseFromLibrary();
+          }
+        } else if (index === 1) setLive(true);
       }
     );
 

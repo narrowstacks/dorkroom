@@ -37,9 +37,9 @@ function ToggleButton({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
-      className={`flex-1 items-center rounded-xl py-3 ${active ? 'bg-white/20' : 'bg-white/10'}`}
+      className={`flex-1 items-center rounded-xl py-3 ${active ? 'border-hw border-edge-strong bg-surface-strong' : 'border-hw border-line bg-surface'}`}
     >
-      <Text className={active ? 'font-semibold text-white' : 'text-white/70'}>
+      <Text className={active ? 'font-semibold text-white' : 'text-ink-70'}>
         {label}
       </Text>
     </Pressable>
@@ -77,7 +77,7 @@ function BorderScreenBody({ overrides }: BorderScreenBodyProps) {
           showBladeReadings={calc.showBladeReadings}
           unit={unit}
         />
-        <Text className="text-center text-sm text-white/60">
+        <Text className="text-center text-sm text-ink-60">
           {formatPreviewCaption(calculation, paperLabel, unit)}
         </Text>
       </GlassCard>
@@ -122,9 +122,9 @@ function BorderScreenBody({ overrides }: BorderScreenBodyProps) {
       <Pressable
         onPress={calc.resetToDefaults}
         accessibilityRole="button"
-        className="items-center rounded-full border border-white/15 py-3 active:opacity-60"
+        className="items-center rounded-full border border-edge-15 py-3 active:opacity-60"
       >
-        <Text className="font-semibold text-white/80">Reset to defaults</Text>
+        <Text className="font-semibold text-ink-80">Reset to defaults</Text>
       </Pressable>
 
       <BottomSheet

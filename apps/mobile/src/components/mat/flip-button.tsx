@@ -12,7 +12,7 @@ export function FlipButton({ accessibilityLabel, onPress }: FlipButtonProps) {
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      className="min-h-12 min-w-12 items-center justify-center rounded-xl bg-white/10"
+      className="min-h-12 min-w-12 items-center justify-center rounded-xl border-hw border-line bg-surface"
     >
       <ArrowLeftRight size={20} color="#ffffff" />
     </Pressable>

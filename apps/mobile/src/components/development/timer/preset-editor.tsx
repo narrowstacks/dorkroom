@@ -101,7 +101,7 @@ export function PresetEditor({
         return (
           <GlassCard key={stage.id} className="gap-3">
             <View className="flex-row items-center justify-between">
-              <Text className="text-sm font-semibold text-white/80">
+              <Text className="text-sm font-semibold text-ink-80">
                 Stage {index + 1}
               </Text>
               <View className="flex-row gap-1">
@@ -141,7 +141,7 @@ export function PresetEditor({
 
             <View className="flex-row gap-3">
               <View className="flex-1 gap-1">
-                <Text className="text-sm text-white/60">Minutes</Text>
+                <Text className="text-sm text-ink-60">Minutes</Text>
                 <Stepper
                   label={`Stage ${index + 1} minutes`}
                   value={String(minutes)}
@@ -158,7 +158,7 @@ export function PresetEditor({
                 />
               </View>
               <View className="flex-1 gap-1">
-                <Text className="text-sm text-white/60">Seconds</Text>
+                <Text className="text-sm text-ink-60">Seconds</Text>
                 <Stepper
                   label={`Stage ${index + 1} seconds`}
                   value={String(seconds)}
@@ -182,7 +182,7 @@ export function PresetEditor({
             />
 
             <View className="gap-1">
-              <Text className="text-sm text-white/60">Agitation</Text>
+              <Text className="text-sm text-ink-60">Agitation</Text>
               <PresetChipRow
                 accent="teal"
                 options={AGITATION_OPTIONS}
@@ -207,7 +207,7 @@ export function PresetEditor({
               {pattern?.id === 'custom' ? (
                 <View className="flex-row gap-3 pt-2">
                   <View className="flex-1 gap-1">
-                    <Text className="text-sm text-white/60">Initial (s)</Text>
+                    <Text className="text-sm text-ink-60">Initial (s)</Text>
                     <Stepper
                       label={`Stage ${index + 1} initial agitation, seconds`}
                       value={String(pattern.params.initialSeconds)}
@@ -227,7 +227,7 @@ export function PresetEditor({
                     />
                   </View>
                   <View className="flex-1 gap-1">
-                    <Text className="text-sm text-white/60">Agitate (s)</Text>
+                    <Text className="text-sm text-ink-60">Agitate (s)</Text>
                     <Stepper
                       label={`Stage ${index + 1} agitate, seconds`}
                       value={String(pattern.params.agitateSeconds)}
@@ -247,7 +247,7 @@ export function PresetEditor({
                     />
                   </View>
                   <View className="flex-1 gap-1">
-                    <Text className="text-sm text-white/60">Every (s)</Text>
+                    <Text className="text-sm text-ink-60">Every (s)</Text>
                     <Stepper
                       label={`Stage ${index + 1} agitate every, seconds`}
                       value={String(pattern.params.intervalSeconds)}
@@ -269,7 +269,7 @@ export function PresetEditor({
                 </View>
               ) : null}
               {pattern ? (
-                <Text className="text-xs text-white/50">
+                <Text className="text-xs text-ink-50">
                   {agitationSummary(pattern)}
                 </Text>
               ) : null}
@@ -285,7 +285,7 @@ export function PresetEditor({
         }}
         accessibilityRole="button"
         accessibilityLabel="Add stage"
-        className="flex-row items-center justify-center gap-2 rounded-xl bg-white/10 py-3"
+        className="flex-row items-center justify-center gap-2 rounded-xl border-hw border-line bg-surface py-3"
       >
         <Plus size={18} color="#ffffff" />
         <Text className="text-base font-semibold text-white">Add stage</Text>
@@ -363,7 +363,7 @@ function IconButton({
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled: !!disabled }}
-      className={`h-9 w-9 items-center justify-center rounded-lg bg-white/10 ${disabled ? 'opacity-30' : ''}`}
+      className={`h-9 w-9 items-center justify-center rounded-lg border-hw border-line bg-surface ${disabled ? 'opacity-30' : ''}`}
     >
       <Icon size={18} color="#ffffff" />
     </Pressable>

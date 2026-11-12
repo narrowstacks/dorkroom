@@ -51,10 +51,10 @@ function SecondaryButton({
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled: !!disabled }}
-      className={`flex-1 items-center gap-1 rounded-xl bg-white/10 py-3 ${disabled ? 'opacity-30' : ''}`}
+      className={`flex-1 items-center gap-1 rounded-xl border-hw border-line bg-surface py-3 ${disabled ? 'opacity-30' : ''}`}
     >
       <Icon size={20} color="#ffffff" />
-      <Text className="text-xs text-white/70">{label}</Text>
+      <Text className="text-xs text-ink-70">{label}</Text>
     </Pressable>
   );
 }

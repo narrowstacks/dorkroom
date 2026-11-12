@@ -130,7 +130,7 @@ function ResizeScreenBody() {
       accent="rose"
       label="New time"
       value={null}
-      note={<Text className="text-white/60">Enter dimensions and a time.</Text>}
+      note={<Text className="text-ink-60">Enter dimensions and a time.</Text>}
     />
   );
 

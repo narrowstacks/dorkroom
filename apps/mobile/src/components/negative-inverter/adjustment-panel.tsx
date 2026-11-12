@@ -10,7 +10,7 @@ import {
   Text,
 } from 'react-native';
 import { GlassCard } from '@/components/glass-card';
-import { usePhaseHue } from '@/theme/use-phase-accent';
+import { usePhaseHue, useSelectedInk } from '@/theme/use-phase-accent';
 import { AdjustmentSlider } from './adjustment-slider';
 import {
   activeAdjustment,
@@ -60,6 +60,7 @@ const AdjustmentChip = memo(function AdjustmentChip({
   onChoose,
 }: AdjustmentChipProps) {
   const hue = usePhaseHue();
+  const editedInk = useSelectedInk(EDITED_ON_WHITE);
   const edited = !isDefaultAdjustment(spec.key, value);
   const readout = formatAdjustment(spec.key, value);
   const choose = useCallback(() => {
@@ -75,13 +76,15 @@ const AdjustmentChip = memo(function AdjustmentChip({
       accessibilityState={selected ? SELECTED : UNSELECTED}
       hitSlop={CHIP_SLOP}
       className={`min-h-9 flex-row items-center gap-1.5 rounded-full px-3 ${
-        selected ? 'bg-white' : 'bg-white/10'
+        selected
+          ? 'border-hw border-edge-strong bg-selected'
+          : 'border-hw border-line bg-surface'
       }`}
     >
       <Text
         maxFontSizeMultiplier={CHROME_TEXT_SCALE}
         className={`text-sm font-semibold ${
-          selected ? 'text-[#0b0b0c]' : 'text-white/80'
+          selected ? 'text-selected-ink' : 'text-ink-80'
         }`}
       >
         {spec.label}
@@ -92,7 +95,7 @@ const AdjustmentChip = memo(function AdjustmentChip({
           className="text-xs"
           // On the white selected pill the light hue would vanish, so it takes
           // the dark ink (teal-700, a darker step of the Develop hue).
-          style={[styles.numbers, { color: selected ? EDITED_ON_WHITE : hue }]}
+          style={[styles.numbers, { color: selected ? editedInk : hue }]}
         >
           {readout}
         </Text>

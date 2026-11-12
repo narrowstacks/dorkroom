@@ -12,7 +12,7 @@ export function ShareButton({ message }: { message: string }) {
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      className="mt-1 flex-row items-center justify-center rounded-xl bg-white/10 py-3"
+      className="mt-1 flex-row items-center justify-center rounded-xl border-hw border-line bg-surface py-3"
     >
       <Text className="font-semibold text-white">Share result</Text>
     </Pressable>

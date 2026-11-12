@@ -27,7 +27,7 @@ export function SegmentedControl<T extends string | number | boolean>({
 }: SegmentedControlProps<T>) {
   const tint = useSelectionTint(accent);
   return (
-    <View className="flex-row rounded-xl bg-white/10 p-1">
+    <View className="flex-row rounded-xl border-hw border-line bg-surface p-1">
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -59,7 +59,7 @@ export function SegmentedControl<T extends string | number | boolean>({
             }
           >
             <Text
-              className={selected ? undefined : 'text-white/70'}
+              className={selected ? undefined : 'text-ink-70'}
               style={
                 selected ? { color: tint.color, fontWeight: '600' } : undefined
               }

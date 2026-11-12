@@ -1,4 +1,5 @@
 import { Text, TextInput, View } from 'react-native';
+import { useDimInk } from '@/theme/use-phase-accent';
 
 interface LabeledTextFieldProps {
   label: string;
@@ -21,21 +22,23 @@ export function LabeledTextField({
   autoFocus = false,
   onSubmitEditing,
 }: LabeledTextFieldProps) {
+  const placeholderColor = useDimInk('#71717a');
   return (
     <View className="gap-1">
-      <Text className="text-sm text-white/60">{label}</Text>
+      <Text className="text-sm text-ink-60">{label}</Text>
       <TextInput
         accessibilityLabel={label}
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType}
         placeholder={placeholder}
-        placeholderTextColor="#71717a"
+        placeholderTextColor={placeholderColor}
+        keyboardAppearance="dark"
         // eslint-disable-next-line jsx-a11y/no-autofocus -- opt-in (default off); used only by the Custom ISO pop-up whose sole purpose is immediate numeric entry
         autoFocus={autoFocus}
         onSubmitEditing={onSubmitEditing}
         returnKeyType="done"
-        className="rounded-xl bg-white/10 px-4 py-3 text-base text-white"
+        className="rounded-xl border-hw border-line bg-surface px-4 py-3 text-base text-white"
       />
     </View>
   );

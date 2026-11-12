@@ -86,7 +86,7 @@ function ReciprocityScreenBody({ overrides }: ReciprocityScreenBodyProps) {
           timeFormatError ? (
             <Text className="text-amber-500">⚠ {timeFormatError}</Text>
           ) : (
-            <Text className="text-white/60">Enter a metered time.</Text>
+            <Text className="text-ink-60">Enter a metered time.</Text>
           )
         }
       />

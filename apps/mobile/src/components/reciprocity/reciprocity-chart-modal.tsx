@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Line, Path, Text as SvgText } from 'react-native-svg';
-import { ACCENT } from '@/theme/accents';
+import { SafelightRoot } from '@/components/safelight/safelight-overlay';
+import { useAccentColor } from '@/theme/use-phase-accent';
 import {
   axisTicks,
   buildCurve,
@@ -21,6 +22,7 @@ import {
   scaleX,
   scaleY,
 } from './chart-geometry';
+import { useChartInk } from './chart-ink';
 
 const PADDING = { top: 20, right: 18, bottom: 44, left: 52 };
 
@@ -49,6 +51,8 @@ export function ReciprocityChartModal({
 }: ReciprocityChartModalProps) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const ink = useChartInk();
+  const yellow = useAccentColor('yellow');
   // null = follow the current calculation; a number = a dragged metered time.
   const [scrub, setScrub] = useState<number | null>(null);
 
@@ -79,147 +83,145 @@ export function ReciprocityChartModal({
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={close}>
-      <View className="flex-1 bg-[#0b0b0c]" style={{ paddingTop: insets.top }}>
-        <View className="flex-row items-center justify-between px-4 py-3">
-          <Text className="text-lg font-semibold text-white">{filmName}</Text>
-          <Pressable
-            onPress={close}
-            accessibilityRole="button"
-            accessibilityLabel="Close chart"
-            className="size-9 items-center justify-center rounded-full bg-white/10"
-          >
-            <Text className="text-lg text-white">✕</Text>
-          </Pressable>
-        </View>
-
-        <View className="mx-4 mb-4 rounded-2xl bg-white/5 px-4 py-3">
-          <Text className="text-xs text-white/50">
-            {scrub === null ? 'Current exposure' : 'Drag the chart to read'}
-          </Text>
-          <Text className="text-3xl font-bold" style={{ color: ACCENT.yellow }}>
-            {formatTime(activeAdjusted)}
-          </Text>
-          <Text className="text-sm text-white/60">
-            metered {formatTime(activeMetered)} → adjusted{' '}
-            {formatTime(activeAdjusted)}
-          </Text>
-        </View>
-
-        <View className="px-4">
-          <View style={{ width: chartW, height: chartH }}>
-            <Svg width={chartW} height={chartH}>
-              {grid.x.map((x) => (
-                <Line
-                  key={`gx-${x}`}
-                  x1={x}
-                  y1={PADDING.top}
-                  x2={x}
-                  y2={baseY}
-                  stroke="#ffffff"
-                  strokeOpacity={0.07}
-                />
-              ))}
-              {grid.y.map((y) => (
-                <Line
-                  key={`gy-${y}`}
-                  x1={PADDING.left}
-                  y1={y}
-                  x2={chartW - PADDING.right}
-                  y2={y}
-                  stroke="#ffffff"
-                  strokeOpacity={0.07}
-                />
-              ))}
-
-              <Line
-                x1={PADDING.left}
-                y1={baseY}
-                x2={chartW - PADDING.right}
-                y2={baseY}
-                stroke="#ffffff"
-                strokeOpacity={0.25}
-              />
-              <Line
-                x1={PADDING.left}
-                y1={PADDING.top}
-                x2={PADDING.left}
-                y2={baseY}
-                stroke="#ffffff"
-                strokeOpacity={0.25}
-              />
-
-              {ticks.x.map((t) => (
-                <SvgText
-                  key={`tx-${t.value}`}
-                  x={t.px}
-                  y={baseY + 16}
-                  fill="#ffffff"
-                  opacity={0.4}
-                  fontSize={10}
-                  textAnchor="middle"
-                >
-                  {t.value}
-                </SvgText>
-              ))}
-              {ticks.y.map((t) => (
-                <SvgText
-                  key={`ty-${t.value}`}
-                  x={PADDING.left - 6}
-                  y={t.px + 3}
-                  fill="#ffffff"
-                  opacity={0.4}
-                  fontSize={10}
-                  textAnchor="end"
-                >
-                  {t.value}
-                </SvgText>
-              ))}
-
-              <Path
-                d={curve}
-                fill="none"
-                stroke={ACCENT.yellow}
-                strokeWidth={2.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-
-              <Line
-                x1={mx}
-                y1={PADDING.top}
-                x2={mx}
-                y2={baseY}
-                stroke="#ffffff"
-                strokeOpacity={0.4}
-                strokeDasharray="4 4"
-              />
-              <Circle
-                cx={mx}
-                cy={my}
-                r={6}
-                fill={ACCENT.yellow}
-                stroke="#0b0b0c"
-                strokeWidth={2}
-              />
-            </Svg>
-
-            <View
-              style={StyleSheet.absoluteFill}
-              onStartShouldSetResponder={() => true}
-              onMoveShouldSetResponder={() => true}
-              onResponderGrant={(e) =>
-                setScrub(meteredAtX(e.nativeEvent.locationX, layout))
-              }
-              onResponderMove={(e) =>
-                setScrub(meteredAtX(e.nativeEvent.locationX, layout))
-              }
-            />
+      <SafelightRoot>
+        <View
+          className="flex-1 bg-[#0b0b0c]"
+          style={{ paddingTop: insets.top }}
+        >
+          <View className="flex-row items-center justify-between px-4 py-3">
+            <Text className="text-lg font-semibold text-white">{filmName}</Text>
+            <Pressable
+              onPress={close}
+              accessibilityRole="button"
+              accessibilityLabel="Close chart"
+              className="size-9 items-center justify-center rounded-full border-hw border-line bg-surface"
+            >
+              <Text className="text-lg text-white">✕</Text>
+            </Pressable>
           </View>
-          <Text className="mt-2 text-center text-xs text-white/40">
-            Metered seconds: drag to read any exposure
-          </Text>
+
+          <View className="mx-4 mb-4 rounded-2xl border-hw border-line bg-surface-dim px-4 py-3">
+            <Text className="text-xs text-ink-50">
+              {scrub === null ? 'Current exposure' : 'Drag the chart to read'}
+            </Text>
+            <Text className="text-3xl font-bold" style={{ color: yellow }}>
+              {formatTime(activeAdjusted)}
+            </Text>
+            <Text className="text-sm text-ink-60">
+              metered {formatTime(activeMetered)} → adjusted{' '}
+              {formatTime(activeAdjusted)}
+            </Text>
+          </View>
+
+          <View className="px-4">
+            <View style={{ width: chartW, height: chartH }}>
+              <Svg width={chartW} height={chartH}>
+                {grid.x.map((x) => (
+                  <Line
+                    key={`gx-${x}`}
+                    x1={x}
+                    y1={PADDING.top}
+                    x2={x}
+                    y2={baseY}
+                    {...ink.line(0.07)}
+                  />
+                ))}
+                {grid.y.map((y) => (
+                  <Line
+                    key={`gy-${y}`}
+                    x1={PADDING.left}
+                    y1={y}
+                    x2={chartW - PADDING.right}
+                    y2={y}
+                    {...ink.line(0.07)}
+                  />
+                ))}
+
+                <Line
+                  x1={PADDING.left}
+                  y1={baseY}
+                  x2={chartW - PADDING.right}
+                  y2={baseY}
+                  {...ink.line(0.25)}
+                />
+                <Line
+                  x1={PADDING.left}
+                  y1={PADDING.top}
+                  x2={PADDING.left}
+                  y2={baseY}
+                  {...ink.line(0.25)}
+                />
+
+                {ticks.x.map((t) => (
+                  <SvgText
+                    key={`tx-${t.value}`}
+                    x={t.px}
+                    y={baseY + 16}
+                    {...ink.tick(0.4)}
+                    fontSize={10}
+                    textAnchor="middle"
+                  >
+                    {t.value}
+                  </SvgText>
+                ))}
+                {ticks.y.map((t) => (
+                  <SvgText
+                    key={`ty-${t.value}`}
+                    x={PADDING.left - 6}
+                    y={t.px + 3}
+                    {...ink.tick(0.4)}
+                    fontSize={10}
+                    textAnchor="end"
+                  >
+                    {t.value}
+                  </SvgText>
+                ))}
+
+                <Path
+                  d={curve}
+                  fill="none"
+                  stroke={yellow}
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+
+                <Line
+                  x1={mx}
+                  y1={PADDING.top}
+                  x2={mx}
+                  y2={baseY}
+                  {...ink.line(0.4)}
+                  strokeDasharray="4 4"
+                />
+                <Circle
+                  cx={mx}
+                  cy={my}
+                  r={6}
+                  fill={yellow}
+                  stroke="#0b0b0c"
+                  strokeWidth={2}
+                />
+              </Svg>
+
+              <View
+                style={StyleSheet.absoluteFill}
+                onStartShouldSetResponder={() => true}
+                onMoveShouldSetResponder={() => true}
+                onResponderGrant={(e) =>
+                  setScrub(meteredAtX(e.nativeEvent.locationX, layout))
+                }
+                onResponderMove={(e) =>
+                  setScrub(meteredAtX(e.nativeEvent.locationX, layout))
+                }
+              />
+            </View>
+            <Text className="mt-2 text-center text-xs text-ink-40">
+              Metered seconds: drag to read any exposure
+            </Text>
+          </View>
         </View>
-      </View>
+      </SafelightRoot>
     </Modal>
   );
 }

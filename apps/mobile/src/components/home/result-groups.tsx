@@ -39,12 +39,12 @@ function ResultRow({
           {title}
         </Text>
         {detail ? (
-          <Text className="text-sm text-white/50" numberOfLines={1}>
+          <Text className="text-sm text-ink-50" numberOfLines={1}>
             {detail}
           </Text>
         ) : null}
       </View>
-      {meta ? <Text className="text-sm text-white/60">{meta}</Text> : null}
+      {meta ? <Text className="text-sm text-ink-60">{meta}</Text> : null}
       {chevron}
     </Pressable>
   );

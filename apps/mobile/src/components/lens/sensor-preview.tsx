@@ -1,7 +1,7 @@
 import type { SensorFormat } from '@dorkroom/logic';
 import { Text, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
-import { ACCENT } from '@/theme/accents';
+import { useAccentColor, useAccentFill } from '@/theme/use-phase-accent';
 import { formatPairLabels, sensorOverlay } from './format';
 
 const BOX_W = 220;
@@ -15,6 +15,8 @@ interface SensorPreviewProps {
 
 /** Source and target formats drawn to scale, the smaller nested in the larger. */
 export function SensorPreview({ source, target }: SensorPreviewProps) {
+  const yellow = useAccentColor('yellow');
+  const yellowFill = useAccentFill('yellow', '22');
   const { outer, inner, sourceIsOuter } = sensorOverlay(
     source,
     target,
@@ -41,8 +43,8 @@ export function SensorPreview({ source, target }: SensorPreviewProps) {
           y={targetRect.y}
           width={targetRect.w}
           height={targetRect.h}
-          fill={`${ACCENT.yellow}22`}
-          stroke={ACCENT.yellow}
+          fill={yellowFill}
+          stroke={yellow}
           strokeWidth={STROKE_WIDTH}
           rx={2}
         />
@@ -60,13 +62,10 @@ export function SensorPreview({ source, target }: SensorPreviewProps) {
         />
       </Svg>
       <View className="flex-row flex-wrap justify-center gap-x-4 gap-y-1 self-stretch">
-        <Text className="shrink text-center text-xs text-white/60">
+        <Text className="shrink text-center text-xs text-ink-60">
           ┅ {labels.source}
         </Text>
-        <Text
-          className="shrink text-center text-xs"
-          style={{ color: ACCENT.yellow }}
-        >
+        <Text className="shrink text-center text-xs" style={{ color: yellow }}>
           ■ {labels.target}
         </Text>
       </View>

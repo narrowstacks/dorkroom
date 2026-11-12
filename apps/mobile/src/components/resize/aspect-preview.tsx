@@ -1,7 +1,7 @@
 import { computePreviewRects } from '@dorkroom/logic';
 import { View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
-import { ACCENT } from '@/theme/accents';
+import { useAccentColor, useAccentFill } from '@/theme/use-phase-accent';
 
 const BOX = 120;
 
@@ -18,6 +18,8 @@ export function AspectPreview({
   newW,
   newL,
 }: AspectPreviewProps) {
+  const rose = useAccentColor('rose');
+  const roseFill = useAccentFill('rose', '22');
   const { orig, target } = computePreviewRects(origW, origL, newW, newL, BOX);
   if (target.w <= 0) return null;
   return (
@@ -28,8 +30,8 @@ export function AspectPreview({
           y={target.y}
           width={target.w}
           height={target.h}
-          fill={`${ACCENT.rose}22`}
-          stroke={ACCENT.rose}
+          fill={roseFill}
+          stroke={rose}
           strokeWidth={1.5}
           rx={2}
         />

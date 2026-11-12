@@ -11,10 +11,9 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
-import { DIRECTION_COLOR } from '@/theme/accents';
 /* eslint-enable react-doctor/rn-prefer-reanimated, react-doctor/rn-no-panresponder */
 import { readoutText as MONO } from '@/theme/tokens';
-import { useSelectionTint } from '@/theme/use-phase-accent';
+import { useDirectionColors, useSelectionTint } from '@/theme/use-phase-accent';
 import { scrubLandingIndex } from './scrub-math';
 
 const SHADOW = {
@@ -78,11 +77,11 @@ interface MeterReadoutProps {
 /** Formats the snap error in stops: "+0.4" over, "−0.3" under, "✓" if exact. */
 function formatStopError(stops: number) {
   const rounded = Math.round(stops * 10) / 10;
-  if (Math.abs(rounded) < 0.05) return { text: '✓', color: null };
+  if (Math.abs(rounded) < 0.05) return { text: '✓', direction: null };
   const sign = rounded > 0 ? '+' : '−';
   return {
     text: `${sign}${Math.abs(rounded).toFixed(1)}`,
-    color: rounded > 0 ? DIRECTION_COLOR.up : DIRECTION_COLOR.down,
+    direction: rounded > 0 ? ('over' as const) : ('under' as const),
   };
 }
 
@@ -112,7 +111,14 @@ function StatBody({
   style?: ViewStyle;
 }) {
   const lockedTint = useSelectionTint();
+  const directionColors = useDirectionColors();
   const error = stopError === undefined ? null : formatStopError(stopError);
+  const errorColor =
+    error?.direction === 'over'
+      ? directionColors.up
+      : error?.direction === 'under'
+        ? directionColors.down
+        : null;
   // ISO pinned to the roll's EI is the one "hard" lock (non-scrubbable here);
   // flag it so the cell reads as locked: a phase-hue tint + a lock badge.
   const hardLocked = locked && disabled;
@@ -130,7 +136,7 @@ function StatBody({
     >
       <Text
         style={[MONO, SHADOW, styles.caption]}
-        className="uppercase text-white/55"
+        className="uppercase text-ink-55"
       >
         {caption}
       </Text>
@@ -154,9 +160,9 @@ function StatBody({
           SHADOW,
           styles.errorText,
           !error && styles.hiddenText,
-          error?.color ? { color: error.color } : null,
+          errorColor ? { color: errorColor } : null,
         ]}
-        className={error?.color ? undefined : 'text-white/45'}
+        className={errorColor ? undefined : 'text-ink-45'}
       >
         {error?.text ?? '+0.0'}
       </Text>
@@ -177,7 +183,7 @@ function StatBody({
       {draggable && !disabled ? (
         <Text
           style={[MONO, SHADOW, styles.dragHint, styles.affordance]}
-          className="text-white/45"
+          className="text-ink-45"
         >
           ↔
         </Text>
@@ -438,7 +444,7 @@ export function MeterReadout({
       {priorityLabel ? (
         <Text
           style={[MONO, SHADOW, styles.priorityLabel]}
-          className="uppercase text-white/55"
+          className="uppercase text-ink-55"
         >
           {priorityLabel}
         </Text>

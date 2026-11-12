@@ -25,12 +25,16 @@ export function InverterButton({
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       className={`flex-1 items-center rounded-xl py-3 ${
-        primary ? (disabled ? 'opacity-40' : '') : 'bg-white/10'
+        primary
+          ? disabled
+            ? 'opacity-40'
+            : ''
+          : 'border-hw border-line bg-surface'
       } ${className}`}
       style={primary ? commit.fill : undefined}
     >
       <Text
-        className={`font-semibold ${primary ? '' : disabled ? 'text-white/40' : 'text-white'}`}
+        className={`font-semibold ${primary ? '' : disabled ? 'text-ink-40' : 'text-white'}`}
         style={primary ? commit.label : undefined}
       >
         {label}

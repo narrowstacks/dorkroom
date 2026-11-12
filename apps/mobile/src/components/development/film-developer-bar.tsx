@@ -1,6 +1,6 @@
 import { ChevronDown, X } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
-import { selectionTint } from '@/theme/accents';
+import { useSelectionTint } from '@/theme/use-phase-accent';
 
 export interface FilmDeveloperBarProps {
   /** e.g. "Kodak Tri-X 400"; null = no selection. */
@@ -12,8 +12,6 @@ export interface FilmDeveloperBarProps {
   onClearFilm: () => void;
   onClearDeveloper: () => void;
 }
-
-const tint = selectionTint('teal');
 
 /**
  * Always-visible Film / Developer selectors above the recipe list — the two
@@ -67,11 +65,12 @@ function BarCell({
   clearAccessibilityLabel: string;
 }) {
   const selected = label !== null;
+  const tint = useSelectionTint('teal');
 
   return (
     <View
       className={`flex-1 flex-row items-center rounded-xl px-4 py-3 ${
-        selected ? '' : 'bg-white/10'
+        selected ? '' : 'border-hw border-line bg-surface'
       }`}
       style={
         selected
@@ -89,11 +88,11 @@ function BarCell({
         accessibilityLabel={`${eyebrow}: ${label ?? placeholder}`}
         className="flex-1"
       >
-        <Text className="text-xs uppercase tracking-wide text-white/40">
+        <Text className="text-xs uppercase tracking-wide text-ink-40">
           {eyebrow}
         </Text>
         <Text
-          className={selected ? 'text-base' : 'text-base text-white/70'}
+          className={selected ? 'text-base' : 'text-base text-ink-70'}
           style={
             selected ? { color: tint.color, fontWeight: '600' } : undefined
           }

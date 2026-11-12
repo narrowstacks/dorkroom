@@ -13,7 +13,7 @@ export function WarningsCard({ warnings }: WarningsCardProps) {
       {warnings.map((warning) => (
         <View key={warning} className="flex-row gap-2">
           <Text className="text-amber-400">⚠</Text>
-          <Text className="flex-1 text-sm text-white/80">{warning}</Text>
+          <Text className="flex-1 text-sm text-ink-80">{warning}</Text>
         </View>
       ))}
     </GlassCard>

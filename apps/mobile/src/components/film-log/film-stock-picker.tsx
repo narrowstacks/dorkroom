@@ -68,28 +68,28 @@ export function FilmStockPicker({
         <Text className="text-base text-white">
           {item.brand} {item.name}
         </Text>
-        <Text className="text-sm text-white/50">ISO {item.iso}</Text>
+        <Text className="text-sm text-ink-50">ISO {item.iso}</Text>
       </Pressable>
     );
   };
 
   return (
     <View className="gap-1">
-      <Text className="text-sm text-white/60">{label}</Text>
+      <Text className="text-sm text-ink-60">{label}</Text>
       <Pressable
         onPress={() => setOpen(true)}
         accessibilityRole="button"
         accessibilityLabel={`${label}: ${selected ? `${selected.brand} ${selected.name}` : placeholder}`}
-        className="flex-row items-center justify-between rounded-xl bg-white/10 px-4 py-3"
+        className="flex-row items-center justify-between rounded-xl border-hw border-line bg-surface px-4 py-3"
       >
         <Text
           className={
-            selected ? 'text-base text-white' : 'text-base text-white/40'
+            selected ? 'text-base text-white' : 'text-base text-ink-40'
           }
         >
           {selected ? `${selected.brand} ${selected.name}` : placeholder}
         </Text>
-        <Text className="text-white/70">▾</Text>
+        <Text className="text-ink-70">▾</Text>
       </Pressable>
 
       <BottomSheet visible={open} title={label} onClose={close}>
@@ -108,13 +108,13 @@ export function FilmStockPicker({
           contentInset={{ bottom: insets.bottom }}
           keyboardShouldPersistTaps="handled"
           renderSectionHeader={({ section }) => (
-            <Text className="bg-[#161618] px-1 pb-1 pt-3 text-xs uppercase tracking-wide text-white/40">
+            <Text className="bg-[#161618] px-1 pb-1 pt-3 text-xs uppercase tracking-wide text-ink-40">
               {section.title}
             </Text>
           )}
           renderItem={renderItem}
           ListEmptyComponent={
-            <Text className="px-1 py-3 text-white/50">
+            <Text className="px-1 py-3 text-ink-50">
               No films match your search.
             </Text>
           }

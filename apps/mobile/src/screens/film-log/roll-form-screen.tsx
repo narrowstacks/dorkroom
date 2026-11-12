@@ -137,7 +137,7 @@ export function RollFormScreen() {
             placeholder="Select a film stock"
           />
           {filmsLoading ? (
-            <Text className="text-sm text-white/40">Loading film catalog…</Text>
+            <Text className="text-sm text-ink-40">Loading film catalog…</Text>
           ) : null}
           {filmsError ? (
             <Pressable
@@ -169,7 +169,7 @@ export function RollFormScreen() {
           placeholder="Box speed, or rate it differently"
         />
         <View className="gap-2">
-          <Text className="text-sm text-white/60">Process</Text>
+          <Text className="text-sm text-ink-60">Process</Text>
           <SegmentedControl
             options={PROCESS_OPTIONS}
             value={form.process}
@@ -186,7 +186,7 @@ export function RollFormScreen() {
           />
         ) : null}
         <View className="gap-2">
-          <Text className="text-sm text-white/60">Status</Text>
+          <Text className="text-sm text-ink-60">Status</Text>
           <SegmentedControl
             options={ROLL_STATUS_OPTIONS}
             value={form.status}

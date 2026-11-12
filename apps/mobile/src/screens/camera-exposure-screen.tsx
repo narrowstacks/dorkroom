@@ -119,11 +119,11 @@ function CameraExposureScreenBody({
 
       <GlassCard className="gap-3">
         <SectionLabel>Lighting presets</SectionLabel>
-        <Text className="text-sm text-white/60">
+        <Text className="text-sm text-ink-60">
           Pick a scene. The calculator adjusts the value you choose to match.
         </Text>
         <Text
-          className="text-sm text-white/60"
+          className="text-sm text-ink-60"
           // Each segment speaks this label itself (see accessibilityLabel).
           accessibilityElementsHidden
         >

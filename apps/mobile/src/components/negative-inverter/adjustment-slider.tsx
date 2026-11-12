@@ -84,7 +84,7 @@ export function AdjustmentSlider({
           accessibilityRole="button"
           accessibilityLabel={`Reset ${spec.label}`}
           accessibilityState={{ disabled: atDefault }}
-          className="min-h-11 min-w-11 items-center justify-center rounded-full bg-white/10 active:opacity-70"
+          className="min-h-11 min-w-11 items-center justify-center rounded-full border-hw border-line bg-surface active:opacity-70"
         >
           <SymbolView
             name="arrow.uturn.backward"
@@ -101,13 +101,13 @@ export function AdjustmentSlider({
         >
           <Text
             maxFontSizeMultiplier={CHROME_TEXT_SCALE}
-            className="text-xs text-white/50"
+            className="text-xs text-ink-50"
           >
             {spec.ends[0]}
           </Text>
           <Text
             maxFontSizeMultiplier={CHROME_TEXT_SCALE}
-            className="text-xs text-white/50"
+            className="text-xs text-ink-50"
           >
             {spec.ends[1]}
           </Text>

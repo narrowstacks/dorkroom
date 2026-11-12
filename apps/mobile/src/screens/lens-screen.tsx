@@ -108,7 +108,7 @@ function LensScreenBody({ overrides }: LensScreenBodyProps) {
         label="Equivalent focal length"
         value={null}
         note={
-          <Text className="text-white/60">Enter a focal length above 0.</Text>
+          <Text className="text-ink-60">Enter a focal length above 0.</Text>
         }
       />
     );
@@ -158,7 +158,7 @@ function LensScreenBody({ overrides }: LensScreenBodyProps) {
           className="min-h-11 flex-row items-center justify-center gap-2 px-4 py-2"
         >
           <ArrowUpDown size={16} color={tokens.color.textMuted} />
-          <Text className="text-white/70">Swap</Text>
+          <Text className="text-ink-70">Swap</Text>
         </Pressable>
         <View className="p-4">
           <PickerField

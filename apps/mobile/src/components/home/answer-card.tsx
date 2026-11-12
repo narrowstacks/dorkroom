@@ -30,7 +30,7 @@ function EaselDiagram({ diagram }: { diagram: BorderDiagram }) {
       accessibilityRole="image"
       accessibilityLabel="Print centered on the paper"
       style={{ width: paper.width, height: paper.height }}
-      className="rounded-sm bg-white/90"
+      className="rounded-sm bg-easel-paper"
     >
       <View
         style={{
@@ -40,7 +40,7 @@ function EaselDiagram({ diagram }: { diagram: BorderDiagram }) {
           width: print.width,
           height: print.height,
         }}
-        className="bg-zinc-700"
+        className="border-hw border-line bg-easel-print"
       />
     </View>
   );
@@ -52,28 +52,28 @@ export function AnswerCard({ answer, example, onOpen }: AnswerCardProps) {
   return (
     <GlassCard className="gap-4">
       {example ? (
-        <Text className="text-xs text-white/50">Try typing “{example}”</Text>
+        <Text className="text-xs text-ink-50">Try typing “{example}”</Text>
       ) : null}
 
       <View className="flex-row items-start justify-between gap-3">
         <Text className="flex-1 text-base font-semibold text-white">
           {answer.title}
         </Text>
-        <View className="rounded-lg bg-white/10 px-2 py-0.5">
-          <Text className="text-xs text-white/70">{answer.badge}</Text>
+        <View className="rounded-lg border-hw border-line bg-surface px-2 py-0.5">
+          <Text className="text-xs text-ink-70">{answer.badge}</Text>
         </View>
       </View>
 
       {answer.readAs.length > 0 ? (
         <View className="flex-row flex-wrap items-center gap-1.5">
-          <Text className="text-xs text-white/40">Read as</Text>
+          <Text className="text-xs text-ink-40">Read as</Text>
           {answer.readAs.map((reading) => (
             <View
               key={reading.text}
-              className={`rounded-lg px-2 py-0.5 ${reading.assumed ? 'border border-dashed border-white/30' : 'bg-white/10'}`}
+              className={`rounded-lg px-2 py-0.5 ${reading.assumed ? 'border border-dashed border-edge-30' : 'border-hw border-line bg-surface'}`}
             >
               <Text
-                className={`text-xs ${reading.assumed ? 'text-white/50' : 'text-white/70'}`}
+                className={`text-xs ${reading.assumed ? 'text-ink-50' : 'text-ink-70'}`}
               >
                 {reading.text}
               </Text>
@@ -83,7 +83,7 @@ export function AnswerCard({ answer, example, onOpen }: AnswerCardProps) {
       ) : null}
 
       {answer.notice ? (
-        <Text className="rounded-lg border border-white/20 px-3 py-2 text-sm font-medium text-white">
+        <Text className="rounded-lg border border-edge-strong px-3 py-2 text-sm font-medium text-white">
           {answer.notice}
         </Text>
       ) : null}
@@ -98,12 +98,12 @@ export function AnswerCard({ answer, example, onOpen }: AnswerCardProps) {
               >
                 {answer.figure.value}
                 {answer.figure.unit ? (
-                  <Text className="text-xl font-normal text-white/60">
+                  <Text className="text-xl font-normal text-ink-60">
                     {` ${answer.figure.unit}`}
                   </Text>
                 ) : null}
               </Text>
-              <Text className="text-sm text-white/60">
+              <Text className="text-sm text-ink-60">
                 {answer.figure.caption}
               </Text>
             </View>
@@ -117,15 +117,15 @@ export function AnswerCard({ answer, example, onOpen }: AnswerCardProps) {
           {answer.facts.map((fact) => (
             <View
               key={fact.label}
-              className="w-[46%] gap-0.5 border-t border-white/10 pt-2"
+              className="w-[46%] gap-0.5 border-t border-edge pt-2"
             >
-              <Text className="text-xs text-white/40">{fact.label}</Text>
+              <Text className="text-xs text-ink-40">{fact.label}</Text>
               <Text
-                className={`text-sm ${fact.missing ? 'text-white/40' : 'font-medium text-white'}`}
+                className={`text-sm ${fact.missing ? 'text-ink-40' : 'font-medium text-white'}`}
               >
                 {fact.value}
                 {fact.detail ? (
-                  <Text className="text-xs font-normal text-white/40">
+                  <Text className="text-xs font-normal text-ink-40">
                     {` ${fact.detail}`}
                   </Text>
                 ) : null}
@@ -136,7 +136,7 @@ export function AnswerCard({ answer, example, onOpen }: AnswerCardProps) {
       ) : null}
 
       {answer.notes.map((note) => (
-        <Text key={note} className="text-sm text-white/60">
+        <Text key={note} className="text-sm text-ink-60">
           {note}
         </Text>
       ))}
@@ -146,7 +146,7 @@ export function AnswerCard({ answer, example, onOpen }: AnswerCardProps) {
           onPress={onOpen}
           accessibilityRole="button"
           accessibilityLabel={`${answer.link.label}: ${answer.title}`}
-          className="flex-row items-center gap-1.5 self-start rounded-full bg-white/10 px-4 py-2.5 active:opacity-60"
+          className="flex-row items-center gap-1.5 self-start rounded-full border-hw border-line bg-surface px-4 py-2.5 active:opacity-60"
         >
           <Text className="text-sm font-medium text-rose-400">
             {answer.link.label}
@@ -154,7 +154,7 @@ export function AnswerCard({ answer, example, onOpen }: AnswerCardProps) {
           <ArrowRight size={14} color="#fb7185" />
         </Pressable>
         {answer.footnote ? (
-          <Text className="text-xs text-white/40">{answer.footnote}</Text>
+          <Text className="text-xs text-ink-40">{answer.footnote}</Text>
         ) : null}
       </View>
     </GlassCard>
