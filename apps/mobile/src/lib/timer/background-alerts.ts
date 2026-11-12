@@ -92,9 +92,15 @@ export function createBackgroundAlerts(
       handled = null;
       return cancel();
     },
-    stop: () => {
+    stop: async () => {
       handled = STOPPED;
-      return cancel();
+      try {
+        await cancel();
+      } catch (error) {
+        // Alerts may still be scheduled: let the next stop or ensure try again.
+        if (handled === STOPPED) handled = null;
+        throw error;
+      }
     },
   };
 }

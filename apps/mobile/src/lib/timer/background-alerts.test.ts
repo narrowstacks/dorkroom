@@ -130,6 +130,24 @@ describe('background alerts', () => {
     expect(log).toEqual(['schedule-fails', 'schedule']);
   });
 
+  it('releases the stopped claim when the cancel fails, so the next stop retries it', async () => {
+    let fail = true;
+    const log: string[] = [];
+    const alerts = createBackgroundAlerts({
+      schedule: async () => {},
+      cancel: async () => {
+        log.push(fail ? 'cancel-fails' : 'cancel');
+        if (fail) throw new Error('nope');
+      },
+      isActive: () => false,
+      now: () => T0,
+    });
+    await expect(alerts.stop()).rejects.toThrow('nope');
+    fail = false;
+    await alerts.ensure(state({ type: 'PAUSE' }));
+    expect(log).toEqual(['cancel-fails', 'cancel']);
+  });
+
   it('serialises through the queue: a slow stop issued before an ensure cannot land after it', async () => {
     // Same shape as timer-alerts: tasks run in call order, whatever they take.
     const log: string[] = [];

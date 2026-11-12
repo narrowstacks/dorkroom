@@ -184,7 +184,12 @@ export function createLiveActivityController(
 
     if (timer.status === 'completed') {
       const ending = handle;
-      const lastEnd = sent?.endMs ?? asOfMs;
+      // A run that was last shown running ended at its scheduled end, which may
+      // be before the app noticed. One last shown paused cannot have run out on
+      // its own (the shown end is a stale estimate): Skip finished it now.
+      const last = pending ?? sent;
+      const finishedAt =
+        last?.status === 'running' ? Math.min(last.endMs, asOfMs) : asOfMs;
       finishRun();
       if (!ending) return;
       const props = buildActivityProps({
@@ -195,8 +200,7 @@ export function createLiveActivityController(
         safelight: input.safelight,
         controls,
       });
-      // The run really ended at the scheduled end, not when the app noticed.
-      const policy = dismissalFor(Math.min(lastEnd, asOfMs), now());
+      const policy = dismissalFor(finishedAt, now());
       enqueue(() => ending.end(policy, props));
       return;
     }

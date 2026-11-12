@@ -7,6 +7,7 @@
 // If the app is killed while backgrounded the scheduled alerts still fire (iOS
 // owns them), but the run itself is not restored on relaunch.
 import * as Notifications from 'expo-notifications';
+import { createCueAlertQueue } from './cue-alert-queue';
 import type { TimerCue } from './cues';
 
 const SOUNDS = {
@@ -45,49 +46,17 @@ export async function ensureAlertPermission(): Promise<boolean> {
   }
 }
 
-// Schedule and cancel run one at a time, in call order, so a quick
-// background-then-foreground can never leave alerts scheduled after the cancel.
-let queue: Promise<void> = Promise.resolve();
-const enqueue = (task: () => Promise<void>): Promise<void> => {
-  queue = queue.then(task, task);
-  return queue;
-};
+const alertQueue = createCueAlertQueue({
+  cancelAll: () => Notifications.cancelAllScheduledNotificationsAsync(),
+  scheduleAt: (cue, date) =>
+    Notifications.scheduleNotificationAsync({
+      content: { title: cue.title, body: cue.body, sound: SOUNDS[cue.kind] },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date },
+    }),
+});
 
-/** Replace any pending alerts with one per cue. */
-export function scheduleCueAlerts(
-  cues: TimerCue[],
-  nowMs: number
-): Promise<void> {
-  return enqueue(async () => {
-    try {
-      await Notifications.cancelAllScheduledNotificationsAsync();
-      await Promise.all(
-        cues.map((cue) =>
-          Notifications.scheduleNotificationAsync({
-            content: {
-              title: cue.title,
-              body: cue.body,
-              sound: SOUNDS[cue.kind],
-            },
-            trigger: {
-              type: Notifications.SchedulableTriggerInputTypes.DATE,
-              date: new Date(nowMs + cue.offsetSeconds * 1000),
-            },
-          })
-        )
-      );
-    } catch {
-      // No permission or a scheduling failure: the run still works in the app.
-    }
-  });
-}
+/** Replace any pending alerts with one per cue. Rejects when iOS refuses. */
+export const scheduleCueAlerts = alertQueue.schedule;
 
-export function cancelCueAlerts(): Promise<void> {
-  return enqueue(async () => {
-    try {
-      await Notifications.cancelAllScheduledNotificationsAsync();
-    } catch {
-      // Nothing useful to do; stale alerts are replaced on the next schedule.
-    }
-  });
-}
+/** Clear every pending alert. Rejects when iOS refuses. */
+export const cancelCueAlerts = alertQueue.cancel;
