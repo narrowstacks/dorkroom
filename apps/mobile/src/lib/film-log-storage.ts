@@ -5,7 +5,12 @@
 import { createMMKV } from 'react-native-mmkv';
 import { deletePhotoFile } from '@/lib/film-log-photos';
 import { generateId } from '@/lib/id';
-import { parseCollection, writeCollection } from '@/lib/stored-collection';
+import { openVersionedStore } from '@/lib/schema-version';
+import {
+  isReadOnly,
+  parseCollection,
+  writeCollection,
+} from '@/lib/stored-collection';
 import {
   cameraSchema,
   filmRollSchema,
@@ -29,6 +34,19 @@ export const KEYS = {
   lenses: 'lenses',
   customFilms: 'customFilms',
 } as const;
+
+// Migrate stored data to the current format before any hook reads it.
+export const storeOpenResult = openVersionedStore(storage, [
+  { key: KEYS.rolls, schema: filmRollSchema },
+  { key: KEYS.cameras, schema: cameraSchema },
+  { key: KEYS.lenses, schema: lensSchema },
+  { key: KEYS.customFilms, schema: filmStockSchema },
+]);
+
+/** True when a newer app version wrote the film log. Every write is dropped,
+ * so callers must also skip side effects such as deleting photo files that
+ * the protected records still reference. */
+export const isFilmLogReadOnly = (): boolean => isReadOnly(storage);
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -82,6 +100,7 @@ export function updateRoll(
 }
 
 export function deleteRoll(id: string): void {
+  if (isFilmLogReadOnly()) return;
   const target = getRolls().find((r) => r.id === id);
   target?.shots.forEach((s) => {
     if (s.photo) void deletePhotoFile(s.photo.fileName);
@@ -128,6 +147,7 @@ export function updateShot(
 }
 
 export function removeShot(rollId: string, shotId: string): void {
+  if (isFilmLogReadOnly()) return;
   const photo = getRolls()
     .find((r) => r.id === rollId)
     ?.shots.find((s) => s.id === shotId)?.photo;
@@ -150,6 +170,7 @@ export function setShotPhoto(
   shotId: string,
   photo: ShotPhoto
 ): void {
+  if (isFilmLogReadOnly()) return;
   const prev = getRolls()
     .find((r) => r.id === rollId)
     ?.shots.find((s) => s.id === shotId)?.photo;

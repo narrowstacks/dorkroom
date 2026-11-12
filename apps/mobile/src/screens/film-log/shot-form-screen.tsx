@@ -29,7 +29,7 @@ import {
   savePhoto,
   shouldGrayscale,
 } from '@/lib/film-log-photos';
-import { addShot, updateShot } from '@/lib/film-log-storage';
+import { addShot, isFilmLogReadOnly, updateShot } from '@/lib/film-log-storage';
 import type { ShotPhoto } from '@/schemas/film-log.schema';
 
 const APERTURE_OPTIONS = STANDARD_APERTURES.map((a) => ({
@@ -202,6 +202,12 @@ export function ShotFormScreen() {
         existing?.source ?? (params.source === 'meter' ? 'meter' : 'manual'),
       photo: form.photo,
     } as const;
+    // A read-only film log drops the write, so keep the old photo the stored
+    // shot still references and let unmount clean up this session's files.
+    if (isFilmLogReadOnly()) {
+      router.back();
+      return;
+    }
     if (existing) {
       // Clean up the old photo file if the photo was replaced.
       if (existing.photo && existing.photo.fileName !== form.photo?.fileName) {
