@@ -12,6 +12,8 @@ import { ResultStat } from '@/components/result-stat';
 import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
 import { ShareButton } from '@/components/share-button';
+import { useAnnounceResult } from '@/hooks/use-announce-result';
+import { reciprocityAnnouncement } from '@/lib/announce-result';
 import { buildReciprocityShare } from '@/lib/share-text';
 
 export function ReciprocityScreen() {
@@ -23,6 +25,7 @@ export function ReciprocityScreen() {
     customFactor,
     setCustomFactor,
     timeFormatError,
+    formattedTime,
     calculation,
     formatTime,
     exposurePresets,
@@ -30,6 +33,14 @@ export function ReciprocityScreen() {
   } = useReciprocityCalculator();
 
   const films = filmTypes.map((f) => ({ label: f.label, value: f.value }));
+
+  // `calculation` falls back to the last valid result while the metered time
+  // is empty or unparseable; `formattedTime` is null then, so stay silent.
+  useAnnounceResult(
+    calculation && formattedTime !== null
+      ? reciprocityAnnouncement(calculation.adjustedTime, formatTime)
+      : null
+  );
 
   return (
     <Screen>

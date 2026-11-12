@@ -60,7 +60,12 @@ export function FiltersSheet({
   };
 
   return (
-    <BottomSheet visible={visible} title="Sort & filter" onClose={onClose}>
+    <BottomSheet
+      scrollable={false}
+      visible={visible}
+      title="Sort & filter"
+      onClose={onClose}
+    >
       <ScrollView
         style={{ maxHeight: sheetMaxHeight }}
         showsVerticalScrollIndicator={false}

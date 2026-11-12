@@ -99,6 +99,9 @@ function BorderLabel({ geometry, edge, value }: BorderLabelProps) {
     >
       <Text
         accessible={false}
+        // The preview is a fixed-size drawing; its labels sit in the borders
+        // and cannot grow with Dynamic Type (the summary line below does).
+        maxFontSizeMultiplier={1.2}
         adjustsFontSizeToFit
         minimumFontScale={0.7}
         numberOfLines={1}
@@ -187,6 +190,7 @@ export function MatPreview({
           >
             <Text
               accessible={false}
+              maxFontSizeMultiplier={1.2}
               adjustsFontSizeToFit
               minimumFontScale={0.7}
               numberOfLines={1}

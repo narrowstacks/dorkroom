@@ -59,15 +59,17 @@ export function Stepper({
       <Pressable
         onPressIn={() => repeater.press('decrement')}
         onPressOut={repeater.release}
-        className="h-10 w-12 items-center justify-center rounded-lg bg-white/10"
+        className="min-h-10 min-w-12 items-center justify-center rounded-lg bg-white/10 px-2"
       >
         <Text className="text-xl text-white">−</Text>
       </Pressable>
-      <Text className="text-base font-semibold text-white">{value}</Text>
+      <Text className="shrink px-2 text-center text-base font-semibold text-white">
+        {value}
+      </Text>
       <Pressable
         onPressIn={() => repeater.press('increment')}
         onPressOut={repeater.release}
-        className="h-10 w-12 items-center justify-center rounded-lg bg-white/10"
+        className="min-h-10 min-w-12 items-center justify-center rounded-lg bg-white/10 px-2"
       >
         <Text className="text-xl text-white">+</Text>
       </Pressable>
