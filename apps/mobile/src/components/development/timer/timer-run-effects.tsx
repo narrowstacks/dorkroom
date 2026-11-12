@@ -12,6 +12,9 @@ import { isRunActive, timerStore } from '@/lib/timer/timer-store';
 /** How often the display re-samples the wall clock while a run is going. */
 const SYNC_INTERVAL_MS = 250;
 
+/** iOS refused an alert change: the claim was released, so the next state change retries it. */
+const retryLater = () => {};
+
 type TimerSnapshot = ReturnType<typeof timerStore.getSnapshot>['timer'];
 
 function isAgitating(timer: TimerSnapshot): boolean {
@@ -92,9 +95,11 @@ export function TimerRunEffects() {
       // has no run in memory, but alerts already scheduled are still valid:
       // clear them only once the app has really been in front.
       if (status === 'idle' && !firstActive.hasBeenActive()) {
-        return firstActive.onFirstActive(() => void backgroundAlerts.stop());
+        return firstActive.onFirstActive(
+          () => void backgroundAlerts.stop().catch(retryLater)
+        );
       }
-      void backgroundAlerts.stop();
+      void backgroundAlerts.stop().catch(retryLater);
       return;
     }
     // Catch the store up and adopt the result as the cue baseline. Stage ends
@@ -112,14 +117,13 @@ export function TimerRunEffects() {
     const subscription = AppState.addEventListener('change', (next) => {
       adoptBaseline();
       if (next === 'active') {
-        void backgroundAlerts.foreground();
+        void backgroundAlerts.foreground().catch(retryLater);
         return;
       }
       const snapshot = timerStore.getSnapshot();
-      void backgroundAlerts.ensure({
-        timer: snapshot.timer,
-        anchorMs: snapshot.anchorMs,
-      });
+      void backgroundAlerts
+        .ensure({ timer: snapshot.timer, anchorMs: snapshot.anchorMs })
+        .catch(retryLater);
     });
     return () => subscription.remove();
   }, [status]);
@@ -131,7 +135,7 @@ export function TimerRunEffects() {
   // state is the one it already handled, so a tick costs one key comparison.
   useEffect(() => {
     if (!firstActive.hasBeenActive()) return;
-    void backgroundAlerts.ensure({ timer, anchorMs });
+    void backgroundAlerts.ensure({ timer, anchorMs }).catch(retryLater);
   });
 
   // Stage-boundary cues: haptic plus sound. The first render is skipped so

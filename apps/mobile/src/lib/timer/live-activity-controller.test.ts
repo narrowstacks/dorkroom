@@ -233,6 +233,24 @@ describe('live activity controller', () => {
     expect(t.calls[1].policy).toEqual({ kind: 'immediate' });
   });
 
+  it('lingers from the Skip when a run paused on its last stage is skipped long after', async () => {
+    let clock = T0;
+    const t = setup({}, () => clock);
+    const lastStage = after(running(), { type: 'NEXT_STAGE' });
+    t.controller.sync(t.input(lastStage));
+    const paused = after(lastStage, { type: 'PAUSE' });
+    t.controller.sync(t.input(paused));
+    t.fire();
+    clock = T0 + 600_000;
+    const skipped = after(paused, { type: 'NEXT_STAGE' });
+    expect(skipped.status).toBe('completed');
+    t.controller.sync(t.input(skipped, clock));
+    await t.controller.idle();
+    const end = t.calls.at(-1);
+    expect(end?.kind).toBe('end');
+    expect(end?.policy).toEqual({ kind: 'after', atMs: clock + 120_000 });
+  });
+
   it('starts a fresh activity for the next run after one ends', async () => {
     const t = setup();
     const timer = running();

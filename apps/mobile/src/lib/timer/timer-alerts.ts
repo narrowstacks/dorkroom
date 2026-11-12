@@ -58,36 +58,28 @@ export function scheduleCueAlerts(
   cues: TimerCue[],
   nowMs: number
 ): Promise<void> {
+  // A failure rejects so `backgroundAlerts` can release its claim and retry the
+  // same state; the queue still moves on to the next task.
   return enqueue(async () => {
-    try {
-      await Notifications.cancelAllScheduledNotificationsAsync();
-      await Promise.all(
-        cues.map((cue) =>
-          Notifications.scheduleNotificationAsync({
-            content: {
-              title: cue.title,
-              body: cue.body,
-              sound: SOUNDS[cue.kind],
-            },
-            trigger: {
-              type: Notifications.SchedulableTriggerInputTypes.DATE,
-              date: new Date(nowMs + cue.offsetSeconds * 1000),
-            },
-          })
-        )
-      );
-    } catch {
-      // No permission or a scheduling failure: the run still works in the app.
-    }
+    await Notifications.cancelAllScheduledNotificationsAsync();
+    await Promise.all(
+      cues.map((cue) =>
+        Notifications.scheduleNotificationAsync({
+          content: {
+            title: cue.title,
+            body: cue.body,
+            sound: SOUNDS[cue.kind],
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: new Date(nowMs + cue.offsetSeconds * 1000),
+          },
+        })
+      )
+    );
   });
 }
 
 export function cancelCueAlerts(): Promise<void> {
-  return enqueue(async () => {
-    try {
-      await Notifications.cancelAllScheduledNotificationsAsync();
-    } catch {
-      // Nothing useful to do; stale alerts are replaced on the next schedule.
-    }
-  });
+  return enqueue(() => Notifications.cancelAllScheduledNotificationsAsync());
 }
