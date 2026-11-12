@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { computeMatPreviewGeometry } from './geometry';
+import {
+  borderLabelFits,
+  computeMatPreviewGeometry,
+  windowLabelFits,
+} from './geometry';
 
 const portrait = {
   outerWidth: 16,
@@ -78,5 +82,36 @@ describe('computeMatPreviewGeometry', () => {
     { ...portrait, borderTop: 11, borderBottom: 10 },
   ])('returns null for invalid geometry %#', (input) => {
     expect(computeMatPreviewGeometry(input)).toBeNull();
+  });
+});
+
+describe('borderLabelFits', () => {
+  it('needs more height than 15px for a top or bottom label', () => {
+    expect(borderLabelFits('top', 15)).toBe(false);
+    expect(borderLabelFits('bottom', 16)).toBe(true);
+  });
+
+  it('hides a left or right label from a band too short to hold a line of text', () => {
+    expect(borderLabelFits('left', 60, 15)).toBe(false);
+    expect(borderLabelFits('right', 60, 16)).toBe(true);
+    expect(borderLabelFits('top', 60, 5)).toBe(true);
+  });
+
+  it('needs room across for a left or right label', () => {
+    expect(borderLabelFits('left', 33)).toBe(false);
+    expect(borderLabelFits('right', 34)).toBe(true);
+  });
+});
+
+describe('windowLabelFits', () => {
+  it('keeps the label in a window with room for it', () => {
+    expect(windowLabelFits({ width: 200, height: 300 })).toBe(true);
+    expect(windowLabelFits({ width: 96, height: 20 })).toBe(true);
+  });
+
+  it('leaves it out of a window too small, instead of truncating it', () => {
+    expect(windowLabelFits({ width: 95, height: 300 })).toBe(false);
+    expect(windowLabelFits({ width: 300, height: 19 })).toBe(false);
+    expect(windowLabelFits({ width: 11, height: 300 })).toBe(false);
   });
 });

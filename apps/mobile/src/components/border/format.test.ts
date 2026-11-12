@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { formatLength, formatPosition, formatPreviewCaption } from './format';
+import {
+  formatBladeReadings,
+  formatBorders,
+  formatLength,
+  formatPreviewCaption,
+  formatSpokenCaption,
+} from './format';
 
 describe('formatLength', () => {
   it('formats whole and fractional inches without trailing zeros', () => {
@@ -39,17 +45,36 @@ describe('formatPreviewCaption', () => {
   });
 });
 
-describe('formatPosition', () => {
-  it('reports Centered when offsets are disabled', () => {
-    expect(formatPosition(false, 1, 2, 'imperial')).toBe('Centered');
+describe('formatSpokenCaption', () => {
+  it('says "by", not the multiplication sign', () => {
+    expect(
+      formatSpokenCaption({ printWidth: 7, printHeight: 9 }, '8×10', 'imperial')
+    ).toBe('7" by 9" image on 8 by 10');
+  });
+});
+
+describe('formatBorders and formatBladeReadings', () => {
+  const c = {
+    leftBorder: 1,
+    rightBorder: 1.5,
+    topBorder: 0.5,
+    bottomBorder: 2,
+    leftBladeReading: 1.25,
+    rightBladeReading: 6,
+    topBladeReading: 0.5,
+    bottomBladeReading: 7.5,
+  };
+
+  it('names each border with its side', () => {
+    expect(formatBorders(c, 'imperial')).toBe(
+      'Borders left 1", right 1.5", top 0.5", bottom 2"'
+    );
   });
 
-  it('reports H/V values to one decimal in the unit when enabled', () => {
-    expect(formatPosition(true, 0.2, -0.5, 'imperial')).toBe(
-      'H: 0.2"  V: -0.5"'
+  it('names each blade with its side, in the unit', () => {
+    expect(formatBladeReadings(c, 'imperial')).toBe(
+      'Blades left 1.25", right 6", top 0.5", bottom 7.5"'
     );
-    expect(formatPosition(true, 0.2, -0.5, 'metric')).toBe(
-      'H: 0.5cm  V: -1.3cm'
-    );
+    expect(formatBladeReadings(c, 'metric')).toContain('left 3.2cm');
   });
 });

@@ -32,13 +32,36 @@ export function formatPreviewCaption(
   return `${formatLength(c.printWidth, unit)} × ${formatLength(c.printHeight, unit)} image on ${paperLabel}`;
 }
 
-/** Summary value for the Position & Offsets row. */
-export function formatPosition(
-  enableOffset: boolean,
-  horizontalOffset: number,
-  verticalOffset: number,
+/** The caption as VoiceOver should read it: "by", not the multiplication sign. */
+export function formatSpokenCaption(
+  c: Pick<BorderCalculation, 'printWidth' | 'printHeight'>,
+  paperLabel: string,
   unit: MeasurementUnit
 ): string {
-  if (!enableOffset) return 'Centered';
-  return `H: ${formatLength(horizontalOffset, unit, 1)}  V: ${formatLength(verticalOffset, unit, 1)}`;
+  return formatPreviewCaption(c, paperLabel, unit).replace(/\s*×\s*/g, ' by ');
+}
+
+/** The four borders on the paper, as spoken and as the panel's summary reads them. */
+export function formatBorders(
+  c: Pick<
+    BorderCalculation,
+    'leftBorder' | 'rightBorder' | 'topBorder' | 'bottomBorder'
+  >,
+  unit: MeasurementUnit
+): string {
+  return `Borders left ${formatLength(c.leftBorder, unit)}, right ${formatLength(c.rightBorder, unit)}, top ${formatLength(c.topBorder, unit)}, bottom ${formatLength(c.bottomBorder, unit)}`;
+}
+
+/** The blade readings, as text: the panel's copy of what the drawing labels. */
+export function formatBladeReadings(
+  c: Pick<
+    BorderCalculation,
+    | 'leftBladeReading'
+    | 'rightBladeReading'
+    | 'topBladeReading'
+    | 'bottomBladeReading'
+  >,
+  unit: MeasurementUnit
+): string {
+  return `Blades left ${formatLength(c.leftBladeReading, unit)}, right ${formatLength(c.rightBladeReading, unit)}, top ${formatLength(c.topBladeReading, unit)}, bottom ${formatLength(c.bottomBladeReading, unit)}`;
 }

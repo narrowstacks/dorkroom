@@ -22,12 +22,6 @@ interface BottomSheetProps {
   onDismiss?: () => void;
   children: ReactNode;
   /**
-   * When true (default), a flat dark scrim covers the whole screen behind the
-   * sheet. Pass false to keep the page fully visible — e.g. the border
-   * calculator, where the print preview should stay unobscured while editing.
-   */
-  showScrim?: boolean;
-  /**
    * Label for the header's dismiss action. Defaults to "Done". Sheets whose
    * body has its own commit button (e.g. a save/add form) should pass
    * "Cancel" here, since the header action only discards — it never saves.
@@ -53,7 +47,6 @@ export function BottomSheet({
   onClose,
   onDismiss,
   children,
-  showScrim = true,
   dismissLabel = 'Done',
 }: BottomSheetProps) {
   const insets = useSafeAreaInsets();
@@ -73,16 +66,14 @@ export function BottomSheet({
       onDismiss={onDismiss}
     >
       <SafelightRoot overlay={false}>
-        {showScrim ? (
-          <Animated.View
-            entering={FadeIn.duration(ENTER_MS)}
-            pointerEvents="none"
-            style={[
-              StyleSheet.absoluteFill,
-              { backgroundColor: 'rgba(0,0,0,0.6)' },
-            ]}
-          />
-        ) : null}
+        <Animated.View
+          entering={FadeIn.duration(ENTER_MS)}
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: 'rgba(0,0,0,0.6)' },
+          ]}
+        />
         <Pressable
           className="flex-1"
           onPress={onClose}

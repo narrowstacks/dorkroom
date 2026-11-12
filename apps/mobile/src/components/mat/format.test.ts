@@ -1,46 +1,10 @@
-import { makeMatFormatter, MAT_CALCULATOR_DEFAULTS } from '@dorkroom/logic';
+import { makeMatFormatter } from '@dorkroom/logic';
 import { describe, expect, it } from 'vitest';
 import {
   buildMatWarnings,
   buildMobileMatDimensionRows,
-  formatArtworkSummary,
-  formatBorderSummary,
-  formatMatPair,
   formatSignedMatFraction,
 } from './format';
-
-describe('mat summaries', () => {
-  it('formats dimensions without discarding fractions', () => {
-    expect(formatMatPair('11 1/2', '14')).toBe('11 1/2 × 14 in');
-    expect(formatMatPair('', '14')).toBe('— × 14 in');
-  });
-
-  it('summarizes all four borders', () => {
-    expect(formatBorderSummary(MAT_CALCULATOR_DEFAULTS)).toBe(
-      '3 T · 3 1/2 B · 2 3/4 L/R in'
-    );
-  });
-
-  it('drops a typed inch mark so the unit is not repeated', () => {
-    expect(
-      formatBorderSummary({
-        ...MAT_CALCULATOR_DEFAULTS,
-        borderLeft: '2.5”',
-        borderTop: '3 1/2"',
-        borderBottom: '3 in',
-      })
-    ).toBe('3 1/2 T · 3 B · 2.5 L · 2 3/4 R in');
-  });
-
-  it('summarizes artwork and reveal', () => {
-    expect(formatArtworkSummary(MAT_CALCULATOR_DEFAULTS)).toBe(
-      '11 × 14 · 1/4 reveal'
-    );
-    expect(
-      formatArtworkSummary({ ...MAT_CALCULATOR_DEFAULTS, artW: '', artH: '' })
-    ).toBe('Not configured');
-  });
-});
 
 describe('buildMatWarnings', () => {
   const base = {

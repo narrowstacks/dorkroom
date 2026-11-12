@@ -31,6 +31,9 @@ interface GlassCardProps {
   /** Tighter padding, for a control panel that shares the screen with a
    *  photo rather than a card in a scrolling stack. */
   compact?: boolean;
+  /** No padding at all: the card is a frame, and its content lays itself out
+   *  (the stage screens' control panel). */
+  flush?: boolean;
 }
 
 /** A Liquid Glass card on iOS 26; a translucent NativeWind card elsewhere. */
@@ -39,8 +42,9 @@ export function GlassCard({
   className,
   style,
   compact = false,
+  flush = false,
 }: GlassCardProps) {
-  const padding = compact ? 'p-3' : 'p-5';
+  const padding = flush ? '' : compact ? 'p-3' : 'p-5';
   const { on: safelight } = useSafelight();
   if (USE_GLASS) {
     // One wrapper type in both modes, so the card's children stay mounted when

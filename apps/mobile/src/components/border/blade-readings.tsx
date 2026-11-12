@@ -1,75 +1,62 @@
-import type { BorderCalculation, MeasurementUnit } from '@dorkroom/logic';
+import type { MeasurementUnit } from '@dorkroom/logic';
 import { Text, View } from 'react-native';
 import {
-  bladeLabelOffset,
-  computeBladeReadings,
+  READING_MAX_FONT_SCALE,
+  type ReadingsLayout,
 } from './blade-readings-layout';
 import { formatLength } from './format';
 
 interface BladeReadingsProps {
-  calculation: BorderCalculation;
-  boxWidth: number;
-  boxHeight: number;
+  layout: ReadingsLayout;
   unit: MeasurementUnit;
 }
 
-// Fixed label sizes (per orientation) keep each label's box stable as the
-// reading text grows/shrinks (e.g. 1" -> 1.25"), so the labels don't jitter
-// while dragging a slider. Equal widths also keep opposing labels aligned.
-const ROW_LABEL = { width: 62, height: 24 }; // left / right (arrow beside value)
-const COL_LABEL = { width: 50, height: 38 }; // top / bottom (arrow above/below)
-
-/** Absolute-positioned blade-reading labels overlaid on the preview. */
-export function BladeReadings({
-  calculation,
-  boxWidth,
-  boxHeight,
-  unit,
-}: BladeReadingsProps) {
-  const readings = computeBladeReadings(calculation, boxWidth, boxHeight);
-
+/** The blade readings, each on the edge it describes. Not interactive. */
+export function BladeReadings({ layout, unit }: BladeReadingsProps) {
+  const full = layout.form === 'full';
   return (
-    <View pointerEvents="none" className="absolute inset-0">
-      {readings.map((r) => {
-        const isVertical = r.side === 'top' || r.side === 'bottom';
-        const dim = isVertical ? COL_LABEL : ROW_LABEL;
-        const offset = bladeLabelOffset(
-          r.side,
-          r.isInside,
-          dim.width,
-          dim.height
-        );
+    <View pointerEvents="none" accessible={false} className="absolute inset-0">
+      {layout.readings.map((r) => {
+        const vertical = r.side === 'top' || r.side === 'bottom';
+        const text = formatLength(r.reading, unit);
         return (
           <View
             key={r.side}
             className="absolute items-center justify-center gap-0.5 rounded-md bg-black/70"
             style={{
-              left: r.x,
-              top: r.y,
-              width: dim.width,
-              height: dim.height,
-              flexDirection: isVertical ? 'column' : 'row',
-              transform: [
-                { translateX: offset.translateX },
-                { translateY: offset.translateY },
-              ],
+              left: r.left,
+              top: r.top,
+              width: r.width,
+              height: r.height,
+              flexDirection: vertical ? 'column' : 'row',
             }}
           >
-            {r.arrowFirst && (
-              <Text className="text-xs text-white">{r.arrow}</Text>
-            )}
-            {/* Shrinks rather than truncates when a cm reading ("-12.7cm") runs
-                wider than the inch readings the fixed boxes were sized for. */}
+            {full && r.arrowFirst ? (
+              <Text
+                maxFontSizeMultiplier={READING_MAX_FONT_SCALE}
+                className="text-xs text-white"
+              >
+                {r.arrow}
+              </Text>
+            ) : null}
+            {/* A long reading ("-12.7cm") steps down a size rather than relying on
+                font fitting, which shrank a label to nothing in a column. */}
             <Text
               numberOfLines={1}
-              adjustsFontSizeToFit
-              className="text-xs font-medium text-white"
+              maxFontSizeMultiplier={READING_MAX_FONT_SCALE}
+              className="font-medium text-white"
+              style={{ fontSize: text.length > 7 ? 10 : 12 }}
             >
-              {formatLength(r.reading, unit)}
+              {text}
             </Text>
-            {!r.arrowFirst && (
-              <Text className="text-xs text-white">{r.arrow}</Text>
-            )}
+            {full && !r.arrowFirst ? (
+              <Text
+                maxFontSizeMultiplier={READING_MAX_FONT_SCALE}
+                className="text-xs text-white"
+              >
+                {r.arrow}
+              </Text>
+            ) : null}
           </View>
         );
       })}

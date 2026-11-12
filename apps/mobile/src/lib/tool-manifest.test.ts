@@ -85,6 +85,9 @@ describe('fixed-layout and answer-first tools', () => {
     expect(TOOLS.filter((t) => t.fixedLayout).map((t) => t.id)).toEqual([
       'meter',
       'negative-inverter',
+      'border',
+      'resize',
+      'mat',
     ]);
   });
 

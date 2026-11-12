@@ -1,30 +1,4 @@
-import {
-  INCH_MARKS,
-  type MatCalculatorState,
-  type MatDimensionRow,
-  stripMatSuffix,
-  type UseMatCalculatorReturn,
-} from '@dorkroom/logic';
-
-/** The typed value without its inch mark (summaries already end in "in"). */
-const shown = (value: string) => stripMatSuffix(value, INCH_MARKS) || '—';
-
-export function formatMatPair(width: string, height: string): string {
-  return `${shown(width)} × ${shown(height)} in`;
-}
-
-export function formatBorderSummary(values: MatCalculatorState): string {
-  const horizontal =
-    values.borderLeft === values.borderRight
-      ? `${shown(values.borderLeft)} L/R`
-      : `${shown(values.borderLeft)} L · ${shown(values.borderRight)} R`;
-  return `${shown(values.borderTop)} T · ${shown(values.borderBottom)} B · ${horizontal} in`;
-}
-
-export function formatArtworkSummary(values: MatCalculatorState): string {
-  if (!values.artW.trim() || !values.artH.trim()) return 'Not configured';
-  return `${shown(values.artW)} × ${shown(values.artH)} · ${shown(values.reveal)} reveal`;
-}
+import type { MatDimensionRow, UseMatCalculatorReturn } from '@dorkroom/logic';
 
 type WarningInput = Pick<
   UseMatCalculatorReturn,

@@ -74,11 +74,13 @@ describe('usesLargeTitle', () => {
   it('is standard for answer-first and fixed-layout tools and for not found', () => {
     expect(usesLargeTitle(getTool('exposure'))).toBe(false);
     expect(usesLargeTitle(getTool('negative-inverter'))).toBe(false);
+    expect(usesLargeTitle(getTool('border'))).toBe(false);
+    expect(usesLargeTitle(getTool('mat'))).toBe(false);
     expect(usesLargeTitle(undefined)).toBe(false);
   });
 
   it('is large for a scrolling tool', () => {
-    expect(usesLargeTitle(getTool('border'))).toBe(true);
+    expect(usesLargeTitle(getTool('film-log'))).toBe(true);
   });
 });
 

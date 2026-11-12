@@ -10,9 +10,6 @@ interface SliderRowProps {
   step: number;
   displayValue: string;
   onChange: (value: number) => void;
-  /** Optional endpoint labels rendered under the slider (e.g. "0 in" / "3 in"). */
-  minLabel?: string;
-  maxLabel?: string;
 }
 
 /** A labelled slider with a live value readout. */
@@ -24,8 +21,6 @@ export function SliderRow({
   step,
   displayValue,
   onChange,
-  minLabel,
-  maxLabel,
 }: SliderRowProps) {
   const hue = usePhaseHue();
   return (
@@ -47,12 +42,6 @@ export function SliderRow({
         thumbTintColor="#f5f5f4"
         accessibilityLabel={label}
       />
-      {minLabel !== undefined && maxLabel !== undefined ? (
-        <View className="flex-row justify-between">
-          <Text className="text-xs text-ink-40">{minLabel}</Text>
-          <Text className="text-xs text-ink-40">{maxLabel}</Text>
-        </View>
-      ) : null}
     </View>
   );
 }

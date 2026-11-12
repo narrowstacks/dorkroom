@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   bladeLabelOffset,
   computeBladeReadings,
+  layoutReadings,
+  READING_GAP,
+  READING_MAX_FONT_SCALE,
+  readingSize,
 } from './blade-readings-layout';
 
 // Border 25% each side -> print is the middle 50% of a 400x400 box (200x200).
@@ -142,5 +146,153 @@ describe('bladeLabelOffset', () => {
     // Different widths still center on the same anchor x.
     expect(bladeLabelOffset('top', true, 40, 30).translateX).toBe(-20);
     expect(bladeLabelOffset('bottom', true, 80, 30).translateX).toBe(-40);
+  });
+});
+
+describe('layoutReadings', () => {
+  const around = (percent: number) => ({
+    leftBorderPercent: percent,
+    rightBorderPercent: percent,
+    topBorderPercent: percent,
+    bottomBorderPercent: percent,
+    leftBladeReading: 1,
+    rightBladeReading: 1,
+    topBladeReading: 1,
+    bottomBladeReading: 1,
+  });
+
+  it('uses the full form on a roomy print', () => {
+    const { form, readings } = layoutReadings(around(15), 340, 280);
+    expect(form).toBe('full');
+    expect(readings).toHaveLength(4);
+    // Each label sits against the edge it describes, inside the print.
+    const left = readings.find((r) => r.side === 'left');
+    expect(left?.left).toBeCloseTo(0.15 * 340 + 6, 6);
+  });
+
+  it('drops to the compact form when the full one would collide', () => {
+    const forms = [20, 24, 28, 32, 36, 40].map(
+      (p) => layoutReadings(around(p), 340, 280).form
+    );
+    expect(forms).toContain('compact');
+    expect(forms[0]).toBe('full');
+  });
+
+  it('shows nothing when no form fits', () => {
+    expect(layoutReadings(around(47), 340, 280)).toEqual({
+      form: 'none',
+      readings: [],
+    });
+  });
+
+  it('keeps two labels at least 8pt apart and on the paper, at any print size', () => {
+    for (const percent of [5, 10, 15, 20, 25, 28, 30, 33, 36, 40, 44, 47]) {
+      for (const [w, h] of [
+        [340, 280],
+        [220, 340],
+        [300, 300],
+        [160, 200],
+      ]) {
+        const { readings } = layoutReadings(around(percent), w, h);
+        for (const a of readings) {
+          expect(a.left).toBeGreaterThanOrEqual(0);
+          expect(a.top).toBeGreaterThanOrEqual(0);
+          expect(a.left + a.width).toBeLessThanOrEqual(w);
+          expect(a.top + a.height).toBeLessThanOrEqual(h);
+          for (const b of readings) {
+            if (a === b) continue;
+            const apart =
+              a.left + a.width + READING_GAP <= b.left ||
+              b.left + b.width + READING_GAP <= a.left ||
+              a.top + a.height + READING_GAP <= b.top ||
+              b.top + b.height + READING_GAP <= a.top;
+            expect(apart).toBe(true);
+          }
+        }
+      }
+    }
+  });
+});
+
+describe('reading gap', () => {
+  const around = (percent: number) => ({
+    leftBorderPercent: percent,
+    rightBorderPercent: percent,
+    topBorderPercent: percent,
+    bottomBorderPercent: percent,
+    leftBladeReading: 1,
+    rightBladeReading: 1,
+    topBladeReading: 1,
+    bottomBladeReading: 1,
+  });
+
+  it('is 8pt', () => {
+    expect(READING_GAP).toBe(8);
+  });
+
+  it('goes compact rather than leave left and right labels almost touching', () => {
+    // A print 130pt wide: the full labels (62 each) would leave 6pt between
+    // them; the compact ones (52 each) leave 26.
+    const { form, readings } = layoutReadings(around(31), 340, 280);
+    expect(form).toBe('compact');
+    const left = readings.find((r) => r.side === 'left');
+    const right = readings.find((r) => r.side === 'right');
+    expect(right!.left - (left!.left + left!.width)).toBeGreaterThanOrEqual(
+      READING_GAP
+    );
+  });
+});
+
+describe('label boxes follow the font scale', () => {
+  const around = (percent: number) => ({
+    leftBorderPercent: percent,
+    rightBorderPercent: percent,
+    topBorderPercent: percent,
+    bottomBorderPercent: percent,
+    leftBladeReading: 1,
+    rightBladeReading: 1,
+    topBladeReading: 1,
+    bottomBladeReading: 1,
+  });
+
+  it('sizes the boxes from the scale, capped at the text cap', () => {
+    expect(readingSize('full', 1).row.width).toBe(62);
+    expect(readingSize('full', 1.2).row.width).toBe(75);
+    expect(readingSize('full', 2).row).toEqual(readingSize('full', 1.2).row);
+    expect(readingSize('full', 0.8).row.width).toBe(62);
+    expect(READING_MAX_FONT_SCALE).toBe(1.2);
+  });
+
+  it('fits the widest label (about 67pt at 1.2x) in a box at that scale', () => {
+    expect(readingSize('full', 1.2).row.width).toBeGreaterThanOrEqual(67);
+  });
+
+  for (const scale of [1, 1.2]) {
+    it(`keeps labels on the paper and apart at scale ${scale}`, () => {
+      for (const percent of [10, 15, 20, 25, 30]) {
+        const { readings } = layoutReadings(around(percent), 340, 280, scale);
+        for (const a of readings) {
+          expect(a.left).toBeGreaterThanOrEqual(0);
+          expect(a.top).toBeGreaterThanOrEqual(0);
+          expect(a.left + a.width).toBeLessThanOrEqual(340);
+          expect(a.top + a.height).toBeLessThanOrEqual(280);
+          for (const b of readings) {
+            if (a === b) continue;
+            const apart =
+              a.left + a.width + READING_GAP <= b.left ||
+              b.left + b.width + READING_GAP <= a.left ||
+              a.top + a.height + READING_GAP <= b.top ||
+              b.top + b.height + READING_GAP <= a.top;
+            expect(apart).toBe(true);
+          }
+        }
+      }
+    });
+  }
+
+  it('uses the larger boxes at 1.2x', () => {
+    const one = layoutReadings(around(15), 340, 280, 1).readings[0];
+    const big = layoutReadings(around(15), 340, 280, 1.2).readings[0];
+    expect(big.width).toBeGreaterThan(one.width);
   });
 });
