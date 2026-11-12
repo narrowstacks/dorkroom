@@ -46,6 +46,13 @@ eas build --local --profile preview --platform ios   # answer "yes" to create cr
 Register a device once (its UDID must be on the team before an internal build can
 install): `eas device:create`, or add the UDID at developer.apple.com.
 
+The first build after the Process Timer Live Activity landed adds a widget
+extension (`art.dorkroom.mobile.widgets`) and an App Group
+(`group.art.dorkroom.mobile`). eas-cli cannot create those non-interactively:
+run one `eas build --platform ios --profile development --local` in your own
+terminal, accept the prompts (API key auth, no Apple ID login), then builds are
+non-interactive again. See the build section of `CLAUDE.md`.
+
 ## Build (local) & install to a device
 
 ### Quick path — `scripts/ios.sh`

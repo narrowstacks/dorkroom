@@ -45,6 +45,28 @@ export default defineConfig({
           new URL('./src/test/react-native-nitro-modules.ts', import.meta.url)
         ),
       },
+      // Native-module entry points the timer's Live Activity code reaches. `expo`
+      // reports every optional native module as missing (so the no-op path is
+      // taken); expo-widgets must never be imported without its native module,
+      // so its stand-in throws; expo-notifications is only called at run time.
+      {
+        find: /^expo$/,
+        replacement: fileURLToPath(
+          new URL('./src/test/expo.ts', import.meta.url)
+        ),
+      },
+      {
+        find: /^expo-widgets$/,
+        replacement: fileURLToPath(
+          new URL('./src/test/expo-widgets.ts', import.meta.url)
+        ),
+      },
+      {
+        find: /^expo-notifications$/,
+        replacement: fileURLToPath(
+          new URL('./src/test/expo-notifications.ts', import.meta.url)
+        ),
+      },
     ],
   },
   test: {

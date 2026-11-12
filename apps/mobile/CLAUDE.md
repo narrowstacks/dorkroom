@@ -41,7 +41,7 @@ src/
   polyfills/             # Hermes polyfills, MMKV localStorage shim
   theme/tokens.ts        # palette mirrored from web, for non-className values
   test/                  # vitest mocks for native modules
-plugins/                 # local config plugins (with-app-intents, with-ios-scene-lifecycle, with-ios-status-bar-forwarding)
+plugins/                 # local config plugins (with-app-intents, with-ios-scene-lifecycle, with-ios-status-bar-forwarding, with-local-notifications-only)
 scripts/                 # ios.sh, nativewind tailwind link
 ```
 
@@ -430,6 +430,138 @@ Toggling takes effect everywhere at once with no reload or navigation reset.
 Native chrome follows through `chromeOptions` (`theme/stack-chrome.ts`) and the
 `NativeTabs` colour props in `app/(tabs)/_layout.tsx`.
 
+### Live Activity (Process Timer)
+
+While a run is active it shows on the Lock Screen and in the Dynamic Island,
+and stays right with the app suspended or killed. Built with **expo-widgets**
+(`~57.0.27`, pinned below the recommended 57.0.28 only because that was inside
+the 7-day release gate) and `@expo/ui/swift-ui`; the `expo-widgets` plugin entry
+in `app.json` (no `widgets[]`: a Live Activity is not a home-screen widget; push
+off) generates the `ExpoWidgetsTarget` extension. Keep the entry AFTER
+`with-local-notifications-only`: the widgets plugin writes `aps-environment`
+whatever `enablePushNotifications` says, and mods run in reverse list order, so
+the strip must run last. Files, all in `src/lib/timer/`:
+
+- `live-activity-props.ts`: PURE builder of the props from `TimerState` and the
+  store's `anchorMs`. Every time is an absolute wall-clock timestamp (a row's
+  `[startMs, endMs]`, the run's `endMs`), never a duration. Rows are the current
+  stage and the next two; the rest fold into `hiddenAfter` and a "+N more"
+  row with its own countdown. The payload is
+  about 0.85 KB for a 12-stage run (ActivityKit allows about 4 KB; a test pins it).
+- `live-activity-controller.ts`: PURE lifecycle with a fake-able native
+  interface: start with the run, update only when the schedule changed
+  (`activityPropsChanged`, 750 ms tolerance, so a tick is never an update;
+  200 ms debounce), end at once on reset, end with the "Done" props and a 2 minute
+  linger on completion, one activity at a time, silent when starting fails
+  (Live Activities off in iOS Settings) or the user swiped it away.
+- `live-activity.ts`: the expo-widgets calls and the one controller. Anything
+  left over from an earlier process is ended the first time the app is active (a
+  run does not survive the app being killed). If the bundle is stale or the dev
+  client lacks expo-widgets, `selectNative` falls back to a no-op and warns once
+  in development instead of crashing at startup. `TimerRunEffects` calls `syncLiveActivity()` on every
+  render (the controller dedupes) and on foreground.
+- `live-activity-widget.tsx`: the layout.
+
+**The widget runs in an isolated runtime.** The function marked `'widget'` is
+turned into a STRING by `babel-preset-expo` and evaluated by JavaScriptCore in the
+extension: no imports, no module-scope constants or helpers, no hooks, no timers,
+no clock. Every helper (including the `m:ss` formatter) is declared INSIDE the
+function; the colours come in as props (`activityPalette`, literal hex, red
+levels from `theme/safelight.ts` under safelight). `live-activity-widget.test.ts`
+compiles the real file with the app's Babel config and renders the string with
+only the runtime's globals reachable, so a module-scope reference fails the test
+instead of a device. Add any new `@expo/ui` component or modifier you use to the
+allow-lists there. The layout string is written to the App Group when the
+factory is created, so a layout edit reaches a running dev build with a JS
+reload (no native rebuild) and applies to the next start or update.
+
+**Why every stage is a row.** iOS cannot change a Live Activity at a scheduled
+time while the app is suspended (only APNs pushes can; there is no push server,
+and background audio is not used to keep JS alive). Only the system's own timer
+text ticks. So each stage has its own `Text(timerInterval:)` and
+`ProgressView(timerInterval:)`: a finished stage reads 0:00, the current one
+counts down and later ones show their full length, with no updates, and the total
+is a countdown to the run's end (the island's compact trailing). What cannot
+update while suspended: which row is highlighted and which stage the header
+and the agitation note name (as of the last update; refreshed on foreground, on a
+button press and on any state change), and the window of rows. A run that ends
+while the app is suspended goes stale at its end (`staleDate`), and the layout
+reads `environment.isStale` to say "Done"; the app ends and dismisses it when it
+next runs. Agitation is shown as the static pattern, never a live "next agitation"
+time. Safelight: the activity is drawn red on black when the mode was on at the
+last update; the system's own Lock Screen chrome is not dimmed.
+
+**Buttons (device-unverified under suspension).** Pause/Resume and Skip are
+`Button`s with a `target`. In a Live Activity `onPress` is never evaluated (only
+home-screen widgets do that): the tap runs `LiveActivityUserInteraction` (a
+`LiveActivityIntent`) in the APP process, whose `perform()` posts a notification
+and returns at once, without waiting for JS. Two things make that safe:
+
+- `plugins/with-widget-interaction-hold` adds `WidgetInteractionHold.m` to the
+  app target only. Its `+load` observes that notification and holds a background
+  task for a fixed 5 seconds (JS cannot signal completion without a native
+  module), so iOS cannot re-suspend the app mid-work.
+- `live-activity-interaction.ts` handles the event in one function straight
+  from the listener, with no render or debounce in the path: it changes the
+  `timerStore`, settles the alerts with iOS (`background-alerts.ts` cancels or
+  reschedules; the React effect asks the same owner, which is idempotent by a
+  key derived from the state, so nothing is scheduled twice), then updates the
+  activity at once (`controller.flushNow()`).
+
+All of that is unit-tested, but none of it has been verified on a SUSPENDED
+device (the Simulator does not suspend the app the way an iPhone does). Device
+checklist, in a development build with Live Activities allowed (use a short test
+run; "pending notifications" means `getAllScheduledNotificationsAsync`, or a
+debug screen showing it):
+
+1. Start a run, lock, press Pause, lock again at once: no pending notifications,
+   and the activity shows Paused with frozen values.
+2. Press Resume, lock again: pending alerts match the new end of the run.
+3. Press Skip, lock again: pending alerts match the new schedule.
+4. Pause then Resume within about 300 ms: alerts are present afterwards.
+5. Skip on the last stage: the activity reads Done, goes away after about
+   2 minutes, and no alerts are pending.
+6. Force-quit, then press a button: nothing changes; opening the app ends the
+   leftover activity.
+7. Expanded island while paused with an agitation note: it fits, no clipping.
+8. The device log shows no "background task beyond permitted time" warnings.
+
+If it does not hold, set `SHOW_CONTROLS` in `live-activity.ts` to `false` to
+ship a display-only activity. With the app terminated or force-quit a press is a no-op:
+there is no run in memory, so nothing is touched, the activity and the alerts
+already scheduled keep going, and the leftover activity is ended the next time
+the app becomes active. The same holds for a background launch that iOS makes
+for a press: orphan clean-up and the idle "cancel every alert" wait for the
+first `active` state (`first-active.ts`).
+
+**Testing.** A Live Activity needs a development build with the extension
+(`CI=1 bunx expo prebuild --platform ios`, then build; Expo Go cannot). After
+adding `expo-widgets`, restart Metro with `--clear`: `babel-preset-expo` only
+enables the `'widget'` transform when it can resolve `expo-widgets`, it decides
+once per process, and the transform cache is keyed on file content, so a Metro
+that started before the install serves the widget as a plain function and the
+app throws "cannot be cast to type String". On the Simulator, `idb ui button
+LOCK` locks and wakes it and `HOME` leaves the app; the Lock Screen shows the
+banner, and a stage boundary can be watched with the app backgrounded. The
+Simulator does not draw the Dynamic Island regions: check those on a device.
+
+**Height.** The Lock Screen banner is capped at about 160pt and clips from the
+top. Worst case now (padding 8 top and bottom, header 20, three rows of about 21,
+one instruction line of 12, the "+N more" row of 15, gaps) is about 143pt; the
+expanded island's bottom region shows two rows, the instruction line and the
+"+N more" row (about 80pt), about 132pt in total before system insets, and the
+buttons sit under the total in the trailing region. All estimates, unverified on
+a device. Every text is
+one line with a tail ellipsis. No stage is named "now": the leading island
+region shows the title, the agitation instruction sits under its own stage's
+row, and the emphasis on the row that was current at the last update is only
+weight, so it is not wrong-looking after a boundary.
+
+**Signing.** The extension has its own bundle id (`art.dorkroom.mobile.widgets`)
+and both targets carry the App Group `group.art.dorkroom.mobile`, so EAS needs
+that App ID, that group registered on the account and both IDs added to the
+group, and a provisioning profile for each. No Push Notifications capability.
+
 ### Components
 
 - PascalCase names, kebab-case files; props interface named `ComponentNameProps`;
@@ -587,7 +719,7 @@ config**, because Metro can't hot-reload native:
 - adding, removing, or upgrading a dependency with **native iOS code** (e.g.
   `expo-quick-actions`, `react-native-vision-camera`, anything with a config plugin)
 - editing the **`plugins`** array in `app.json` or a plugin's options, including
-  the local plugins in `plugins/` (`with-app-intents`, `with-ios-scene-lifecycle`, `with-ios-status-bar-forwarding`)
+  the local plugins in `plugins/` (`with-app-intents`, `with-ios-scene-lifecycle`, `with-ios-status-bar-forwarding`, `with-local-notifications-only`) and the `expo-widgets` entry
 - changing native iOS config: `Info.plist` keys, **permission/usage strings**,
   the **URL scheme**, bundle id, **deployment target**, app icon / splash
 - **home-screen quick actions / SF Symbol shortcut items**, entitlements
@@ -615,6 +747,14 @@ plist before installing, e.g.:
 unzip -o -q /tmp/dorkroom-dev.ipa "Payload/Dorkroom.app/Info.plist" -d /tmp/dr-check
 plutil -p /tmp/dr-check/Payload/Dorkroom.app/Info.plist | grep -A20 ShortcutItems
 ```
+
+> **First build after adding the widget extension is interactive.** eas-cli
+> cannot create the new App ID `art.dorkroom.mobile.widgets`, the App Group
+> `group.art.dorkroom.mobile` or the extension's provisioning profile in a
+> `--non-interactive` local build. Run ONE interactive
+> `eas build --platform ios --profile development --local` in your own terminal
+> (App Store Connect API key auth, no Apple ID login), accept creating those and
+> regenerating the app's own profile, then non-interactive builds work again.
 
 ### 3. **Standalone (non-Metro) build**, self-contained, no Mac or Metro
 
