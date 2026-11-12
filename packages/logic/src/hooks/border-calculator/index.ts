@@ -9,7 +9,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CALCULATION_CONSTANTS } from '../../constants/calculations';
-import type { BorderCalculation } from '../../types/border-calculator';
+import type {
+  BorderCalculation,
+  BorderCalculatorState,
+} from '../../types/border-calculator';
 import { computeBorderLayout } from '../../utils/border-layout';
 import type { MeasurementUnit } from '../../utils/unit-conversion';
 import { useWindowDimensions } from '../use-window-dimensions';
@@ -39,6 +42,8 @@ const WARNING_DELAY = CALCULATION_CONSTANTS.DEBOUNCE_WARNING_DELAY;
  *
  * @param unit - Measurement unit the hook's warnings are written in. Results
  *   and state stay in inches either way. Defaults to imperial.
+ * @param options - `overrides`: values applied over the stored ones on mount,
+ *   such as a link's (`borderCalculatorLink.read`).
  * @returns Complete border calculator state and control functions
  *
  * @example
@@ -63,10 +68,11 @@ const WARNING_DELAY = CALCULATION_CONSTANTS.DEBOUNCE_WARNING_DELAY;
  * ```
  */
 export const useStandaloneBorderCalculator = (
-  unit: MeasurementUnit = 'imperial'
+  unit: MeasurementUnit = 'imperial',
+  options?: { overrides?: Partial<BorderCalculatorState> }
 ) => {
   // Core state management
-  const { state, dispatch } = useBorderCalculatorState();
+  const { state, dispatch } = useBorderCalculatorState(options);
 
   // Geometry: the window size only sizes the on-screen preview
   const { width: viewportWidth, height: viewportHeight } =

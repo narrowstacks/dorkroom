@@ -1,4 +1,7 @@
-import { useCameraExposureCalculator } from '@dorkroom/logic';
+import {
+  cameraExposureLink,
+  useCameraExposureCalculator,
+} from '@dorkroom/logic';
 import { useEffect, useState } from 'react';
 import { AccessibilityInfo, Text, View } from 'react-native';
 import { EquivalentExposureList } from '@/components/camera-exposure/equivalent-exposure-list';
@@ -21,11 +24,19 @@ import { SectionLabel } from '@/components/section-label';
 import { SegmentedControl } from '@/components/segmented-control';
 import { ShareButton } from '@/components/share-button';
 import { WarningsCard } from '@/components/warnings-card';
+import { useLinkOverrides } from '@/hooks/use-link-overrides';
 import { buildCameraExposureShare } from '@/lib/share-text';
 
 const SOLVE_FOR_LABEL = 'When selecting a preset, adjust';
 
-export function CameraExposureScreen() {
+interface CameraExposureScreenBodyProps {
+  /** Values the screen was opened with (a Home answer or a deep link). */
+  overrides?: ReturnType<typeof cameraExposureLink.read>;
+}
+
+function CameraExposureScreenBody({
+  overrides,
+}: CameraExposureScreenBodyProps) {
   const {
     values,
     set,
@@ -34,7 +45,7 @@ export function CameraExposureScreen() {
     exposureValue,
     equivalentExposures,
     comparison,
-  } = useCameraExposureCalculator();
+  } = useCameraExposureCalculator({ overrides });
 
   // Counts preset taps so the announcement below re-fires when the same
   // out-of-range preset is tapped again and the warning text is unchanged.
@@ -159,4 +170,10 @@ export function CameraExposureScreen() {
       </GlassCard>
     </Screen>
   );
+}
+
+export function CameraExposureScreen() {
+  const { overrides, prefillId } = useLinkOverrides(cameraExposureLink);
+  // Re-mounts on a new link: the shared hooks apply overrides on mount only.
+  return <CameraExposureScreenBody key={prefillId} overrides={overrides} />;
 }

@@ -1,4 +1,8 @@
-import { parseDecimalInput, useExposureCalculator } from '@dorkroom/logic';
+import {
+  exposureCalculatorLink,
+  parseDecimalInput,
+  useExposureCalculator,
+} from '@dorkroom/logic';
 import { Text, View } from 'react-native';
 import { FormulaRow } from '@/components/formula-row';
 import { GlassCard } from '@/components/glass-card';
@@ -11,11 +15,17 @@ import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
 import { ShareButton } from '@/components/share-button';
 import { Stepper } from '@/components/stepper';
+import { useLinkOverrides } from '@/hooks/use-link-overrides';
 import { buildExposureShare } from '@/lib/share-text';
 
 const signed = (n: number) => `${n >= 0 ? '+' : ''}${n.toFixed(2)}`;
 
-export function ExposureScreen() {
+interface ExposureScreenBodyProps {
+  /** Values the screen was opened with (a Home answer or a deep link). */
+  overrides?: ReturnType<typeof exposureCalculatorLink.read>;
+}
+
+function ExposureScreenBody({ overrides }: ExposureScreenBodyProps) {
   const {
     originalTime,
     setOriginalTime,
@@ -25,7 +35,7 @@ export function ExposureScreen() {
     calculation,
     formatTime,
     presets,
-  } = useExposureCalculator();
+  } = useExposureCalculator({ overrides });
 
   const stopsValue = calculation?.stopsValue ?? (parseDecimalInput(stops) || 0);
   // From the times, not 2^stopsValue, so a third reads ×1.260, not ×1.257.
@@ -116,4 +126,10 @@ export function ExposureScreen() {
       )}
     </Screen>
   );
+}
+
+export function ExposureScreen() {
+  const { overrides, prefillId } = useLinkOverrides(exposureCalculatorLink);
+  // Re-mounts on a new link: the shared hooks apply overrides on mount only.
+  return <ExposureScreenBody key={prefillId} overrides={overrides} />;
 }

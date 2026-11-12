@@ -25,7 +25,7 @@ enum DorkroomPage: String, AppEnum {
     var url: URL {
         switch self {
         case .meter: return URL(string: "dorkroom://meter")!
-        case .border: return URL(string: "dorkroom://")!
+        case .border: return URL(string: "dorkroom://border")!
         case .exposure: return URL(string: "dorkroom://exposure")!
         case .reciprocity: return URL(string: "dorkroom://reciprocity")!
         case .negativeInverter: return URL(string: "dorkroom://negative-inverter")!

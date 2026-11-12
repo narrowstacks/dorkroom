@@ -113,3 +113,38 @@ describe('useStandaloneBorderCalculator', () => {
     );
   });
 });
+
+describe('useStandaloneBorderCalculator overrides', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("applies a link's values on mount, completed like a form edit", () => {
+    const { result } = renderHook(() =>
+      useStandaloneBorderCalculator('imperial', {
+        overrides: { paperSize: '11x14', aspectRatio: '7:6', minBorder: 0.75 },
+      })
+    );
+
+    expect(result.current.paperSize).toBe('11x14');
+    expect(result.current.aspectRatio).toBe('7:6');
+    expect(result.current.minBorder).toBe(0.75);
+    // A link that sets the paper without `landscape` orients it like picking it.
+    expect(result.current.isLandscape).toBe(true);
+  });
+
+  it('puts the link over what was stored', () => {
+    localStorage.setItem(
+      'borderCalculatorState_v2',
+      JSON.stringify({ paperSize: '8x10', minBorder: 1 })
+    );
+    const { result } = renderHook(() =>
+      useStandaloneBorderCalculator('imperial', {
+        overrides: { paperSize: '16x20' },
+      })
+    );
+
+    expect(result.current.paperSize).toBe('16x20');
+    expect(result.current.minBorder).toBe(1);
+  });
+});

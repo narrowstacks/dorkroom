@@ -5,6 +5,7 @@ interface SearchBarProps {
   value: string;
   onChangeText: (value: string) => void;
   placeholder?: string;
+  onFocus?: () => void;
 }
 
 /**
@@ -15,6 +16,7 @@ export function SearchBar({
   value,
   onChangeText,
   placeholder = 'Search film or developer',
+  onFocus,
 }: SearchBarProps) {
   return (
     <View className="flex-row items-center gap-2 rounded-xl bg-white/10 px-3">
@@ -22,6 +24,7 @@ export function SearchBar({
       <TextInput
         value={value}
         onChangeText={onChangeText}
+        onFocus={onFocus}
         placeholder={placeholder}
         placeholderTextColor="#71717a"
         autoCapitalize="none"

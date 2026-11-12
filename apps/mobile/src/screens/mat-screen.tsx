@@ -1,4 +1,8 @@
-import { MAT_CALCULATOR_DEFAULTS, useMatCalculator } from '@dorkroom/logic';
+import {
+  MAT_CALCULATOR_DEFAULTS,
+  matCalculatorLink,
+  useMatCalculator,
+} from '@dorkroom/logic';
 import { useState } from 'react';
 import { Pressable, Text } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
@@ -17,11 +21,17 @@ import { OuterMatSection } from '@/components/mat/outer-mat-section';
 import { NavRow } from '@/components/nav-row';
 import { Screen } from '@/components/screen';
 import { WarningsCard } from '@/components/warnings-card';
+import { useLinkOverrides } from '@/hooks/use-link-overrides';
 
 type SheetId = 'outer' | 'borders' | 'artwork' | null;
 
-export function MatScreen() {
-  const calc = useMatCalculator();
+interface MatScreenBodyProps {
+  /** Values the screen was opened with (a Home answer or a deep link). */
+  overrides?: ReturnType<typeof matCalculatorLink.read>;
+}
+
+function MatScreenBody({ overrides }: MatScreenBodyProps) {
+  const calc = useMatCalculator({ overrides });
   const [sheet, setSheet] = useState<SheetId>(null);
   const closeSheet = () => setSheet(null);
   const warnings = buildMatWarnings(calc);
@@ -134,4 +144,10 @@ export function MatScreen() {
       </BottomSheet>
     </Screen>
   );
+}
+
+export function MatScreen() {
+  const { overrides, prefillId } = useLinkOverrides(matCalculatorLink);
+  // Re-mounts on a new link: the shared hooks apply overrides on mount only.
+  return <MatScreenBody key={prefillId} overrides={overrides} />;
 }

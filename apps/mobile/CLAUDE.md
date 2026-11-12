@@ -27,7 +27,8 @@ app/                     # expo-router file-based routes (typed routes on)
   +native-intent.ts      # deep-link path rewriting
   (tabs)/
     _layout.tsx          # NativeTabs; useQuickActionRouting + usePinnedTabs live HERE
-    index.tsx            # each tab file is a two-line re-export of a src/screens/ screen
+    index.tsx            # Home, the initial route; each tab file is a two-line
+                         # re-export of a src/screens/ screen
     film-log/            # nested Stack: roll list, roll form, shot, gear
     development/         # nested Stack: recipe browser, recipe detail, timer
     more/                # tool directory, tab-pin editor, and [tool] detail route
@@ -54,7 +55,7 @@ Path alias: `@/*` maps to `src/*` (see `tsconfig.json`).
 A route file under `app/(tabs)/` does one thing: re-export a screen.
 
 ```tsx
-// app/(tabs)/index.tsx
+// app/(tabs)/border.tsx
 import { BorderScreen } from '@/screens/border-screen';
 export default BorderScreen;
 ```
@@ -79,8 +80,16 @@ two-line route file, and the icon in
 route file, tab icon, generator entry, or App Intent disagrees with the
 manifest.
 
-`pinnable: false` keeps a tool out of the pin editor (`film-log` uses this
-because it is a permanent tab).
+`pinnable: false` keeps a tool out of the pin editor (`home` and `film-log`
+use this because they are permanent tabs). Home has no `tabRoute`: its route
+file is `index`, the app's initial route, and `/` opens it.
+
+**Calculator links.** Home answers open a calculator pre-filled by passing the
+link's params (`xCalculatorLink.build`) as search params on the tool's route.
+The screen reads them with `useLinkOverrides(xCalculatorLink)` and hands them to
+the shared hook as `overrides`. Those apply on mount only, so the hook returns a
+key and the screen puts it on its body to re-mount it when a new link arrives.
+Add that wrapper to any new calculator screen that Home can link to.
 
 ### Routing and screens
 
@@ -89,7 +98,9 @@ because it is a permanent tab).
   a Lucide-generated PNG asset rendered via `<Icon src={...}>` (icons come from
   `scripts/generate-tab-icons.mjs`) and `<Label>`.
 - The visible tab set is **user-configurable**. `usePinnedTabs()` drives which
-  triggers render; Film Log, Recipes, and More are always present.
+  triggers render; Home, Film Log, Recipes, and More are always present. iOS
+  shows 5 tabs before folding the rest into its own More, so that leaves
+  `MAX_PINNED = 1` slot for the user's own tool.
 - **Dark only.** Don't add light-mode branches. `app/_layout.tsx` forces
   `Appearance.setColorScheme('dark')`, uses `DarkTheme`, `StatusBar style="light"`,
   and `headerShown: false`. `app.json` sets `userInterfaceStyle: "dark"`.

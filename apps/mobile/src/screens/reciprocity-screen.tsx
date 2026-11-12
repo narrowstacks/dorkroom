@@ -1,4 +1,7 @@
-import { useReciprocityCalculator } from '@dorkroom/logic';
+import {
+  reciprocityCalculatorLink,
+  useReciprocityCalculator,
+} from '@dorkroom/logic';
 import { Text, View } from 'react-native';
 import { FormulaRow } from '@/components/formula-row';
 import { GlassCard } from '@/components/glass-card';
@@ -12,9 +15,15 @@ import { ResultStat } from '@/components/result-stat';
 import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
 import { ShareButton } from '@/components/share-button';
+import { useLinkOverrides } from '@/hooks/use-link-overrides';
 import { buildReciprocityShare } from '@/lib/share-text';
 
-export function ReciprocityScreen() {
+interface ReciprocityScreenBodyProps {
+  /** Values the screen was opened with (a Home answer or a deep link). */
+  overrides?: ReturnType<typeof reciprocityCalculatorLink.read>;
+}
+
+function ReciprocityScreenBody({ overrides }: ReciprocityScreenBodyProps) {
   const {
     filmType,
     setFilmType,
@@ -27,7 +36,7 @@ export function ReciprocityScreen() {
     formatTime,
     exposurePresets,
     filmTypes,
-  } = useReciprocityCalculator();
+  } = useReciprocityCalculator({ overrides });
 
   const films = filmTypes.map((f) => ({ label: f.label, value: f.value }));
 
@@ -123,4 +132,10 @@ export function ReciprocityScreen() {
       )}
     </Screen>
   );
+}
+
+export function ReciprocityScreen() {
+  const { overrides, prefillId } = useLinkOverrides(reciprocityCalculatorLink);
+  // Re-mounts on a new link: the shared hooks apply overrides on mount only.
+  return <ReciprocityScreenBody key={prefillId} overrides={overrides} />;
 }
