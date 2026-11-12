@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
+import { usePhaseHue } from '@/theme/use-phase-accent';
 
 interface FilmPickerProps {
   films: { label: string; value: string }[];
@@ -22,6 +23,7 @@ function FilmRow({ film, isSelected, onSelect }: FilmRowProps) {
     () => onSelect(film.value),
     [film.value, onSelect]
   );
+  const hue = usePhaseHue();
   return (
     <Pressable
       onPress={handlePress}
@@ -30,11 +32,12 @@ function FilmRow({ film, isSelected, onSelect }: FilmRowProps) {
       className="flex-row items-center justify-between py-3"
     >
       <Text
-        className={isSelected ? 'font-semibold text-rose-400' : 'text-white'}
+        className={isSelected ? 'font-semibold' : 'text-white'}
+        style={isSelected ? { color: hue } : undefined}
       >
         {film.label}
       </Text>
-      {isSelected ? <Text className="text-rose-400">✓</Text> : null}
+      {isSelected ? <Text style={{ color: hue }}>✓</Text> : null}
     </Pressable>
   );
 }

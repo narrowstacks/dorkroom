@@ -79,7 +79,7 @@ export function Countdown({
     pattern !== null && agitation.agitating && status === 'running';
   const showNextAgitation =
     pattern !== null && !agitatingNow && agitation.nextWindowInSeconds != null;
-  const tint = selectionTint('green');
+  const tint = selectionTint('teal');
 
   // Pulse the AGITATE pill while a window is active so it can't be missed on a
   // counter in a dim room. Honors Reduce Motion — skip the loop, keep the pill
@@ -105,7 +105,7 @@ export function Countdown({
   }));
 
   return (
-    <ResultCard accent="green">
+    <ResultCard accent="teal">
       <View className="gap-3">
         <View className="flex-row items-center justify-between">
           <Text className="text-base font-semibold text-white">
@@ -119,7 +119,7 @@ export function Countdown({
         </View>
 
         <Text
-          style={[styles.readout, { color: ACCENT.green }]}
+          style={[styles.readout, { color: ACCENT.teal }]}
           accessibilityLabel={`${formatClock(remainingSeconds)} remaining`}
         >
           {formatClock(remainingSeconds)}
@@ -127,7 +127,7 @@ export function Countdown({
 
         <View style={styles.track}>
           <Animated.View
-            style={[styles.bar, { backgroundColor: ACCENT.green }, barStyle]}
+            style={[styles.bar, { backgroundColor: ACCENT.teal }, barStyle]}
           />
         </View>
 

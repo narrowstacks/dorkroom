@@ -5,7 +5,7 @@ import { Text, View } from 'react-native';
 import { GlassCard } from '@/components/glass-card';
 import type { LiveFocus } from '@/hooks/use-live-inverter';
 import { EditorButton } from './editor-button';
-import { CHROME_TEXT_SCALE } from './editor-layout';
+import { CHROME_TEXT_SCALE, FOCUS_COLOR } from './editor-layout';
 
 export interface FocusPanelProps {
   focus: LiveFocus;
@@ -56,7 +56,7 @@ export function FocusPanel({
             setDragging(null);
             onLens(v, true);
           }}
-          minimumTrackTintColor={manual ? '#fbbf24' : 'rgba(255,255,255,0.5)'}
+          minimumTrackTintColor={manual ? FOCUS_COLOR : 'rgba(255,255,255,0.5)'}
           maximumTrackTintColor="rgba(255,255,255,0.2)"
           thumbTintColor="#f5f5f4"
           accessibilityLabel="Manual focus"

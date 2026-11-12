@@ -26,16 +26,15 @@ app/                     # expo-router file-based routes (typed routes on)
   _layout.tsx            # root Stack: polyfills, API config, dark theme, providers
   +native-intent.ts      # deep-link path rewriting
   (tabs)/
-    _layout.tsx          # NativeTabs; useQuickActionRouting + usePinnedTabs live HERE
-    index.tsx            # Home, the initial route; each tab file is a two-line
-                         # re-export of a src/screens/ screen
-    film-log/            # nested Stack: roll list, roll form, shot, gear
-    development/         # nested Stack: recipe browser, recipe detail, timer
-    more/                # tool directory, tab-pin editor, and [tool] detail route
+    _layout.tsx          # NativeTabs (Shoot, Develop, Print, Search); useQuickActionRouting lives HERE
+    index.tsx            # Home, the Search tab and the launch route
+    shoot/ develop/ print/   # one Stack per phase: _layout (PhaseStack), index (hub), [tool], settings
+      shoot/film-log/    # Film Log screens, flat in the Shoot stack
+      develop/recipes/   # recipe browser, recipe/[id], timer, flat in the Develop stack
 src/
   screens/               # the actual screen components, one per tool
   components/            # PascalCase exports, kebab-case files; feature folders
-  hooks/                 # mobile-only hooks (camera, meter, film log, pinned tabs)
+  hooks/                 # mobile-only hooks (camera, meter, film log, last results)
   lib/                   # MMKV-backed stores, tool registry, export/share helpers
   schemas/               # Zod schemas for locally persisted data (film log)
   providers/             # query-client + query-persister
@@ -43,7 +42,7 @@ src/
   theme/tokens.ts        # palette mirrored from web, for non-className values
   test/                  # vitest mocks for native modules
 plugins/                 # local config plugins (with-app-intents, with-ios-scene-lifecycle)
-scripts/                 # ios.sh, tab-icon and grain generators, nativewind tailwind link
+scripts/                 # ios.sh, nativewind tailwind link
 ```
 
 Path alias: `@/*` maps to `src/*` (see `tsconfig.json`).
@@ -52,37 +51,80 @@ Path alias: `@/*` maps to `src/*` (see `tsconfig.json`).
 
 ### Screens live in `src/screens`, routes are re-exports
 
-A route file under `app/(tabs)/` does one thing: re-export a screen.
-
-```tsx
-// app/(tabs)/border.tsx
-import { BorderScreen } from '@/screens/border-screen';
-export default BorderScreen;
-```
-
-This exists because **every tool is reachable two ways**: as a pinned tab, and
-as a `/more/<tool>` detail route inside the More stack. Both render the same
-screen component.
+A route file does one thing: render a screen. Every single-screen tool is served
+by its phase's one `[tool].tsx` (`app/(tabs)/<phase>/[tool].tsx`, which renders
+`PhaseToolRoute`), so a tool's canonical path is `/<phase>/<id>`
+(`/print/exposure`, `/shoot/lens`). `[tool]` shows the not-found state for an id
+that is unknown, a section, or another phase's tool.
 
 `TOOLS` in `src/lib/tools.ts` is the **tool manifest**: id, label, Lucide icon
-name, More route, category, and (for single-screen tools) `tabRoute`, the route
-file name under `app/(tabs)`. Its native half is two id-keyed tables:
-`TOOL_SCREENS` in `src/lib/tool-screens.ts` (the screen component) and
-`TAB_ICONS` in `src/lib/tab-icons.ts` (the tab icon `require()`). They are split
-out because screens and image assets can't load under vitest, so `tools.ts`
-stays pure; icons are separate from screens so the tab layout doesn't load
-every screen up front. The tab bar, the `more/[tool].tsx` detail route, and the
-deep-link resolver all derive from these. Adding a single-screen tool means:
-the screen in `src/screens/`, a `TOOLS` entry with a `tabRoute`, a
-`TOOL_SCREENS` and a `TAB_ICONS` entry (a missing one is a compile error), the
-two-line route file, and the icon in
-`scripts/generate-tab-icons.mjs`. `src/lib/tool-manifest.test.ts` fails if a
-route file, tab icon, generator entry, or App Intent disagrees with the
-manifest.
+name, `phase` (`shoot`, `develop` or `print`), a short `blurb` for its hub tile,
+and `kind`: `'screen'` (a single screen) or `'section'` (its own route files, with
+a `path`: Film Log, Recipes, and Process Timer, which opens the timer Recipes
+uses). The list order is the hub order. `route` is derived, never written by
+hand, and `PHASES`, `getToolPhase` and `toolsForPhase` derive from it. Home and
+Settings are not tools: `HOME_ROUTE` and `settingsRoute(phase)` stand for them. Its native half is
+`TOOL_SCREENS` in `src/lib/tool-screens.ts` (the screen component), split out
+because screens can't load under vitest, so `tools.ts` stays pure and the tab
+layout and hubs don't load every screen up front. Adding a single-screen tool
+means: the screen in `src/screens/`, a `TOOLS` entry (`kind: 'screen'`, in the
+position it should have on the hub), a `TOOL_SCREENS` entry (a missing one is a
+compile error), and a `toolId` on its `Readout` only if it is answer-first and `persistsInputs`.
+`src/lib/tool-manifest.test.ts` fails if a route file, phase table, quick action
+or App Intent disagrees with the manifest.
 
-`pinnable: false` keeps a tool out of the pin editor (`home` and `film-log`
-use this because they are permanent tabs). Home has no `tabRoute`: its route
-file is `index`, the app's initial route, and `/` opens it.
+**Phase stacks.** `PhaseStack` (`src/components/hub/phase-stack.tsx`) is the one
+stack layout all three phases use: the hub at `index`, `[tool]`, and any section
+screens the phase passes as children. Section screens sit flat in the phase stack
+(no nested Stack), so a push from the hub always has the hub to go back to and
+there is only one header. Each layout exports
+`unstable_settings = { initialRouteName: 'index' }` so a deep link builds the hub
+under the tool. `PhaseHub` (`src/screens/phase-hub.tsx`) is the hub: two-column
+`ToolTile`s, each showing the tool's last result (`last-result-store.ts`, written
+by `Readout`'s `toolId` prop through `useRecordResult`, 500ms trailing) or its
+blurb. Only a tool that is answer-first and restores its inputs
+(`persistsInputs`, typed as `RecordingToolId`) records one: a tool that resets
+when reopened would show a tile that contradicts the tool. Shoot adds the active roll card (the roll the Meter logs to, or a prompt to
+start one). Settings is an ordinary pushed screen registered once in `PhaseStack` (not a
+modal: a link arriving while a modal is open would push the tool inside it), with
+a route file per phase (`<phase>/settings.tsx`), so it has that hub underneath. The gear
+in each hub header opens its own phase's (`settingsRoute(phase)`); the screen
+resets the phase context so Settings keeps the neutral glow. Pushed screens keep
+the native back button: it shows the previous scene's title, the phase name.
+
+**Legacy paths.** Quick actions (`app.json`), App Intents, `dorkroom://` links
+and old shares still carry pre-phase paths (`/more/meter`, `/lenses`,
+`/film-log`, `/development`) and can't change without a native build.
+`resolveLegacyPath` (`src/lib/deep-link.ts`) maps them to canonical paths and
+passes everything else through (legacy `/settings` opens Shoot's Settings).
+`app/+native-intent.ts` applies `resolveIncomingLink` to incoming URLs
+(`redirectSystemPath`): expo-router hands that hook the FULL URL
+(`dorkroom://meter`, host as the first path segment), so only the app's own
+scheme (`APP_SCHEME`, checked against `app.json`) is rewritten and everything
+else, `https://` and `exp+dorkroom://` included, passes through. Quick actions bypass that hook: the router calls
+`router.navigate` itself, so `src/lib/quick-action-route.ts` (wired in
+`quick-action.ts`) is the `useQuickActionRouting` callback that resolves the href and navigates with an
+anchor, through the warm-link handoff below when the tool's phase is not on screen. Don't repoint them without a native rebuild; keep the resolver table
+true instead.
+
+**Warm links into a hidden tab go in two steps.** A link that arrives while the
+app is running and goes straight to a tool in a tab that is not on screen can
+pop screens off that tab while it is being selected, and the native stack then
+draws the wrong header (or the hub) over the right screen (the JS state is
+correct; the native view is stale). So a warm link into a tab that is not on
+screen resets that tab's stack to its hub before opening the target, while a
+link into the tab on screen navigates directly and keeps the user's place.
+`handOffWarmLink` (`src/lib/link-handoff.ts`) decides: for a phase link whose
+phase is not the current route's (another phase, Home or an unknown route) it
+keeps the real target in an in-memory handoff and `redirectSystemPath` returns
+the phase hub (`/develop`). `useLinkHandoff` (mounted in the tabs layout, which
+also reports the current route to the handoff) then opens the target with
+`router.navigate` once the hub is the current route. It hands the target over
+exactly once, drops it after 2s or when the user lands elsewhere first, and a
+newer link replaces an older pending one. Quick actions use the same decision.
+Cold links skip all of this: they build the stack fresh and were always right.
+Because the hub is the page underneath, a handed-off link's Back button names the
+phase hub, never the tool that happened to be open.
 
 **Calculator links.** Home answers open a calculator pre-filled by passing the
 link's params (`xCalculatorLink.build`) as search params on the tool's route.
@@ -93,14 +135,15 @@ Add that wrapper to any new calculator screen that Home can link to.
 
 ### Routing and screens
 
-- **expo-router v6** with file-based, **typed routes** (`experiments.typedRoutes`).
-  Tabs use `expo-router/unstable-native-tabs` (`NativeTabs`), each `Trigger` with
-  a Lucide-generated PNG asset rendered via `<Icon src={...}>` (icons come from
-  `scripts/generate-tab-icons.mjs`) and `<Label>`.
-- The visible tab set is **user-configurable**. `usePinnedTabs()` drives which
-  triggers render; Home, Film Log, Recipes, and More are always present. iOS
-  shows 5 tabs before folding the rest into its own More, so that leaves
-  `MAX_PINNED = 1` slot for the user's own tool.
+- **expo-router v57** with file-based, **typed routes** (`experiments.typedRoutes`).
+  Tabs use `expo-router/unstable-native-tabs` (`NativeTabs`). The tab set is
+  fixed: Shoot, Develop, Print, then Home as the Search tab. Icons are SF
+  Symbols (`<Icon sf=...>`, no image assets), and the selected tab takes its
+  phase's hue (white on Search). The tabs layout exports
+  `unstable_settings.initialRouteName = 'index'`, which only affects the state
+  built from a deep link; `NativeTabs` doesn't pass it to its router, and the
+  launch tab is Home because `/` matches `(tabs)/index`. Home is a plain last tab, not `role="search"`: that role is only
+  the legacy system item (stock title and icon) and adds nothing here.
 - **Dark only.** Don't add light-mode branches. `app/_layout.tsx` forces
   `Appearance.setColorScheme('dark')`, uses `DarkTheme`, `StatusBar style="light"`,
   and `headerShown: false`. `app.json` sets `userInterfaceStyle: "dark"`.
@@ -112,11 +155,13 @@ Add that wrapper to any new calculator screen that Home can link to.
   names the screen, so don't render a redundant `<Text>Reciprocity</Text>`
   heading.
 - Wrap normal content in `<Screen>` (scrolls, padding 16, gap 16, bg `#0b0b0c`).
-  Full-bleed screens (the camera meter) skip it.
+  Full-bleed screens (the camera meter) skip it. The Meter is `fixedLayout`
+  (standard title, never large), and offsets its top controls by the real header
+  height (`HeaderHeightContext`) so they sit below the Back button and title.
 - **Answer-first calculators** (Exposure, Reciprocity, Camera Exposure, Lenses,
   Resize): the result is a `Readout` passed to `<Screen header={...}>`, a
   non-scrolling slot above the scroll view that clears the native header when
-  pushed in More (or the top safe-area inset as a tab root) and stays visible
+  pushed in a phase stack (or the top safe-area inset on Home) and stays visible
   with the keyboard up. Four of them (not Camera Exposure, whose fields are
   pickers) also put typed inputs in an `InsetGroup` (`InsetRow` for plain rows)
   as `ScrubRow`s: drag to scrub, tap the row to type. Scrub bounds come from
@@ -138,8 +183,8 @@ Add that wrapper to any new calculator screen that Home can link to.
   back is an echo, not an outside change. Keep it cheap: no per-tick views, no per-frame JS, no per-step state
   on the ruler. Mark the tool `answerFirst: true` in `TOOLS`. A pinned header
   means the scroll view is not the first view, so a large title could never
-  collapse. The More layout (`more/_layout.tsx`, from the route params) gives
-  such a tool a standard header. Each tool is its own screen in the More
+  collapse. `PhaseStack` (from the route params, via `usesLargeTitle`) gives
+  such a tool a standard header. Each tool is its own screen in its phase
   stack (`dangerouslySingular` by tool id), so navigating to a tool already in
   the stack brings that screen to the top with its state. A missing result is a `Readout` with `value={null}` and the hint as its `note`, not a
   separate card.
@@ -151,9 +196,25 @@ Add that wrapper to any new calculator screen that Home can link to.
   script (`scripts/link-nativewind-tailwind.mjs`) symlinks v3 into NativeWind;
   it also runs as `eas-build-post-install` so remote builds get the same link.
 - Palette in practice: bg `#0b0b0c`, text `text-white` / `text-white/60..80`,
-  accent `bg-rose-600` / `text-rose-400`, pills `rounded-full`, cards
+  phase hues and `text-rose-400` links on Home (see below), pills `rounded-full`, cards
   `rounded-2xl`/`rounded-xl`. For values that can't be a class (sizes passed to
   native props, computed colors) use `theme/tokens.ts`.
+- **Three hues, one per phase** (`theme/accents.ts`): yellow for Shoot, teal for
+  Develop, rose for Print, used in the treatments that file documents (tinted
+  glass for selection, a solid fill only for commit buttons). Controls take the
+  hue from the surrounding `PhaseProvider`: `CommitButton` and `useCommitStyle`
+  (dark ink on the fill; the hues are light and white fails 4.5:1),
+  `useSelectionTint`, `usePhaseHue`. With no phase (Home, Settings) selection is
+  a neutral white tint and a commit fill is the brand rose. Never write
+  `bg-rose-600` for a commit button; use `CommitButton`, or `NeutralButton` for
+  an action that isn't a commit (retry, a permission request). NativeWind
+  ignores Pressable `style` callbacks (`style={({ pressed }) => ...}` becomes
+  `{}`), so use a plain style object and `active:` classes; a test enforces it. Rose text for
+  Delete/Remove/errors is destructive, not a hue. A tool's accent is its phase's hue
+  (`PHASE_ACCENT`); the screens pass the literal. `GradientBackground` draws one
+  glow in the hue of the `PhaseProvider` it sits under (`PhaseStack` provides it),
+  neutral on Home and Settings. Direction-coded data (a pushed vs pulled recipe)
+  uses `DIRECTION_COLOR`, outside the accent system.
 - Prefer `GlassCard` for surfaces: Liquid Glass on iOS 26, translucent
   `bg-white/10` fallback elsewhere. Capability checks are computed **once at
   import**, never per render (see `glass-card.tsx`).
@@ -182,7 +243,7 @@ Add that wrapper to any new calculator screen that Home can link to.
     That call **must** stay first, before anything reads persisted state, and
     the instance id must not change, or saved state is lost.
   - Mobile-only state uses `createMMKV({ id: '…' })` (MMKV 4) directly with a named id
-    (`meter-settings.ts`, `meter-calibration.ts`, `tab-bar-settings.ts`,
+    (`meter-settings.ts`, `meter-calibration.ts`, `last-result-store.ts`,
     `film-log-storage.ts`). Pull defaults from `@dorkroom/logic` constants and
     guard reads with `Number.isFinite`.
   - Film log data is validated with Zod on read (`src/schemas/film-log.schema.ts`).

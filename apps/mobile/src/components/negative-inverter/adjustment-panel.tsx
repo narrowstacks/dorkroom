@@ -10,6 +10,7 @@ import {
   Text,
 } from 'react-native';
 import { GlassCard } from '@/components/glass-card';
+import { usePhaseHue } from '@/theme/use-phase-accent';
 import { AdjustmentSlider } from './adjustment-slider';
 import {
   activeAdjustment,
@@ -58,6 +59,7 @@ const AdjustmentChip = memo(function AdjustmentChip({
   selected,
   onChoose,
 }: AdjustmentChipProps) {
+  const hue = usePhaseHue();
   const edited = !isDefaultAdjustment(spec.key, value);
   const readout = formatAdjustment(spec.key, value);
   const choose = useCallback(() => {
@@ -87,8 +89,10 @@ const AdjustmentChip = memo(function AdjustmentChip({
       {edited ? (
         <Text
           maxFontSizeMultiplier={CHROME_TEXT_SCALE}
-          className={`text-xs ${selected ? 'text-rose-700' : 'text-rose-300'}`}
-          style={styles.numbers}
+          className="text-xs"
+          // On the white selected pill the light hue would vanish, so it takes
+          // the dark ink (teal-700, a darker step of the Develop hue).
+          style={[styles.numbers, { color: selected ? EDITED_ON_WHITE : hue }]}
         >
           {readout}
         </Text>
@@ -96,6 +100,9 @@ const AdjustmentChip = memo(function AdjustmentChip({
     </Pressable>
   );
 });
+
+/** Edited value on the white selected pill: teal-700, ink-dark enough on white. */
+const EDITED_ON_WHITE = '#0f766e';
 
 const keyOf = (spec: AdjustmentSpec) => spec.key;
 

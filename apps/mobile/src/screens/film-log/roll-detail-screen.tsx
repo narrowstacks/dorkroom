@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, FlatList, Pressable, Text, View } from 'react-native';
+import { CommitButton } from '@/components/commit-button';
 import { PhotoViewer } from '@/components/film-log/photo-viewer';
 import { GlassCard } from '@/components/glass-card';
 import { GradientBackground } from '@/components/gradient-background';
@@ -11,6 +12,7 @@ import { formatProcess } from '@/lib/film-log-options';
 import { photoUri } from '@/lib/film-log-photos';
 import { deleteRoll } from '@/lib/film-log-storage';
 import type { Shot } from '@/schemas/film-log.schema';
+import { usePhaseHue } from '@/theme/use-phase-accent';
 
 function exposureSummary(shot: Shot, rollIso: number | undefined): string {
   const parts: string[] = [];
@@ -22,6 +24,7 @@ function exposureSummary(shot: Shot, rollIso: number | undefined): string {
 }
 
 export function RollDetailScreen() {
+  const hue = usePhaseHue();
   const { rollId } = useLocalSearchParams<{ rollId: string }>();
   const roll = useRoll(rollId);
   const cameras = useCameras();
@@ -55,7 +58,9 @@ export function RollDetailScreen() {
       return (
         <Pressable
           onPress={() =>
-            router.push(`/film-log/shot?rollId=${roll?.id}&shotId=${item.id}`)
+            router.push(
+              `/shoot/film-log/shot?rollId=${roll?.id}&shotId=${item.id}`
+            )
           }
           accessibilityRole="button"
           accessibilityLabel={`Edit frame ${item.frameNumber}`}
@@ -74,7 +79,10 @@ export function RollDetailScreen() {
                 />
               </Pressable>
             ) : (
-              <Text className="w-10 text-lg font-semibold text-rose-400">
+              <Text
+                className="w-10 text-lg font-semibold"
+                style={{ color: hue }}
+              >
                 #{item.frameNumber}
               </Text>
             )}
@@ -100,7 +108,7 @@ export function RollDetailScreen() {
         </Pressable>
       );
     },
-    [lensName, roll?.id, roll?.iso, setViewerFile]
+    [hue, lensName, roll?.id, roll?.iso, setViewerFile]
   );
 
   if (!roll) {
@@ -132,7 +140,9 @@ export function RollDetailScreen() {
       </GlassCard>
       <View className="flex-row gap-3">
         <Pressable
-          onPress={() => router.push(`/film-log/roll-form?rollId=${roll.id}`)}
+          onPress={() =>
+            router.push(`/shoot/film-log/roll-form?rollId=${roll.id}`)
+          }
           accessibilityRole="button"
           className="flex-1 items-center rounded-xl bg-white/10 px-4 py-3"
         >
@@ -146,13 +156,10 @@ export function RollDetailScreen() {
           <Text className="text-base text-rose-400">Delete</Text>
         </Pressable>
       </View>
-      <Pressable
-        onPress={() => router.push(`/film-log/shot?rollId=${roll.id}`)}
-        accessibilityRole="button"
-        className="items-center rounded-xl bg-rose-600 px-4 py-3"
-      >
-        <Text className="text-base font-semibold text-white">+ Add shot</Text>
-      </Pressable>
+      <CommitButton
+        onPress={() => router.push(`/shoot/film-log/shot?rollId=${roll.id}`)}
+        label="+ Add shot"
+      />
     </View>
   );
 

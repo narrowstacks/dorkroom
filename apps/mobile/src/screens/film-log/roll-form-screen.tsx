@@ -2,12 +2,14 @@ import { parseDecimalInput, sanitizeText } from '@dorkroom/logic';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
+import { CommitButton } from '@/components/commit-button';
 import { CustomFilmForm } from '@/components/film-log/custom-film-form';
 import { FilmStockPicker } from '@/components/film-log/film-stock-picker';
 import { resolveFilmStockName } from '@/components/film-log/film-stock-picker-logic';
 import { SelectField } from '@/components/film-log/select-field';
 import { GlassCard } from '@/components/glass-card';
 import { LabeledTextField } from '@/components/labeled-text-field';
+import { NeutralButton } from '@/components/neutral-button';
 import { Screen } from '@/components/screen';
 import { SegmentedControl } from '@/components/segmented-control';
 import { useCameras, useFilmCatalog, useRoll } from '@/hooks/use-film-log';
@@ -19,8 +21,10 @@ import {
 } from '@/lib/film-log-options';
 import { addRoll, updateRoll } from '@/lib/film-log-storage';
 import type { FilmStock } from '@/schemas/film-log.schema';
+import { usePhaseHue } from '@/theme/use-phase-accent';
 
 export function RollFormScreen() {
+  const hue = usePhaseHue();
   const { rollId } = useLocalSearchParams<{ rollId?: string }>();
   const existing = useRoll(rollId);
   const cameras = useCameras();
@@ -100,15 +104,10 @@ export function RollFormScreen() {
           <Text className="text-base text-white">
             Add a camera before starting a roll.
           </Text>
-          <Pressable
-            onPress={() => router.replace('/film-log/gear')}
-            accessibilityRole="button"
-            className="items-center rounded-xl bg-rose-600 px-4 py-3"
-          >
-            <Text className="text-base font-semibold text-white">
-              Go to Cameras & lenses
-            </Text>
-          </Pressable>
+          <NeutralButton
+            onPress={() => router.replace('/shoot/film-log/gear')}
+            label="Go to Cameras & lenses"
+          />
         </GlassCard>
       </Screen>
     );
@@ -147,7 +146,7 @@ export function RollFormScreen() {
               className="self-start"
             >
               <Text className="text-sm text-amber-400">
-                Couldn't load the film catalog. Tap to retry — or add your film
+                ⚠ Couldn't load the film catalog. Tap to retry, or add your film
                 below.
               </Text>
             </Pressable>
@@ -157,7 +156,7 @@ export function RollFormScreen() {
             accessibilityRole="button"
             className="self-start"
           >
-            <Text className="text-sm text-rose-400">
+            <Text className="text-sm" style={{ color: hue }}>
               + Add a film that isn't listed
             </Text>
           </Pressable>
@@ -202,15 +201,10 @@ export function RollFormScreen() {
         />
       </GlassCard>
 
-      <Pressable
+      <CommitButton
         onPress={onSave}
-        accessibilityRole="button"
-        className="items-center rounded-xl bg-rose-600 px-4 py-3"
-      >
-        <Text className="text-base font-semibold text-white">
-          {existing ? 'Save changes' : 'Start roll'}
-        </Text>
-      </Pressable>
+        label={existing ? 'Save changes' : 'Start roll'}
+      />
 
       {showCustomFilm ? (
         <CustomFilmForm

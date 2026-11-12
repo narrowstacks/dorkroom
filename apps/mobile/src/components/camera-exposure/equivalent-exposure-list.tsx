@@ -31,7 +31,7 @@ export function EquivalentExposureList({
             className={`flex-1 text-base ${
               eq.isCurrentSetting ? 'font-semibold' : 'text-white/80'
             }`}
-            style={eq.isCurrentSetting ? { color: ACCENT.violet } : undefined}
+            style={eq.isCurrentSetting ? { color: ACCENT.yellow } : undefined}
           >
             {eq.apertureLabel}
           </Text>
@@ -39,7 +39,7 @@ export function EquivalentExposureList({
             className={`flex-1 text-base ${
               eq.isCurrentSetting ? 'font-semibold' : 'text-white/80'
             }`}
-            style={eq.isCurrentSetting ? { color: ACCENT.violet } : undefined}
+            style={eq.isCurrentSetting ? { color: ACCENT.yellow } : undefined}
           >
             {eq.shutterSpeedLabel}
             {eq.isCurrentSetting ? '  · current' : ''}

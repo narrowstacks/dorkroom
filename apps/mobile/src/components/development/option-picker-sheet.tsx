@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
+import { usePhaseHue } from '@/theme/use-phase-accent';
 import { SearchBar } from './search-bar';
 
 export interface PickerOption<T extends string | number> {
@@ -48,6 +49,7 @@ const PickerRowInner = <T extends string | number>({
   selected,
   onSelect,
 }: PickerRowProps<T>) => {
+  const hue = usePhaseHue();
   const onPress = useCallback(
     () => onSelect(option.value),
     [onSelect, option.value]
@@ -69,7 +71,7 @@ const PickerRowInner = <T extends string | number>({
           </Text>
         ) : null}
       </View>
-      {selected ? <Check size={18} color="#f43f5e" /> : null}
+      {selected ? <Check size={18} color={hue} /> : null}
     </Pressable>
   );
 };

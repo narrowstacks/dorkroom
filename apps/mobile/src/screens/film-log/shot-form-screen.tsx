@@ -9,11 +9,13 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { CommitButton } from '@/components/commit-button';
 import { SelectField } from '@/components/film-log/select-field';
 import { ShotPhotoRow } from '@/components/film-log/shot-photo-row';
 import { GlassCard } from '@/components/glass-card';
 import { LabeledTextField } from '@/components/labeled-text-field';
+import { NeutralButton } from '@/components/neutral-button';
 import { Screen } from '@/components/screen';
 import { Stepper } from '@/components/stepper';
 import {
@@ -224,15 +226,10 @@ export function ShotFormScreen() {
           <Text className="text-base text-white">
             Start a roll before logging a shot.
           </Text>
-          <Pressable
-            onPress={() => router.replace('/film-log/roll-form')}
-            accessibilityRole="button"
-            className="items-center rounded-xl bg-rose-600 px-4 py-3"
-          >
-            <Text className="text-base font-semibold text-white">
-              Start a roll
-            </Text>
-          </Pressable>
+          <NeutralButton
+            onPress={() => router.replace('/shoot/film-log/roll-form')}
+            label="Start a roll"
+          />
         </GlassCard>
       </Screen>
     );
@@ -252,7 +249,7 @@ export function ShotFormScreen() {
       {isoMismatch ? (
         <GlassCard className="gap-1 border border-amber-400/40">
           <Text className="text-sm font-semibold text-amber-300">
-            ISO doesn't match this roll
+            ⚠ ISO doesn't match this roll
           </Text>
           <Text className="text-sm text-white/70">
             Metered at ISO {meteredIso}, but this roll is rated EI {roll.iso}.
@@ -334,15 +331,10 @@ export function ShotFormScreen() {
         />
       </GlassCard>
 
-      <Pressable
+      <CommitButton
         onPress={onSave}
-        accessibilityRole="button"
-        className="items-center rounded-xl bg-rose-600 px-4 py-3"
-      >
-        <Text className="text-base font-semibold text-white">
-          {existing ? 'Save shot' : 'Add shot'}
-        </Text>
-      </Pressable>
+        label={existing ? 'Save shot' : 'Add shot'}
+      />
     </Screen>
   );
 }

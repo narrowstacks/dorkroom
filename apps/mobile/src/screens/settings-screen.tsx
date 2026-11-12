@@ -1,5 +1,4 @@
 import Constants from 'expo-constants';
-import { router } from 'expo-router';
 import { Linking, Text } from 'react-native';
 import { GlassCard } from '@/components/glass-card';
 import { Screen } from '@/components/screen';
@@ -10,6 +9,7 @@ import { ToolListRow } from '@/components/tool-list-row';
 import { useMeasurementUnit } from '@/hooks/use-measurement-unit';
 import { useSaveMeterPhotosToLibrary } from '@/lib/photo-settings';
 import { useCuesInSilentMode } from '@/lib/timer/timer-settings';
+import { PhaseProvider } from '@/theme/phase-context';
 
 export function SettingsScreen() {
   const version = Constants.expoConfig?.version;
@@ -18,71 +18,67 @@ export function SettingsScreen() {
   const [cuesInSilent, setCuesInSilent] = useCuesInSilentMode();
 
   return (
-    <Screen>
-      <GlassCard className="gap-2">
-        <SectionLabel>Units</SectionLabel>
-        <SegmentedControl
-          options={[
-            { label: 'Imperial (in)', value: 'imperial' },
-            { label: 'Metric (cm)', value: 'metric' },
-          ]}
-          value={unit}
-          onChange={setUnit}
-          accessibilityHint="Units for lengths in Border and Resize"
-        />
-        <Text className="text-xs text-white/50">
-          Applies to Border and Resize. Mat stays in inches for now.
-        </Text>
-      </GlassCard>
+    // Settings belongs to no phase: it sits in each phase's stack but keeps the
+    // neutral backdrop glow.
+    <PhaseProvider value={null}>
+      <Screen>
+        <GlassCard className="gap-2">
+          <SectionLabel>Units</SectionLabel>
+          <SegmentedControl
+            options={[
+              { label: 'Imperial (in)', value: 'imperial' },
+              { label: 'Metric (cm)', value: 'metric' },
+            ]}
+            value={unit}
+            onChange={setUnit}
+            accessibilityHint="Units for lengths in Border and Resize"
+          />
+          <Text className="text-xs text-white/50">
+            Applies to Border and Resize. Mat stays in inches for now.
+          </Text>
+        </GlassCard>
 
-      <GlassCard>
-        <ToggleRow
-          label="Also save meter photos to Photos"
-          value={savePhotos}
-          onChange={setSavePhotos}
-        />
-      </GlassCard>
+        <GlassCard>
+          <ToggleRow
+            label="Also save meter photos to Photos"
+            value={savePhotos}
+            onChange={setSavePhotos}
+          />
+        </GlassCard>
 
-      <GlassCard className="gap-2">
-        <ToggleRow
-          label="Timer sounds in silent mode"
-          value={cuesInSilent}
-          onChange={setCuesInSilent}
-        />
-        <Text className="text-xs text-white/50">
-          Off by default, so the silent switch mutes the timer beeps. Alerts
-          while Dorkroom is in the background always follow the switch.
-        </Text>
-      </GlassCard>
+        <GlassCard className="gap-2">
+          <ToggleRow
+            label="Timer sounds in silent mode"
+            value={cuesInSilent}
+            onChange={setCuesInSilent}
+          />
+          <Text className="text-xs text-white/50">
+            Off by default, so the silent switch mutes the timer beeps. Alerts
+            while Dorkroom is in the background always follow the switch.
+          </Text>
+        </GlassCard>
 
-      <GlassCard>
-        <ToolListRow
-          label="Edit Tabs"
-          accessoryText="›"
-          onPress={() => router.push('/more/edit')}
-        />
-      </GlassCard>
+        <GlassCard>
+          <ToolListRow
+            label="GitHub"
+            accessoryText="›"
+            onPress={() =>
+              Linking.openURL('https://github.com/narrowstacks/dorkroom')
+            }
+          />
+          <ToolListRow
+            label="Newsletter"
+            accessoryText="›"
+            onPress={() => Linking.openURL('https://news.dorkroom.art')}
+          />
+        </GlassCard>
 
-      <GlassCard>
-        <ToolListRow
-          label="GitHub"
-          accessoryText="›"
-          onPress={() =>
-            Linking.openURL('https://github.com/narrowstacks/dorkroom')
-          }
-        />
-        <ToolListRow
-          label="Newsletter"
-          accessoryText="›"
-          onPress={() => Linking.openURL('https://news.dorkroom.art')}
-        />
-      </GlassCard>
-
-      {version ? (
-        <Text className="text-center text-xs text-white/40">
-          Dorkroom v{version}
-        </Text>
-      ) : null}
-    </Screen>
+        {version ? (
+          <Text className="text-center text-xs text-white/40">
+            Dorkroom v{version}
+          </Text>
+        ) : null}
+      </Screen>
+    </PhaseProvider>
   );
 }

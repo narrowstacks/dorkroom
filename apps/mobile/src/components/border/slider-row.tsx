@@ -1,5 +1,6 @@
 import Slider from '@react-native-community/slider';
 import { Text, View } from 'react-native';
+import { usePhaseHue } from '@/theme/use-phase-accent';
 
 interface SliderRowProps {
   label: string;
@@ -26,6 +27,7 @@ export function SliderRow({
   minLabel,
   maxLabel,
 }: SliderRowProps) {
+  const hue = usePhaseHue();
   return (
     <View className="gap-2">
       <View className="flex-row items-center justify-between">
@@ -40,7 +42,7 @@ export function SliderRow({
         step={step}
         value={value}
         onValueChange={onChange}
-        minimumTrackTintColor="#e11d48"
+        minimumTrackTintColor={hue}
         maximumTrackTintColor="rgba(255,255,255,0.2)"
         thumbTintColor="#f5f5f4"
         accessibilityLabel={label}

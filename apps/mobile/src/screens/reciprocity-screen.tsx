@@ -60,7 +60,7 @@ function ReciprocityScreenBody({ overrides }: ReciprocityScreenBodyProps) {
   const readout =
     valid && calculation ? (
       <Readout
-        accent="amber"
+        accent="yellow"
         label="Adjusted exposure"
         value={formatTime(calculation.adjustedTime)}
         accessibilityValueText={[
@@ -79,12 +79,12 @@ function ReciprocityScreenBody({ overrides }: ReciprocityScreenBodyProps) {
       />
     ) : (
       <Readout
-        accent="amber"
+        accent="yellow"
         label="Adjusted exposure"
         value={null}
         note={
           timeFormatError ? (
-            <Text className="text-amber-500">{timeFormatError}</Text>
+            <Text className="text-amber-500">⚠ {timeFormatError}</Text>
           ) : (
             <Text className="text-white/60">Enter a metered time.</Text>
           )
@@ -101,7 +101,7 @@ function ReciprocityScreenBody({ overrides }: ReciprocityScreenBodyProps) {
         {filmType === 'custom' ? (
           <ScrubRow
             label="Reciprocity factor"
-            accent="amber"
+            accent="yellow"
             value={customFactor}
             onChangeText={setCustomFactor}
             step={0.01}
@@ -112,7 +112,7 @@ function ReciprocityScreenBody({ overrides }: ReciprocityScreenBodyProps) {
         ) : null}
         <ScrubRow
           label="Metered time"
-          accent="amber"
+          accent="yellow"
           value={meteredTime}
           onChangeText={setMeteredTime}
           parse={parseReciprocityTime}
@@ -127,7 +127,7 @@ function ReciprocityScreenBody({ overrides }: ReciprocityScreenBodyProps) {
       <View className="gap-2">
         <SectionLabel>Common times</SectionLabel>
         <PresetChipRow
-          accent="amber"
+          accent="yellow"
           options={exposurePresets.map((n) => ({ label: `${n}s`, value: n }))}
           onSelect={(n) => setMeteredTime(`${n}s`)}
         />

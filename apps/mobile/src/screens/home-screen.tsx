@@ -4,7 +4,7 @@ import {
   searchHome,
   suggestHome,
 } from '@dorkroom/logic';
-import { type Href, router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 import { SearchBar } from '@/components/development/search-bar';
@@ -19,7 +19,6 @@ import { SectionLabel } from '@/components/section-label';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { useHomeSearchData } from '@/hooks/use-home-search-data';
 import { useMeasurementUnit } from '@/hooks/use-measurement-unit';
-import { usePinnedTabs } from '@/hooks/use-pinned-tabs';
 import {
   homeDestination,
   type HomeRoute,
@@ -28,6 +27,8 @@ import {
 } from '@/lib/home/destination';
 import { summarizeEasel } from '@/lib/home/easel-summary';
 import { recentRecipeRows } from '@/lib/home/recent-recipes';
+import { homeToolIds } from '@/lib/home/tool-matches';
+import { toHref } from '@/lib/href';
 import { sharedStorage } from '@/lib/mmkv-storage';
 import {
   getRecentRecipeIds,
@@ -54,7 +55,6 @@ export function HomeScreen() {
   const [focused, setFocused] = useState(false);
   const settled = useDebouncedValue(query, 150);
   const searching = settled.trim() !== '';
-  const { pinned } = usePinnedTabs();
   const [unit] = useMeasurementUnit();
 
   // Native tabs keep Home mounted, so re-read on every focus: a tool opened,
@@ -80,6 +80,11 @@ export function HomeScreen() {
     () => (searching ? suggestHome(settled, data) : []),
     [searching, settled, data]
   );
+  // Tools by their iOS labels as well as the shared (web) words.
+  const toolIds = useMemo(
+    () => (result ? homeToolIds(result.groups, settled) : []),
+    [result, settled]
+  );
   const example = useMemo(() => searchHome(EXAMPLE_QUERY).answer, []);
 
   const easel = useMemo(
@@ -94,13 +99,13 @@ export function HomeScreen() {
     easel !== null || resume.toolIds.length > 0 || recentRecipes.length > 0;
   const showExample = !searching && (resume.firstLaunch || !hasResume);
 
-  // SAFETY: `path` is built by `lib/home/destination.ts` from tool routes and
-  // recipe ids; the typed-routes union cannot express its query strings.
-  const go = (path: string) => router.push(path as Href);
+  // `withAnchor` puts the phase's hub under the tool when its tab has not been
+  // opened yet, so Back from a tool opened here goes to the hub.
+  const go = (path: string) =>
+    router.navigate(toHref(path), { withAnchor: true });
   const openTarget = (target: HomeLinkTarget) =>
-    go(homeDestination(target, pinned, Date.now()));
-  const openRoute = (route: HomeRoute) =>
-    go(homeRouteDestination(route, pinned));
+    go(homeDestination(target, Date.now()));
+  const openRoute = (route: HomeRoute) => go(homeRouteDestination(route));
 
   const answer = result?.answer ?? null;
   // Camera exposure questions get a plain link to the calculator, not a card.
@@ -154,7 +159,11 @@ export function HomeScreen() {
         </GlassCard>
       ) : null}
 
-      {result && !answer && !result.pending && result.groups.length === 0 ? (
+      {result &&
+      !answer &&
+      !result.pending &&
+      result.groups.length === 0 &&
+      toolIds.length === 0 ? (
         <GlassCard className="gap-3">
           <Text className="text-sm text-white/60">
             Nothing matches that yet. Name a film, a developer or a size, or try
@@ -167,8 +176,9 @@ export function HomeScreen() {
       {result ? (
         <ResultGroups
           groups={result.groups}
+          toolIds={toolIds}
           onOpen={openTarget}
-          onOpenTool={openRoute}
+          onOpenTool={(id) => go(toolHref(id))}
         />
       ) : null}
 
@@ -189,9 +199,9 @@ export function HomeScreen() {
           recentToolIds={resume.toolIds}
           recentRecipes={recentRecipes}
           onOpenEasel={() => openRoute('/border')}
-          onOpenTool={(id) => go(toolHref(id, pinned))}
+          onOpenTool={(id) => go(toolHref(id))}
           onOpenRecipe={(id) =>
-            go(`/development/recipe/${encodeURIComponent(id)}`)
+            go(`/develop/recipes/recipe/${encodeURIComponent(id)}`)
           }
         />
       ) : null}

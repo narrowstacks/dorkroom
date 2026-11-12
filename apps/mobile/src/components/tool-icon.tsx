@@ -8,11 +8,8 @@ import {
   Frame,
   Gauge,
   Hourglass,
-  House,
   type LucideIcon,
-  Menu,
   Ruler,
-  Settings,
   SunMedium,
   Timer,
 } from 'lucide-react-native';
@@ -23,16 +20,13 @@ const ICONS = {
   'flask-conical': FlaskConical,
   ruler: Ruler,
   gauge: Gauge,
-  house: House,
+  hourglass: Hourglass,
   frame: Frame,
   timer: Timer,
-  hourglass: Hourglass,
   focus: Focus,
   aperture: Aperture,
   contrast: Contrast,
   'sun-medium': SunMedium,
-  settings: Settings,
-  menu: Menu,
 } satisfies Record<string, LucideIcon>;
 
 /** A Lucide icon name `ToolIcon` can render. */

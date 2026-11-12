@@ -7,7 +7,7 @@ import {
 import { ArrowDown, ArrowUp, Flame, Snowflake } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 import { GlassCard } from '@/components/glass-card';
-import { ACCENT } from '@/theme/accents';
+import { ACCENT, DIRECTION_COLOR } from '@/theme/accents';
 import { Badge } from './badge';
 import { OfficialTagPill } from './official-tag-pill';
 import {
@@ -53,8 +53,8 @@ export function RecipeCard({
   const pp = pushPullDisplay(stops);
   const isoColor = pp
     ? pp.direction === 'push'
-      ? ACCENT.amber
-      : ACCENT.blue
+      ? DIRECTION_COLOR.up
+      : DIRECTION_COLOR.down
     : undefined;
 
   // Temp segment: Flame (hotter) / Snowflake (colder) when non-standard,
@@ -63,8 +63,8 @@ export function RecipeCard({
   const tempHigher = isHigherTemperature(combination.temperatureF);
   const tempColor = nonStandardTemp
     ? tempHigher
-      ? ACCENT.amber
-      : ACCENT.blue
+      ? DIRECTION_COLOR.up
+      : DIRECTION_COLOR.down
     : undefined;
 
   const isoTempAccessibilityExtra = [
@@ -170,10 +170,10 @@ export function RecipeCard({
         </View>
 
         {/* Hero: development time — the field a darkroom user scans for first.
-            Color comes from an inline style (ACCENT.green); the `text-green-*`
+            Color comes from an inline style (ACCENT.teal); the `text-teal-*`
             NativeWind class doesn't resolve on the Liquid Glass build. */}
         <View className="items-end">
-          <Text className="text-3xl font-bold" style={{ color: ACCENT.green }}>
+          <Text className="text-3xl font-bold" style={{ color: ACCENT.teal }}>
             {formatRecipeTime(combination.timeMinutes)}
           </Text>
           <Text className="text-[11px] uppercase tracking-wide text-white/40">

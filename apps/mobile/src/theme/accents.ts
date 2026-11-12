@@ -1,37 +1,47 @@
+import type { Phase } from '@/lib/tools';
+
 /**
- * The bounded accent system: one brand color, one signature color per tool.
+ * The bounded accent system: one brand color, one hue per phase.
  *
- * Within any screen, at most TWO accents are visible — the brand color and
- * that tool's signature — and each only ever appears in its designated
- * treatment. Four treatments, four roles:
+ * Within any screen, at most TWO accents are visible: the brand color and the
+ * hue of the phase the screen lives in (Shoot yellow, Develop teal, Print
+ * rose). Each only ever appears in its designated treatment. Five roles:
  *
  * | Role              | Color                                   | Treatment |
  * |-------------------|------------------------------------------|-----------|
- * | Brand / commit    | rose `#e11d48` (`bg-rose-600`)            | SOLID FILL — reserved exclusively for buttons that commit or create (Start roll, Add shot, Add camera…). Also inline links (`text-rose-400`) and the iOS switch on-tint. Nothing else gets a solid accent fill, ever. |
- * | Tool signature    | blue (exposure) · teal (resize) · amber (reciprocity) · green (development recipes) · yellow (meter) · cyan (Mat Cut) · emerald (lens equivalency) · violet (camera exposure) · rose (border & film log — flagship + hub stay on brand) | TINTED GLASS — results/charts, and selected states inside that tool (chips, segmented controls) as alpha-tint background + accent-colored label + subtle accent border. Never a solid fill, never on a commit button. |
- * | Destructive       | `text-rose-400`                           | TEXT ONLY, on a neutral/transparent surface, verb labels (Delete, Reset…). Never filled. Distinguished from commit by treatment (text vs fill), not by hue. |
- * | Warning           | amber `#f59e0b` (`tokens.color.warning`)  | Inline warning text/border only. |
- * | Neutral controls  | `bg-white/10`–`/20`, `text-white`/`70`/`50` | View toggles, sheet dismiss, secondary buttons, status metadata. Accents banned here. |
+ * | Commit            | the phase hue, dark ink (`commitColors`); brand rose `#e11d48` with white ink outside a phase | SOLID FILL, reserved exclusively for buttons that commit or create (Start roll, Add shot, Start). Nothing else gets a solid accent fill, ever. Brand rose is also the inline link colour (`text-rose-400`) on Home. |
+ * | Phase hue         | yellow (Shoot) · teal (Develop) · rose (Print) | TINTED GLASS: results/charts, and selected states inside that phase's tools (chips, segmented controls) as alpha-tint background + accent-colored label + subtle accent border. Controls read the hue from the surrounding `PhaseProvider` unless given one; with none (Home, Settings) the selected state is a neutral white tint. Also the switch on-tint and slider tracks. |
+ * | Destructive       | `text-rose-400`                           | TEXT ONLY, on a neutral/transparent surface, verb labels (Delete, Remove). Never filled. Distinguished from commit by treatment (text vs fill), not by hue. |
+ * | Warning           | amber `#f59e0b` (`tokens.color.warning`)  | Inline warning text/border only. Calculator warnings lead with a `⚠` glyph, so they stay distinct from Shoot's yellow by shape as well as hue. |
+ * | Neutral controls  | `bg-white/10`-`/20`, `text-white`/`70`/`50` | View toggles, sheet dismiss, secondary buttons, status metadata. Accents banned here. |
  *
- * Mirrors the web result-card accents (exposure blue, resize teal,
- * reciprocity amber, recipes green) and registers the meter's yellow and
- * border/film-log's rose, Mat Cut's cyan, the lens calculator's emerald
- * (the web lens page's accent) and camera exposure's violet as first-class
- * hues. Web camera exposure leads with teal, which is Resize's here.
+ * Rose doubles as the brand color and Print's hue; the treatments keep the two
+ * apart (a Print result is tinted text, a commit button is a solid fill).
  */
 export const ACCENT = {
-  blue: '#60a5fa', // Exposure
-  teal: '#2dd4bf', // Resize
-  amber: '#fbbf24', // Reciprocity
-  green: '#4ade80', // Development recipes
-  yellow: '#facc15', // Meter (EI lock, scrub window)
-  cyan: '#22d3ee', // Mat Cut
-  emerald: '#34d399', // Lens equivalency
-  violet: '#a78bfa', // Camera exposure
-  rose: '#fb7185', // Border & film log signature = brand (rose-400 text-weight)
+  yellow: '#facc15', // Shoot
+  teal: '#2dd4bf', // Develop
+  rose: '#fb7185', // Print (rose-400 text weight)
 } as const;
 
 export type AccentColor = keyof typeof ACCENT;
+
+/** The one hue each phase's tools, hub and backdrop glow use. */
+export const PHASE_ACCENT = {
+  shoot: 'yellow',
+  develop: 'teal',
+  print: 'rose',
+} as const satisfies Record<Phase, AccentColor>;
+
+/**
+ * A pair of colors that encode a direction in data (a pushed vs pulled recipe,
+ * a hot vs cold developer), the same two hues as the web recipe table. They
+ * carry meaning rather than a phase, so they sit outside the accent system.
+ */
+export const DIRECTION_COLOR = {
+  up: '#fbbf24',
+  down: '#60a5fa',
+} as const;
 
 export interface SelectionTint {
   backgroundColor: string;
@@ -39,12 +49,45 @@ export interface SelectionTint {
   color: string;
 }
 
-/** Tinted-glass selection treatment: bg/border/text for a selected control. */
-export function selectionTint(accent: AccentColor): SelectionTint {
+/** Selected state outside any phase (Home, Settings): a white tint, no hue. */
+const NEUTRAL_TINT: SelectionTint = {
+  backgroundColor: 'rgba(255,255,255,0.2)',
+  borderColor: 'rgba(255,255,255,0.4)',
+  color: '#ffffff',
+};
+
+/**
+ * Tinted-glass selection treatment: bg/border/text for a selected control.
+ * `null` (no phase) is the neutral white tint.
+ */
+export function selectionTint(accent: AccentColor | null): SelectionTint {
+  if (accent === null) return NEUTRAL_TINT;
   const hex = ACCENT[accent];
   return {
     backgroundColor: `${hex}26`,
     borderColor: `${hex}66`,
     color: hex,
   };
+}
+
+export interface CommitColors {
+  /** Solid fill of a button that commits or creates. */
+  fill: string;
+  /** Label and icon on that fill. */
+  ink: string;
+}
+
+/** The brand rose, `bg-rose-600`: commit fills outside a phase. */
+const BRAND_COMMIT = '#e11d48';
+
+/** Near-black ink: the phase hues are light, and white on them fails 4.5:1. */
+const DARK_INK = '#0b0b0c';
+
+/**
+ * The solid fill for a commit button. In a phase it is that phase's hue with
+ * dark ink; outside one (Home, Settings) it is the brand rose with white ink.
+ */
+export function commitColors(accent: AccentColor | null): CommitColors {
+  if (accent === null) return { fill: BRAND_COMMIT, ink: '#ffffff' };
+  return { fill: ACCENT[accent], ink: DARK_INK };
 }

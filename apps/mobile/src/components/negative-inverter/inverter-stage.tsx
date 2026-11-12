@@ -28,6 +28,8 @@ import {
   useSharedValue,
 } from 'react-native-reanimated';
 import { inversionEffect } from '@/lib/negative-inverter';
+import { usePhaseHue } from '@/theme/use-phase-accent';
+import { BASE_MARKER_COLOR, FOCUS_COLOR } from './editor-layout';
 import type { InversionUniforms } from './inversion-sksl';
 import type { InverterTool } from './inverter-state';
 import {
@@ -174,7 +176,7 @@ function FocusSquare({ point, frame, box, shown }: FocusSquareProps) {
       />
       <Path
         path={framePath(x, y, FOCUS_SQUARE, FOCUS_SQUARE, 1.5)}
-        color="#fbbf24"
+        color={FOCUS_COLOR}
       />
     </Group>
   );
@@ -201,6 +203,7 @@ function InverterStageView({
   onTap,
   focusMark = null,
 }: InverterStageProps) {
+  const hue = usePhaseHue();
   const [width, setWidth] = useState(0);
   const view = { width, height };
   // The picture as shown: the frame's region, oriented.
@@ -408,7 +411,7 @@ function InverterStageView({
                     cropBox.height,
                     2
                   )}
-                  color="#fb7185"
+                  color={hue}
                 />
                 {CROP_HANDLES.filter((h) => h.length === 2).map((h) => (
                   <Rect
@@ -432,7 +435,7 @@ function InverterStageView({
                 ))}
               </Group>
             ) : null}
-            {tool === 'base' ? null : marker(base, '#fbbf24')}
+            {tool === 'base' ? null : marker(base, BASE_MARKER_COLOR)}
             {tool === 'neutral' ? null : marker(neutral, '#e5e7eb')}
             {tool === null && focusMark ? (
               <FocusSquare point={focusMark} {...{ frame, box, shown }} />
@@ -462,7 +465,7 @@ function InverterStageView({
                       patchSide,
                       1.5
                     )}
-                    color="#fb7185"
+                    color={hue}
                   />
                 </Group>
               </Group>

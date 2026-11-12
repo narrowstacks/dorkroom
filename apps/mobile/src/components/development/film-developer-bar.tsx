@@ -13,7 +13,7 @@ export interface FilmDeveloperBarProps {
   onClearDeveloper: () => void;
 }
 
-const tint = selectionTint('green');
+const tint = selectionTint('teal');
 
 /**
  * Always-visible Film / Developer selectors above the recipe list — the two

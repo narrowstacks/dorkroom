@@ -102,7 +102,7 @@ function ResizeScreenBody() {
       key={label}
       label={label}
       unit={unit}
-      accent="teal"
+      accent="rose"
       value={value}
       onChangeText={onChangeText}
       step={lengthStep}
@@ -113,7 +113,7 @@ function ResizeScreenBody() {
 
   const readout = newTime ? (
     <Readout
-      accent="teal"
+      accent="rose"
       label="New time"
       value={newTime}
       unit="s"
@@ -121,13 +121,13 @@ function ResizeScreenBody() {
       facts={[`${stopsDifference} stops`, stopsHelper]}
       note={
         !isAspectRatioMatched && !isEnlargerHeightMode ? (
-          <Text className="text-amber-500">Aspect ratios do not match.</Text>
+          <Text className="text-amber-500">⚠ Aspect ratios do not match.</Text>
         ) : undefined
       }
     />
   ) : (
     <Readout
-      accent="teal"
+      accent="rose"
       label="New time"
       value={null}
       note={<Text className="text-white/60">Enter dimensions and a time.</Text>}
@@ -137,7 +137,7 @@ function ResizeScreenBody() {
   return (
     <Screen header={readout}>
       <SegmentedControl
-        accent="teal"
+        accent="rose"
         options={[
           { label: 'Print size', value: false },
           { label: 'Enlarger height', value: true },
@@ -149,7 +149,7 @@ function ResizeScreenBody() {
       <View className="gap-2">
         <SectionLabel>Units</SectionLabel>
         <SegmentedControl
-          accent="teal"
+          accent="rose"
           options={[
             { label: 'Inches', value: 'imperial' },
             { label: 'Centimeters', value: 'metric' },
@@ -175,7 +175,7 @@ function ResizeScreenBody() {
         <ScrubRow
           label="Original time"
           unit="s"
-          accent="teal"
+          accent="rose"
           value={originalTime}
           onChangeText={setOriginalTime}
           step={adaptiveTimeStep}

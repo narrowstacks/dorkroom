@@ -4,17 +4,16 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
 import { GlassPill } from '@/components/meter/glass-pill';
+import { NeutralButton } from '@/components/neutral-button';
 import { useMeterRoll } from '@/hooks/use-meter-roll';
-import type { FilmRoll } from '@/schemas/film-log.schema';
-
-function rollLabel(roll: FilmRoll): string {
-  return roll.name?.trim() ? roll.name : (roll.filmStockName ?? 'Roll');
-}
+import { rollLabel, shotCountLabel } from '@/lib/film-log-options';
+import { selectableRowStyle, useSelectionTint } from '@/theme/use-phase-accent';
 
 /** Top-of-meter pill showing which roll captures log to; tap to pick another. */
 export function MeterRollPill() {
   const { roll, activeRolls, setRoll } = useMeterRoll();
   const [open, setOpen] = useState(false);
+  const tint = useSelectionTint();
   const label = roll ? rollLabel(roll) : 'No active roll';
 
   return (
@@ -48,18 +47,13 @@ export function MeterRollPill() {
               <Text className="text-white/60">
                 No active rolls. Start one to log shots from the meter.
               </Text>
-              <Pressable
+              <NeutralButton
                 onPress={() => {
                   setOpen(false);
-                  router.push('/film-log/roll-form');
+                  router.push('/shoot/film-log/roll-form');
                 }}
-                accessibilityRole="button"
-                className="items-center rounded-xl bg-rose-600 px-4 py-3"
-              >
-                <Text className="text-base font-semibold text-white">
-                  Start a roll
-                </Text>
-              </Pressable>
+                label="Start a roll"
+              />
             </>
           ) : (
             activeRolls.map((r) => {
@@ -73,12 +67,13 @@ export function MeterRollPill() {
                   }}
                   accessibilityRole="button"
                   accessibilityState={{ selected }}
-                  className={`rounded-xl px-4 py-3 ${selected ? 'bg-rose-600' : 'bg-white/5'}`}
+                  className="rounded-xl border px-4 py-3"
+                  style={selectableRowStyle(tint, selected)}
                 >
                   <Text className="text-base text-white">{rollLabel(r)}</Text>
                   <Text className="text-sm text-white/50">
-                    {r.filmStockName ?? 'No film'} · {r.shots.length}{' '}
-                    {r.shots.length === 1 ? 'shot' : 'shots'}
+                    {r.filmStockName ?? 'No film'} ·{' '}
+                    {shotCountLabel(r.shots.length)}
                   </Text>
                 </Pressable>
               );

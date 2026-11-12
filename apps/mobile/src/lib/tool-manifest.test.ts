@@ -2,92 +2,90 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { resolveToolPath } from './deep-link';
-import { TOOLS } from './tools';
+import { redirectSystemPath } from '../../app/+native-intent';
+import { resolveLegacyPath } from './deep-link';
+import { takePendingLink } from './link-handoff';
+import { PHASES, recordsLastResult, settingsRoute, TOOLS } from './tools';
 
 // Parity and pin tests for the iOS tool manifest (#455). `TOOLS` in
-// `tools.ts` is the source of truth; the tabs layout, the More detail route,
-// the deep-link resolver, the route files, the tab icons, and the App Intents
-// all have to agree with it. Native code can't run under vitest, so the files
-// that hold the rest of the wiring are read from disk as text.
+// `tools.ts` is the source of truth; the phase layouts, the `[tool]` routes,
+// the legacy-path resolver, the route files and the quick actions and App
+// Intents (native, so unchangeable from JS) all have to agree with it. Native
+// code can't run under vitest, so the files that hold the rest of the wiring
+// are read from disk as text.
 
 const MOBILE_ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const TABS_DIR = join(MOBILE_ROOT, 'app', '(tabs)');
 const read = (...parts: string[]) =>
   readFileSync(join(MOBILE_ROOT, ...parts), 'utf8');
 
-// Today's registry, pinned so a refactor can't reorder or relabel the More
-// screen or the pin editor without a deliberate test change.
+// The manifest, pinned so a refactor can't reorder, relabel or move a tool
+// without a deliberate test change: id, label, icon, canonical route.
 const EXPECTED_TOOLS = [
-  ['home', 'Home', 'house', '/', 'reference'],
-  ['border', 'Border', 'crop', '/more/border', 'printing'],
-  ['resize', 'Resize', 'ruler', '/more/resize', 'printing'],
-  ['exposure', 'Exposure', 'gauge', '/more/exposure', 'printing'],
-  ['mat', 'Mat Cut', 'frame', '/more/mat', 'printing'],
-  ['reciprocity', 'Reciprocity', 'timer', '/more/reciprocity', 'film'],
-  [
-    'negative-inverter',
-    'Inverter',
-    'contrast',
-    '/more/negative-inverter',
-    'film',
-  ],
-  ['timer', 'Timer', 'hourglass', '/more/timer', 'film'],
-  ['film-log', 'Film Log', 'film', '/film-log', 'film'],
-  ['recipes', 'Recipes', 'flask-conical', '/development', 'film'],
-  ['lens', 'Lenses', 'focus', '/more/lens', 'camera'],
-  [
-    'camera-exposure',
-    'Camera Exposure',
-    'aperture',
-    '/more/camera-exposure',
-    'camera',
-  ],
-  ['meter', 'Meter', 'sun-medium', '/more/meter', 'camera'],
-  ['settings', 'Settings', 'settings', '/more/settings', 'system'],
+  ['meter', 'Meter', 'sun-medium', '/shoot/meter'],
+  ['film-log', 'Film Log', 'film', '/shoot/film-log'],
+  ['reciprocity', 'Reciprocity', 'timer', '/shoot/reciprocity'],
+  ['camera-exposure', 'Camera Exposure', 'aperture', '/shoot/camera-exposure'],
+  ['lens', 'Lenses', 'focus', '/shoot/lens'],
+  ['recipes', 'Recipes', 'flask-conical', '/develop/recipes'],
+  ['timer', 'Process Timer', 'hourglass', '/develop/recipes/timer'],
+  ['negative-inverter', 'Inverter', 'contrast', '/develop/negative-inverter'],
+  ['border', 'Border', 'crop', '/print/border'],
+  ['exposure', 'Exposure', 'gauge', '/print/exposure'],
+  ['resize', 'Resize', 'ruler', '/print/resize'],
+  ['mat', 'Mat Cut', 'frame', '/print/mat'],
 ] as const;
 
-// Tool id -> route file under app/(tabs) for every single-screen tool that can
-// be pinned as a tab. Home, Film Log and Recipes are permanent tabs.
-const EXPECTED_TAB_ROUTES = {
-  border: 'border',
-  resize: 'resize',
-  exposure: 'exposure',
-  mat: 'mat',
-  reciprocity: 'reciprocity',
-  'negative-inverter': 'negative-inverter',
-  timer: 'timer',
-  lens: 'lenses',
-  'camera-exposure': 'camera-exposure',
-  meter: 'meter',
-  settings: 'settings',
-} as const;
+// The phase table from issue #712.
+const EXPECTED_PHASES = [
+  [
+    'shoot',
+    'Shoot',
+    ['meter', 'film-log', 'reciprocity', 'camera-exposure', 'lens'],
+  ],
+  ['develop', 'Develop', ['recipes', 'timer', 'negative-inverter']],
+  ['print', 'Print', ['border', 'exposure', 'resize', 'mat']],
+] as const;
 
-const EXPECTED_TAB_IDS = Object.keys(EXPECTED_TAB_ROUTES);
+const SCREEN_TOOLS = TOOLS.filter((t) => t.kind === 'screen');
 
-// Home's route file: the app's initial route, bound to no tool in TOOL_SCREENS.
-const HOME_ROUTE = 'index';
+/** Whether a canonical route has a route file under `app/(tabs)`. */
+function routeFileExists(route: string): boolean {
+  const base = join(TABS_DIR, ...route.split('/').filter(Boolean));
+  return existsSync(`${base}.tsx`) || existsSync(join(base, 'index.tsx'));
+}
 
 describe('iOS tool registry (pinned)', () => {
-  it('keeps the order, labels, icons, routes and categories', () => {
-    expect(
-      TOOLS.map((t) => [t.id, t.label, t.icon, t.route, t.category])
-    ).toEqual(EXPECTED_TOOLS.map((row) => [...row]));
+  it('keeps the order, labels, icons and routes', () => {
+    expect(TOOLS.map((t) => [t.id, t.label, t.icon, t.route])).toEqual(
+      EXPECTED_TOOLS.map((row) => [...row])
+    );
+  });
+
+  it('matches the phase table exactly', () => {
+    expect(PHASES.map((p) => [p.id, p.label, p.toolIds])).toEqual(
+      EXPECTED_PHASES.map(([id, label, ids]) => [id, label, [...ids]])
+    );
+  });
+
+  it('puts every tool in exactly one phase', () => {
+    const listed = PHASES.flatMap((p) => p.toolIds);
+    expect([...listed].sort()).toEqual(TOOLS.map((t) => t.id).sort());
+    for (const tool of TOOLS) {
+      expect(
+        PHASES.filter((p) => p.toolIds.includes(tool.id)).map((p) => p.id),
+        tool.id
+      ).toEqual([tool.phase]);
+    }
   });
 });
 
-describe('fixed-layout tools', () => {
+describe('fixed-layout and answer-first tools', () => {
   it('pins which screens fill the space instead of scrolling', () => {
     expect(TOOLS.filter((t) => t.fixedLayout).map((t) => t.id)).toEqual([
+      'meter',
       'negative-inverter',
     ]);
-  });
-
-  it('gives them a standard header in the More stack', () => {
-    // A large title would sit expanded, since nothing scrolls to collapse it.
-    expect(read('app', '(tabs)', 'more', '_layout.tsx')).toMatch(
-      /headerLargeTitle:\s*!\(meta\?\.fixedLayout \|\| meta\?\.answerFirst\)/
-    );
   });
 
   it('flags exactly the five answer-first tools', () => {
@@ -99,157 +97,239 @@ describe('fixed-layout tools', () => {
     ).toEqual(['camera-exposure', 'exposure', 'lens', 'reciprocity', 'resize']);
   });
 
-  it('binds every answer-first tool to a screen', () => {
-    const bindings = read('src', 'lib', 'tool-screens.ts');
-    for (const tool of TOOLS.filter((t) => t.answerFirst)) {
-      const key = tool.id.includes('-') ? `'${tool.id}'` : tool.id;
-      expect(bindings, tool.id).toMatch(new RegExp(`\\n  ${key}: \\w+Screen,`));
+  it('takes the header style from usesLargeTitle in every phase stack', () => {
+    expect(read('src', 'components', 'hub', 'phase-stack.tsx')).toMatch(
+      /headerLargeTitle: usesLargeTitle\(tool\)/
+    );
+  });
+
+  it('passes toolId to the Readout of every tool that records a last result', () => {
+    // The types stop any other tool passing one (`RecordingToolId`); this is the
+    // direction they can't check.
+    for (const tool of TOOLS.filter((t) => recordsLastResult(t.id))) {
+      const source = read('src', 'screens', `${tool.id}-screen.tsx`).replace(
+        /\s+/g,
+        ' '
+      );
+      expect(source, tool.id).toContain(`toolId="${tool.id}"`);
     }
   });
 });
 
-describe('tab route names', () => {
-  it('TOOLS declares exactly the pinned tab routes', () => {
-    expect(
-      Object.fromEntries(
-        TOOLS.filter((t) => t.tabRoute !== undefined).map((t) => [
-          t.id,
-          t.tabRoute,
-        ])
-      )
-    ).toEqual(EXPECTED_TAB_ROUTES);
+describe('tool screens', () => {
+  const bindings = read('src', 'lib', 'tool-screens.ts');
+
+  it('binds every single-screen tool to a screen, and only those', () => {
+    const bound = [
+      ...bindings.matchAll(/\n {2}('?)([\w-]+)\1: \w+Screen,/g),
+    ].map((m) => m[2]);
+    expect(bound.sort()).toEqual(SCREEN_TOOLS.map((t) => t.id).sort());
   });
 
-  it('each route file re-exports the screen TOOL_SCREENS binds to its tool', () => {
-    const bindings = read('src', 'lib', 'tool-screens.ts');
-    for (const [id, route] of Object.entries(EXPECTED_TAB_ROUTES)) {
-      const routeScreen = read('app', '(tabs)', `${route}.tsx`).match(
-        /\b(\w+Screen)\b/
-      )?.[1];
-      const key = id.includes('-') ? `'${id}'` : id;
-      const boundScreen = bindings.match(
-        new RegExp(`\\n  ${key}: (\\w+),`)
-      )?.[1];
-      expect(routeScreen, route).toBeDefined();
-      expect(boundScreen, id).toBe(routeScreen);
+  it('serves each phase [tool] route with that phase', () => {
+    for (const phase of PHASES) {
+      expect(read('app', '(tabs)', phase.id, '[tool].tsx')).toContain(
+        `<PhaseToolRoute phase="${phase.id}" />`
+      );
     }
-  });
-
-  it('each tab route resolves back to its tool when unpinned', () => {
-    for (const [id, route] of Object.entries(EXPECTED_TAB_ROUTES)) {
-      const path = `/${route}`;
-      expect(resolveToolPath(path, [])).toBe(`/more/${id}`);
-      expect(resolveToolPath(path, [id])).toBe(path);
-    }
-  });
-
-  it('has a route file for each tab route and no orphan route files', () => {
-    const routeFiles = readdirSync(TABS_DIR, { withFileTypes: true })
-      .filter((e) => e.isFile() && e.name.endsWith('.tsx'))
-      .map((e) => e.name.replace(/\.tsx$/, ''))
-      .filter((name) => name !== '_layout')
-      .sort();
-    expect(routeFiles).toEqual(
-      [HOME_ROUTE, ...Object.values(EXPECTED_TAB_ROUTES)].sort()
-    );
-  });
-
-  it('Home is the initial route and a permanent, unpinnable tab', () => {
-    expect(read('app', '(tabs)', 'index.tsx')).toMatch(/HomeScreen/);
-    const home = TOOLS.find((t) => t.id === 'home');
-    expect(home?.pinnable).toBe(false);
-    expect(home?.tabRoute).toBeUndefined();
-    // Home is the first trigger, ahead of the user's pins.
-    const layout = read('app', '(tabs)', '_layout.tsx');
-    expect(layout.indexOf('name="index"')).toBeGreaterThan(-1);
-    expect(layout.indexOf('name="index"')).toBeLessThan(
-      layout.indexOf('pinned.map')
-    );
   });
 });
 
-describe('tab icons', () => {
-  it('ships a PNG at every scale for each tab tool and permanent tab', () => {
-    for (const id of [
-      ...EXPECTED_TAB_IDS,
-      'home',
-      'film-log',
-      'recipes',
-      'more',
-    ]) {
-      for (const suffix of ['', '@2x', '@3x']) {
+describe('route files', () => {
+  it('resolves every tool canonical route to a route file', () => {
+    for (const tool of TOOLS) {
+      const exists =
+        tool.kind === 'screen'
+          ? existsSync(join(TABS_DIR, tool.phase, '[tool].tsx'))
+          : routeFileExists(tool.route);
+      expect(exists, `${tool.id} -> ${tool.route}`).toBe(true);
+    }
+  });
+
+  it('has a hub, a layout and a [tool] route for each phase', () => {
+    for (const phase of PHASES) {
+      for (const file of ['index.tsx', '_layout.tsx', '[tool].tsx']) {
         expect(
-          existsSync(
-            join(MOBILE_ROOT, 'assets', 'tab-icons', `${id}${suffix}.png`)
-          ),
-          `${id}${suffix}.png`
+          existsSync(join(TABS_DIR, phase.id, file)),
+          `${phase.id}/${file}`
+        ).toBe(true);
+      }
+      expect(read('app', '(tabs)', phase.id, '_layout.tsx')).toContain(
+        "initialRouteName: 'index'"
+      );
+    }
+  });
+
+  it('declares only screens that have a route file', () => {
+    for (const phase of PHASES) {
+      const layout = read('app', '(tabs)', phase.id, '_layout.tsx');
+      for (const [, name] of layout.matchAll(
+        /Stack\.Screen\s+name="([^"]+)"/g
+      )) {
+        expect(
+          existsSync(join(TABS_DIR, phase.id, `${name}.tsx`)),
+          `${phase.id}: ${name}`
         ).toBe(true);
       }
     }
   });
 
-  it('TAB_ICONS requires tab-icons/<id>.png for each tab tool', () => {
-    const bindings = read('src', 'lib', 'tab-icons.ts');
-    const required = [
-      ...bindings.matchAll(
-        /require\('\.\.\/\.\.\/assets\/tab-icons\/([\w-]+)\.png'\)/g
-      ),
-    ].map((m) => m[1]);
-    expect(required).toEqual(EXPECTED_TAB_IDS);
+  it('leaves no orphan route files beside the phase folders and Home', () => {
+    const entries = readdirSync(TABS_DIR, { withFileTypes: true })
+      .map((e) => e.name.replace(/\.tsx$/, ''))
+      .sort();
+    expect(entries).toEqual(['_layout', 'develop', 'index', 'print', 'shoot']);
   });
 
-  it('generate-tab-icons.mjs rasterizes the same Lucide icon TOOLS names', () => {
-    const script = read('scripts', 'generate-tab-icons.mjs');
-    for (const tool of TOOLS) {
-      const key = tool.id.includes('-') ? `'${tool.id}'` : tool.id;
-      expect(script, tool.id).toContain(`${key}: '${tool.icon}',`);
+  it('has Settings in every phase stack as a pushed screen, and not as a root route', () => {
+    expect(existsSync(join(MOBILE_ROOT, 'app', 'settings.tsx'))).toBe(false);
+    for (const phase of PHASES) {
+      expect(routeFileExists(settingsRoute(phase.id)), phase.id).toBe(true);
+    }
+    const stack = read('src', 'components', 'hub', 'phase-stack.tsx');
+    expect(stack).toMatch(/name="settings"/);
+    // A modal would swallow a link that arrives while it is open.
+    expect(stack).not.toMatch(/presentation:/);
+    expect(read('src', 'components', 'hub', 'header-buttons.tsx')).not.toMatch(
+      /DoneButton/
+    );
+  });
+});
+
+describe('tab layout', () => {
+  const layout = read('app', '(tabs)', '_layout.tsx');
+
+  it('lists the phases in order, then Home as the Search tab', () => {
+    // The triggers come from PHASES, so the order test above covers them.
+    expect(layout).toContain('PHASES.map');
+    expect(layout.indexOf('PHASES.map')).toBeLessThan(
+      layout.indexOf('name="index"')
+    );
+    expect(read('app', '(tabs)', 'index.tsx')).toMatch(/HomeScreen/);
+  });
+
+  it('gives every phase a tab symbol', () => {
+    for (const phase of PHASES) {
+      expect(layout, phase.id).toMatch(new RegExp(`${phase.id}: '[\\w.]+'`));
     }
   });
 });
 
-describe('App Intents', () => {
-  const swift = read(
-    'plugins',
-    'with-app-intents',
-    'swift',
-    'OpenPageIntent.swift'
-  );
-  const cases = [
-    ...swift.matchAll(
-      /case \.(\w+): return URL\(string: "dorkroom:\/\/([^"]*)"\)/g
-    ),
-  ].map((m) => ({ page: m[1], path: `/${m[2]}` }));
-  // A case's String raw value is its name unless it declares one, which is
-  // how a hyphenated tool id (`negative-inverter`) maps to a Swift identifier.
-  const declared = [
-    ...swift.matchAll(/^\s*case (\w+)(?: = "([^"]+)")?$/gm),
-  ].map((m) => ({ page: m[1], toolId: m[2] ?? m[1] }));
-  const toolIdOf = new Map(declared.map((d) => [d.page, d.toolId]));
+describe('legacy entry points still land on a tool', () => {
+  const canonicalOf = (id: string) => TOOLS.find((t) => t.id === id)?.route;
 
-  it('declares a deep link for every DorkroomPage case', () => {
-    expect(cases.map((c) => c.page).sort()).toEqual(
-      declared.map((d) => d.page).sort()
-    );
-    expect(declared.length).toBeGreaterThan(0);
-  });
-
-  it('every page is a tab tool whose deep link lands on that tool', () => {
-    for (const { page, path } of cases) {
-      const toolId = toolIdOf.get(page);
-      expect(EXPECTED_TAB_IDS).toContain(toolId);
-      expect(resolveToolPath(path, [])).toBe(`/more/${toolId}`);
+  it('every tool screen resolves from its More route and its old tab root', () => {
+    for (const tool of SCREEN_TOOLS) {
+      const oldRoot = tool.id === 'lens' ? 'lenses' : tool.id;
+      expect(resolveLegacyPath(`/more/${tool.id}`), tool.id).toBe(tool.route);
+      expect(resolveLegacyPath(`/${oldRoot}`), tool.id).toBe(tool.route);
     }
   });
 
-  it('the light meter intent deep-links to the meter tool', () => {
-    const meter = read(
+  it('every quick action href resolves to an existing tool', () => {
+    const config: unknown = JSON.parse(read('app.json'));
+    const hrefs = [
+      ...JSON.stringify(config).matchAll(/"href":\s*"([^"]+)"/g),
+    ].map((m) => m[1]);
+    expect(hrefs.length).toBeGreaterThan(0);
+    for (const href of hrefs) {
+      const resolved = resolveLegacyPath(href);
+      expect(
+        TOOLS.some((t) => t.route === resolved),
+        `${href} -> ${resolved}`
+      ).toBe(true);
+      expect(
+        redirectSystemPath({ path: `dorkroom:/${href}`, initial: true }),
+        href
+      ).toBe(resolved);
+    }
+  });
+
+  describe('App Intents', () => {
+    const swift = read(
       'plugins',
       'with-app-intents',
       'swift',
-      'OpenLightMeterIntent.swift'
+      'OpenPageIntent.swift'
     );
-    const match = meter.match(/dorkroom:\/\/([^"]*)"/);
-    expect(match?.[1]).toBe('meter');
-    expect(resolveToolPath(`/${match?.[1]}`, [])).toBe('/more/meter');
+    const cases = [
+      ...swift.matchAll(
+        /case \.(\w+): return URL\(string: "dorkroom:\/\/([^"]*)"\)/g
+      ),
+    ].map((m) => ({ page: m[1], path: `/${m[2]}` }));
+    // A case's String raw value is its name unless it declares one, which is
+    // how a hyphenated tool id (`negative-inverter`) maps to a Swift identifier.
+    const declared = [
+      ...swift.matchAll(/^\s*case (\w+)(?: = "([^"]+)")?$/gm),
+    ].map((m) => ({ page: m[1], toolId: m[2] ?? m[1] }));
+    const toolIdOf = new Map(declared.map((d) => [d.page, d.toolId]));
+
+    it('declares a deep link for every DorkroomPage case', () => {
+      expect(cases.map((c) => c.page).sort()).toEqual(
+        declared.map((d) => d.page).sort()
+      );
+      expect(declared.length).toBeGreaterThan(0);
+    });
+
+    it('every page deep-links to that tool', () => {
+      for (const { page, path } of cases) {
+        const toolId = toolIdOf.get(page);
+        expect(SCREEN_TOOLS.map((t) => t.id)).toContain(toolId);
+        expect(resolveLegacyPath(path), page).toBe(canonicalOf(toolId ?? ''));
+      }
+    });
+
+    it('the exact intent URLs reach the tool through redirectSystemPath, cold and warm', () => {
+      expect(cases.length).toBeGreaterThan(0);
+      for (const { page, path } of cases) {
+        const toolId = toolIdOf.get(page);
+        // The Swift string, scheme included, as expo-router receives it.
+        const url = `dorkroom:/${path}`;
+        const canonical = canonicalOf(toolId ?? '') ?? '';
+        expect(redirectSystemPath({ path: url, initial: true }), url).toBe(
+          canonical
+        );
+        // Warm, the phase hub shows first and the tool is opened on top of it.
+        expect(redirectSystemPath({ path: url, initial: false }), url).toBe(
+          `/${canonical.split('/')[1]}`
+        );
+        expect(takePendingLink(), url).toBe(canonical);
+      }
+    });
+
+    it('the light meter intent deep-links to the meter tool', () => {
+      const meter = read(
+        'plugins',
+        'with-app-intents',
+        'swift',
+        'OpenLightMeterIntent.swift'
+      );
+      const match = meter.match(/dorkroom:\/\/([^"]*)"/);
+      expect(match?.[1]).toBe('meter');
+      expect(resolveLegacyPath(`/${match?.[1]}`)).toBe('/shoot/meter');
+      const meterUrl = `dorkroom://${match?.[1]}`;
+      expect(redirectSystemPath({ path: meterUrl, initial: true })).toBe(
+        '/shoot/meter'
+      );
+      expect(redirectSystemPath({ path: meterUrl, initial: false })).toBe(
+        '/shoot'
+      );
+      expect(takePendingLink()).toBe('/shoot/meter');
+    });
+  });
+});
+
+describe('removed pinning', () => {
+  it('leaves no pin or More code behind', () => {
+    for (const file of [
+      ['src', 'hooks', 'use-pinned-tabs.ts'],
+      ['src', 'lib', 'tab-bar-settings.ts'],
+      ['src', 'lib', 'tab-icons.ts'],
+      ['app', '(tabs)', 'more'],
+    ]) {
+      expect(existsSync(join(MOBILE_ROOT, ...file)), file.join('/')).toBe(
+        false
+      );
+    }
   });
 });

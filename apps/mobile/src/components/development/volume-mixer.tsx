@@ -87,7 +87,7 @@ export function VolumeMixer({ dilutionString }: VolumeMixerProps) {
       <View className="gap-4">
         <View className="w-32 self-end">
           <SegmentedControl
-            accent="green"
+            accent="teal"
             options={UNIT_OPTIONS}
             value={unit}
             onChange={onToggleUnit}
@@ -102,7 +102,7 @@ export function VolumeMixer({ dilutionString }: VolumeMixerProps) {
 
         {!stock && !parsed ? (
           <Text className="text-sm text-amber-300">
-            Couldn’t parse dilution “{dilutionString}”.
+            ⚠ Couldn’t parse dilution “{dilutionString}”.
           </Text>
         ) : null}
 
@@ -122,7 +122,7 @@ export function VolumeMixer({ dilutionString }: VolumeMixerProps) {
                 onIncrement={() => step(1)}
               />
               <PresetChipRow
-                accent="green"
+                accent="teal"
                 options={VOLUME_PRESETS_ML.map((ml) => ({
                   label: formatVolume(ml, unit),
                   value: ml,

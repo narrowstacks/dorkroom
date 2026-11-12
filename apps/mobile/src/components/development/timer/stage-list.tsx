@@ -33,22 +33,22 @@ export function StageList({
             <View
               key={stage.id}
               className="flex-row items-center gap-3 rounded-xl px-2 py-2"
-              style={active ? { backgroundColor: `${ACCENT.green}1f` } : null}
+              style={active ? { backgroundColor: `${ACCENT.teal}1f` } : null}
             >
               <View
                 className="h-6 w-6 items-center justify-center rounded-full"
                 style={{
                   backgroundColor: done
-                    ? `${ACCENT.green}33`
+                    ? `${ACCENT.teal}33`
                     : 'rgba(255,255,255,0.1)',
                 }}
               >
                 {done ? (
-                  <Check size={14} color={ACCENT.green} />
+                  <Check size={14} color={ACCENT.teal} />
                 ) : (
                   <Text
                     className="text-xs font-semibold"
-                    style={{ color: active ? ACCENT.green : '#ffffff99' }}
+                    style={{ color: active ? ACCENT.teal : '#ffffff99' }}
                   >
                     {index + 1}
                   </Text>

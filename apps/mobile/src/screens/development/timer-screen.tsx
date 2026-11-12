@@ -110,7 +110,7 @@ export function TimerScreen() {
       <View className="gap-2">
         <SectionLabel>Preset</SectionLabel>
         <PresetChipRow
-          accent="green"
+          accent="teal"
           options={presetOptions}
           value={selectedPresetId}
           onSelect={handleSelectPreset}

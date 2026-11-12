@@ -1,12 +1,13 @@
 import * as Haptics from 'expo-haptics';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { type AccentColor, selectionTint } from '@/theme/accents';
+import type { AccentColor } from '@/theme/accents';
+import { useSelectionTint } from '@/theme/use-phase-accent';
 
 interface PresetChipRowProps<T extends string | number> {
   options: { label: string; value: T }[];
   value?: T;
   onSelect: (value: T) => void;
-  /** Tool signature accent for the selected chip. Omit for the brand rose fill. */
+  /** Hue for the selected chip. Omit to take the surrounding phase's (neutral on Home and Settings). */
   accent?: AccentColor;
 }
 
@@ -16,7 +17,7 @@ export function PresetChipRow<T extends string | number>({
   onSelect,
   accent,
 }: PresetChipRowProps<T>) {
-  const tint = accent ? selectionTint(accent) : null;
+  const tint = useSelectionTint(accent);
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
       <View className="flex-row gap-2">
@@ -36,14 +37,10 @@ export function PresetChipRow<T extends string | number>({
               accessibilityRole="button"
               accessibilityState={{ selected }}
               className={`min-h-11 items-center justify-center rounded-full px-4 py-2 ${
-                selected && !tint
-                  ? 'bg-rose-600'
-                  : !selected
-                    ? 'bg-white/10'
-                    : ''
+                selected ? '' : 'bg-white/10'
               }`}
               style={
-                selected && tint
+                selected
                   ? {
                       backgroundColor: tint.backgroundColor,
                       borderWidth: 1,
@@ -53,11 +50,9 @@ export function PresetChipRow<T extends string | number>({
               }
             >
               <Text
-                className={
-                  selected ? (tint ? undefined : 'text-white') : 'text-white/70'
-                }
+                className={selected ? undefined : 'text-white/70'}
                 style={
-                  selected && tint
+                  selected
                     ? { color: tint.color, fontWeight: '600' }
                     : undefined
                 }

@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import { Alert, FlatList, Pressable, Text, View } from 'react-native';
+import { CommitButton } from '@/components/commit-button';
 import { GlassCard } from '@/components/glass-card';
 import { GradientBackground } from '@/components/gradient-background';
 import { useCameras, useRolls } from '@/hooks/use-film-log';
@@ -57,7 +58,7 @@ export function FilmListScreen() {
       );
       return (
         <Pressable
-          onPress={() => router.push(`/film-log/roll/${item.id}`)}
+          onPress={() => router.push(`/shoot/film-log/roll/${item.id}`)}
           accessibilityRole="button"
           accessibilityLabel={`Open roll ${item.name ?? film}`}
         >
@@ -91,16 +92,13 @@ export function FilmListScreen() {
 
   const header = (
     <View className="gap-3 pb-2">
-      <Pressable
-        onPress={() => router.push('/film-log/roll-form')}
-        accessibilityRole="button"
-        className="items-center rounded-xl bg-rose-600 px-4 py-3"
-      >
-        <Text className="text-base font-semibold text-white">+ New roll</Text>
-      </Pressable>
+      <CommitButton
+        onPress={() => router.push('/shoot/film-log/roll-form')}
+        label="+ New roll"
+      />
       <View className="flex-row gap-3">
         <Pressable
-          onPress={() => router.push('/film-log/gear')}
+          onPress={() => router.push('/shoot/film-log/gear')}
           accessibilityRole="button"
           className="flex-1 items-center rounded-xl bg-white/10 px-4 py-3"
         >

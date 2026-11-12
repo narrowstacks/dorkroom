@@ -1,6 +1,6 @@
-// Reactive read hooks over the MMKV film-log stores. Mirrors use-pinned-tabs.ts:
-// `useMMKVString` subscribes to a key, and the pure parsers derive state from the
-// raw string, so screens re-render after any add/update/delete.
+// Reactive read hooks over the MMKV film-log stores. `useMMKVString` subscribes
+// to a key, and the pure parsers derive state from the raw string, so screens
+// re-render after any add/update/delete.
 import { useMemo } from 'react';
 import { useMMKVString } from 'react-native-mmkv';
 import {

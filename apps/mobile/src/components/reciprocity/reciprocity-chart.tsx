@@ -76,7 +76,7 @@ export function ReciprocityChart({
           <Path
             d={curve}
             fill="none"
-            stroke={ACCENT.amber}
+            stroke={ACCENT.yellow}
             strokeWidth={2.5}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -90,7 +90,7 @@ export function ReciprocityChart({
             strokeOpacity={0.3}
             strokeDasharray="3 3"
           />
-          <Circle cx={cx} cy={cy} r={5} fill={ACCENT.amber} />
+          <Circle cx={cx} cy={cy} r={5} fill={ACCENT.yellow} />
         </Svg>
       </Pressable>
 

@@ -2,6 +2,7 @@ import Slider from '@react-native-community/slider';
 import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { usePhaseHue } from '@/theme/use-phase-accent';
 import {
   type AdjustmentSpec,
   CHROME_TEXT_SCALE,
@@ -37,6 +38,7 @@ export function AdjustmentSlider({
   onReset,
   className = '',
 }: AdjustmentSliderProps) {
+  const hue = usePhaseHue();
   // The value mid-drag; null when idle, so the committed value shows.
   const [dragging, setDragging] = useState<number | null>(null);
   const shown = dragging ?? value;
@@ -60,7 +62,7 @@ export function AdjustmentSlider({
             setDragging(null);
             onCommit(v);
           }}
-          minimumTrackTintColor="#e11d48"
+          minimumTrackTintColor={hue}
           maximumTrackTintColor="rgba(255,255,255,0.2)"
           thumbTintColor="#f5f5f4"
           accessibilityLabel={spec.label}

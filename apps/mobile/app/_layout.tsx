@@ -13,10 +13,12 @@ import { PersistenceStorageProvider } from '@dorkroom/logic';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import { Appearance } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { TimerRunEffects } from '@/components/development/timer/timer-run-effects';
+import { clearLegacyPins } from '@/lib/legacy-pins';
 import { calculatorStorage } from '@/lib/mmkv-storage';
 import { queryClient } from '@/providers/query-client';
 import {
@@ -30,6 +32,11 @@ import {
 Appearance.setColorScheme('dark');
 
 export default function RootLayout() {
+  // Pinned tabs are gone; drop the setting they left behind (once is enough).
+  useEffect(() => {
+    clearLegacyPins();
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

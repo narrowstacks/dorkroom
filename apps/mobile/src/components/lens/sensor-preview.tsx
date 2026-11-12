@@ -41,8 +41,8 @@ export function SensorPreview({ source, target }: SensorPreviewProps) {
           y={targetRect.y}
           width={targetRect.w}
           height={targetRect.h}
-          fill={`${ACCENT.emerald}22`}
-          stroke={ACCENT.emerald}
+          fill={`${ACCENT.yellow}22`}
+          stroke={ACCENT.yellow}
           strokeWidth={STROKE_WIDTH}
           rx={2}
         />
@@ -65,7 +65,7 @@ export function SensorPreview({ source, target }: SensorPreviewProps) {
         </Text>
         <Text
           className="shrink text-center text-xs"
-          style={{ color: ACCENT.emerald }}
+          style={{ color: ACCENT.yellow }}
         >
           ■ {labels.target}
         </Text>

@@ -96,7 +96,7 @@ export function ReciprocityChartModal({
           <Text className="text-xs text-white/50">
             {scrub === null ? 'Current exposure' : 'Drag the chart to read'}
           </Text>
-          <Text className="text-3xl font-bold" style={{ color: ACCENT.amber }}>
+          <Text className="text-3xl font-bold" style={{ color: ACCENT.yellow }}>
             {formatTime(activeAdjusted)}
           </Text>
           <Text className="text-sm text-white/60">
@@ -178,7 +178,7 @@ export function ReciprocityChartModal({
               <Path
                 d={curve}
                 fill="none"
-                stroke={ACCENT.amber}
+                stroke={ACCENT.yellow}
                 strokeWidth={2.5}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -197,7 +197,7 @@ export function ReciprocityChartModal({
                 cx={mx}
                 cy={my}
                 r={6}
-                fill={ACCENT.amber}
+                fill={ACCENT.yellow}
                 stroke="#0b0b0c"
                 strokeWidth={2}
               />

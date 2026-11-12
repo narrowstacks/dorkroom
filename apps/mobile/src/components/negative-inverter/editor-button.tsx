@@ -1,5 +1,6 @@
 import { type SFSymbol, SymbolView } from 'expo-symbols';
 import { ActivityIndicator, Pressable, Text } from 'react-native';
+import { useCommitStyle } from '@/theme/use-phase-accent';
 import { CHROME_TEXT_SCALE } from './editor-layout';
 
 export interface EditorButtonProps {
@@ -37,15 +38,16 @@ export function EditorButton({
   accessibilityHint,
   className = '',
 }: EditorButtonProps) {
+  const commit = useCommitStyle();
   const inactive = disabled || busy;
   const fill = primary
     ? inactive
-      ? 'bg-rose-600/40'
-      : 'bg-rose-600'
+      ? 'opacity-40'
+      : ''
     : selected
       ? 'bg-white'
       : 'bg-white/10';
-  const ink = selected && !primary ? '#0b0b0c' : '#ffffff';
+  const ink = primary ? commit.ink : selected ? '#0b0b0c' : '#ffffff';
   return (
     <Pressable
       onPress={onPress}
@@ -58,9 +60,10 @@ export function EditorButton({
       className={`min-h-11 min-w-11 flex-row items-center justify-center gap-1.5 rounded-full ${
         showLabel ? 'px-3.5' : ''
       } ${fill} active:opacity-70 ${className}`}
+      style={primary ? commit.fill : undefined}
     >
       {busy ? (
-        <ActivityIndicator color="#ffffff" size="small" />
+        <ActivityIndicator color={ink} size="small" />
       ) : (
         <SymbolView
           name={icon}
@@ -73,12 +76,15 @@ export function EditorButton({
           numberOfLines={1}
           maxFontSizeMultiplier={CHROME_TEXT_SCALE}
           className={`text-sm font-semibold ${
-            selected && !primary
-              ? 'text-[#0b0b0c]'
-              : inactive && !primary
-                ? 'text-white/35'
-                : 'text-white'
+            primary
+              ? ''
+              : selected
+                ? 'text-[#0b0b0c]'
+                : inactive
+                  ? 'text-white/35'
+                  : 'text-white'
           }`}
+          style={primary ? commit.label : undefined}
         >
           {label}
         </Text>

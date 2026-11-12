@@ -69,13 +69,13 @@ export function FiltersSheet({
         <View className="gap-2">
           <SectionLabel>Sort by</SectionLabel>
           <OptionRow
-            accent="green"
+            accent="teal"
             options={SORT_OPTIONS}
             value={recipes.sortBy}
             onChange={recipes.handleSort}
           />
           <SegmentedControl
-            accent="green"
+            accent="teal"
             options={DIRECTION_OPTIONS}
             value={recipes.sortDirection}
             onChange={recipes.setSortDirection}
@@ -85,7 +85,7 @@ export function FiltersSheet({
         {recipes.selectedDeveloper ? (
           <OptionRow
             label="Dilution"
-            accent="green"
+            accent="teal"
             options={recipes.getAvailableDilutions()}
             value={recipes.dilutionFilter}
             onChange={recipes.setDilutionFilter}
@@ -95,7 +95,7 @@ export function FiltersSheet({
         {/* ISO is a top-level filter that survives a film change, as on web. */}
         <OptionRow
           label="ISO / push-pull"
-          accent="green"
+          accent="teal"
           options={recipes.getAvailableISOs()}
           value={recipes.isoFilter}
           onChange={recipes.setIsoFilter}
@@ -105,7 +105,7 @@ export function FiltersSheet({
         {recipes.selectedDeveloper ? null : (
           <OptionRow
             label="Developer type"
-            accent="green"
+            accent="teal"
             options={developerTypeOptions(recipes.allDevelopers)}
             value={recipes.developerTypeFilter}
             onChange={recipes.setDeveloperTypeFilter}
@@ -114,7 +114,7 @@ export function FiltersSheet({
 
         <OptionRow
           label="Tag"
-          accent="green"
+          accent="teal"
           options={recipes.getAvailableTags()}
           value={tagFilter}
           onChange={onTagFilterChange}

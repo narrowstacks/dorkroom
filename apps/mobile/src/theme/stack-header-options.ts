@@ -8,7 +8,7 @@ type StackScreenOptions = Extract<
 
 /**
  * Shared native-stack header config for every `(tabs)` stack that opts into
- * `headerLargeTitle` (More, Film Log, Development/Recipes).
+ * `headerLargeTitle` (the Shoot, Develop and Print phase stacks).
  *
  * `headerLargeTitle: true` alone does not give the header a background once
  * content scrolls under it — react-native-screens' native stack header stays

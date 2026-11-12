@@ -1,12 +1,13 @@
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { type AccentColor, selectionTint } from '@/theme/accents';
+import type { AccentColor } from '@/theme/accents';
+import { useSelectionTint } from '@/theme/use-phase-accent';
 
 interface OptionRowProps<T extends string | number> {
   label?: string;
   options: { label: string; value: T }[];
   value: T;
   onChange: (value: T) => void;
-  /** Tool signature accent for selected chips. Omit for the brand rose fill. */
+  /** Hue for selected chips. Omit to take the surrounding phase's (neutral on Home and Settings). */
   accent?: AccentColor;
 }
 
@@ -17,7 +18,7 @@ export function OptionRow<T extends string | number>({
   onChange,
   accent,
 }: OptionRowProps<T>) {
-  const tint = accent ? selectionTint(accent) : null;
+  const tint = useSelectionTint(accent);
   return (
     <View className="gap-2">
       {label ? <Text className="text-sm text-white/60">{label}</Text> : null}
@@ -31,15 +32,9 @@ export function OptionRow<T extends string | number>({
                 onPress={() => onChange(option.value)}
                 accessibilityRole="button"
                 accessibilityState={{ selected }}
-                className={`rounded-full px-4 py-2 ${
-                  selected && !tint
-                    ? 'bg-rose-600'
-                    : !selected
-                      ? 'bg-white/10'
-                      : ''
-                }`}
+                className={`rounded-full px-4 py-2 ${selected ? '' : 'bg-white/10'}`}
                 style={
-                  selected && tint
+                  selected
                     ? {
                         backgroundColor: tint.backgroundColor,
                         borderWidth: 1,
@@ -49,15 +44,9 @@ export function OptionRow<T extends string | number>({
                 }
               >
                 <Text
-                  className={
-                    selected
-                      ? tint
-                        ? undefined
-                        : 'text-white'
-                      : 'text-white/70'
-                  }
+                  className={selected ? undefined : 'text-white/70'}
                   style={
-                    selected && tint
+                    selected
                       ? { color: tint.color, fontWeight: '600' }
                       : undefined
                   }
