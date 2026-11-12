@@ -10,6 +10,12 @@ import type { LensFormState, SensorFormat } from '../types/lens-calculator';
  */
 export const MAX_FOCAL_LENGTH_MM = 10000;
 
+/**
+ * Shortest focal length a stepper or scrub row goes down to. The schema only
+ * requires a positive number, so a shorter one can still be typed.
+ */
+export const MIN_FOCAL_LENGTH_MM = 1;
+
 // Full frame 35mm diagonal for reference (used to calculate crop factors)
 const FULL_FRAME_DIAGONAL = Math.sqrt(36 * 36 + 24 * 24); // ~43.27mm
 

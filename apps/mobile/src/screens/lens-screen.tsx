@@ -1,16 +1,17 @@
 import {
   formatFocalLength,
   lensCalculatorLink,
+  MAX_FOCAL_LENGTH_MM,
+  MIN_FOCAL_LENGTH_MM,
   SENSOR_FORMATS,
   useLensCalculator,
 } from '@dorkroom/logic';
 import * as Haptics from 'expo-haptics';
 import { ArrowUpDown } from 'lucide-react-native';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { FormulaRow } from '@/components/formula-row';
-import { GlassCard } from '@/components/glass-card';
-import { LabeledTextField } from '@/components/labeled-text-field';
+import { InsetGroup, InsetRow } from '@/components/inset-group';
 import {
   buildSensorFormatOptions,
   focalLengthFieldText,
@@ -21,10 +22,10 @@ import {
 import { SensorPreview } from '@/components/lens/sensor-preview';
 import { PickerField } from '@/components/picker-field';
 import { PresetChipRow } from '@/components/preset-chip-row';
-import { ResultCard } from '@/components/result-card';
-import { ResultRow } from '@/components/result-row';
-import { ResultStat } from '@/components/result-stat';
+import { Readout } from '@/components/readout';
 import { Screen } from '@/components/screen';
+import { ScrubRow } from '@/components/scrub/scrub-row';
+import { adaptiveFocalStep } from '@/components/scrub/scrub-value';
 import { SectionLabel } from '@/components/section-label';
 import { ShareButton } from '@/components/share-button';
 import { useLinkOverrides } from '@/hooks/use-link-overrides';
@@ -62,10 +63,14 @@ function LensScreenBody({ overrides }: LensScreenBodyProps) {
   // like "8" or "85," isn't rewritten under their cursor.
   const [draft, setDraft] = useState<string | null>(null);
 
-  const onFocalLengthText = (text: string) => {
-    setDraft(text);
-    setFocalLength(parseFocalLengthInput(text));
-  };
+  // Stable, so the focal-length row bails out while other fields change.
+  const onFocalLengthText = useCallback(
+    (text: string) => {
+      setDraft(text);
+      setFocalLength(parseFocalLengthInput(text));
+    },
+    [setFocalLength]
+  );
 
   const labels = calculation
     ? formatPairLabels(calculation.sourceFormat, calculation.targetFormat)
@@ -76,60 +81,113 @@ function LensScreenBody({ overrides }: LensScreenBodyProps) {
     swapFormats();
   };
 
+  const readout =
+    calculation && labels ? (
+      <Readout
+        accent="emerald"
+        label="Equivalent focal length"
+        value={formatFocalLength(calculation.equivalentFocalLength)}
+        accessibilityValueText={[
+          formatFocalLength(calculation.equivalentFocalLength).replace(
+            /\s*mm$/,
+            ' millimeters'
+          ),
+          `on ${labels.target}`,
+          `${calculation.fieldOfView.toFixed(1)} degrees diagonal`,
+        ].join(', ')}
+        facts={[
+          `On ${labels.target}`,
+          `${calculation.fieldOfView.toFixed(1)}° diagonal`,
+        ]}
+      />
+    ) : (
+      <Readout
+        accent="emerald"
+        label="Equivalent focal length"
+        value={null}
+        note={
+          <Text className="text-white/60">Enter a focal length above 0.</Text>
+        }
+      />
+    );
+
   return (
-    <Screen>
-      <GlassCard className="gap-4">
-        <LabeledTextField
-          label="Focal length (mm)"
+    <Screen header={readout}>
+      <InsetGroup>
+        <ScrubRow
+          label="Focal length"
+          unit="mm"
+          accent="emerald"
           value={focalLengthFieldText(draft, values.focalLength)}
           onChangeText={onFocalLengthText}
-          keyboardType="decimal-pad"
+          step={adaptiveFocalStep}
+          min={MIN_FOCAL_LENGTH_MM}
+          max={MAX_FOCAL_LENGTH_MM}
           placeholder="50"
         />
-        <View className="gap-2">
-          <SectionLabel>Common focal lengths</SectionLabel>
-          <PresetChipRow
-            accent="emerald"
-            options={FOCAL_LENGTH_PRESETS}
-            value={values.focalLength}
-            onSelect={(value) => {
-              setDraft(null);
-              setFocalLength(value);
-            }}
+      </InsetGroup>
+
+      <View className="gap-2">
+        <SectionLabel>Common focal lengths</SectionLabel>
+        <PresetChipRow
+          accent="emerald"
+          options={FOCAL_LENGTH_PRESETS}
+          value={values.focalLength}
+          onSelect={(value) => {
+            setDraft(null);
+            setFocalLength(value);
+          }}
+        />
+      </View>
+
+      <InsetGroup>
+        <View className="p-4">
+          <PickerField
+            label="Source format"
+            options={FORMAT_OPTIONS}
+            value={values.sourceFormat}
+            onChange={setSourceFormat}
           />
         </View>
-
-        <PickerField
-          label="Source format"
-          options={FORMAT_OPTIONS}
-          value={values.sourceFormat}
-          onChange={setSourceFormat}
-        />
         <Pressable
           onPress={onSwap}
           accessibilityRole="button"
           accessibilityLabel="Swap source and target formats"
-          className="min-h-11 flex-row items-center justify-center gap-2 self-center rounded-full bg-white/10 px-4 py-2"
+          className="min-h-11 flex-row items-center justify-center gap-2 px-4 py-2"
         >
           <ArrowUpDown size={16} color={tokens.color.textMuted} />
           <Text className="text-white/70">Swap</Text>
         </Pressable>
-        <PickerField
-          label="Target format"
-          options={FORMAT_OPTIONS}
-          value={values.targetFormat}
-          onChange={setTargetFormat}
-        />
-      </GlassCard>
+        <View className="p-4">
+          <PickerField
+            label="Target format"
+            options={FORMAT_OPTIONS}
+            value={values.targetFormat}
+            onChange={setTargetFormat}
+          />
+        </View>
+      </InsetGroup>
 
       {calculation && labels ? (
-        <ResultCard accent="emerald" className="gap-3">
-          <ResultStat
-            accent="emerald"
-            label="Equivalent focal length"
-            value={formatFocalLength(calculation.equivalentFocalLength)}
-            helper={`On ${labels.target}`}
+        <>
+          <SensorPreview
+            source={calculation.sourceFormat}
+            target={calculation.targetFormat}
           />
+          <InsetGroup>
+            <InsetRow
+              label="Field of view (diagonal)"
+              value={`${calculation.fieldOfView.toFixed(1)}°`}
+            />
+            <InsetRow
+              label="Source crop factor"
+              value={`${calculation.sourceFormat.cropFactor.toFixed(2)}×`}
+            />
+            <InsetRow
+              label="Target crop factor"
+              value={`${calculation.targetFormat.cropFactor.toFixed(2)}×`}
+            />
+          </InsetGroup>
           <FormulaRow
             formula={lensFormula(
               formatFocalLength(calculation.focalLength),
@@ -137,24 +195,6 @@ function LensScreenBody({ overrides }: LensScreenBodyProps) {
               labels
             )}
           />
-          <SensorPreview
-            source={calculation.sourceFormat}
-            target={calculation.targetFormat}
-          />
-          <View>
-            <ResultRow
-              label="Field of view (diagonal)"
-              value={`${calculation.fieldOfView.toFixed(1)}°`}
-            />
-            <ResultRow
-              label="Source crop factor"
-              value={`${calculation.sourceFormat.cropFactor.toFixed(2)}×`}
-            />
-            <ResultRow
-              label="Target crop factor"
-              value={`${calculation.targetFormat.cropFactor.toFixed(2)}×`}
-            />
-          </View>
           <ShareButton
             message={buildLensShare({
               focalLength: formatFocalLength(calculation.focalLength),
@@ -168,12 +208,8 @@ function LensScreenBody({ overrides }: LensScreenBodyProps) {
               targetCropFactor: calculation.targetFormat.cropFactor,
             })}
           />
-        </ResultCard>
-      ) : (
-        <GlassCard>
-          <Text className="text-white/60">Enter a focal length above 0.</Text>
-        </GlassCard>
-      )}
+        </>
+      ) : null}
     </Screen>
   );
 }

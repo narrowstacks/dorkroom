@@ -1,5 +1,6 @@
 import {
   debounce,
+  inSeparatorOf,
   parseDecimalInput,
   tryNumber,
 } from '../../utils/input-validation';
@@ -169,5 +170,17 @@ describe('input validation utilities', () => {
       expect(mockFn).toHaveBeenCalledTimes(1);
       expect(mockFn).toHaveBeenCalledWith('second');
     });
+  });
+});
+
+describe('inSeparatorOf', () => {
+  it('writes a comma when the typed text used one', () => {
+    expect(inSeparatorOf('0,5', '0.75')).toBe('0,75');
+    expect(inSeparatorOf('-1,25', '2.5')).toBe('2,5');
+  });
+
+  it('leaves a dot-decimal entry alone', () => {
+    expect(inSeparatorOf('0.5', '0.75')).toBe('0.75');
+    expect(inSeparatorOf('', '3')).toBe('3');
   });
 });

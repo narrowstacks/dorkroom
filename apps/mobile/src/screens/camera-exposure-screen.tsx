@@ -16,7 +16,7 @@ import {
 } from '@/components/camera-exposure/format';
 import { FormulaRow } from '@/components/formula-row';
 import { GlassCard } from '@/components/glass-card';
-import { ResultCard } from '@/components/result-card';
+import { Readout } from '@/components/readout';
 import { ResultRow } from '@/components/result-row';
 import { ResultStat } from '@/components/result-stat';
 import { Screen } from '@/components/screen';
@@ -79,7 +79,16 @@ function CameraExposureScreenBody({
   );
 
   return (
-    <Screen>
+    <Screen
+      header={
+        <Readout
+          accent="violet"
+          label="Exposure value"
+          value={`EV ${exposureValue.ev}`}
+          facts={[settings, exposureValue.description]}
+        />
+      }
+    >
       <GlassCard className="gap-3">
         <SectionLabel>Exposure A</SectionLabel>
         <ExposureTriangleFields
@@ -94,17 +103,10 @@ function CameraExposureScreenBody({
 
       {/* No invalid-EV fallback: the pickers only offer positive standard
           values and hydration only accepts positive numbers. */}
-      <ResultCard accent="violet" className="gap-3">
-        <ResultStat
-          accent="violet"
-          label="Exposure value"
-          value={`EV ${exposureValue.ev}`}
-          helper={exposureValue.description}
-        />
+      <View className="gap-3">
         <FormulaRow
           formula={`EV = log₂(N² × 100 / (t × S)) = ${exposureValue.ev}`}
         />
-        <ResultRow label="Settings" value={settings} />
         <ShareButton
           message={buildCameraExposureShare({
             settings,
@@ -112,7 +114,7 @@ function CameraExposureScreenBody({
             description: exposureValue.description,
           })}
         />
-      </ResultCard>
+      </View>
 
       <GlassCard className="gap-3">
         <SectionLabel>Lighting presets</SectionLabel>

@@ -82,6 +82,20 @@ export const parseDecimalInput = (text: string): number => {
 };
 
 /**
+ * Writes `value` (dot-decimal, e.g. from `String(n)`) back in the separator the
+ * user typed: if `typed` used a comma, so does the result. Keeps a comma-decimal
+ * entry ("0,5") from flipping to "0.5" under them when a value is rewritten.
+ *
+ * @example
+ * ```typescript
+ * inSeparatorOf('0,5', '0.75'); // '0,75'
+ * inSeparatorOf('0.5', '0.75'); // '0.75'
+ * ```
+ */
+export const inSeparatorOf = (typed: string, value: string): string =>
+  typed.includes(',') ? value.replace('.', ',') : value;
+
+/**
  * Debounce utility for input processing that delays function execution.
  * Prevents excessive function calls during rapid user input by waiting for a pause.
  *

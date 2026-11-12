@@ -1,26 +1,30 @@
 import {
+  EXPOSURE_TIME_MAX_SECONDS,
+  EXPOSURE_TIME_MIN_SECONDS,
   getDisplayUnitLabel,
   type MeasurementUnit,
   parseDecimalInput,
+  POSITIVE_DIMENSION_MAX,
+  POSITIVE_DIMENSION_MIN,
   resizeCalculatorLink,
   useResizeCalculator,
 } from '@dorkroom/logic';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
-import { GlassCard } from '@/components/glass-card';
-import { LabeledTextField } from '@/components/labeled-text-field';
+import { InsetGroup } from '@/components/inset-group';
+import { Readout } from '@/components/readout';
 import { AspectPreview } from '@/components/resize/aspect-preview';
 import { convertResizeLengths } from '@/components/resize/units';
-import { ResultCard } from '@/components/result-card';
-import { ResultRow } from '@/components/result-row';
-import { ResultStat } from '@/components/result-stat';
 import { Screen } from '@/components/screen';
+import { ScrubRow } from '@/components/scrub/scrub-row';
+import { adaptiveTimeStep } from '@/components/scrub/scrub-value';
 import { SectionLabel } from '@/components/section-label';
 import { SegmentedControl } from '@/components/segmented-control';
 import { ShareButton } from '@/components/share-button';
 import { useLinkOverrides } from '@/hooks/use-link-overrides';
 import { useMeasurementUnit } from '@/hooks/use-measurement-unit';
 import { buildResizeShare } from '@/lib/share-text';
+import { spokenSeconds } from '@/lib/spoken-time';
 
 const num = (s: string) => parseDecimalInput(s) || 0;
 
@@ -85,137 +89,127 @@ function ResizeScreenBody() {
   const stopsHelper = (() => {
     const diff = Number.parseFloat(stopsDifference);
     if (!Number.isFinite(diff) || diff === 0) return 'same size';
-    return diff > 0 ? 'larger — add exposure' : 'smaller — remove exposure';
+    return diff > 0 ? 'larger, add exposure' : 'smaller, remove exposure';
   })();
 
+  const lengthStep = measurementUnit === 'imperial' ? 0.25 : 0.5;
+  const dimension = (
+    label: string,
+    value: string,
+    onChangeText: (text: string) => void
+  ) => (
+    <ScrubRow
+      key={label}
+      label={label}
+      unit={unit}
+      accent="teal"
+      value={value}
+      onChangeText={onChangeText}
+      step={lengthStep}
+      min={POSITIVE_DIMENSION_MIN}
+      max={POSITIVE_DIMENSION_MAX}
+    />
+  );
+
+  const readout = newTime ? (
+    <Readout
+      accent="teal"
+      label="New time"
+      value={newTime}
+      unit="s"
+      accessibilityValueText={`${spokenSeconds(newTime)}, ${stopsDifference} stops, ${stopsHelper}`}
+      facts={[`${stopsDifference} stops`, stopsHelper]}
+      note={
+        !isAspectRatioMatched && !isEnlargerHeightMode ? (
+          <Text className="text-amber-500">Aspect ratios do not match.</Text>
+        ) : undefined
+      }
+    />
+  ) : (
+    <Readout
+      accent="teal"
+      label="New time"
+      value={null}
+      note={<Text className="text-white/60">Enter dimensions and a time.</Text>}
+    />
+  );
+
   return (
-    <Screen>
-      <GlassCard className="gap-4">
+    <Screen header={readout}>
+      <SegmentedControl
+        accent="teal"
+        options={[
+          { label: 'Print size', value: false },
+          { label: 'Enlarger height', value: true },
+        ]}
+        value={isEnlargerHeightMode}
+        onChange={setIsEnlargerHeightMode}
+      />
+
+      <View className="gap-2">
+        <SectionLabel>Units</SectionLabel>
         <SegmentedControl
           accent="teal"
           options={[
-            { label: 'Print size', value: false },
-            { label: 'Enlarger height', value: true },
+            { label: 'Inches', value: 'imperial' },
+            { label: 'Centimeters', value: 'metric' },
           ]}
-          value={isEnlargerHeightMode}
-          onChange={setIsEnlargerHeightMode}
+          value={measurementUnit}
+          onChange={setMeasurementUnit}
         />
+      </View>
 
-        <View className="gap-2">
-          <SectionLabel>Units</SectionLabel>
-          <SegmentedControl
-            accent="teal"
-            options={[
-              { label: 'Inches', value: 'imperial' },
-              { label: 'Centimeters', value: 'metric' },
+      <InsetGroup>
+        {/* Arrays, not fragments: InsetGroup only divides its direct children. */}
+        {isEnlargerHeightMode
+          ? [
+              dimension('Original height', originalHeight, setOriginalHeight),
+              dimension('New height', newHeight, setNewHeight),
+            ]
+          : [
+              dimension('Original width', originalWidth, setOriginalWidth),
+              dimension('Original length', originalLength, setOriginalLength),
+              dimension('New width', newWidth, setNewWidth),
+              dimension('New length', newLength, setNewLength),
             ]}
-            value={measurementUnit}
-            onChange={setMeasurementUnit}
-          />
-        </View>
-
-        {isEnlargerHeightMode ? (
-          <View className="flex-row gap-3">
-            <View className="flex-1">
-              <LabeledTextField
-                label={`Orig. height (${unit})`}
-                value={originalHeight}
-                onChangeText={setOriginalHeight}
-                keyboardType="decimal-pad"
-              />
-            </View>
-            <View className="flex-1">
-              <LabeledTextField
-                label={`New height (${unit})`}
-                value={newHeight}
-                onChangeText={setNewHeight}
-                keyboardType="decimal-pad"
-              />
-            </View>
-          </View>
-        ) : (
-          <>
-            <View className="flex-row gap-3">
-              <View className="flex-1">
-                <LabeledTextField
-                  label={`Orig. width (${unit})`}
-                  value={originalWidth}
-                  onChangeText={setOriginalWidth}
-                  keyboardType="decimal-pad"
-                />
-              </View>
-              <View className="flex-1">
-                <LabeledTextField
-                  label={`Orig. length (${unit})`}
-                  value={originalLength}
-                  onChangeText={setOriginalLength}
-                  keyboardType="decimal-pad"
-                />
-              </View>
-            </View>
-            <View className="flex-row gap-3">
-              <View className="flex-1">
-                <LabeledTextField
-                  label={`New width (${unit})`}
-                  value={newWidth}
-                  onChangeText={setNewWidth}
-                  keyboardType="decimal-pad"
-                />
-              </View>
-              <View className="flex-1">
-                <LabeledTextField
-                  label={`New length (${unit})`}
-                  value={newLength}
-                  onChangeText={setNewLength}
-                  keyboardType="decimal-pad"
-                />
-              </View>
-            </View>
-            <AspectPreview
-              origW={num(originalWidth)}
-              origL={num(originalLength)}
-              newW={num(newWidth)}
-              newL={num(newLength)}
-            />
-          </>
-        )}
-
-        <LabeledTextField
-          label="Original time (s)"
+        <ScrubRow
+          label="Original time"
+          unit="s"
+          accent="teal"
           value={originalTime}
           onChangeText={setOriginalTime}
-          keyboardType="decimal-pad"
+          step={adaptiveTimeStep}
+          speakValue={spokenSeconds}
+          min={EXPOSURE_TIME_MIN_SECONDS}
+          max={EXPOSURE_TIME_MAX_SECONDS}
         />
-      </GlassCard>
+      </InsetGroup>
+
+      {isEnlargerHeightMode ? null : (
+        <AspectPreview
+          origW={num(originalWidth)}
+          origL={num(originalLength)}
+          newW={num(newWidth)}
+          newL={num(newLength)}
+        />
+      )}
 
       {newTime ? (
-        <ResultCard accent="teal" className="gap-3">
-          <ResultStat accent="teal" label="New time" value={`${newTime}s`} />
-          <ResultRow label="Stops difference" value={stopsDifference} />
-          <Text className="text-sm text-white/50">{stopsHelper}</Text>
-          {!isAspectRatioMatched && !isEnlargerHeightMode ? (
-            <Text className="text-amber-500">Aspect ratios do not match.</Text>
-          ) : null}
-          <ShareButton
-            message={buildResizeShare({
-              title: isEnlargerHeightMode ? 'Enlarger Resize' : 'Print Resize',
-              original: isEnlargerHeightMode
-                ? `${originalHeight} ${unit} column`
-                : `${originalWidth}×${originalLength} ${unit}`,
-              target: isEnlargerHeightMode
-                ? `${newHeight} ${unit} column`
-                : `${newWidth}×${newLength} ${unit}`,
-              originalTime,
-              newTime,
-              stopsDifference,
-            })}
-          />
-        </ResultCard>
-      ) : (
-        <GlassCard>
-          <Text className="text-white/60">Enter dimensions and a time.</Text>
-        </GlassCard>
-      )}
+        <ShareButton
+          message={buildResizeShare({
+            title: isEnlargerHeightMode ? 'Enlarger Resize' : 'Print Resize',
+            original: isEnlargerHeightMode
+              ? `${originalHeight} ${unit} column`
+              : `${originalWidth}×${originalLength} ${unit}`,
+            target: isEnlargerHeightMode
+              ? `${newHeight} ${unit} column`
+              : `${newWidth}×${newLength} ${unit}`,
+            originalTime,
+            newTime,
+            stopsDifference,
+          })}
+        />
+      ) : null}
     </Screen>
   );
 }

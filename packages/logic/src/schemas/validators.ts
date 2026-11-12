@@ -5,14 +5,28 @@ import { z } from 'zod';
  * These provide consistent validation patterns with customizable messages and ranges.
  */
 
+/** Shortest exposure time the validators accept, in seconds. */
+export const EXPOSURE_TIME_MIN_SECONDS = 0.1;
+/** Longest exposure time `exposureTimeValidator` accepts by default (1 hour). */
+export const EXPOSURE_TIME_MAX_SECONDS = 3600;
+/** Range `stopsValidator` accepts, in stops. */
+export const STOPS_MIN = -5;
+export const STOPS_MAX = 5;
+/** Smallest and largest dimension `positiveDimensionValidator` accepts by default. */
+export const POSITIVE_DIMENSION_MIN = 0.1;
+export const POSITIVE_DIMENSION_MAX = 1000;
+/** Range `reciprocityFactorValidator` accepts. */
+export const RECIPROCITY_FACTOR_MIN = 0.1;
+export const RECIPROCITY_FACTOR_MAX = 10;
+
 /**
  * Creates a validator for exposure time values (in seconds).
  * @param maxSeconds - Maximum allowed time in seconds (default: 3600 = 1 hour)
  */
-export const exposureTimeValidator = (maxSeconds = 3600) =>
+export const exposureTimeValidator = (maxSeconds = EXPOSURE_TIME_MAX_SECONDS) =>
   z
     .number()
-    .min(0.1, 'Time must be greater than 0')
+    .min(EXPOSURE_TIME_MIN_SECONDS, 'Time must be greater than 0')
     .max(maxSeconds, `Time cannot exceed ${maxSeconds} seconds`);
 
 /**
@@ -22,17 +36,17 @@ export const exposureTimeValidator = (maxSeconds = 3600) =>
 export const stopsValidator = () =>
   z
     .number()
-    .min(-5, 'Stops adjustment cannot be less than -5')
-    .max(5, 'Stops adjustment cannot be more than +5');
+    .min(STOPS_MIN, 'Stops adjustment cannot be less than -5')
+    .max(STOPS_MAX, 'Stops adjustment cannot be more than +5');
 
 /**
  * Creates a validator for positive dimension values (width, height, etc.).
  * @param max - Maximum allowed value (default: 1000)
  */
-export const positiveDimensionValidator = (max = 1000) =>
+export const positiveDimensionValidator = (max = POSITIVE_DIMENSION_MAX) =>
   z
     .number()
-    .min(0.1, 'Value must be greater than 0')
+    .min(POSITIVE_DIMENSION_MIN, 'Value must be greater than 0')
     .max(max, 'Value is too large');
 
 /**
@@ -52,5 +66,5 @@ export const dimensionValidator = (max = 1000) =>
 export const reciprocityFactorValidator = () =>
   z
     .number()
-    .min(0.1, 'Reciprocity factor must be at least 0.1')
-    .max(10, 'Reciprocity factor cannot exceed 10');
+    .min(RECIPROCITY_FACTOR_MIN, 'Reciprocity factor must be at least 0.1')
+    .max(RECIPROCITY_FACTOR_MAX, 'Reciprocity factor cannot exceed 10');
