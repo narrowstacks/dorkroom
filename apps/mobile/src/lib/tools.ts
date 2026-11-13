@@ -221,13 +221,11 @@ export const PHASES: readonly PhaseInfo[] = PHASE_ORDER.map((id) => ({
 export const HOME_ROUTE = '/';
 
 /**
- * Settings, a pushed screen in each phase's stack so it has that hub underneath
- * (Back returns to it) and a link that arrives while it is open pushes the tool
- * on top. The gear on a hub opens its own phase's.
+ * The one Settings screen: a pushed screen in the Search tab's stack, so Home
+ * is underneath (Back returns to it) and a link that arrives while it is open
+ * pushes the tool on top. Home's gear opens it; the phase hubs have no gear.
  */
-export function settingsRoute(phase: Phase): string {
-  return `/${phase}/settings`;
-}
+export const SETTINGS_ROUTE = '/settings';
 
 const TOOL_BY_ID = new Map(TOOLS.map((t) => [t.id, t]));
 

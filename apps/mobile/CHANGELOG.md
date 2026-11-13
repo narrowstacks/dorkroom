@@ -9,6 +9,10 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Added
 
+- **Your film log in Search.** Type a roll's name, a film, a camera, a lens, a roll's note or an ISO (`hp5`, `fm2`, `800`) in the search box on Home and your own rolls and cameras show up above the recipe and film results, under "Your film log". Tap a roll to open it, or a camera to open your gear. It works offline and while recipes and films are still loading. (#719)
+
+- **The tab bar tucks away as you scroll.** On the recipe list, the Film Log list and a roll's shots the tab bar shrinks when you scroll down and comes back when you scroll up. Everywhere else it stays put. (#719)
+
 - **Safelight mode.** A switch that turns the app deep red on black, with outlines in place of glass, for working under a safelight. Turn it on from the light bulb button at the top right of any Print screen, or from Settings; while it is on the same button appears in Shoot and Develop so you can turn it off wherever you are. The status bar is hidden; the keyboard, photo picker and system alerts and sheets stay bright (the app asks before opening the photo picker while the mode is on), and camera and photo previews show as bright red images. It has not been tested as safe for photographic paper, and red light is not safe for film or colour paper. (#712)
 
 - **Shoot, Develop and Print tabs.** The tab bar now follows where you are standing: Shoot (Meter, Film Log, Reciprocity, Camera Exposure, Lenses), Develop (Recipes, Process Timer, Inverter) and Print (Border, Exposure, Resize, Mat Cut). Each opens on a hub of tiles, so every tool is at most two taps away with nothing to set up. Lenses and Camera Exposure tiles show the last answer you got; the other tiles say what the tool does. Shoot also shows your active roll at the top; tap it to open the roll. (#712)
@@ -25,9 +29,9 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Changed
 
+- **Settings moved to the Search tab.** There is now one Settings screen, moved here from More and opened from the gear button beside the search box on Home. Back returns to Home. (#719)
 - **Back by swipe starts at the left edge.** On the Meter, Inverter, Border, Mat Cut and Resize, a sideways drag on the screen no longer goes back; swipe from the left edge of the screen instead. (#712)
-- **Pinned tabs and Edit Tabs are gone.** The Shoot, Develop and Print tabs put every tool within two taps, so there is nothing left to pin. Tools you had pinned, and everything that was in More, now live on their phase's hub. Your home-screen shortcuts and links keep working. (#712)
-- **Settings moved to a gear button.** It sits at the top right of each hub and opens Settings; Back returns to the hub. (#712)
+- **Pinned tabs and Edit Tabs are gone.** The Shoot, Develop and Print tabs put every tool within two taps, so there is nothing left to pin. Tools you had pinned, and everything that was in More except Settings, now live on their phase's hub. Your home-screen shortcuts and links keep working. (#712)
 - **Three colours instead of nine.** Shoot is yellow, Develop is teal and Print is rose, and each screen's backdrop has one soft glow in its phase colour (a neutral one on Search and Settings) in place of the old three glows and film grain. The selected tab takes the same colour. (#712)
 - **The answer comes first on five calculators.** Exposure, Reciprocity, Camera Exposure, Lenses and Resize keep the result in large type at the top of the screen. It stays put while you scroll and while the keyboard is up, and updates as you change a value. (#712)
 - **Scrub numbers instead of typing them.** On Exposure, Reciprocity, Lenses and Resize the inputs sit in grouped lists. Drag sideways on a number to change it, or tap the row to type an exact value. A ruler under each number shows the values around it, with labels. Dragging right lowers the value, like sliding a ruler under a fixed mark. The step grows as times and focal lengths get longer.

@@ -29,9 +29,9 @@ describe('splitPhaseLink', () => {
       hub: '/develop',
       target: '/develop/recipes/timer',
     });
-    expect(splitPhaseLink('/print/settings')).toEqual({
+    expect(splitPhaseLink('/print/exposure')).toEqual({
       hub: '/print',
-      target: '/print/settings',
+      target: '/print/exposure',
     });
   });
 
@@ -49,6 +49,8 @@ describe('splitPhaseLink', () => {
       '/nowhere/x',
       '',
       '/shoot?a=1',
+      '/settings',
+      '/settings?x=1',
     ]) {
       expect(splitPhaseLink(path)).toBeUndefined();
     }
@@ -99,7 +101,8 @@ describe('phaseOfPath', () => {
     expect(phaseOfPath('/shoot/film-log/shot')).toBe('shoot');
     expect(phaseOfPath('/develop')).toBe('develop');
     expect(phaseOfPath('/print/mat?x=1')).toBe('print');
-    for (const path of ['/', '', '/nowhere', null]) {
+    // Settings is in the Search tab's stack, so it belongs to no phase.
+    for (const path of ['/', '', '/nowhere', '/settings', null]) {
       expect(phaseOfPath(path)).toBeUndefined();
     }
   });
@@ -137,6 +140,34 @@ describe('handOffWarmLink', () => {
     expect(getPendingLink()).toBeNull();
   });
 
+  it('opens Settings directly, from any tab', () => {
+    for (const current of ['/', '/settings', '/shoot/meter', '/print', null]) {
+      expect(handOffWarmLink('/settings', current), String(current)).toBe(
+        undefined
+      );
+    }
+    expect(getPendingLink()).toBeNull();
+  });
+
+  it('treats Home and Settings alike as "not a phase" for a phase link', () => {
+    // Home is `/` inside the `(home)` group; Settings is `/settings` there.
+    for (const current of ['/', '/settings']) {
+      expect(handOffWarmLink('/develop/recipes', current), current).toBe(
+        '/develop'
+      );
+      expect(takePendingLink(), current).toBe('/develop/recipes');
+    }
+  });
+
+  it('hands off a phase link that arrives while Settings is open', () => {
+    setCurrentPath('/settings');
+    expect(handOffWarmLink('/shoot/meter')).toBe('/shoot');
+    expect(getPendingLink()).toEqual({
+      hub: '/shoot',
+      target: '/shoot/meter',
+    });
+  });
+
   it('splits every quick action href the same way', () => {
     for (const [href, hub] of [
       ['/more/meter', '/shoot'],
@@ -171,6 +202,14 @@ describe('decideHandoff', () => {
     expect(
       decideHandoff({ ...base, pathname: '/develop/recipes', ageMs })
     ).toBe('clear');
+  });
+
+  it('opens a link handed off from Settings once the hub shows', () => {
+    const settings = { hub: '/develop', armedPath: '/settings', ageMs: 0 };
+    expect(decideHandoff({ ...settings, pathname: '/settings' })).toBe('wait');
+    expect(decideHandoff({ ...settings, pathname: '/develop' })).toBe(
+      'navigate'
+    );
   });
 
   it('keeps a newer link armed from the route it arrived on', () => {

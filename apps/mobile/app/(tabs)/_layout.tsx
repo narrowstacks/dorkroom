@@ -7,6 +7,7 @@ import { useLinkHandoff } from '@/hooks/use-link-handoff';
 import { toolIdForPath } from '@/lib/deep-link';
 import { routeQuickAction } from '@/lib/quick-action';
 import { recordToolUse } from '@/lib/recent-store';
+import { tabBarMinimizeBehavior } from '@/lib/tab-bar-minimize';
 import { PHASES } from '@/lib/tools';
 import { ACCENT, PHASE_ACCENT } from '@/theme/accents';
 import { SAFELIGHT } from '@/theme/safelight';
@@ -18,10 +19,10 @@ const PHASE_SYMBOL = {
   print: 'photo.on.rectangle',
 } as const;
 
-// Home is the app's initial route (see the Search trigger below). The Shoot,
-// Develop and Print triggers come first in the bar, so without this the
-// navigator's own default would be the first of them.
-export const unstable_settings = { initialRouteName: 'index' };
+// Home, the `(home)` stack, is the app's initial route (see the Search trigger
+// below). The Shoot, Develop and Print triggers come first in the bar, so
+// without this the navigator's own default would be the first of them.
+export const unstable_settings = { initialRouteName: '(home)' };
 
 // The Search tab belongs to no phase, so its selected state is white rather
 // than the system tint, which would read as a fourth hue.
@@ -42,6 +43,9 @@ export default function TabsLayout() {
 
   return (
     <NativeTabs
+      // The bar shrinks on scroll only over the long lists (recipes, the film
+      // log, a roll), never over a form, a calculator or the camera.
+      minimizeBehavior={tabBarMinimizeBehavior(pathname)}
       // Safelight mode: a black bar with red labels and icons. The multiply
       // overlay tints the glass regardless; this keeps it as dark as it goes.
       {...(on
@@ -75,8 +79,10 @@ export default function TabsLayout() {
           </NativeTabs.Trigger>
         );
       })}
-      {/* Home is the search tab and the launch route: "/" opens it. */}
-      <NativeTabs.Trigger name="index">
+      {/* Home is the search tab and the launch route: "/" opens it. The name is
+          the `(home)` directory: a group folder with its own `_layout` is one
+          route of this navigator, holding Home and Settings as a stack. */}
+      <NativeTabs.Trigger name="(home)">
         <NativeTabs.Trigger.Icon
           sf="magnifyingglass"
           selectedColor={on ? SAFELIGHT.text : NEUTRAL_SELECTED}
