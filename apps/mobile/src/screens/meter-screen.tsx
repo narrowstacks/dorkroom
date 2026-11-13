@@ -1,4 +1,4 @@
-import { useLightMeterSolver } from '@dorkroom/logic';
+import { METER_MAX_SHUTTER_SPEED, useLightMeterSolver } from '@dorkroom/logic';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useIsFocused } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
@@ -8,6 +8,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -18,6 +19,7 @@ import { BlurPanel } from '@/components/meter/blur-panel';
 import { CustomIsoSheet } from '@/components/meter/custom-iso-sheet';
 import { GlassPill } from '@/components/meter/glass-pill';
 import { MeterCaptureControls } from '@/components/meter/meter-capture-controls';
+import { MeterNextStep } from '@/components/meter/meter-next-step';
 import { MeterReadout } from '@/components/meter/meter-readout';
 import { MeterRollPill } from '@/components/meter/meter-roll-pill';
 import { MeterSettingsSheet } from '@/components/meter/meter-settings-sheet';
@@ -27,6 +29,10 @@ import {
   SpotMeteringIcon,
 } from '@/components/meter/metering-icons';
 import { PermissionFallback } from '@/components/meter/permission-fallback';
+import {
+  meterPillMaxWidth,
+  TOP_STACK_MARGIN,
+} from '@/components/meter/pill-width';
 import { Reticle, RETICLE_SIZE } from '@/components/meter/reticle';
 import { ScrubOverlay } from '@/components/meter/scrub-overlay';
 import { SegmentedPill } from '@/components/meter/segmented-pill';
@@ -36,6 +42,7 @@ import { useCameraMeter } from '@/hooks/use-camera-meter';
 import { useHeaderClearance } from '@/hooks/use-header-clearance';
 import { useMeterCapture } from '@/hooks/use-meter-capture';
 import { useMeterIsoLock } from '@/hooks/use-meter-iso-lock';
+import { useMeterRoll } from '@/hooks/use-meter-roll';
 import {
   type SelectorTarget,
   useMeterScrubFields,
@@ -44,6 +51,8 @@ import { useShutterFlash } from '@/hooks/use-shutter-flash';
 import { useToast } from '@/hooks/use-toast';
 import { useLinkFilmLog } from '@/lib/meter-film-log-link';
 import { getMeterSettings, setMeterSettings } from '@/lib/meter-settings';
+import { meterShutterForLink, reciprocityStep } from '@/lib/next-step';
+import { openToolPath } from '@/lib/open-tool-path';
 
 // Clearance for the translucent native tab bar so bottom controls stay tappable
 // while the readout still sits snug above it (no dead gap).
@@ -76,6 +85,12 @@ interface MeterTopControlsProps {
   toggleLock: () => void;
   linkFilmLog: boolean;
   onOpenSettings: () => void;
+  /** The Reciprocity link, under the gear; null shows none. */
+  nextStep: {
+    label: string;
+    accessibilityLabel: string;
+    onPress: () => void;
+  } | null;
 }
 
 function MeterTopControls({
@@ -85,7 +100,18 @@ function MeterTopControls({
   toggleLock,
   linkFilmLog,
   onOpenSettings,
+  nextStep,
 }: MeterTopControlsProps) {
+  const { width } = useWindowDimensions();
+  // The right stack's measured width (undefined until the first layout: no
+  // pill yet; 0 when measured and empty), so the Reciprocity pill never reaches it.
+  const [rightStackWidth, setRightStackWidth] = useState<number | undefined>(
+    undefined
+  );
+  const pillMaxWidth = meterPillMaxWidth({
+    windowWidth: width,
+    rightStackWidth,
+  });
   return (
     <>
       {/* Settings gear, top-left — opens the meter-specific settings popup
@@ -101,9 +127,21 @@ function MeterTopControls({
             <SymbolView name="gearshape" size={18} tintColor="#ffffff" />
           </GlassPill>
         </Pressable>
+        {nextStep && pillMaxWidth !== null ? (
+          <MeterNextStep
+            label={nextStep.label}
+            accessibilityLabel={nextStep.accessibilityLabel}
+            onPress={nextStep.onPress}
+            maxWidth={pillMaxWidth}
+          />
+        ) : null}
       </View>
       {/* Roll + EI lock, top-right. */}
-      <View pointerEvents="box-none" style={[styles.topControlStack, { top }]}>
+      <View
+        pointerEvents="box-none"
+        style={[styles.topControlStack, { top }]}
+        onLayout={(e) => setRightStackWidth(e.nativeEvent.layout.width)}
+      >
         {rollIso != null ? (
           <Pressable
             onPress={toggleLock}
@@ -250,6 +288,11 @@ export function MeterScreen() {
     }
     setLocked(!isoLocked);
   }, [isoLocked, rollIso, setIso, setLocked]);
+  // The roll the meter logs to supplies the film for the reciprocity link, only
+  // while the film-log link is on and only when its film stock name matches a
+  // reciprocity film unambiguously (`reciprocityFilmFor`).
+  const { roll: meterRoll } = useMeterRoll();
+  const filmStockName = linkFilmLog ? meterRoll?.filmStockName : undefined;
   const { message: toastMessage, show: showToast } = useToast();
   const onIsoBlocked = useCallback(
     () => showToast('Unlock EI in the upper left to pick an ISO'),
@@ -356,6 +399,43 @@ export function MeterScreen() {
 
   const isSpot = meteringMode === 'spot';
 
+  // The shutter for the link: the dial's value, or the unsnapped solved time
+  // when the dial clamped a long one to 30". The pill sits in the top-left
+  // stack under the gear, clear of the shutter button; it is not rendered
+  // while a scrub is active, nor while a solved shutter has no light reading
+  // behind it.
+  const solution = solver.solution;
+  const shutterSeconds = meterShutterForLink({
+    displayed: fields.shutter.value,
+    solved: solution.shutterSpeed,
+    locked: fields.shutter.locked === true,
+    outOfRange: solution.outOfRange,
+    max: METER_MAX_SHUTTER_SPEED,
+  });
+  const reciprocity = reciprocityStep({
+    shutterSeconds,
+    filmStockName,
+    opened: 0,
+  });
+  const nextStep =
+    reciprocity === null ||
+    scrub ||
+    (fields.shutter.calculated && meter.ev === null)
+      ? null
+      : {
+          label: reciprocity.label,
+          accessibilityLabel:
+            reciprocity.accessibilityLabel ?? reciprocity.label,
+          onPress: () => {
+            const step = reciprocityStep({
+              shutterSeconds,
+              filmStockName,
+              opened: Date.now(),
+            });
+            if (step) openToolPath(step.path);
+          },
+        };
+
   return (
     <View style={styles.container} onLayout={onLayout}>
       <Pressable
@@ -410,6 +490,7 @@ export function MeterScreen() {
         toggleLock={toggleLock}
         linkFilmLog={linkFilmLog}
         onOpenSettings={() => setOverlay('settings')}
+        nextStep={nextStep}
       />
 
       <MeterBottomControls
@@ -490,13 +571,13 @@ const styles = StyleSheet.create({
   reticle: { position: 'absolute' },
   topControlStack: {
     position: 'absolute',
-    right: 16,
+    right: TOP_STACK_MARGIN,
     alignItems: 'flex-end',
     gap: 8,
   },
   topLeftStack: {
     position: 'absolute',
-    left: 16,
+    left: TOP_STACK_MARGIN,
     alignItems: 'flex-start',
     gap: 8,
   },
