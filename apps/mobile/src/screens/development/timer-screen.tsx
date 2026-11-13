@@ -1,4 +1,5 @@
 import * as Haptics from 'expo-haptics';
+import { useLocalSearchParams } from 'expo-router';
 import { Pencil } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -10,7 +11,18 @@ import { useTimer } from '@/components/development/timer/use-timer';
 import { PresetChipRow } from '@/components/preset-chip-row';
 import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
+import { LINK_OPENED_PARAM, linkSearchFromParams } from '@/lib/link-prefill';
+import { TIMER_EXPOSURE_PARAM, TIMER_LABEL_PARAM } from '@/lib/next-step';
 import { totalRemainingSeconds } from '@/lib/timer/engine';
+import {
+  exposureLinkKey,
+  exposureSecondsFromParam,
+  exposureStages,
+  lastHandledExposureKey,
+  lastHandledExposureOpened,
+  markExposureLinkHandled,
+  shouldApplyExposureLink,
+} from '@/lib/timer/exposure-link';
 import { consumeTimerPrefill } from '@/lib/timer/prefill';
 import { stagesFromCombination } from '@/lib/timer/presets';
 import { addPreset, listPresets } from '@/lib/timer/presets-storage';
@@ -43,10 +55,13 @@ export function TimerScreen() {
   // mount; the standalone entry (nothing queued) keeps whatever the store
   // holds. A queued recipe never replaces a run in progress: it is dropped.
   const prefillApplied = useRef(false);
+  // A queued recipe wins over an exposure link that arrived with it.
+  const recipeQueued = useRef(false);
   useEffect(() => {
     if (prefillApplied.current) return;
     prefillApplied.current = true;
     const prefill = consumeTimerPrefill();
+    recipeQueued.current = prefill !== null;
     const runActive = isRunActive(timerStore.getSnapshot().timer);
     if (prefill && !runActive) {
       // eslint-disable-next-line react-doctor/no-chain-state-updates -- one-shot mount effect consuming an external module-level queue (consumeTimerPrefill destructively reads-and-clears it), not a state reacting to another state
@@ -55,6 +70,42 @@ export function TimerScreen() {
       applyStages(stagesFromCombination(prefill));
     }
   }, [applyStages, setSelectedPresetId]);
+
+  const search = linkSearchFromParams(useLocalSearchParams());
+  const exposureParam = search[TIMER_EXPOSURE_PARAM];
+  const labelParam = search[TIMER_LABEL_PARAM];
+  const openedAt = search[LINK_OPENED_PARAM];
+  // One-shot exposure link (`?exposure=<seconds>&label=&at=`, from Reciprocity's
+  // "Start a ... exposure"): load a single stage, once per opening (its `at`,
+  // else its value), and never over a run in progress. It does not start: the user presses Start.
+  // The screen may already be mounted when a new link arrives, so this follows
+  // the params rather than mounting once.
+  useEffect(() => {
+    const seconds = exposureSecondsFromParam(exposureParam);
+    // A run that ended while the app was suspended must not count as active.
+    timerStore.sync();
+    const key = exposureLinkKey(openedAt, exposureParam);
+    const now = Date.now();
+    const apply = shouldApplyExposureLink({
+      key,
+      lastAppliedKey: lastHandledExposureKey(),
+      lastOpened: lastHandledExposureOpened(),
+      now,
+      runActive: isRunActive(timerStore.getSnapshot().timer),
+      seconds,
+    });
+    // Handled either way, so a link dropped for a run (or a recipe) does not
+    // load later, and a re-mount with the same params never re-applies it.
+    markExposureLinkHandled(key, now);
+    if (recipeQueued.current) {
+      recipeQueued.current = false;
+      return;
+    }
+    if (apply) {
+      setSelectedPresetId('');
+      applyStages(exposureStages(seconds, labelParam));
+    }
+  }, [exposureParam, labelParam, openedAt, applyStages, setSelectedPresetId]);
 
   const handleSelectPreset = useCallback(
     (id: string) => {

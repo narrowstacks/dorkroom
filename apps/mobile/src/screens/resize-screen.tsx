@@ -12,6 +12,7 @@ import {
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { InsetGroup } from '@/components/inset-group';
+import { ActionRowPlaceholder, NextStepRow } from '@/components/next-step-row';
 import { Readout } from '@/components/readout';
 import {
   ColumnDrawing,
@@ -26,6 +27,8 @@ import { ShareButton } from '@/components/share-button';
 import { StageScreen } from '@/components/stage/stage-screen';
 import { useLinkOverrides } from '@/hooks/use-link-overrides';
 import { useMeasurementUnit } from '@/hooks/use-measurement-unit';
+import { printTimeStep } from '@/lib/next-step';
+import { openToolPath } from '@/lib/open-tool-path';
 import { buildResizeShare } from '@/lib/share-text';
 import { spokenSeconds } from '@/lib/spoken-time';
 
@@ -38,6 +41,51 @@ const RESIZE_MIN_DRAWING = 120;
 const RESIZE_COLLAPSED_SHARE = 0.6;
 
 const num = (s: string) => parseDecimalInput(s) || 0;
+
+/** Same content as the row, invisible: the header keeps its height. */
+const PrintTimePlaceholder = () => (
+  <ActionRowPlaceholder
+    symbol="clock"
+    label="New print time"
+    detail="+0.00 stops"
+  />
+);
+
+interface PrintTimeActionProps {
+  originalTime: string;
+  stopsDifference: string;
+}
+
+/**
+ * "New print time": opens Exposure with the original time and the stops
+ * difference. When there is no usable result it keeps the row's height, so the
+ * pinned header never moves.
+ */
+function PrintTimeAction({
+  originalTime,
+  stopsDifference,
+}: PrintTimeActionProps) {
+  const input = {
+    originalTimeSeconds: parseDecimalInput(originalTime),
+    stops: Number.parseFloat(stopsDifference),
+  };
+  // Rendering needs the label and detail (`opened` is irrelevant to them);
+  // each press builds the path with a fresh marker.
+  const shown = printTimeStep({ ...input, opened: 0 });
+  if (!shown) return <PrintTimePlaceholder />;
+  return (
+    <NextStepRow
+      symbol="clock"
+      label={shown.label}
+      detail={shown.detail}
+      accessibilityHint="Opens Exposure with this time and stops"
+      onPress={() => {
+        const step = printTimeStep({ ...input, opened: Date.now() });
+        if (step) openToolPath(step.path);
+      }}
+    />
+  );
+}
 
 function ResizeScreenBody() {
   const { overrides } = useLinkOverrides(resizeCalculatorLink);
@@ -130,6 +178,12 @@ function ResizeScreenBody() {
       unit="s"
       accessibilityValueText={`${spokenSeconds(newTime)}, ${stopsDifference} stops, ${stopsHelper}`}
       facts={[`${stopsDifference} stops`, stopsHelper]}
+      actions={
+        <PrintTimeAction
+          originalTime={originalTime}
+          stopsDifference={stopsDifference}
+        />
+      }
       // The line is always there, so the warning appearing moves nothing.
       note={
         <View className="min-h-6 justify-center">
@@ -147,6 +201,7 @@ function ResizeScreenBody() {
       label="New time"
       value={null}
       note={<Text className="text-ink-60">Enter dimensions and a time.</Text>}
+      actions={<PrintTimePlaceholder />}
     />
   );
 

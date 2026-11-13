@@ -7,6 +7,7 @@ import {
   APP_SCHEME,
   resolveIncomingLink,
   resolveLegacyPath,
+  stampTimerExposureLink,
   toolIdForPath,
 } from './deep-link';
 import {
@@ -305,5 +306,75 @@ describe('APP_SCHEME', () => {
       )
     );
     expect(config.expo.scheme).toBe(APP_SCHEME);
+  });
+});
+
+describe('stampTimerExposureLink', () => {
+  const NOW = 1_794_000_000_000;
+  const TIMER = '/develop/recipes/timer';
+
+  it('stamps an app-scheme timer link that has an exposure and no at', () => {
+    expect(
+      stampTimerExposureLink(
+        `dorkroom://develop/recipes/timer?exposure=60`,
+        NOW
+      )
+    ).toBe(`dorkroom://develop/recipes/timer?exposure=60&at=${NOW}`);
+  });
+
+  it('stamps a bare path, keeping other params and the hash', () => {
+    expect(stampTimerExposureLink(`${TIMER}?exposure=60&label=X`, NOW)).toBe(
+      `${TIMER}?exposure=60&label=X&at=${NOW}`
+    );
+    expect(stampTimerExposureLink(`${TIMER}?exposure=60#top`, NOW)).toBe(
+      `${TIMER}?exposure=60&at=${NOW}#top`
+    );
+  });
+
+  it('stamps the legacy timer path once it is resolved', () => {
+    expect(
+      stampTimerExposureLink(
+        resolveIncomingLink('dorkroom://timer?exposure=9'),
+        NOW
+      )
+    ).toBe(`${TIMER}?exposure=9&at=${NOW}`);
+  });
+
+  it('each opening gets its own time, so the same URL twice is two openings', () => {
+    const url = `dorkroom://develop/recipes/timer?exposure=60`;
+    expect(stampTimerExposureLink(url, NOW)).not.toBe(
+      stampTimerExposureLink(url, NOW + 5)
+    );
+  });
+
+  it('leaves a link that already has an at, or no exposure, alone', () => {
+    const withAt = `${TIMER}?exposure=60&at=5`;
+    expect(stampTimerExposureLink(withAt, NOW)).toBe(withAt);
+    expect(stampTimerExposureLink(TIMER, NOW)).toBe(TIMER);
+    expect(stampTimerExposureLink(`${TIMER}?label=X`, NOW)).toBe(
+      `${TIMER}?label=X`
+    );
+  });
+
+  it('leaves other routes and other schemes alone', () => {
+    expect(stampTimerExposureLink('/print/exposure?exposure=60', NOW)).toBe(
+      '/print/exposure?exposure=60'
+    );
+    expect(
+      stampTimerExposureLink(
+        'https://x.test/develop/recipes/timer?exposure=60',
+        NOW
+      )
+    ).toBe('https://x.test/develop/recipes/timer?exposure=60');
+  });
+
+  it('is applied by the incoming-link hook', () => {
+    const out = redirectSystemPath({
+      path: 'dorkroom://develop/recipes/timer?exposure=60',
+      initial: true,
+    });
+    expect(out).toMatch(
+      /^dorkroom:\/\/develop\/recipes\/timer\?exposure=60&at=\d+$/
+    );
   });
 });

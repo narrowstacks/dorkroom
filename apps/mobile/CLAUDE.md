@@ -145,7 +145,70 @@ link's params (`xCalculatorLink.build`) as search params on the tool's route.
 The screen reads them with `useLinkOverrides(xCalculatorLink)` and hands them to
 the shared hook as `overrides`. Those apply on mount only, so the hook returns a
 key and the screen puts it on its body to re-mount it when a new link arrives.
-Add that wrapper to any new calculator screen that Home can link to.
+Add that wrapper to any new calculator screen that a link can open. Home and the
+next-step links below both open calculators this way.
+
+**Next-step links.** A row under a tool's answer that carries it into the next
+tool, so nobody retypes it: Meter to Reciprocity (the shutter, from 1 s),
+Reciprocity to the Process Timer ("Start a 3m 8s exposure"), Resize to Exposure
+("New print time"). `NextStepRow` (`src/components/next-step-row.tsx`) is the
+row, a link with a trailing chevron; it and "Save to roll" are the same
+`ActionRow`, stacked in a `Readout`'s `actions` slot. On a stage screen's pinned
+header, reserve the row's height from the first render with
+`ActionRowPlaceholder`, which draws the row's own content invisibly so the
+height follows Dynamic Type. The Meter, a full-bleed camera, uses a glass pill
+instead (`MeterNextStep`) in the top-left stack under the settings gear. It
+cannot go in the bottom toggle row: that row shares a band with the centred 76pt
+shutter button, which would sit over the pill. Its width is capped from the
+measured width of the right-hand stack (ISO and roll pills), so it ends at least
+8pt before it (`meterPillMaxWidth`; half the screen minus 28 while that stack
+is empty or not measured), and no pill is drawn when under 88pt is left. Its
+text is one line led by the trusted part ("Ilford HP5+ reciprocity", else
+"Reciprocity") so truncation cuts the generic word, and its spoken label is the
+full sentence ("Correct 30 seconds for Ilford HP5+ reciprocity"). It is not
+rendered while scrubbing, which also hides it from VoiceOver. When
+the solved shutter is past the dial's 30" (night scenes), the link carries the
+unsnapped solved time (`meterShutterForLink`).
+
+Every target is a plain path built by a pure function in `src/lib/next-step.ts`
+(a deep link App Intents can reuse), from the calculator's own
+`xCalculatorLink.build` plus the `at` marker. Open one with `openToolPath`
+(`src/lib/open-tool-path.ts`), a plain `router.navigate` with an anchor, the
+pattern Home uses. A timer already on top is reused with the new params;
+otherwise one is pushed, so a second timer screen can sit in the Develop stack
+when an older one is under another screen (both show the same run; the cost is
+one extra Back). Two things were tried and rejected. The warm-link handoff above
+(for links arriving from outside) pushed a second Develop hub on top of Recipes
+when Recipes was already open. A singular timer screen (`dangerouslySingular`)
+made one Back collapse the visible stack to its hub, with an unhandled
+`REPLACE_PARAMS` on react-native-screens 4.26.2 and expo-router 57.0.29; popping
+to the old timer instead loses the screen the user came from. With Recipes open
+in Develop, Back from the timer returns to Recipes, not the hub. The Meter link sets the
+Reciprocity film only when the roll's film stock name matches exactly one
+reciprocity film (`reciprocityFilmFor`): every word of the film's label (brand
+included, "plus" aside) must be in the name, and the name's other words must be
+"plus", "pro", "professional", "pan", "film", "super" (XP2 only) or a number the label lacks, so
+"Ilford HP5 Plus 400" matches and "Rollei Ortho 25 Plus" does not. A miss is
+safe: the link carries the time alone. Resize carries the original time plus
+the stops difference, so Exposure's result can differ from Resize's in the last
+digit; a difference that rounds to 0.00 stops offers no row.
+
+The timer takes `?exposure=<seconds>&label=<text>&at=<opened>` (up to 24 h):
+`TimerScreen` loads one custom stage (`exposureStages`), does not start it, and
+never replaces a run in progress (Reciprocity's row then reads "Timer running"
+and just opens the timer); a queued recipe wins over it. An opening is its `at`, a timestamp. An incoming link
+with an `exposure` and no `at` (what an App Intent builds, such as
+`dorkroom://develop/recipes/timer?exposure=60`) is stamped with `at=<now ms>` in
+`redirectSystemPath` (`stampTimerExposureLink`, pure), so every opening is
+ordered and the same URL opened twice applies twice. The newest `at` handled is
+remembered at module level (`src/lib/timer/exposure-link.ts`): an opening older
+than it never applies and never moves the memory back, so an older timer screen
+that re-runs its effect with stale params (a remount; seen on the Simulator,
+where it put the old time back right after a newer link) changes nothing. An
+`at` more than 60 s ahead of the clock is not trusted for ordering (an external
+link could otherwise block every later one until restart). `exposureLinkKey`
+keeps an at-less identity branch for safety; no deep link reaches it. The
+exposure effect follows only the route params.
 
 ### Routing and screens
 

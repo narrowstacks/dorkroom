@@ -1,3 +1,5 @@
+import { LINK_OPENED_PARAM } from '@/lib/link-prefill';
+import { TIMER_EXPOSURE_PARAM } from '@/lib/next-step';
 import {
   getTool,
   getToolPhase,
@@ -157,4 +159,40 @@ export function resolveIncomingLink(input: string): string {
   // A link that only needed case-folding (`dorkroom://Shoot/meter`) is rewritten
   // too, to the folded path.
   return resolved === path && path === original ? input : resolved;
+}
+
+/**
+ * Gives an incoming link to the Process Timer that carries an exposure but no
+ * `at` the time it arrived (`at=<now ms>`), so every opening is ordered and an
+ * older timer screen can never re-apply a stale one. This is the form an App
+ * Intent builds (`dorkroom://develop/recipes/timer?exposure=60`); the same URL
+ * opened twice is two openings. Accepts the app-scheme URL or a bare path; any
+ * other link comes back unchanged. Pure: `now` is passed in.
+ */
+export function stampTimerExposureLink(link: string, now: number): string {
+  const hashIndex = link.indexOf('#');
+  const beforeHash = hashIndex === -1 ? link : link.slice(0, hashIndex);
+  const hash = hashIndex === -1 ? '' : link.slice(hashIndex);
+  const queryIndex = beforeHash.indexOf('?');
+  const head = queryIndex === -1 ? beforeHash : beforeHash.slice(0, queryIndex);
+  const query = queryIndex === -1 ? '' : beforeHash.slice(queryIndex + 1);
+
+  const scheme = URL_SCHEME.exec(head);
+  if (scheme !== null && scheme[1].toLowerCase() !== APP_SCHEME) return link;
+  const path = scheme === null ? head : `/${scheme[2]}`;
+  const timerRoute = getTool('timer')?.route;
+  if (timerRoute === undefined) return link;
+  if (path.replace(/\/+$/, '').toLowerCase() !== timerRoute.toLowerCase()) {
+    return link;
+  }
+
+  const keys = query.split('&').map((pair) => pair.split('=')[0]);
+  if (
+    !keys.includes(TIMER_EXPOSURE_PARAM) ||
+    keys.includes(LINK_OPENED_PARAM)
+  ) {
+    return link;
+  }
+  const stamped = `${LINK_OPENED_PARAM}=${Math.floor(now)}`;
+  return `${head}?${query === '' ? stamped : `${query}&${stamped}`}${hash}`;
 }
