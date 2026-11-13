@@ -96,6 +96,11 @@ export function RollDetailScreen() {
               {meta ? (
                 <Text className="text-sm text-ink-50">{meta}</Text>
               ) : null}
+              {item.place ? (
+                <Text className="text-sm text-ink-60" numberOfLines={1}>
+                  {item.place}
+                </Text>
+              ) : null}
               {item.notes ? (
                 <Text className="text-sm text-ink-60" numberOfLines={1}>
                   {item.notes}

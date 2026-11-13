@@ -77,6 +77,11 @@ export const shotSchema = z.object({
   /** Per-shot holder/back override (defaults to the roll's `back`). */
   back: z.string().optional(),
   notes: z.string().optional(),
+  /**
+   * Free-text place name. GPS coordinates are a later, separate field: they need
+   * a location module, which is a native build.
+   */
+  place: z.string().optional(),
   takenAt: z.string().optional(),
   source: z.enum(['manual', 'meter']),
 });
