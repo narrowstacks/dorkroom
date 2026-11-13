@@ -1,4 +1,8 @@
-import { APP_SCHEME, resolveIncomingLink } from '@/lib/deep-link';
+import {
+  APP_SCHEME,
+  resolveIncomingLink,
+  stampTimerExposureLink,
+} from '@/lib/deep-link';
 import { handOffWarmLink } from '@/lib/link-handoff';
 
 // Rewrites incoming external URLs so they land on a route that exists now.
@@ -15,7 +19,12 @@ export function redirectSystemPath({
   initial: boolean;
 }): string {
   try {
-    const resolved = resolveIncomingLink(path);
+    // A timer exposure link without `at` is stamped with the arrival time so
+    // every opening is ordered (see `stampTimerExposureLink`).
+    const resolved = stampTimerExposureLink(
+      resolveIncomingLink(path),
+      Date.now()
+    );
     // A cold link builds the stack from scratch, which is right as it is. A
     // warm link into a tab that is not on screen selects that phase's hub
     // first and opens the target once it shows; a link into the tab on screen

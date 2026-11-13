@@ -11,6 +11,7 @@ import { SaveToRollAction } from '@/components/film-log/save-to-roll-action';
 import { FormulaRow } from '@/components/formula-row';
 import { GlassCard } from '@/components/glass-card';
 import { InsetGroup, InsetRow } from '@/components/inset-group';
+import { NextStepRow } from '@/components/next-step-row';
 import { PresetChipRow } from '@/components/preset-chip-row';
 import { Readout } from '@/components/readout';
 import { FilmPicker } from '@/components/reciprocity/film-picker';
@@ -21,13 +22,53 @@ import { adaptiveTimeStep } from '@/components/scrub/scrub-value';
 import { SectionLabel } from '@/components/section-label';
 import { ShareButton } from '@/components/share-button';
 import { useLinkOverrides } from '@/hooks/use-link-overrides';
+import { useTimerRunActive } from '@/hooks/use-timer-run-active';
 import { readingFromValues } from '@/lib/log-frame';
+import { exposureTimerStep } from '@/lib/next-step';
+import { openToolPath } from '@/lib/open-tool-path';
 import { buildReciprocityShare } from '@/lib/share-text';
 import { formatSignedTime } from '@/lib/signed-time';
 import { spokenDuration, spokenSeconds } from '@/lib/spoken-time';
 
 /** Metered times are written back as seconds the duration parser reads. */
 const formatSeconds = (n: number) => `${n}s`;
+
+interface StartTimerActionProps {
+  seconds: number;
+}
+
+/**
+ * "Start a 3m 8s exposure": loads the Process Timer with this time. While a run
+ * is active it reads "Timer running" and just opens the timer, since a link
+ * never replaces a run.
+ */
+function StartTimerAction({ seconds }: StartTimerActionProps) {
+  const runActive = useTimerRunActive();
+  // Rendering needs the label (`opened` is irrelevant to it); each press builds
+  // the path with a fresh marker, so each opening is a new one.
+  const shown = exposureTimerStep({ seconds, opened: 0, runActive });
+  if (shown === null) return null;
+  return (
+    <NextStepRow
+      symbol="timer"
+      label={shown.label}
+      detail={shown.detail}
+      accessibilityHint={
+        runActive
+          ? 'A timer is running. Opens the Process Timer'
+          : 'Opens the Process Timer with this time loaded'
+      }
+      onPress={() => {
+        const step = exposureTimerStep({
+          seconds,
+          opened: Date.now(),
+          runActive,
+        });
+        if (step) openToolPath(step.path);
+      }}
+    />
+  );
+}
 
 interface ReciprocityScreenBodyProps {
   /** Values the screen was opened with (a Home answer or a deep link). */
@@ -74,12 +115,15 @@ function ReciprocityScreenBody({ overrides }: ReciprocityScreenBodyProps) {
           )}, ${calculation.percentageIncrease.toFixed(0)} percent`,
         ].join(', ')}
         actions={
-          <SaveToRollAction
-            reading={readingFromValues({
-              shutterSpeed: calculation.adjustedTime,
-            })}
-            defaultNotes={`Reciprocity: metered ${formatTime(calculation.originalTime)} on ${calculation.filmName}`}
-          />
+          <>
+            <SaveToRollAction
+              reading={readingFromValues({
+                shutterSpeed: calculation.adjustedTime,
+              })}
+              defaultNotes={`Reciprocity: metered ${formatTime(calculation.originalTime)} on ${calculation.filmName}`}
+            />
+            <StartTimerAction seconds={calculation.adjustedTime} />
+          </>
         }
         facts={[
           calculation.filmName,

@@ -1,12 +1,11 @@
-import { SymbolView } from 'expo-symbols';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Pressable, Text } from 'react-native';
+import { AccessibilityInfo } from 'react-native';
 import { LogFrameSheet } from '@/components/film-log/log-frame-sheet';
+import { ActionRow } from '@/components/next-step-row';
 import { useMeterRoll } from '@/hooks/use-meter-roll';
 import { nextFrameNumber, rollLabel } from '@/lib/film-log-options';
 import type { FrameReading } from '@/lib/log-frame';
 import type { Shot } from '@/schemas/film-log.schema';
-import { usePhaseHue } from '@/theme/use-phase-accent';
 
 /** How long the row reads "Logged frame N" after a log. */
 const LOGGED_MS = 2000;
@@ -28,7 +27,6 @@ export function SaveToRollAction({
   defaultNotes,
 }: SaveToRollActionProps) {
   const { roll } = useMeterRoll();
-  const hue = usePhaseHue();
   // The roll the sheet was opened for. Open means this still is the meter's roll,
   // so losing the roll closes the sheet and it never pops open later.
   const [openFor, setOpenFor] = useState<string | null>(null);
@@ -66,7 +64,10 @@ export function SaveToRollAction({
 
   return (
     <>
-      <Pressable
+      <ActionRow
+        symbol="plus.circle"
+        label="Save to roll"
+        detail={detail}
         onPress={() => setOpenFor(roll.id)}
         accessibilityRole="button"
         accessibilityLabel={
@@ -74,17 +75,7 @@ export function SaveToRollAction({
             ? `Save result to roll, logged frame ${loggedFrame}`
             : `Save result to roll, ${label}, frame ${frame}`
         }
-        className="min-h-11 flex-row items-center gap-3 rounded-xl border-hw border-line bg-surface px-4 active:opacity-80"
-      >
-        <SymbolView name="plus.circle" size={20} tintColor={hue} />
-        <Text className="text-base text-white">Save to roll</Text>
-        <Text
-          numberOfLines={1}
-          className="flex-1 text-right text-sm text-ink-60"
-        >
-          {detail}
-        </Text>
-      </Pressable>
+      />
       <LogFrameSheet
         visible={openFor === roll.id}
         roll={roll}
