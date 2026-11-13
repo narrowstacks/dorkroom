@@ -11,6 +11,7 @@ import { TabBarScrollView } from '@/components/tab-bar-scroll-view';
 import { useCameras, useLenses, useRoll } from '@/hooks/use-film-log';
 import { formatProcess } from '@/lib/film-log-options';
 import { photoUri } from '@/lib/film-log-photos';
+import { shareRollAsCsv } from '@/lib/film-log-share';
 import { deleteRoll } from '@/lib/film-log-storage';
 import type { Shot } from '@/schemas/film-log.schema';
 import { usePhaseHue } from '@/theme/use-phase-accent';
@@ -162,6 +163,29 @@ export function RollDetailScreen() {
           <Text className="text-base text-rose-400">Delete</Text>
         </Pressable>
       </View>
+      <Pressable
+        onPress={() => void shareRollAsCsv(roll.id)}
+        disabled={roll.shots.length === 0}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: roll.shots.length === 0 }}
+        accessibilityHint={
+          roll.shots.length === 0
+            ? 'Log a shot first. There is nothing to export yet.'
+            : 'Opens the share sheet with a CSV file of this roll'
+        }
+        className="items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
+      >
+        <Text
+          className={`text-base text-white ${
+            roll.shots.length === 0 ? 'opacity-40' : ''
+          }`}
+        >
+          Export CSV
+        </Text>
+        {roll.shots.length === 0 ? (
+          <Text className="text-xs text-ink-60">Log a shot to export.</Text>
+        ) : null}
+      </Pressable>
       <CommitButton
         onPress={() => router.push(`/shoot/film-log/shot?rollId=${roll.id}`)}
         label="+ Add shot"

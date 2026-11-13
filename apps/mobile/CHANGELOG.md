@@ -11,6 +11,8 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 - **Time left in the smallest Dynamic Island.** When another app's activity shares the island, the Process Timer's small view now counts down the time left in the run instead of only showing a timer icon. It keeps the pause or check icon while paused or finished. (#719)
 
+- **Smart lists, a stats strip and CSV export in the Film Log.** The roll list has filters with counts (All, In camera, To develop, This year) and sorts rolls in the camera first, then waiting to be developed, then developed, newest first. Under them a strip shows your rolls and frames this year, plus your most shot film and most used camera of all time. A roll's page has Export CSV, which shares a spreadsheet file of its frames named after the roll, camera and date, with each frame's local time. (#719)
+
 - **The running timer above the tab bar.** While a Process Timer run is going, a small bar above the tabs shows the current stage and its time left on every screen, with a button to pause or resume. Tap it to go back to the timer. It tucks in beside the tab bar when the bar shrinks, and goes away when the run ends. (#719)
 
 - **Your film log in Search.** Type a roll's name, a film, a camera, a lens, a roll's note or an ISO (`hp5`, `fm2`, `800`) in the search box on Home and your own rolls and cameras show up above the recipe and film results, under "Your film log". Tap a roll to open it, or a camera to open your gear. It works offline and while recipes and films are still loading. (#719)
