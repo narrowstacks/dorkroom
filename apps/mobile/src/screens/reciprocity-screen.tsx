@@ -7,6 +7,7 @@ import {
   useReciprocityCalculator,
 } from '@dorkroom/logic';
 import { Text, View } from 'react-native';
+import { SaveToRollAction } from '@/components/film-log/save-to-roll-action';
 import { FormulaRow } from '@/components/formula-row';
 import { GlassCard } from '@/components/glass-card';
 import { InsetGroup, InsetRow } from '@/components/inset-group';
@@ -20,6 +21,7 @@ import { adaptiveTimeStep } from '@/components/scrub/scrub-value';
 import { SectionLabel } from '@/components/section-label';
 import { ShareButton } from '@/components/share-button';
 import { useLinkOverrides } from '@/hooks/use-link-overrides';
+import { readingFromValues } from '@/lib/log-frame';
 import { buildReciprocityShare } from '@/lib/share-text';
 import { formatSignedTime } from '@/lib/signed-time';
 import { spokenDuration, spokenSeconds } from '@/lib/spoken-time';
@@ -71,6 +73,14 @@ function ReciprocityScreenBody({ overrides }: ReciprocityScreenBodyProps) {
             formatTime(Math.abs(addedTime))
           )}, ${calculation.percentageIncrease.toFixed(0)} percent`,
         ].join(', ')}
+        actions={
+          <SaveToRollAction
+            reading={readingFromValues({
+              shutterSpeed: calculation.adjustedTime,
+            })}
+            defaultNotes={`Reciprocity: metered ${formatTime(calculation.originalTime)} on ${calculation.filmName}`}
+          />
+        }
         facts={[
           calculation.filmName,
           `factor ${calculation.factor.toFixed(2)}`,

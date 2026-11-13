@@ -426,7 +426,7 @@ export function MeterScreen() {
         onScrubTapHint={onScrubTapHint}
       />
 
-      {/* Bottom-center shutter + confirm sheet (extracted to keep the screen
+      {/* Bottom-center shutter + log-frame sheet (extracted to keep the screen
           lean; capture state lives in useMeterCapture). */}
       <MeterCaptureControls
         capture={capture}

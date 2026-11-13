@@ -1,7 +1,6 @@
 import {
   formatAperture,
   formatShutterSpeed,
-  sanitizeText,
   snapToStandardStop,
   STANDARD_APERTURES,
   STANDARD_SHUTTER_SPEEDS,
@@ -25,7 +24,7 @@ import {
   useRolls,
 } from '@/hooks/use-film-log';
 import { useFormState } from '@/hooks/use-form-state';
-import { cameraUsesBacks, lastUsedLensId } from '@/lib/film-log-options';
+import { cameraUsesBacks, nextFrameNumber } from '@/lib/film-log-options';
 import {
   deletePhotoFile,
   savePhoto,
@@ -33,6 +32,12 @@ import {
 } from '@/lib/film-log-photos';
 import { addShot, updateShot } from '@/lib/film-log-storage';
 import { gatePhotoPicker } from '@/lib/photo-picker-gate';
+import {
+  firstParam,
+  type RouteParam,
+  shotFormDefaults,
+  shotFormFields,
+} from '@/lib/shot-form-defaults';
 import type { ShotPhoto } from '@/schemas/film-log.schema';
 
 const APERTURE_OPTIONS = STANDARD_APERTURES.map((a) => ({
@@ -67,27 +72,31 @@ function parseNum(value: string | undefined): number | undefined {
 
 export function ShotFormScreen() {
   const params = useLocalSearchParams<{
-    rollId: string;
-    shotId?: string;
+    rollId?: RouteParam;
+    shotId?: RouteParam;
     source?: string;
     aperture?: string;
     shutter?: string;
     meteredIso?: string;
     photo?: string;
+    lensId?: RouteParam;
+    place?: RouteParam;
+    notes?: RouteParam;
   }>();
+  const paramRollId = firstParam(params.rollId);
   const rolls = useRolls();
   // When launched from a roll, rollId is fixed. From the meter "+ Log" button it
   // is absent, so the user picks a roll (defaulting to the first active one).
   const [rollId, setRollId] = useState(
-    params.rollId ??
-      rolls.find((r) => r.status === 'active')?.id ??
-      rolls[0]?.id
+    paramRollId ?? rolls.find((r) => r.status === 'active')?.id ?? rolls[0]?.id
   );
   const roll = useRoll(rollId);
   const cameras = useCameras();
   const camera = cameras.find((c) => c.id === roll?.cameraId);
   const lenses = useLensesForCamera(roll?.cameraId);
-  const existing = roll?.shots.find((shot) => shot.id === params.shotId);
+  const existing = roll?.shots.find(
+    (shot) => shot.id === firstParam(params.shotId)
+  );
 
   const prefillAperture = parseNum(params.aperture);
   const prefillShutter = parseNum(params.shutter);
@@ -98,28 +107,30 @@ export function ShotFormScreen() {
     meteredIso !== undefined &&
     roll?.iso !== undefined &&
     meteredIso !== roll.iso;
-  const nextFrame =
-    (roll?.shots.reduce((max, shot) => Math.max(max, shot.frameNumber), 0) ??
-      0) + 1;
+  const nextFrame = nextFrameNumber(roll?.shots ?? []);
+  const defaults = shotFormDefaults(params, existing, roll, lenses, {
+    aperture:
+      prefillAperture === undefined
+        ? undefined
+        : snapToStandardStop(prefillAperture, STANDARD_APERTURES, false)
+            .standard.value,
+    shutterSpeed:
+      prefillShutter === undefined
+        ? undefined
+        : snapToStandardStop(prefillShutter, STANDARD_SHUTTER_SPEEDS, true)
+            .standard.value,
+  });
 
+  // See shotFormDefaults: an existing shot starts exactly as saved, so a value
+  // it never had stays unset (and unwritten) until the user picks one.
   const [form, set] = useFormState({
     frameNumber: existing?.frameNumber ?? nextFrame,
-    aperture:
-      existing?.aperture ??
-      (prefillAperture !== undefined
-        ? snapToStandardStop(prefillAperture, STANDARD_APERTURES, false)
-            .standard.value
-        : 8),
-    shutterSpeed:
-      existing?.shutterSpeed ??
-      (prefillShutter !== undefined
-        ? snapToStandardStop(prefillShutter, STANDARD_SHUTTER_SPEEDS, true)
-            .standard.value
-        : 0.008),
-    // New shots default to the last lens used on this roll.
-    lensId: existing?.lensId ?? lastUsedLensId(roll?.shots ?? []),
-    back: existing?.back ?? roll?.back,
-    notes: existing?.notes ?? '',
+    aperture: defaults.aperture,
+    shutterSpeed: defaults.shutterSpeed,
+    lensId: defaults.lensId,
+    back: defaults.back,
+    notes: defaults.notes,
+    place: defaults.place,
     photo: existing?.photo ?? meterCapturePhoto(params.photo),
   });
 
@@ -148,7 +159,7 @@ export function ShotFormScreen() {
     };
   }, []);
 
-  const showRollPicker = !params.rollId;
+  const showRollPicker = !paramRollId;
   const rollOptions = rolls.map((r) => ({
     label: r.name?.trim() ? r.name : (r.filmStockName ?? 'Roll'),
     value: r.id,
@@ -196,17 +207,11 @@ export function ShotFormScreen() {
 
   const onSave = () => {
     if (!roll) return;
-    const fields = {
-      frameNumber: form.frameNumber,
-      aperture: form.aperture,
-      shutterSpeed: form.shutterSpeed,
-      lensId: form.lensId,
-      back: showBacks ? form.back : undefined,
-      notes: sanitizeText(form.notes, 2000),
+    const fields = shotFormFields(form, {
+      showBacks,
       source:
         existing?.source ?? (params.source === 'meter' ? 'meter' : 'manual'),
-      photo: form.photo,
-    } as const;
+    });
     if (existing) {
       // Clean up the old photo file if the photo was replaced.
       if (existing.photo && existing.photo.fileName !== form.photo?.fileName) {
@@ -319,6 +324,12 @@ export function ShotFormScreen() {
             placeholder="Select a back"
           />
         ) : null}
+        <LabeledTextField
+          label="Place (optional)"
+          value={form.place}
+          onChangeText={(v) => set('place', v)}
+          placeholder="Where you took it"
+        />
         <LabeledTextField
           label="Notes (optional)"
           value={form.notes}
