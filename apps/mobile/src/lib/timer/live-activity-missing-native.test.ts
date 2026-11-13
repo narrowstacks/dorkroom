@@ -26,4 +26,15 @@ describe('live-activity.ts without the ExpoWidgets native module', () => {
     timerStore.dispatch({ type: 'RESET' });
     expect(() => syncLiveActivity()).not.toThrow();
   });
+
+  it('pauses and resumes the run from outside the timer screen', async () => {
+    const { runTimerAction } = await import('./live-activity');
+    const { timerStore } = await import('./timer-store');
+    timerStore.dispatch({ type: 'START' });
+    await runTimerAction({ type: 'PAUSE' });
+    expect(timerStore.getSnapshot().timer.status).toBe('paused');
+    await runTimerAction({ type: 'RESUME' });
+    expect(timerStore.getSnapshot().timer.status).toBe('running');
+    timerStore.dispatch({ type: 'RESET' });
+  });
 });

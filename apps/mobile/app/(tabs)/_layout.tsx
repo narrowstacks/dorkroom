@@ -2,6 +2,8 @@ import { useQuickActionRouting } from 'expo-quick-actions/router';
 import { usePathname } from 'expo-router';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { useEffect } from 'react';
+import { TimerAccessory } from '@/components/development/timer/timer-accessory';
+import { useRunActive } from '@/components/development/timer/use-run-active';
 import { useSafelight } from '@/components/safelight/safelight-provider';
 import { useLinkHandoff } from '@/hooks/use-link-handoff';
 import { toolIdForPath } from '@/lib/deep-link';
@@ -33,6 +35,7 @@ export default function TabsLayout() {
   const pathname = usePathname();
   useLinkHandoff();
   const { on } = useSafelight();
+  const runActive = useRunActive();
 
   // Home resumes from the tools last opened; this is where "opened" is seen,
   // whichever way the tool was reached (hub, Home, deep link, quick action).
@@ -64,6 +67,14 @@ export default function TabsLayout() {
           }
         : {})}
     >
+      {/* A running Process Timer, above the bar on every tab. Rendered only
+          during a run: removing the element sets the tab bar controller's
+          accessory to nil (react-native-screens' TabsHost). */}
+      {runActive ? (
+        <NativeTabs.BottomAccessory>
+          <TimerAccessory />
+        </NativeTabs.BottomAccessory>
+      ) : null}
       {/* The selected tab takes its phase's hue. */}
       {PHASES.map((phase) => {
         const hue = on ? SAFELIGHT.text : ACCENT[PHASE_ACCENT[phase.id]];

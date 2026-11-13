@@ -9,6 +9,8 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Added
 
+- **The running timer above the tab bar.** While a Process Timer run is going, a small bar above the tabs shows the current stage and its time left on every screen, with a button to pause or resume. Tap it to go back to the timer. It tucks in beside the tab bar when the bar shrinks, and goes away when the run ends. (#719)
+
 - **Your film log in Search.** Type a roll's name, a film, a camera, a lens, a roll's note or an ISO (`hp5`, `fm2`, `800`) in the search box on Home and your own rolls and cameras show up above the recipe and film results, under "Your film log". Tap a roll to open it, or a camera to open your gear. It works offline and while recipes and films are still loading. (#719)
 
 - **The tab bar tucks away as you scroll.** On the recipe list, the Film Log list and a roll's shots the tab bar shrinks when you scroll down and comes back when you scroll up. Everywhere else it stays put. (#719)

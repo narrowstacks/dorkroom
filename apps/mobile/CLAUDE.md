@@ -597,6 +597,75 @@ and both targets carry the App Group `group.art.dorkroom.mobile`, so EAS needs
 that App ID, that group registered on the account and both IDs added to the
 group, and a provisioning profile for each. No Push Notifications capability.
 
+**Tab bar accessory.** While a run is going, a pill above the tab bar on every
+tab (`NativeTabs.BottomAccessory`, iOS 26's `UITabBarController.bottomAccessory`)
+shows the current stage, its time left and pause/resume; a tap on its body opens
+the timer. `TimerAccessory` (`components/development/timer/timer-accessory.tsx`)
+renders `timerAccessoryModel` (`lib/timer/accessory-model.ts`, pure, tested),
+built from the same `TimerState` and engine helpers as the Live Activity, so the
+two cannot disagree about the stage or the time left. It ticks because
+`TimerRunEffects` re-samples the store at 4 Hz; it has no timer of its own, and
+`createAccessoryModelSelector` hands both copies the same model until a whole
+second (or the stage or status) changes, so they redraw at 1 Hz.
+
+- **Two copies, no shared state.** react-native-screens' `TabsHost` mounts the
+  children twice, one per placement (`regular` above the bar, `inline` beside a
+  minimized bar), and hides the one not in use. Keep every bit of state in the
+  store; `usePlacement()` only picks the layout (inline drops the stage name
+  and the word "Paused", and the clock never shrinks).
+- **Shown only during a run.** `app/(tabs)/_layout.tsx` renders the element only
+  while `useRunActive()` (a selected boolean, so the layout does not re-render
+  per tick) is true. Removing it unmounts `TabsBottomAccessory`, and
+  `RNSTabsHostComponentView` then calls `setBottomAccessory:nil animated:YES`;
+  the content views detach their KVO observers on unmount
+  (`RNSTabsBottomAccessoryContentComponentView didMoveToWindow`). The other
+  option, `unstable_nativeProps.ios.bottomAccessoryHidden`, makes the same
+  native call but keeps both copies mounted. **This was exercised only on the
+  iOS 27.0 Simulator** (react-native-screens 4.26.2: five quick start/reset
+  cycles with tab switches, no crash, blank or stuck pill). Early iOS 26 seeds
+  crashed on a conditionally rendered accessory, so it still needs a check on
+  an iOS 26 device: quick start/reset, and a run started again while the pill
+  is still animating away.
+- **Size.** The system sets it and react-native-screens passes the frame to
+  the shadow node: the content measured 48pt tall on the Simulator. The row
+  fills it, with a 44pt pause target. Its text is capped at
+  `ACCESSORY_MAX_FONT_SCALE` (1.3) so large Dynamic Type cannot clip it, and
+  the body's text shrinks and ellipsizes before it reaches the button (the
+  inline placement is narrow).
+- **Pause** goes through `runTimerAction` (`live-activity.ts`), the Live
+  Activity buttons' own path (`createTimerActionRunner` in
+  `live-activity-interaction.ts`: store, alerts, then an immediate activity
+  update), without the ownership check. `runtimeActions` builds `sync` and the
+  runner over the runtime's controller, twice (inside `createRuntime` and at
+  module scope): two identical stateless instances over one controller, so
+  `syncLiveActivity`, the safelight subscription and both kinds of button run
+  the same code. Only the controller and the title resolver are kept on
+  `globalThis` across Fast Refresh. While paused, the Live Activity rounds the
+  frozen time to the nearest second (`live-activity-props.ts`, `Math.round`),
+  so it can read one second under the pill and the timer screen, which round
+  up; left as is because the Live Activity code is unchanged by this work.
+- **Opening the timer** is a plain `router.navigate(href, { withAnchor: true })`
+  (Home's pattern), never the warm-link handoff (it currently pushes a
+  duplicate hub when the target phase's stack has a screen above its hub). A
+  timer on top of the Develop stack is reused; otherwise one is pushed, so a
+  second timer screen can sit in the Develop stack when an older one is under
+  another screen (a recipe opened from Search, say). Both show the same run,
+  because the run lives in the store; the cost is an extra Back. On the timer
+  itself the pill body does nothing: it is marked disabled and has no "Opens
+  the timer." hint (`accessoryTarget`, `accessoryOpenHint`). Tried and
+  rejected: `dangerouslySingular` on the timer screen made one Back collapse
+  the visible Develop stack to its hub with an unhandled `REPLACE_PARAMS`
+  (react-native-screens 4.26.2, expo-router 57.0.29), and popping to the
+  existing timer loses the screen the user came from.
+- **Insets.** The tab's safe area grows by the accessory, live: scroll views
+  (automatic insets) and `SafeAreaListener` panels (stage screens) clear it and
+  move back when it goes. The Meter's `useSafeAreaInsets` reads the same
+  per-tab provider but was not seen (no camera on the Simulator). No screen
+  needed a change.
+- **Safelight.** The root multiply overlay covers it (max G and B 0 in the pill);
+  the hue comes from `useAccentColor(PHASE_ACCENT.develop)`, not the phase, since
+  it sits outside every `PhaseProvider`.
+
 ### Components
 
 - PascalCase names, kebab-case files; props interface named `ComponentNameProps`;
