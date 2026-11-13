@@ -17,6 +17,21 @@ export function lastUsedLensId(shots: readonly Shot[]): string | undefined {
   return undefined;
 }
 
+/** The place of the most recent shot of a roll that recorded one, if any.
+ * Used to pre-fill the next shot's place (a roll is often shot in one spot). */
+export function lastUsedPlace(shots: readonly Shot[]): string | undefined {
+  for (let i = shots.length - 1; i >= 0; i--) {
+    const place = shots[i]?.place?.trim();
+    if (place) return place;
+  }
+  return undefined;
+}
+
+/** The frame number a roll's next shot gets: one past the highest so far. */
+export function nextFrameNumber(shots: readonly Shot[]): number {
+  return shots.reduce((max, shot) => Math.max(max, shot.frameNumber), 0) + 1;
+}
+
 export const PROCESS_OPTIONS: { label: string; value: FilmProcess }[] = [
   { label: 'B&W', value: 'bw' },
   { label: 'Color', value: 'color' },

@@ -14,6 +14,7 @@ import {
   formatSignedStops,
   SOLVE_FOR_OPTIONS,
 } from '@/components/camera-exposure/format';
+import { SaveToRollAction } from '@/components/film-log/save-to-roll-action';
 import { FormulaRow } from '@/components/formula-row';
 import { GlassCard } from '@/components/glass-card';
 import { Readout } from '@/components/readout';
@@ -25,6 +26,7 @@ import { SegmentedControl } from '@/components/segmented-control';
 import { ShareButton } from '@/components/share-button';
 import { WarningsCard } from '@/components/warnings-card';
 import { useLinkOverrides } from '@/hooks/use-link-overrides';
+import { readingFromValues } from '@/lib/log-frame';
 import { buildCameraExposureShare } from '@/lib/share-text';
 
 const SOLVE_FOR_LABEL = 'When selecting a preset, adjust';
@@ -87,6 +89,17 @@ function CameraExposureScreenBody({
           label="Exposure value"
           value={`EV ${exposureValue.ev}`}
           facts={[settings, exposureValue.description]}
+          actions={
+            exposureValue.isValid ? (
+              <SaveToRollAction
+                reading={readingFromValues({
+                  aperture: values.aperture,
+                  shutterSpeed: values.shutterSpeed,
+                  iso: values.iso,
+                })}
+              />
+            ) : undefined
+          }
         />
       }
     >
