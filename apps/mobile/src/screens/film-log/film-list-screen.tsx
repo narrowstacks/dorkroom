@@ -4,6 +4,7 @@ import { Alert, FlatList, Pressable, Text, View } from 'react-native';
 import { CommitButton } from '@/components/commit-button';
 import { GlassCard } from '@/components/glass-card';
 import { GradientBackground } from '@/components/gradient-background';
+import { TabBarScrollView } from '@/components/tab-bar-scroll-view';
 import { useCameras, useRolls } from '@/hooks/use-film-log';
 import { formatProcess } from '@/lib/film-log-options';
 import { shareRollsAsJson } from '@/lib/film-log-share';
@@ -118,15 +119,17 @@ export function FilmListScreen() {
   return (
     <View className="flex-1">
       <GradientBackground />
-      <FlatList
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={{ padding: 16, gap: 12 }}
-        data={rolls}
-        keyExtractor={(roll) => roll.id}
-        ListHeaderComponent={header}
-        ListEmptyComponent={EMPTY_STATE}
-        renderItem={renderRoll}
-      />
+      <TabBarScrollView>
+        <FlatList
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerStyle={{ padding: 16, gap: 12 }}
+          data={rolls}
+          keyExtractor={(roll) => roll.id}
+          ListHeaderComponent={header}
+          ListEmptyComponent={EMPTY_STATE}
+          renderItem={renderRoll}
+        />
+      </TabBarScrollView>
     </View>
   );
 }

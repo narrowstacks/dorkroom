@@ -20,8 +20,8 @@ export function SettingsScreen() {
   const safelight = useSafelight();
 
   return (
-    // Settings belongs to no phase: it sits in each phase's stack but keeps the
-    // neutral backdrop glow.
+    // Settings belongs to no phase: it sits in the Search tab's stack and keeps
+    // the neutral backdrop glow.
     <PhaseProvider value={null}>
       <Screen>
         <GlassCard className="gap-2">

@@ -7,6 +7,7 @@ import { CommitButton } from '@/components/commit-button';
 import { PhotoViewer } from '@/components/film-log/photo-viewer';
 import { GlassCard } from '@/components/glass-card';
 import { GradientBackground } from '@/components/gradient-background';
+import { TabBarScrollView } from '@/components/tab-bar-scroll-view';
 import { useCameras, useLenses, useRoll } from '@/hooks/use-film-log';
 import { formatProcess } from '@/lib/film-log-options';
 import { photoUri } from '@/lib/film-log-photos';
@@ -167,19 +168,21 @@ export function RollDetailScreen() {
     <View className="flex-1">
       <Stack.Screen options={{ title }} />
       <GradientBackground />
-      <FlatList
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={{ padding: 16, gap: 12 }}
-        data={roll.shots}
-        keyExtractor={(shot) => shot.id}
-        ListHeaderComponent={header}
-        ListEmptyComponent={
-          <Text className="px-2 py-6 text-center text-ink-50">
-            No shots logged yet.
-          </Text>
-        }
-        renderItem={renderShot}
-      />
+      <TabBarScrollView>
+        <FlatList
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerStyle={{ padding: 16, gap: 12 }}
+          data={roll.shots}
+          keyExtractor={(shot) => shot.id}
+          ListHeaderComponent={header}
+          ListEmptyComponent={
+            <Text className="px-2 py-6 text-center text-ink-50">
+              No shots logged yet.
+            </Text>
+          }
+          renderItem={renderShot}
+        />
+      </TabBarScrollView>
       <PhotoViewer
         visible={!!viewerFile}
         fileName={viewerFile}

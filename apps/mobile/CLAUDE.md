@@ -27,8 +27,8 @@ app/                     # expo-router file-based routes (typed routes on)
   +native-intent.ts      # deep-link path rewriting
   (tabs)/
     _layout.tsx          # NativeTabs (Shoot, Develop, Print, Search); useQuickActionRouting lives HERE
-    index.tsx            # Home, the Search tab and the launch route
-    shoot/ develop/ print/   # one Stack per phase: _layout (PhaseStack), index (hub), [tool], settings
+    (home)/              # the Search tab, a Stack: _layout, index (Home, no header), settings
+    shoot/ develop/ print/   # one Stack per phase: _layout (PhaseStack), index (hub), [tool]
       shoot/film-log/    # Film Log screens, flat in the Shoot stack
       develop/recipes/   # recipe browser, recipe/[id], timer, flat in the Develop stack
 src/
@@ -63,7 +63,7 @@ and `kind`: `'screen'` (a single screen) or `'section'` (its own route files, wi
 a `path`: Film Log, Recipes, and Process Timer, which opens the timer Recipes
 uses). The list order is the hub order. `route` is derived, never written by
 hand, and `PHASES`, `getToolPhase` and `toolsForPhase` derive from it. Home and
-Settings are not tools: `HOME_ROUTE` and `settingsRoute(phase)` stand for them. Its native half is
+Settings are not tools: `HOME_ROUTE` and `SETTINGS_ROUTE` stand for them. Its native half is
 `TOOL_SCREENS` in `src/lib/tool-screens.ts` (the screen component), split out
 because screens can't load under vitest, so `tools.ts` stays pure and the tab
 layout and hubs don't load every screen up front. Adding a single-screen tool
@@ -85,18 +85,21 @@ by `Readout`'s `toolId` prop through `useRecordResult`, 500ms trailing) or its
 blurb. Only a tool that is answer-first and restores its inputs
 (`persistsInputs`, typed as `RecordingToolId`) records one: a tool that resets
 when reopened would show a tile that contradicts the tool. Shoot adds the active roll card (the roll the Meter logs to, or a prompt to
-start one). Settings is an ordinary pushed screen registered once in `PhaseStack` (not a
-modal: a link arriving while a modal is open would push the tool inside it), with
-a route file per phase (`<phase>/settings.tsx`), so it has that hub underneath. The gear
-in each hub header opens its own phase's (`settingsRoute(phase)`); the screen
-resets the phase context so Settings keeps the neutral glow. Pushed screens keep
-the native back button: it shows the previous scene's title, the phase name.
+start one). There is one Settings screen, `/settings` (`SETTINGS_ROUTE`), pushed in the
+Search tab's own stack (`app/(tabs)/(home)/`: `index` is Home with no native
+header, `settings` is the screen). It is an ordinary pushed screen, not a modal (a
+link arriving while a modal is open would push the tool inside it), so Home is
+underneath. The hubs have no gear: Home's search row ends in a 44pt gear
+(`HomeSettingsButton`) that pushes it. The screen resets the phase context so
+Settings keeps the neutral glow. Pushed screens keep the native back button: it
+shows the previous scene's title (the phase name on a hub, "Search" on Home).
 
 **Legacy paths.** Quick actions (`app.json`), App Intents, `dorkroom://` links
 and old shares still carry pre-phase paths (`/more/meter`, `/lenses`,
 `/film-log`, `/development`) and can't change without a native build.
 `resolveLegacyPath` (`src/lib/deep-link.ts`) maps them to canonical paths and
-passes everything else through (legacy `/settings` opens Shoot's Settings).
+passes everything else through (legacy `/settings` and `/more/settings`, and the retired per-phase
+`/shoot/settings`, `/develop/settings` and `/print/settings`, open `/settings`).
 `app/+native-intent.ts` applies `resolveIncomingLink` to incoming URLs
 (`redirectSystemPath`): expo-router hands that hook the FULL URL
 (`dorkroom://meter`, host as the first path segment), so only the app's own
@@ -122,9 +125,20 @@ also reports the current route to the handoff) then opens the target with
 `router.navigate` once the hub is the current route. It hands the target over
 exactly once, drops it after 2s or when the user lands elsewhere first, and a
 newer link replaces an older pending one. Quick actions use the same decision.
-Cold links skip all of this: they build the stack fresh and were always right.
+The Search tab is a stack too (Home and Settings), but `/` and `/settings` are
+non-phase routes: a link to Settings skips the handoff and navigates directly,
+and a phase link that arrives while Home or Settings is current takes the
+hub-first handoff. Cold links skip all of this: they build the stack fresh and were always right.
 Because the hub is the page underneath, a handed-off link's Back button names the
 phase hub, never the tool that happened to be open.
+
+**Film log in Search.** Home also searches the on-device film log (mobile-only
+MMKV data, so `@dorkroom/logic`'s `searchHome` cannot see it). `matchFilmLog`
+(`src/lib/home/film-log-matches.ts`, pure) ANDs the query words, ignoring
+punctuation on both sides, over a roll's name, film, camera, lenses used, notes
+and EI, and over camera names; `ResultGroups` shows the rows above the catalog
+groups, and they show even while the catalog is loading or failed. Filler words
+(`at`, `in`...) and one-character words are dropped from the query first.
 
 **Calculator links.** Home answers open a calculator pre-filled by passing the
 link's params (`xCalculatorLink.build`) as search params on the tool's route.
@@ -140,9 +154,30 @@ Add that wrapper to any new calculator screen that Home can link to.
   fixed: Shoot, Develop, Print, then Home as the Search tab. Icons are SF
   Symbols (`<Icon sf=...>`, no image assets), and the selected tab takes its
   phase's hue (white on Search). The tabs layout exports
-  `unstable_settings.initialRouteName = 'index'`, which only affects the state
+  `unstable_settings.initialRouteName = '(home)'`, which only affects the state
   built from a deep link; `NativeTabs` doesn't pass it to its router, and the
-  launch tab is Home because `/` matches `(tabs)/index`. Home is a plain last tab, not `role="search"`: that role is only
+  launch tab is Home because `/` matches `(tabs)/(home)/index`. The Search
+  trigger is `name="(home)"`: the directory, a group with its own `_layout`, is
+  one route of the tab navigator (like `shoot`), and `usePathname()` still says
+  `/` for Home and `/settings` for Settings. `tabBarMinimizeBehavior(pathname)`
+  (`src/lib/tab-bar-minimize.ts`) feeds `NativeTabs`' `minimizeBehavior`: the bar
+  shrinks on scroll only over the recipe browser, the film log list and a roll's
+  detail, and stays full everywhere else. Those three lists are wrapped in
+  `TabBarScrollView` (`react-native-screens/experimental`'s `ScrollViewMarker`):
+  the prop alone does not reach a list inside a stack inside a tab, so a new
+  list that should minimize needs both the path in `tabBarMinimizeBehavior` and
+  the wrapper (`tab-bar-minimize.test.ts` fails on one without the other).
+  `ScrollViewMarker` is native code that exists only because expo-router's
+  config plugin (`withGammaScreens`) writes `RNS_GAMMA_ENABLED=1` into the
+  Podfile (`RNScreens.podspec` excludes `ios/gamma/**` otherwise), so it is on in
+  every build that uses the `expo-router` plugin; it lives under
+  `react-native-screens/experimental`, so re-check it on a react-native-screens
+  upgrade. Known limits: a marker registers each time it enters a window and the
+  tab tracks one scroll view, so a cancelled back-swipe on a roll's detail
+  re-registers the film log list underneath and the bar stops minimizing on that
+  roll until you leave and return (library behaviour, no app-side fix). The bar
+  comes back only after enough upward scroll, and the bounce at the end of a
+  short list counts as one (seen on the Simulator, not from the library source). Home is a plain last tab, not `role="search"`: that role is only
   the legacy system item (stock title and icon) and adds nothing here.
 - **Dark only.** Don't add light-mode branches. `app/_layout.tsx` forces
   `Appearance.setColorScheme('dark')`, uses `DarkTheme`, and `headerShown: false`. The light status bar comes from the
@@ -424,8 +459,8 @@ may still show the bar.
 
 **Controls.** `SafelightButton` (a `switch` with a visible on-state) is the
 `headerRight` of every Print screen, and of every Shoot and Develop screen while
-the mode is on (`offersSafelightButton`); the hubs show it beside the gear.
-Settings has a "Safelight mode" `ToggleRow`. Home has no header and no button.
+the mode is on (`offersSafelightButton`), the hubs included. Settings has a
+"Safelight mode" `ToggleRow`. Home has no header and no button.
 Toggling takes effect everywhere at once with no reload or navigation reset.
 Native chrome follows through `chromeOptions` (`theme/stack-chrome.ts`) and the
 `NativeTabs` colour props in `app/(tabs)/_layout.tsx`.

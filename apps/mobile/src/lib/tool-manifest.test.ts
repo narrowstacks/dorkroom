@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { redirectSystemPath } from '../../app/+native-intent';
 import { resolveLegacyPath } from './deep-link';
 import { takePendingLink } from './link-handoff';
-import { PHASES, recordsLastResult, settingsRoute, TOOLS } from './tools';
+import { PHASES, recordsLastResult, SETTINGS_ROUTE, TOOLS } from './tools';
 
 // Parity and pin tests for the iOS tool manifest (#455). `TOOLS` in
 // `tools.ts` is the source of truth; the phase layouts, the `[tool]` routes,
@@ -181,20 +181,40 @@ describe('route files', () => {
     const entries = readdirSync(TABS_DIR, { withFileTypes: true })
       .map((e) => e.name.replace(/\.tsx$/, ''))
       .sort();
-    expect(entries).toEqual(['_layout', 'develop', 'index', 'print', 'shoot']);
+    expect(entries).toEqual(['(home)', '_layout', 'develop', 'print', 'shoot']);
   });
 
-  it('has Settings in every phase stack as a pushed screen, and not as a root route', () => {
+  it('has one Settings screen, pushed in the Search tab stack', () => {
+    expect(SETTINGS_ROUTE).toBe('/settings');
+    expect(existsSync(join(TABS_DIR, '(home)', 'settings.tsx'))).toBe(true);
+    expect(read('app', '(tabs)', '(home)', 'settings.tsx')).toMatch(
+      /SettingsScreen/
+    );
     expect(existsSync(join(MOBILE_ROOT, 'app', 'settings.tsx'))).toBe(false);
     for (const phase of PHASES) {
-      expect(routeFileExists(settingsRoute(phase.id)), phase.id).toBe(true);
+      expect(
+        existsSync(join(TABS_DIR, phase.id, 'settings.tsx')),
+        phase.id
+      ).toBe(false);
     }
-    const stack = read('src', 'components', 'hub', 'phase-stack.tsx');
-    expect(stack).toMatch(/name="settings"/);
+    const home = read('app', '(tabs)', '(home)', '_layout.tsx');
+    expect(home).toMatch(/name="settings"/);
+    expect(home).toContain("initialRouteName: 'index'");
     // A modal would swallow a link that arrives while it is open.
+    expect(home).not.toMatch(/presentation:/);
+    const stack = read('src', 'components', 'hub', 'phase-stack.tsx');
+    expect(stack).not.toMatch(/name="settings"/);
     expect(stack).not.toMatch(/presentation:/);
-    expect(read('src', 'components', 'hub', 'header-buttons.tsx')).not.toMatch(
-      /DoneButton/
+  });
+
+  it('has no gear on the hubs', () => {
+    expect(
+      existsSync(
+        join(MOBILE_ROOT, 'src', 'components', 'hub', 'header-buttons.tsx')
+      )
+    ).toBe(false);
+    expect(read('src', 'components', 'hub', 'phase-stack.tsx')).not.toMatch(
+      /HubHeaderRight/
     );
   });
 });
@@ -206,9 +226,11 @@ describe('tab layout', () => {
     // The triggers come from PHASES, so the order test above covers them.
     expect(layout).toContain('PHASES.map');
     expect(layout.indexOf('PHASES.map')).toBeLessThan(
-      layout.indexOf('name="index"')
+      layout.indexOf('name="(home)"')
     );
-    expect(read('app', '(tabs)', 'index.tsx')).toMatch(/HomeScreen/);
+    expect(layout).toContain("initialRouteName: '(home)'");
+    expect(read('app', '(tabs)', '(home)', 'index.tsx')).toMatch(/HomeScreen/);
+    expect(existsSync(join(TABS_DIR, 'index.tsx'))).toBe(false);
   });
 
   it('gives every phase a tab symbol', () => {

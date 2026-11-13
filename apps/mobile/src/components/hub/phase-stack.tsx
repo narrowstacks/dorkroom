@@ -12,7 +12,6 @@ import {
 } from '@/lib/tools';
 import { PhaseProvider } from '@/theme/phase-context';
 import { chromeOptions } from '@/theme/stack-chrome';
-import { HubHeaderRight } from './header-buttons';
 
 /** How far from the left edge a Back swipe may start on a fixed-layout tool. */
 const BACK_SWIPE_EDGE = { end: BACK_SWIPE_ZONE } as const;
@@ -25,11 +24,10 @@ const toolScreenId: ComponentProps<
   Array.isArray(params.tool) ? params.tool[0] : params.tool;
 
 // `headerRight` is CALLED as a function by the native-stack header, not mounted
-// as a component, so a hook inside it belongs to the caller. These return
-// elements, so options can swap between one and `undefined` (the switch comes
+// as a component, so a hook inside it belongs to the caller. This returns an
+// element, so options can swap between one and `undefined` (the switch comes
 // and goes with the mode) without changing the caller's hook order.
 const renderSafelightButton = () => <SafelightButton />;
-const renderHubHeaderRight = () => <HubHeaderRight />;
 
 interface PhaseStackProps {
   phase: Phase;
@@ -39,8 +37,8 @@ interface PhaseStackProps {
 
 /**
  * The stack behind a phase tab, shared by Shoot, Develop and Print: the hub at
- * `index`, a `[tool]` route for single-screen tools, a Settings screen, and
- * whatever sections the phase adds. Every layout exports `unstable_settings.initialRouteName = 'index'`
+ * `index`, a `[tool]` route for single-screen tools, and whatever sections the
+ * phase adds. Settings is not here: it lives in the Search tab's stack. Every layout exports `unstable_settings.initialRouteName = 'index'`
  * so a deep link builds the hub underneath the tool.
  */
 export function PhaseStack({ phase, children }: PhaseStackProps) {
@@ -59,13 +57,7 @@ export function PhaseStack({ phase, children }: PhaseStackProps) {
             : undefined,
         }}
       >
-        <Stack.Screen
-          name="index"
-          options={{
-            title: PHASE_LABELS[phase],
-            headerRight: renderHubHeaderRight,
-          }}
-        />
+        <Stack.Screen name="index" options={{ title: PHASE_LABELS[phase] }} />
         <Stack.Screen
           name="[tool]"
           dangerouslySingular={toolScreenId}
@@ -84,12 +76,6 @@ export function PhaseStack({ phase, children }: PhaseStackProps) {
                 : undefined,
             };
           }}
-        />
-        {/* An ordinary pushed screen, so a link that arrives while it is open
-            pushes the tool on top with a working Back. */}
-        <Stack.Screen
-          name="settings"
-          options={{ title: 'Settings', headerLargeTitle: false }}
         />
         {children}
       </Stack>

@@ -12,11 +12,13 @@ import { GlassCard } from '@/components/glass-card';
 import { AnswerCard } from '@/components/home/answer-card';
 import { ResultGroups } from '@/components/home/result-groups';
 import { ResumeSections } from '@/components/home/resume-sections';
+import { HomeSettingsButton } from '@/components/home/settings-button';
 import { SuggestionList } from '@/components/home/suggestion-list';
 import { TryChips } from '@/components/home/try-chips';
 import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
+import { useCameras, useLenses, useRolls } from '@/hooks/use-film-log';
 import { useHomeSearchData } from '@/hooks/use-home-search-data';
 import { useMeasurementUnit } from '@/hooks/use-measurement-unit';
 import {
@@ -26,6 +28,7 @@ import {
   toolHref,
 } from '@/lib/home/destination';
 import { summarizeEasel } from '@/lib/home/easel-summary';
+import { matchFilmLog } from '@/lib/home/film-log-matches';
 import { recentRecipeRows } from '@/lib/home/recent-recipes';
 import { homeToolIds } from '@/lib/home/tool-matches';
 import { toHref } from '@/lib/href';
@@ -36,6 +39,9 @@ import {
   isFirstHomeLaunch,
   markHomeSeen,
 } from '@/lib/recent-store';
+import { getTool, SETTINGS_ROUTE } from '@/lib/tools';
+
+const FILM_LOG_ROUTE = getTool('film-log')?.route ?? '/shoot/film-log';
 
 /** What the empty box shows on a first launch: a real answer, worked out like any other. */
 const EXAMPLE_QUERY = '8x10 35mm 1/2';
@@ -85,6 +91,18 @@ export function HomeScreen() {
     () => (result ? homeToolIds(result.groups, settled) : []),
     [result, settled]
   );
+  // The film log is local, so it matches even while the catalog is loading.
+  const rolls = useRolls();
+  const cameras = useCameras();
+  const lenses = useLenses();
+  const filmLog = useMemo(
+    () =>
+      searching
+        ? matchFilmLog(settled, { rolls, cameras, lenses })
+        : { rolls: [], cameras: [] },
+    [searching, settled, rolls, cameras, lenses]
+  );
+  const hasFilmLogMatches = filmLog.rolls.length + filmLog.cameras.length > 0;
   const example = useMemo(() => searchHome(EXAMPLE_QUERY).answer, []);
 
   const easel = useMemo(
@@ -114,12 +132,19 @@ export function HomeScreen() {
 
   return (
     <Screen>
-      <SearchBar
-        value={query}
-        onChangeText={setQuery}
-        onFocus={() => setFocused(true)}
-        placeholder="Ask: hp5 at 800 in dd-x"
-      />
+      <View className="flex-row items-center gap-2">
+        <View className="flex-1">
+          <SearchBar
+            value={query}
+            onChangeText={setQuery}
+            onFocus={() => setFocused(true)}
+            placeholder="Ask: hp5 at 800 in dd-x"
+          />
+        </View>
+        <HomeSettingsButton
+          onPress={() => router.navigate(toHref(SETTINGS_ROUTE))}
+        />
+      </View>
 
       {!searching ? <TryChips onTry={setQuery} /> : null}
 
@@ -163,7 +188,8 @@ export function HomeScreen() {
       !answer &&
       !result.pending &&
       result.groups.length === 0 &&
-      toolIds.length === 0 ? (
+      toolIds.length === 0 &&
+      !hasFilmLogMatches ? (
         <GlassCard className="gap-3">
           <Text className="text-sm text-ink-60">
             Nothing matches that yet. Name a film, a developer or a size, or try
@@ -177,8 +203,13 @@ export function HomeScreen() {
         <ResultGroups
           groups={result.groups}
           toolIds={toolIds}
+          filmLog={filmLog}
           onOpen={openTarget}
           onOpenTool={(id) => go(toolHref(id))}
+          onOpenRoll={(id) =>
+            go(`${FILM_LOG_ROUTE}/roll/${encodeURIComponent(id)}`)
+          }
+          onOpenGear={() => go(`${FILM_LOG_ROUTE}/gear`)}
         />
       ) : null}
 
