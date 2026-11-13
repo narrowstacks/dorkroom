@@ -21,10 +21,14 @@ import {
   selectNative,
   UNAVAILABLE_WARNING,
 } from './live-activity-controller';
-import { createInteractionHandler } from './live-activity-interaction';
+import {
+  createInteractionHandler,
+  createTimerActionRunner,
+} from './live-activity-interaction';
 import type { TimerActivityProps } from './live-activity-props';
 import { listPresets } from './presets-storage';
 import { timerStore } from './timer-store';
+import type { TimerAction } from './types';
 
 /** Names the layout stored for the extension. */
 const ACTIVITY_NAME = 'ProcessTimer';
@@ -113,6 +117,39 @@ interface LiveActivityRuntime {
   titleOf: (presetId: string) => string | null;
 }
 
+interface RuntimeActions {
+  /** Report the store's timer to the activity: the one path for every caller. */
+  sync: () => void;
+  /** A timer control pressed outside the timer screen (see `runTimerAction`). */
+  runAction: (action: TimerAction) => Promise<void>;
+}
+
+/**
+ * The actions over a runtime's controller. They hold no state of their own, so
+ * building them again (each Fast Refresh) over the same controller behaves the
+ * same.
+ */
+function runtimeActions(
+  controller: LiveActivityController,
+  titleOf: (presetId: string) => string | null
+): RuntimeActions {
+  const sync = () => {
+    const { timer, selectedPresetId, anchorMs } = timerStore.getSnapshot();
+    controller.sync({
+      timer,
+      asOfMs: anchorMs,
+      title: titleOf(selectedPresetId),
+      safelight: getSafelight(),
+    });
+  };
+  const runAction = createTimerActionRunner({
+    store: timerStore,
+    alerts: backgroundAlerts,
+    activity: { sync, flushNow: controller.flushNow },
+  });
+  return { sync, runAction };
+}
+
 function createRuntime(): LiveActivityRuntime {
   const loaded = loadWidgets();
   const choice = loaded
@@ -129,9 +166,10 @@ function createRuntime(): LiveActivityRuntime {
     controller,
     titleOf: createTitleResolver(findPresetName),
   };
+  const { sync } = runtimeActions(runtime.controller, runtime.titleOf);
 
   // The red look follows the mode as soon as it is switched, even while paused.
-  subscribeSafelight(syncWith(runtime));
+  subscribeSafelight(sync);
 
   // A run does not survive the app being killed, so an activity found at launch
   // belongs to a run that no longer exists. Ended only once the app is in front:
@@ -149,10 +187,7 @@ function createRuntime(): LiveActivityRuntime {
         owns: controller.owns,
         store: timerStore,
         alerts: backgroundAlerts,
-        activity: {
-          sync: syncWith(runtime),
-          flushNow: controller.flushNow,
-        },
+        activity: { sync, flushNow: controller.flushNow },
       });
       loaded.widgets.addUserInteractionListener((event) => {
         handle(event).catch(() => {
@@ -165,18 +200,6 @@ function createRuntime(): LiveActivityRuntime {
     }
   }
   return runtime;
-}
-
-function syncWith(runtime: LiveActivityRuntime): () => void {
-  return () => {
-    const { timer, selectedPresetId, anchorMs } = timerStore.getSnapshot();
-    runtime.controller.sync({
-      timer,
-      asOfMs: anchorMs,
-      title: runtime.titleOf(selectedPresetId),
-      safelight: getSafelight(),
-    });
-  };
 }
 
 declare global {
@@ -193,6 +216,18 @@ function getRuntime(): LiveActivityRuntime {
 }
 
 const live = getRuntime();
+const actions = runtimeActions(live.controller, live.titleOf);
 
 /** Report the store's timer to the Live Activity. Safe to call as often as you like. */
-export const syncLiveActivity: () => void = syncWith(live);
+export const syncLiveActivity: () => void = actions.sync;
+
+/**
+ * Pause, resume or skip from outside the timer screen (the tab bar accessory),
+ * by the same steps as a Live Activity button: the timer, then the alerts, then
+ * the activity at once. The timer changes before this returns; the promise
+ * settles once the alerts and the activity are done, and never rejects (a
+ * failed alert or activity update is retried by the next state change).
+ */
+export function runTimerAction(action: TimerAction): Promise<void> {
+  return actions.runAction(action).catch(() => {});
+}
