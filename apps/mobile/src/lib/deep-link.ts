@@ -65,6 +65,9 @@ function screenToolPath(id: string): string | undefined {
  * - `/film-log...` to `/shoot/film-log...`, `/development...` to `/develop/recipes...`
  * - `/more/settings` and the retired per-phase Settings paths to `/settings`;
  *   `/more` and `/more/edit` to Home
+ * - `/search?q=...` (App Intents and Spotlight's "search in app" will send it) to Home with
+ *   the query string, `/?q=...`; `redirectSystemPath` then strips `q` and
+ *   records it as a search event (`splitSearchLink`), which Home applies
  *
  * Query, hash and any sub-path are kept. Canonical and unknown paths come back
  * unchanged.
@@ -86,6 +89,10 @@ export function resolveLegacyPath(path: string): string {
     return join(['develop', 'recipes', ...segments.slice(1)], suffix);
   }
 
+  // Only the bare path: `/search/anything` is not a link we know.
+  if (first === 'search' && second === undefined) {
+    return `${HOME_ROUTE}${suffix}`;
+  }
   if (first === 'settings') return `${SETTINGS_ROUTE}${suffix}`;
   if (
     segments.length === 2 &&
@@ -195,4 +202,55 @@ export function stampTimerExposureLink(link: string, now: number): string {
   }
   const stamped = `${LINK_OPENED_PARAM}=${Math.floor(now)}`;
   return `${head}?${query === '' ? stamped : `${query}&${stamped}`}${hash}`;
+}
+
+/** A query-string key or value as text: `+` is a space, bad escapes stay as written. */
+function decodeQueryText(text: string): string {
+  const spaced = text.replace(/\+/g, ' ');
+  try {
+    return decodeURIComponent(spaced);
+  } catch {
+    return spaced;
+  }
+}
+
+export interface SearchLinkSplit {
+  path: string;
+  query: string | null;
+}
+
+/**
+ * Splits a Home search link (`/?q=hp5&ref=spotlight`) into the path to open
+ * and the query to apply: the path is Home without `q` (other params and the
+ * hash stay), and `query` is the first `q` decoded, `null` when the link has
+ * none. Any other path comes back unchanged with `query: null`.
+ */
+export function splitSearchLink(path: string): SearchLinkSplit {
+  const suffixIndex = path.search(/[?#]/);
+  if (suffixIndex === -1) return { path, query: null };
+  const pathOnly = path.slice(0, suffixIndex);
+  if (pathOnly.replace(/\/+$/, '') !== '') return { path, query: null };
+  const hashIndex = path.indexOf('#');
+  const hash = hashIndex === -1 ? '' : path.slice(hashIndex);
+  const queryString =
+    path[suffixIndex] === '?'
+      ? path.slice(suffixIndex + 1, hashIndex === -1 ? undefined : hashIndex)
+      : '';
+  let query: string | null = null;
+  const kept: string[] = [];
+  for (const pair of queryString.split('&')) {
+    if (pair === '') continue;
+    const eq = pair.indexOf('=');
+    const key = decodeQueryText(eq === -1 ? pair : pair.slice(0, eq));
+    if (key === 'q') {
+      query ??= eq === -1 ? '' : decodeQueryText(pair.slice(eq + 1));
+    } else {
+      kept.push(pair);
+    }
+  }
+  if (query === null) return { path, query: null };
+  return {
+    path: `${HOME_ROUTE}${kept.length > 0 ? `?${kept.join('&')}` : ''}${hash}`,
+    query,
+  };
 }
