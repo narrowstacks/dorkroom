@@ -4,7 +4,14 @@ import type { AccentColor } from '@/theme/accents';
 import { useSelectionTint } from '@/theme/use-phase-accent';
 
 interface PresetChipRowProps<T extends string | number> {
-  options: { label: string; value: T }[];
+  options: {
+    label: string;
+    value: T;
+    /** Spoken label, when it should say more than the visible text. */
+    accessibilityLabel?: string;
+    /** Draw the chip faded; it stays selectable. */
+    dimmed?: boolean;
+  }[];
   value?: T;
   onSelect: (value: T) => void;
   /** Hue for the selected chip. Omit to take the surrounding phase's (neutral on Home and Settings). */
@@ -35,10 +42,11 @@ export function PresetChipRow<T extends string | number>({
                 onSelect(option.value);
               }}
               accessibilityRole="button"
+              accessibilityLabel={option.accessibilityLabel}
               accessibilityState={{ selected }}
               className={`min-h-11 items-center justify-center rounded-full px-4 py-2 ${
                 selected ? '' : 'border-hw border-line bg-surface'
-              }`}
+              } ${option.dimmed && !selected ? 'opacity-50' : ''}`}
               style={
                 selected
                   ? {
