@@ -4,8 +4,14 @@ import {
   searchHome,
   suggestHome,
 } from '@dorkroom/logic';
-import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import { Text, View } from 'react-native';
 import { SearchBar } from '@/components/development/search-bar';
 import { GlassCard } from '@/components/glass-card';
@@ -29,7 +35,14 @@ import {
 } from '@/lib/home/destination';
 import { summarizeEasel } from '@/lib/home/easel-summary';
 import { matchFilmLog } from '@/lib/home/film-log-matches';
+import { nextQueryLink } from '@/lib/home/query-link';
 import { recentRecipeRows } from '@/lib/home/recent-recipes';
+import {
+  consumeSearchLink,
+  getConsumedSearchSeq,
+  getSearchLinkSnapshot,
+  subscribeSearchLink,
+} from '@/lib/home/search-link-store';
 import { homeToolIds } from '@/lib/home/tool-matches';
 import { toHref } from '@/lib/href';
 import { sharedStorage } from '@/lib/mmkv-storage';
@@ -58,6 +71,40 @@ function readResume() {
 
 export function HomeScreen() {
   const [query, setQuery] = useState('');
+  // A search link fills the box in one place, here. A link from
+  // outside (`dorkroom://search?q=...`) is an event in `search-link-store`:
+  // every mounted Home applies it when its `seq` changes, so whichever Home is
+  // visible shows it, and the same query twice applies twice. The `q` route
+  // param is the in-app route to the same place and applies when its identity
+  // changes. Both adjust state during render (the React-sanctioned pattern for
+  // a prop that changes), never on their own afterwards, so typing is left
+  // alone. An empty or missing query never wipes the box.
+  const searchLink = useSyncExternalStore(
+    subscribeSearchLink,
+    getSearchLinkSnapshot,
+    getSearchLinkSnapshot
+  );
+  const [seenSeq, setSeenSeq] = useState(getConsumedSearchSeq);
+  const params = useLocalSearchParams<{
+    q?: string | string[] | undefined;
+    at?: string | string[] | undefined;
+  }>();
+  const [appliedLink, setAppliedLink] = useState<string | null>(null);
+  const paramLink = nextQueryLink(params, appliedLink);
+  // If an event and a `q` param change in the same render, the event wins (it
+  // is the newer intent from outside): its branch also marks the param's key as
+  // applied, so the param does not overwrite it on the next render.
+  if (searchLink.seq !== seenSeq) {
+    setSeenSeq(searchLink.seq);
+    if (paramLink) setAppliedLink(paramLink.key);
+    setQuery(searchLink.query);
+  } else if (paramLink) {
+    setAppliedLink(paramLink.key);
+    setQuery(paramLink.query);
+  }
+  // Marked consumed on commit, not in render: a tab can render at transition
+  // priority and discard a render, and the retry must still see the event.
+  useEffect(() => consumeSearchLink(seenSeq), [seenSeq]);
   const [focused, setFocused] = useState(false);
   const settled = useDebouncedValue(query, 150);
   const searching = settled.trim() !== '';

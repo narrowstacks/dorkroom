@@ -140,6 +140,26 @@ describe('handOffWarmLink', () => {
     expect(getPendingLink()).toBeNull();
   });
 
+  // A guard: `+native-intent.ts` no longer passes a search path here (it strips
+  // `q` first), but a Home path with a query must never be handed off.
+  it('opens Home with a query directly, from any tab or screen', () => {
+    for (const current of [
+      '/',
+      '/settings',
+      '/shoot/meter',
+      '/shoot/film-log/shot',
+      '/develop',
+      '/print/mat',
+      null,
+    ]) {
+      expect(
+        handOffWarmLink('/?q=hp5%20at%20800', current),
+        String(current)
+      ).toBe(undefined);
+    }
+    expect(getPendingLink()).toBeNull();
+  });
+
   it('opens Settings directly, from any tab', () => {
     for (const current of ['/', '/settings', '/shoot/meter', '/print', null]) {
       expect(handOffWarmLink('/settings', current), String(current)).toBe(

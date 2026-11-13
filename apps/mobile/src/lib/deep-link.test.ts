@@ -7,9 +7,14 @@ import {
   APP_SCHEME,
   resolveIncomingLink,
   resolveLegacyPath,
+  splitSearchLink,
   stampTimerExposureLink,
   toolIdForPath,
 } from './deep-link';
+import {
+  getSearchLinkSnapshot,
+  resetSearchLinks,
+} from './home/search-link-store';
 import {
   clearPendingLink,
   setCurrentPath,
@@ -89,6 +94,27 @@ describe('resolveLegacyPath', () => {
     ['More list', '/more', '/'],
     ['More list with a trailing slash', '/more/', '/'],
     ['pin editor', '/more/edit', '/'],
+    ['Search without a query', '/search', '/'],
+    ['Search with a trailing slash', '/search/', '/'],
+    ['Search with a query', '/search?q=hp5', '/?q=hp5'],
+    [
+      'Search with an encoded query',
+      '/search?q=hp5%20at%20800%20in%20dd-x',
+      '/?q=hp5%20at%20800%20in%20dd-x',
+    ],
+    [
+      'Search with a plus and an ampersand escaped',
+      '/search?q=a%2Bb%26c',
+      '/?q=a%2Bb%26c',
+    ],
+    ['Search with an empty query', '/search?q=', '/?q='],
+    [
+      'Search keeps extra params',
+      '/search?q=hp5&ref=spotlight',
+      '/?q=hp5&ref=spotlight',
+    ],
+    ['Search with a trailing slash and a query', '/search/?q=hp5', '/?q=hp5'],
+    ['Search without a leading slash', 'search?q=hp5', '/?q=hp5'],
   ];
   it.each(cases)('%s: %s', (_what, input, expected) => {
     expect(resolveLegacyPath(input)).toBe(expected);
@@ -105,6 +131,8 @@ describe('resolveLegacyPath', () => {
     '/shoot/film-log/roll/abc',
     '/settings',
     '/does-not-exist',
+    '/search/anything',
+    '/searching?q=x',
     '/more/does-not-exist',
     '/recipes',
     '',
@@ -174,6 +202,13 @@ describe('resolveIncomingLink', () => {
     ['dorkroom://border', '/print/border'],
     ['dorkroom://lenses', '/shoot/lens'],
     ['dorkroom://more/meter', '/shoot/meter'],
+    ['dorkroom://search', '/'],
+    ['dorkroom://search/', '/'],
+    ['dorkroom://search?q=hp5%20at%20800', '/?q=hp5%20at%20800'],
+    ['dorkroom:///search?q=hp5', '/?q=hp5'],
+    ['dorkroom://Search?q=HP5', '/?q=HP5'],
+    ['dorkroom://search?q=hp5&ref=spotlight', '/?q=hp5&ref=spotlight'],
+    ['dorkroom://search?q=', '/?q='],
     ['dorkroom:///more/meter', '/shoot/meter'],
     ['dorkroom://exposure?stops=1#x', '/print/exposure?stops=1#x'],
     ['dorkroom://film-log/roll/abc', '/shoot/film-log/roll/abc'],
@@ -289,6 +324,25 @@ describe('redirectSystemPath', () => {
     expect(takePendingLink()).toBe('/shoot/meter');
   });
 
+  it('opens a search link as plain Home, cold and warm, without a handoff', () => {
+    const url = 'dorkroom://search?q=hp5%20at%20800%20in%20dd-x';
+    expect(redirectSystemPath({ path: url, initial: true })).toBe('/');
+    for (const current of [
+      null,
+      '/',
+      '/shoot/meter',
+      '/develop/recipes',
+      '/print',
+    ]) {
+      setCurrentPath(current);
+      expect(
+        redirectSystemPath({ path: url, initial: false }),
+        String(current)
+      ).toBe('/');
+      expect(takePendingLink(), String(current)).toBeNull();
+    }
+  });
+
   it('leaves a warm link outside a phase alone', () => {
     const go = (path: string) => redirectSystemPath({ path, initial: false });
     expect(go('https://example.com/meter')).toBe('https://example.com/meter');
@@ -376,5 +430,108 @@ describe('stampTimerExposureLink', () => {
     expect(out).toMatch(
       /^dorkroom:\/\/develop\/recipes\/timer\?exposure=60&at=\d+$/
     );
+  });
+});
+
+describe('splitSearchLink', () => {
+  const cases: [string, string, string | null][] = [
+    ['/?q=hp5', '/', 'hp5'],
+    ['/?q=hp5%20at%20800', '/', 'hp5 at 800'],
+    ['/?q=hp5+at+800', '/', 'hp5 at 800'],
+    ['/?q=a%2Bb%26c', '/', 'a+b&c'],
+    ['/?q=', '/', ''],
+    ['/?q', '/', ''],
+    ['/?q=hp5&ref=spotlight', '/?ref=spotlight', 'hp5'],
+    ['/?ref=spotlight&q=hp5', '/?ref=spotlight', 'hp5'],
+    ['/?q=hp5&q=fp4', '/', 'hp5'],
+    ['/?q=hp5#top', '/#top', 'hp5'],
+    ['/?q=hp5&ref=x#top', '/?ref=x#top', 'hp5'],
+    ['/?q=%E0%A4%A', '/', '%E0%A4%A'],
+    ['/', '/', null],
+    ['/?ref=x', '/?ref=x', null],
+    ['/?qq=hp5', '/?qq=hp5', null],
+    ['/settings?q=hp5', '/settings?q=hp5', null],
+    ['/shoot/meter?q=1', '/shoot/meter?q=1', null],
+    ['', '', null],
+  ];
+  it.each(cases)('%s', (input, path, query) => {
+    expect(splitSearchLink(input)).toEqual({ path, query });
+  });
+});
+
+describe('redirectSystemPath search links', () => {
+  const go = (path: string, initial: boolean) =>
+    redirectSystemPath({ path, initial });
+  beforeEach(() => {
+    resetSearchLinks();
+    clearPendingLink();
+    setCurrentPath('/');
+  });
+
+  it('records an event and opens Home without q, cold and warm', () => {
+    for (const initial of [true, false]) {
+      resetSearchLinks();
+      expect(go('dorkroom://search?q=hp5%20at%20800', initial)).toBe('/');
+      expect(getSearchLinkSnapshot()).toMatchObject({
+        query: 'hp5 at 800',
+        seq: 1,
+      });
+    }
+  });
+
+  it('keeps other params', () => {
+    expect(go('dorkroom://search?q=hp5&ref=spotlight', false)).toBe(
+      '/?ref=spotlight'
+    );
+    expect(go('dorkroom://search?q=hp5&ref=spotlight', true)).toBe(
+      '/?ref=spotlight'
+    );
+  });
+
+  it('records a repeated cold call once (expo-router can re-run it on a re-render)', () => {
+    const url = 'dorkroom://search?q=hp5';
+    expect(go(url, true)).toBe('/');
+    expect(go(url, true)).toBe('/');
+    expect(getSearchLinkSnapshot().seq).toBe(1);
+    // A warm link is a new event, whatever came before.
+    go(url, false);
+    expect(getSearchLinkSnapshot().seq).toBe(2);
+  });
+
+  it('records the same query twice as two events', () => {
+    go('dorkroom://search?q=fp4', false);
+    go('dorkroom://search?q=fp4', false);
+    expect(getSearchLinkSnapshot().seq).toBe(2);
+  });
+
+  it('opens Home and records no event for an empty query, or none', () => {
+    expect(go('dorkroom://search?q=', false)).toBe('/');
+    expect(go('dorkroom://search', false)).toBe('/');
+    expect(go('dorkroom://search?q=%20%20', true)).toBe('/');
+    expect(getSearchLinkSnapshot().seq).toBe(0);
+  });
+
+  it('opens Home from Settings, another tab, or anywhere, with no dismissal', () => {
+    for (const current of ['/settings', '/', '/shoot/meter', '/print', null]) {
+      setCurrentPath(current);
+      expect(go('dorkroom://search?q=hp5', false), String(current)).toBe('/');
+    }
+    expect(getSearchLinkSnapshot().seq).toBe(5);
+  });
+
+  it('records nothing for any other link', () => {
+    setCurrentPath('/settings');
+    for (const url of [
+      'dorkroom://settings',
+      'dorkroom://reciprocity',
+      'dorkroom://more',
+      'dorkroom://shoot/meter?q=1',
+      'https://example.com/?q=hp5',
+      'exp+dorkroom://search?q=hp5',
+    ]) {
+      go(url, false);
+      go(url, true);
+    }
+    expect(getSearchLinkSnapshot().seq).toBe(0);
   });
 });

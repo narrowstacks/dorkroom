@@ -34,6 +34,7 @@ import {
   frame,
   labelsHidden,
   lineLimit,
+  minimumScaleFactor,
   monospacedDigit,
   padding,
   progressViewStyle,
@@ -277,6 +278,32 @@ export function timerLiveActivity(
     />
   );
 
+  // The minimal island is a small circle shared with another app's activity.
+  // While running it shows the whole run's time left, as the same system
+  // interval text the compact trailing uses (it keeps counting with the app
+  // suspended), in a small bold face with a fixed frame so the text cannot ask
+  // for more width, and shrinking to half if the digits (an hours run) still
+  // do not fit. A paused run keeps the pause glyph: a frozen time in a circle
+  // that small reads as still running, and there is no room for both. Done and
+  // stale keep the check glyph.
+  const minimalView = () =>
+    done || paused ? (
+      glyph(14)
+    ) : (
+      <Text
+        timerInterval={interval(props.startMs, props.endMs)}
+        countsDown={true}
+        modifiers={[
+          font({ size: 11, weight: 'bold' }),
+          monospacedDigit(),
+          foregroundStyle(accent),
+          lineLimit(1),
+          minimumScaleFactor(0.5),
+          frame({ width: 34, alignment: 'center' }),
+        ]}
+      />
+    );
+
   return {
     banner: (
       <VStack
@@ -299,7 +326,7 @@ export function timerLiveActivity(
     ),
     compactLeading: glyph(14),
     compactTrailing: totalLeft(14, accent),
-    minimal: glyph(14),
+    minimal: minimalView(),
     // The title, not a stage: a stage name here would be wrong after the next
     // boundary and the app is not there to change it.
     expandedLeading: (
