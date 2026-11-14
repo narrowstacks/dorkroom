@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Countdown } from '@/components/development/timer/countdown';
 import { PresetEditor } from '@/components/development/timer/preset-editor';
+import { SaveToRollCard } from '@/components/development/timer/save-to-roll-card';
 import { StageList } from '@/components/development/timer/stage-list';
 import { TimerControls } from '@/components/development/timer/timer-controls';
 import { useTimer } from '@/components/development/timer/use-timer';
@@ -189,6 +190,8 @@ export function TimerScreen() {
         onSkip={timer.skip}
         onPrev={timer.prev}
       />
+
+      <SaveToRollCard />
 
       {timer.alertsDenied && !idle ? (
         <Text className="text-center text-xs text-ink-50">

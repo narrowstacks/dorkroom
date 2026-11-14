@@ -4,6 +4,7 @@ import type {
   CameraFormat,
   FilmProcess,
   FilmRoll,
+  RollStatus,
   Shot,
 } from '@/schemas/film-log.schema';
 
@@ -47,14 +48,28 @@ export const FORMAT_OPTIONS: { label: string; value: CameraFormat }[] = [
   { label: 'Other', value: 'other' },
 ];
 
+/**
+ * The one place a roll's status is put into words. The stored values predate
+ * the phases: `active` is a roll in the camera (Loaded), `finished` is Shot
+ * and waiting for the tank, `developed` is Developed. Printing is not a
+ * status (see `roll-lifecycle.ts`).
+ */
 export const ROLL_STATUS_OPTIONS: {
   label: string;
-  value: 'active' | 'finished' | 'developed';
+  value: RollStatus;
 }[] = [
-  { label: 'Active', value: 'active' },
-  { label: 'Finished', value: 'finished' },
+  { label: 'In camera', value: 'active' },
+  { label: 'Shot', value: 'finished' },
   { label: 'Developed', value: 'developed' },
 ];
+
+/** The status word shown for a roll, from {@link ROLL_STATUS_OPTIONS}. */
+export function rollStatusLabel(status: RollStatus): string {
+  return (
+    ROLL_STATUS_OPTIONS.find((option) => option.value === status)?.label ??
+    status
+  );
+}
 
 const PROCESS_LABELS = {
   bw: 'B&W',

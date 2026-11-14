@@ -5,6 +5,7 @@ import {
   filterRolls,
   ROLL_FILTERS,
   rollCounts,
+  rollFilterFromParam,
   sortRolls,
 } from './film-log-collection';
 
@@ -183,5 +184,18 @@ describe('filmLogStats', () => {
     const stats = filmLogStats(rolls, cameras, NOW);
     expect(stats.topCamera).toBeUndefined();
     expect(stats.topFilm).toBeUndefined();
+  });
+});
+
+describe('rollFilterFromParam', () => {
+  it('reads a known filter, first value of a repeated one', () => {
+    expect(rollFilterFromParam('to-develop')).toBe('to-develop');
+    expect(rollFilterFromParam(['in-camera', 'all'])).toBe('in-camera');
+  });
+
+  it('ignores a missing or unknown value', () => {
+    expect(rollFilterFromParam(undefined)).toBeUndefined();
+    expect(rollFilterFromParam('printing')).toBeUndefined();
+    expect(rollFilterFromParam([])).toBeUndefined();
   });
 });

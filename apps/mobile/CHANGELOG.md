@@ -9,6 +9,8 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Added
 
+- **Your rolls follow you from Shoot to Print.** The roll in your camera has "Mark as shot" on the Shoot screen and on its own page, so the Meter moves on to your next roll. Develop now lists your shot rolls waiting to be developed, oldest first; tap one to see recipes for its film at the speed you shot it. When a Process Timer run finishes, a card offers to save it to the roll you were developing, with the recipe, dilution, temperature and the develop time you set; nothing is saved until you tap. A roll's page shows how it was developed, and "Mark as developed" records just the date if you do not use the timer. Print lists your most recently developed rolls, and tapping one opens it. (#719)
+
 - **Time left in the smallest Dynamic Island.** When another app's activity shares the island, the Process Timer's small view now counts down the time left in the run instead of only showing a timer icon. It keeps the pause or check icon while paused or finished. (#719)
 
 - **Smart lists, a stats strip and CSV export in the Film Log.** The roll list has filters with counts (All, In camera, To develop, This year) and sorts rolls in the camera first, then waiting to be developed, then developed, newest first. Under them a strip shows your rolls and frames this year, plus your most shot film and most used camera of all time. A roll's page has Export CSV, which shares a spreadsheet file of its frames named after the roll, camera and date, with each frame's local time. (#719)
@@ -39,6 +41,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Changed
 
+- **New words for where a roll is.** A roll in the camera is now "In camera" (was Active), and a roll waiting to be developed is "Shot" (was Finished), in the roll list, the roll form, Search and the Meter's roll picker. Developed stays the same. (#719)
 - **Settings moved to the Search tab.** There is now one Settings screen, moved here from More and opened from the gear button beside the search box on Home. Back returns to Home. (#719)
 - **Back by swipe starts at the left edge.** On the Meter, Inverter, Border, Mat Cut and Resize, a sideways drag on the screen no longer goes back; swipe from the left edge of the screen instead. (#712)
 - **Pinned tabs and Edit Tabs are gone.** The Shoot, Develop and Print tabs put every tool within two taps, so there is nothing left to pin. Tools you had pinned, and everything that was in More except Settings, now live on their phase's hub. Your home-screen shortcuts and links keep working. (#712)

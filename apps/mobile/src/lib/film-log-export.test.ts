@@ -82,4 +82,24 @@ describe('buildRollsExport', () => {
     expect(shot).not.toHaveProperty('shutterLabel');
     expect(shot).not.toHaveProperty('lensName');
   });
+
+  it('carries a roll development record as stored', () => {
+    const development = {
+      developedAt: '2026-06-26T18:00:00.000Z',
+      recipeName: 'Kodak Tri-X 400 in Kodak D-76',
+      dilution: '1+1',
+      temperatureF: 68,
+      timeSeconds: 585,
+    };
+    const developed = buildRollsExport({
+      rolls: [{ ...rolls[0], status: 'developed', development }],
+      cameras,
+      lenses,
+      exportedAt: '2026-06-27T00:00:00.000Z',
+    });
+    const parsed: { rolls: { development?: unknown }[] } = JSON.parse(
+      JSON.stringify(developed)
+    );
+    expect(parsed.rolls[0]?.development).toEqual(development);
+  });
 });

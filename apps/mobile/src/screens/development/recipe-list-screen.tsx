@@ -1,20 +1,7 @@
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
-import {
-  useDevelopers,
-  useDevelopmentRecipes,
-  useFilms,
-} from '@dorkroom/logic';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import { SlidersHorizontal } from 'lucide-react-native';
-import {
-  memo,
-  useCallback,
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { memo, useCallback, useDeferredValue, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -31,8 +18,8 @@ import { GradientBackground } from '@/components/gradient-background';
 import { NeutralButton } from '@/components/neutral-button';
 import { TabBarScrollView } from '@/components/tab-bar-scroll-view';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
-import { resolveRecipeTarget } from '@/lib/home/recipe-target';
-import { LINK_OPENED_PARAM } from '@/lib/link-prefill';
+import { queryOf } from '@/lib/home/destination';
+import { toHref } from '@/lib/href';
 import { useSelectionTint } from '@/theme/use-phase-accent';
 import { FiltersSheet } from './filters-sheet';
 import {
@@ -40,7 +27,9 @@ import {
   developerPickerOptions,
   filmPickerOptions,
   filterRecipeViews,
+  rollForRecipeOpen,
 } from './recipe-views';
+import { useRecipeBrowser } from './use-recipe-browser';
 
 const RecipeRow = memo(function RecipeRow({
   recipe,
@@ -57,24 +46,19 @@ const RecipeRow = memo(function RecipeRow({
 });
 
 export function RecipeListScreen() {
-  const recipes = useDevelopmentRecipes();
-  const [query, setQuery] = useState('');
-  const [tagFilter, setTagFilter] = useState('');
-  // A Home result for a film or developer opens the browser filtered to it.
+  // The browser's state, with a link's filters applied (see the hook).
   const {
-    film: filmParam,
-    developer: developerParam,
-    [LINK_OPENED_PARAM]: openedParam,
-  } = useLocalSearchParams<{
-    film?: string;
-    developer?: string;
-    at?: string;
-  }>();
-  const catalogFilms = useFilms().data;
-  const catalogDevelopers = useDevelopers().data;
-  // The Home target the browser has no recipes for, by name.
-  const [unavailable, setUnavailable] = useState<string | null>(null);
-  const appliedOpening = useRef<string | null>(null);
+    recipes,
+    query,
+    setQuery,
+    tagFilter,
+    setTagFilter,
+    unavailable,
+    setUnavailable,
+    rollOpening,
+    forgetOpening,
+    clearEverything,
+  } = useRecipeBrowser();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [picker, setPicker] = useState<'film' | 'developer' | null>(null);
   const debouncedQuery = useDebouncedValue(query);
@@ -91,12 +75,13 @@ export function RecipeListScreen() {
   const onPickFilm = useCallback(
     (slug: string) => {
       setUnavailable(null);
+      forgetOpening();
       recipes.setSelectedFilm(
         slug ? (recipes.allFilms.find((f) => f.slug === slug) ?? null) : null
       );
       setPicker(null);
     },
-    [recipes]
+    [recipes, setUnavailable, forgetOpening]
   );
   const onPickDeveloper = useCallback(
     (slug: string) => {
@@ -109,63 +94,25 @@ export function RecipeListScreen() {
       recipes.setDilutionFilter('');
       setPicker(null);
     },
-    [recipes]
+    [recipes, setUnavailable]
   );
 
   const onClearFilm = useCallback(() => {
+    forgetOpening();
     recipes.setSelectedFilm(null);
-  }, [recipes]);
+  }, [recipes, forgetOpening]);
   const onClearDeveloper = useCallback(() => {
     recipes.setSelectedDeveloper(null);
     recipes.setDilutionFilter('');
   }, [recipes]);
 
-  const clearEverything = useCallback(() => {
-    recipes.clearFilters();
-    recipes.setSelectedFilm(null);
-    recipes.setSelectedDeveloper(null);
-    setTagFilter('');
-    setQuery('');
-    setUnavailable(null);
-  }, [recipes]);
-
-  // A Home opening is a fresh filter request: drop every other selection and
-  // filter, then apply its film and developer. Applied once per opening (the
-  // `at` marker tells two openings of the same target apart), so a later
-  // catalog refetch cannot undo what the user changed since.
-  const { isLoaded, allFilms, allDevelopers } = recipes;
-  const { setSelectedFilm, setSelectedDeveloper } = recipes;
-  useEffect(() => {
-    if (!isLoaded || (!filmParam && !developerParam)) return;
-    const opening = `${filmParam ?? ''}|${developerParam ?? ''}|${openedParam ?? ''}`;
-    if (appliedOpening.current === opening) return;
-    appliedOpening.current = opening;
-    const target = resolveRecipeTarget(
-      { film: filmParam, developer: developerParam },
-      { films: allFilms, developers: allDevelopers },
-      { films: catalogFilms, developers: catalogDevelopers }
-    );
-    clearEverything();
-    setSelectedFilm(target.film);
-    setSelectedDeveloper(target.developer);
-    setUnavailable(target.unavailable);
-  }, [
-    isLoaded,
-    filmParam,
-    developerParam,
-    openedParam,
-    allFilms,
-    allDevelopers,
-    catalogFilms,
-    catalogDevelopers,
-    clearEverything,
-    setSelectedFilm,
-    setSelectedDeveloper,
-  ]);
-  const updateQuery = useCallback((text: string) => {
-    setUnavailable(null);
-    setQuery(text);
-  }, []);
+  const updateQuery = useCallback(
+    (text: string) => {
+      setUnavailable(null);
+      setQuery(text);
+    },
+    [setUnavailable, setQuery]
+  );
 
   const views = useMemo(
     () =>
@@ -201,9 +148,22 @@ export function RecipeListScreen() {
     (recipes.isoFilter ? 1 : 0) +
     (tagFilter ? 1 : 0);
 
-  const onPressRecipe = useCallback((uuid: string) => {
-    router.push(`/develop/recipes/recipe/${uuid}`);
-  }, []);
+  const currentFilmSlug = recipes.selectedFilm?.slug;
+  const onPressRecipe = useCallback(
+    (uuid: string) => {
+      const roll = rollForRecipeOpen({
+        openingRoll: rollOpening.current?.roll,
+        openingFilm: rollOpening.current?.film,
+        currentFilm: currentFilmSlug,
+      });
+      router.push(
+        toHref(
+          `/develop/recipes/recipe/${encodeURIComponent(uuid)}${queryOf({ roll })}`
+        )
+      );
+    },
+    [currentFilmSlug, rollOpening]
+  );
 
   const keyExtractor = useCallback(
     (item: DevelopmentCombinationView) =>

@@ -12,6 +12,15 @@ export const ROLL_FILTERS: { value: RollFilter; label: string }[] = [
   { value: 'this-year', label: 'This year' },
 ];
 
+/** The filter a link asks the list to open on (`?filter=to-develop`), or
+ * undefined for a missing or unknown value. */
+export function rollFilterFromParam(
+  value: string | string[] | undefined
+): RollFilter | undefined {
+  const first = Array.isArray(value) ? value[0] : value;
+  return ROLL_FILTERS.find((filter) => filter.value === first)?.value;
+}
+
 /** Time in ms, or NaN when the date does not parse. */
 function startedTime(roll: FilmRoll): number {
   return new Date(roll.startedAt).getTime();
