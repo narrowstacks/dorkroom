@@ -6,10 +6,14 @@
  *   and ink are styles from `useCommitStyle`, not classes.
  * - `secondary`: the neutral flat fill with white text (retry, Mark as shot).
  * - `plain`: no fill, phase-hue text (Show all rolls, a quiet link).
+ * - `tinted`: the phase's selection tint as a fill, hue text (a roll's one
+ *   next step, Mark as shot). Its fill and ink are styles from
+ *   `useSelectionTint`, not classes.
  * - `destructive`: the neutral fill with rose text (Delete). Rose here means
  *   destructive, not the Print hue.
  */
-export type ButtonVariant = 'commit' | 'secondary' | 'plain' | 'destructive';
+export type ButtonVariant =
+  'commit' | 'secondary' | 'plain' | 'tinted' | 'destructive';
 
 // At least 44pt tall, and the label wraps rather than truncates at large
 // Dynamic Type sizes, so the height grows with the text.
@@ -19,6 +23,7 @@ const FILL = {
   commit: '',
   secondary: 'border-hw border-line bg-surface',
   plain: '',
+  tinted: '',
   destructive: 'border-hw border-line bg-surface',
 } satisfies Record<ButtonVariant, string>;
 
@@ -26,6 +31,7 @@ const LABEL_INK = {
   commit: '',
   secondary: 'text-white',
   plain: '',
+  tinted: '',
   destructive: 'text-rose-400',
 } satisfies Record<ButtonVariant, string>;
 
@@ -40,7 +46,8 @@ export function buttonClassName(
   return [BASE, FILL[variant], state, className].filter(Boolean).join(' ');
 }
 
-/** The label's classes; `commit` and `plain` take their colour from a style. */
+/** The label's classes; `commit`, `plain` and `tinted` take their colour
+ * from a style. */
 export function buttonLabelClassName(variant: ButtonVariant): string {
   return ['text-center text-base font-semibold', LABEL_INK[variant]]
     .filter(Boolean)

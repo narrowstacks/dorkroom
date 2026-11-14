@@ -1,6 +1,6 @@
 /** A development record's date in the user's locale ("Aug 1, 2026"), or
  * undefined when it does not parse. */
-export function developedDate(iso: string): string | undefined {
+function developedDate(iso: string): string | undefined {
   const time = Date.parse(iso);
   if (Number.isNaN(time)) return undefined;
   return new Date(time).toLocaleDateString(undefined, {
