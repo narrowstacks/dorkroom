@@ -4,6 +4,10 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { redirectSystemPath } from '../../app/+native-intent';
 import { resolveLegacyPath } from './deep-link';
+import {
+  getSearchLinkSnapshot,
+  resetSearchLinks,
+} from './home/search-link-store';
 import { takePendingLink } from './link-handoff';
 import { PHASES, recordsLastResult, SETTINGS_ROUTE, TOOLS } from './tools';
 
@@ -348,6 +352,73 @@ describe('legacy entry points still land on a tool', () => {
       );
       expect(takePendingLink()).toBe('/shoot/meter');
     });
+  });
+});
+
+describe('Ask Dorkroom intent', () => {
+  const intents = (...file: string[]) =>
+    read('plugins', 'with-app-intents', ...file);
+  const swift = intents('swift', 'AskDorkroomIntent.swift');
+  const prefix = swift.match(/"(dorkroom:\/\/search\?q=)"/)?.[1] ?? '';
+  const allowed = swift.match(/charactersIn: "([^"]+)"/)?.[1] ?? '';
+
+  /** The question as `searchURL(for:)` builds it: trimmed, UTF-8, unreserved kept. */
+  const intentUrl = (question: string) =>
+    prefix +
+    [...new TextEncoder().encode(question.trim())]
+      .map((byte) => {
+        const c = String.fromCharCode(byte);
+        return byte < 128 && allowed.includes(c)
+          ? c
+          : `%${byte.toString(16).toUpperCase().padStart(2, '0')}`;
+      })
+      .join('');
+
+  it('opens the Search link and keeps only RFC 3986 unreserved characters', () => {
+    expect(prefix).toBe('dorkroom://search?q=');
+    expect([...allowed].sort().join('')).toBe(
+      [...'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~']
+        .sort()
+        .join('')
+    );
+  });
+
+  it('is compiled into the app and offered as an App Shortcut without a free-text phrase', () => {
+    expect(intents('index.js')).toContain("'AskDorkroomIntent.swift'");
+    const shortcuts = intents('swift', 'DorkroomShortcuts.swift');
+    expect(shortcuts).toContain('intent: AskDorkroomIntent()');
+    // App Shortcut phrases cannot hold a String parameter, and every one must
+    // name the app; an app may declare at most 10 App Shortcuts.
+    const phrases = [...shortcuts.matchAll(/^\s*"([^"]*)",?$/gm)].map(
+      (m) => m[1]
+    );
+    expect(phrases.length).toBeGreaterThanOrEqual(14);
+    for (const phrase of phrases) {
+      expect(phrase).toContain('\\(.applicationName)');
+      expect(phrase).not.toMatch(/\\\(\.(?!applicationName)/);
+    }
+    expect(shortcuts.match(/AppShortcut\(/g)?.length).toBeLessThanOrEqual(10);
+  });
+
+  it('a question reaches Home and is recorded as a search, cold and warm', () => {
+    for (const question of [
+      'how long for HP5 at 800 in DD-X?',
+      '  reciprocity for 30s on HP5  ',
+      'a & b = c + d #1 / 50%',
+      'Fomapan 100 in Rodinal 1+50 at 20°C',
+    ]) {
+      const url = intentUrl(question);
+      for (const initial of [true, false]) {
+        resetSearchLinks();
+        expect(redirectSystemPath({ path: url, initial }), url).toBe('/');
+        expect(getSearchLinkSnapshot(), url).toEqual({
+          query: question.trim(),
+          seq: 1,
+        });
+        expect(takePendingLink()).toBeNull();
+      }
+    }
+    resetSearchLinks();
   });
 });
 

@@ -11,7 +11,13 @@ const RECENT_RECIPES_KEY = 'recentRecipeIds';
 const SEEN_KEY = 'homeSeen';
 
 export const MAX_RECENT_TOOLS = 4;
+/** How many recently opened recipes Home shows. */
 export const MAX_RECENT_RECIPES = 3;
+/**
+ * How many recently opened recipes are kept: Home shows the first
+ * `MAX_RECENT_RECIPES`, Spotlight indexes them all (`spotlight-sync.ts`).
+ */
+export const MAX_RECIPE_HISTORY = 50;
 
 export function getRecentToolIds(): string[] {
   return parseRecentIds(storage.getString(RECENT_TOOLS_KEY)).filter(
@@ -25,13 +31,32 @@ export function recordToolUse(id: string): void {
   storage.set(RECENT_TOOLS_KEY, JSON.stringify(next));
 }
 
+/** The recipes Home lists, newest first. */
 export function getRecentRecipeIds(): string[] {
+  return getRecipeHistoryIds().slice(0, MAX_RECENT_RECIPES);
+}
+
+/** Every kept recently opened recipe, newest first (at most `MAX_RECIPE_HISTORY`). */
+export function getRecipeHistoryIds(): string[] {
   return parseRecentIds(storage.getString(RECENT_RECIPES_KEY));
 }
 
 export function recordRecipeOpen(id: string): void {
-  const next = recordRecentId(getRecentRecipeIds(), id, MAX_RECENT_RECIPES);
+  const next = recordRecentId(getRecipeHistoryIds(), id, MAX_RECIPE_HISTORY);
   storage.set(RECENT_RECIPES_KEY, JSON.stringify(next));
+}
+
+/** The stored history as written, for `useSyncExternalStore` (a string compares by value). */
+export function getRecipeHistoryRaw(): string | undefined {
+  return storage.getString(RECENT_RECIPES_KEY);
+}
+
+/** Calls `listener` when the recipe history changes. Returns the unsubscribe. */
+export function subscribeRecipeHistory(listener: () => void): () => void {
+  const subscription = storage.addOnValueChangedListener((key) => {
+    if (key === RECENT_RECIPES_KEY) listener();
+  });
+  return () => subscription.remove();
 }
 
 /** Whether Home has never been shown on this device. */

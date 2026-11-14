@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { redirectSystemPath } from '../../app/+native-intent';
 import {
   APP_SCHEME,
@@ -9,10 +9,12 @@ import {
   resolveIncomingLink,
   resolveLegacyPath,
   resolveLogFrameLink,
+  resolveMissingRollLink,
   splitSearchLink,
   stampTimerLink,
   toolIdForPath,
 } from './deep-link';
+import { setRolls } from './film-log-storage';
 import {
   getSearchLinkSnapshot,
   resetSearchLinks,
@@ -606,5 +608,117 @@ describe('resolveLogFrameLink', () => {
     expect(resolveLogFrameLink('dorkroom://log-frame', () => undefined)).toBe(
       '/shoot/film-log'
     );
+  });
+});
+
+describe('resolveMissingRollLink', () => {
+  const exists = (id: string) => id === 'r1';
+
+  it('keeps a link to a roll that exists', () => {
+    for (const link of [
+      'dorkroom://shoot/film-log/roll/r1',
+      '/shoot/film-log/roll/r1',
+      '/shoot/film-log/roll/r1?x=1',
+    ]) {
+      expect(resolveMissingRollLink(link, exists), link).toBe(link);
+    }
+  });
+
+  it('sends a link to a deleted roll to the film log list', () => {
+    for (const link of [
+      'dorkroom://shoot/film-log/roll/gone',
+      '/shoot/film-log/roll/gone',
+      '/shoot/film-log/roll/gone/',
+      'dorkroom://Shoot/Film-Log/Roll/gone',
+    ]) {
+      expect(resolveMissingRollLink(link, exists), link).toBe(
+        '/shoot/film-log'
+      );
+    }
+  });
+
+  it('decodes the id, and lands on the list when the lookup throws', () => {
+    expect(
+      resolveMissingRollLink('/shoot/film-log/roll/a%20b', (id) => id === 'a b')
+    ).toBe('/shoot/film-log/roll/a%20b');
+    expect(
+      resolveMissingRollLink('/shoot/film-log/roll/r1', () => {
+        throw new Error('unreadable');
+      })
+    ).toBe('/shoot/film-log');
+  });
+
+  it('leaves every other link alone', () => {
+    for (const link of [
+      'dorkroom://shoot/film-log',
+      '/shoot/film-log/roll',
+      '/shoot/film-log/roll/r1/extra',
+      '/shoot/film-log/shot?rollId=gone',
+      'https://example.com/shoot/film-log/roll/gone',
+    ]) {
+      expect(
+        resolveMissingRollLink(link, () => false),
+        link
+      ).toBe(link);
+    }
+  });
+});
+
+// A tapped Spotlight result opens `dorkroom:/<id>`, its id being the app path
+// (`DorkroomSpotlightAppDelegateSubscriber`).
+describe('Spotlight result links', () => {
+  const go = (path: string, initial: boolean) =>
+    redirectSystemPath({ path, initial });
+  const stripScheme = (link: string) => link.replace(/^dorkroom:\//, '');
+  const ROLL = {
+    id: 'mfx1-abc',
+    cameraId: 'cam1',
+    process: 'bw' as const,
+    status: 'active' as const,
+    shots: [],
+    startedAt: '2026-01-01T00:00:00.000Z',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  };
+
+  beforeEach(() => {
+    clearPendingLink();
+    setCurrentPath('/');
+    setRolls([ROLL]);
+  });
+  afterEach(() => {
+    setRolls([]);
+  });
+
+  it('opens a roll, cold and warm through the Shoot hub', () => {
+    const url = 'dorkroom://shoot/film-log/roll/mfx1-abc';
+    expect(stripScheme(go(url, true))).toBe('/shoot/film-log/roll/mfx1-abc');
+    expect(takePendingLink()).toBeNull();
+    expect(go(url, false)).toBe('/shoot');
+    expect(takePendingLink()).toBe('/shoot/film-log/roll/mfx1-abc');
+  });
+
+  it('opens a recipe, cold and warm through the Develop hub', () => {
+    const url = 'dorkroom://develop/recipes/recipe/0b7c-uuid';
+    expect(stripScheme(go(url, true))).toBe(
+      '/develop/recipes/recipe/0b7c-uuid'
+    );
+    expect(go(url, false)).toBe('/develop');
+    expect(takePendingLink()).toBe('/develop/recipes/recipe/0b7c-uuid');
+  });
+
+  it('opens the film log for a roll that was deleted, cold and warm', () => {
+    const url = 'dorkroom://shoot/film-log/roll/deleted';
+    expect(go(url, true)).toBe('/shoot/film-log');
+    expect(go(url, false)).toBe('/shoot');
+    expect(takePendingLink()).toBe('/shoot/film-log');
+  });
+
+  it('opens the film log list from the Shoot tab directly', () => {
+    setCurrentPath('/shoot/film-log/roll/mfx1-abc');
+    expect(go('dorkroom://shoot/film-log/roll/deleted', false)).toBe(
+      '/shoot/film-log'
+    );
+    expect(takePendingLink()).toBeNull();
   });
 });

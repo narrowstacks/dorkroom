@@ -42,7 +42,7 @@ src/
   theme/tokens.ts        # palette mirrored from web, for non-className values
   test/                  # vitest mocks for native modules
 plugins/                 # local config plugins (with-app-intents, with-ios-scene-lifecycle, with-ios-status-bar-forwarding, with-local-notifications-only, with-widget-interaction-hold, with-widget-controls)
-modules/dorkroom-shared/ # local Expo module: App Group UserDefaults + Control Center reloads
+modules/dorkroom-shared/ # local Expo modules: App Group UserDefaults + Control Center reloads; Spotlight indexing
 scripts/                 # ios.sh, nativewind tailwind link
 ```
 
@@ -108,12 +108,16 @@ is rewritten in `redirectSystemPath` by `resolveLogFrameLink` (`deep-link.ts`,
 pure, the roll passed in) to the add-shot form for the roll the Meter logs to
 (`/shoot/film-log/shot?rollId=<id>`, from `currentMeterRollId` in
 `src/lib/meter-roll.ts`, the same pick as `useMeterRoll`), or to the film log
-list when no roll is active (`logFrameTarget`). `?start=last` on the timer
+list when no roll is active (`logFrameTarget`). A link to one roll
+(`/shoot/film-log/roll/<id>`, from a Spotlight result or the roll widget) whose
+roll no longer exists is rewritten to the film log list
+(`resolveMissingRollLink`, the film log read in `+native-intent.ts`), cold and
+warm, instead of opening an empty roll screen. `?start=last` on the timer
 (`dorkroom://develop/recipes/timer?start=last`) is stamped with `at` like an
 exposure link and starts the last run (see "The timer takes" below).
-**Search link.** `dorkroom://search?q=...` (the App Intent "how long for HP5 at 800
-in DD-X?" and Spotlight's "search in app" will send it; nothing in the repo produces
-it yet) is an EVENT, not route params.
+**Search link.** `dorkroom://search?q=...` is an EVENT, not route params. The
+"Ask Dorkroom" App Intent (`AskDorkroomIntent.swift`) sends it (see "Spotlight and
+Ask Dorkroom"); Spotlight's "search in app" is deliberately off.
 `redirectSystemPath` splits it with `splitSearchLink` (`deep-link.ts`), records
 `pushSearchLink(q)` in `src/lib/home/search-link-store.ts` (an increasing `seq`, so
 the same query twice is two events) and carries on with plain Home (`/`, other
@@ -1305,7 +1309,8 @@ otherwise; it has no plugin option). A test keeps it equal to the
 Synchronous `getSharedBool`, `setSharedBool`, `getSharedNumber`,
 `setSharedNumber` on `UserDefaults(suiteName:)` for the group named by the app's
 Info.plist key `ExpoWidgetsAppGroupIdentifier` (written by expo-widgets), and
-`reloadControls(kind?)`. Every App Group call throws when that key is absent OR
+`reloadControls(kind?)`. The same pod also holds `DorkroomSpotlightModule` and
+an app-delegate subscriber (see "Spotlight and Ask Dorkroom"). Every App Group call throws when that key is absent OR
 the build lacks the App Group entitlement: without it `UserDefaults(suiteName:)`
 still succeeds but returns a store private to the app that the extension never
 sees, so the module checks
@@ -1368,6 +1373,144 @@ on the Lock Screen, the Action button bound to a control, the Safelight toggle
 and the buttons with the app killed on a device (the Simulator does not kill or
 suspend apps the way iOS does), and the control's red tint under the system's
 own appearance settings.
+
+### Spotlight and Ask Dorkroom
+
+The Home Screen search finds the user's rolls and recently opened recipes, and
+"Ask Dorkroom" (Siri, the Shortcuts app) opens Home with a question in the box.
+
+**What is indexed.** The on-device Core Spotlight index only (`CSSearchableIndex.default()`,
+nothing public, nothing synced or donated). Two domains:
+
+- `rolls`: every roll. Title `rollLabel`; description camera, `EI <iso>`, the
+  status word (`rollStatusLabel`), frames shot; keywords film stock, camera and
+  the lenses used on its shots. Keyword matching (finding a roll by its film,
+  camera or lens alone) was not seen on the Simulator; check it on a device.
+- `recipes`: the recently opened recipes the catalog can name, at most 50
+  (`MAX_SPOTLIGHT_RECIPES`). Title "Ilford HP5 Plus in Ilford DD-X" (the
+  development record's name), description time, dilution, EI and temperature;
+  keywords film and developer. The recent list keeps 50 ids
+  (`MAX_RECIPE_HISTORY` in `recent-store.ts`); Home still shows the first 3. The
+  mobile app has no custom recipes, so there are none to index.
+
+**What never is:** notes (roll, shot, camera, lens, development, recipe),
+places, coordinates, photos. The builders (`rollSpotlightItem`,
+`recipeSpotlightItem` in `src/lib/spotlight-index.ts`, pure) pick fields one by
+one, and `spotlight-index.test.ts` builds fixtures that carry notes, places and
+coordinates and checks none reaches any field. Every item is removable: a
+deleted roll is removed on the next sync, an empty film log clears the whole
+`rolls` domain (`removeSpotlightDomain`), and recipes that leave the recent list
+or the catalog are removed.
+
+**Ids are app paths.** An item's id is the path it opens
+(`/shoot/film-log/roll/<id>`, `/develop/recipes/recipe/<uuid>`), so a tap needs
+no lookup table. Both sides allow only those two prefixes followed by one
+segment of `[A-Za-z0-9_-]`, at most 128 characters (`SPOTLIGHT_PATH_PREFIXES`
+and `spotlightPath` in JS, `DorkroomSpotlight.pathPrefixes` in Swift, compared by
+a test); Swift refuses anything else both when indexing and when a result is
+tapped. A roll that was deleted after indexing still opens the film log, not an
+empty screen (`resolveMissingRollLink`, see "Legacy paths").
+
+**Sending only changes.** `planSpotlightSync` (pure) compares the desired items
+with the record of what the index last accepted, kept per domain in MMKV
+(`dorkroom-spotlight`, keys `indexed.rolls` and `indexed.recipes`: id to content
+hash and time). It sends new, changed, and week-old items (`SPOTLIGHT_REFRESH_MS`:
+items expire after a month by default, and the native side also sets no expiry
+with `expirationDate = .distantFuture`), and removes ids no longer wanted. The
+record changes only for what the index accepted (`syncSpotlightDomain` in
+`spotlight.ts`), so a failure or a dev client without the module retries on the
+next sync. Clearing an empty domain is skipped when nothing is recorded (no
+native call). Each record carries the native build it was made under
+(`build.<domain>`: `appBuildIdentity` of `Constants.expoConfig.version` and
+`Constants.platform.ios.buildNumber`, the binary's `CFBundleVersion`, from
+`expo-constants`); under a new build the domain is cleared once and everything is
+sent again, so an index wiped behind the record's back (a restore, a reinstall)
+is noticed at the next build rather than after a week. A domain's syncs run one
+at a time (`createSerialQueue`) in `createSpotlightRuntime` (`spotlight.ts`,
+dependencies injected and tested); `spotlight-sync.ts` wires it to MMKV and the
+film log. Nothing reaches Spotlight in the first `STARTUP_SYNC_DELAY_MS` (3 s)
+after start: work asked for earlier (a recipe sync from the first render, a
+film log change) waits in its queue. Rolls sync once when that delay ends and on
+MMKV changes of the film log's `rolls`, `cameras` and
+`lenses`, coalesced for 300 ms with the widgets' `createCoalescer`. Recipes are
+sent by `SpotlightEffects` (`src/components/spotlight-effects.tsx`, mounted in the
+root layout beside `TimerRunEffects`), which reads the recent list with
+`useSyncExternalStore`. It enables the catalog queries (`useHomeSearchData`)
+only when a recent recipe is missing from the record or due for a re-send
+(`recipesNeedIndexing`); otherwise it only removes the indexed recipes that
+left the list (`pruneSpotlightDomain`). It sends nothing until the films,
+developers and recipes have all loaded, so a slow or failed load never empties
+the index. A recent recipe the catalog no longer has stays "missing", so it
+keeps the catalog wanted at launch until it leaves the recent list. A recipe
+already indexed whose catalog details change keeps its old details in Spotlight
+until the 7-day re-send (`SPOTLIGHT_REFRESH_MS`). An empty catalog list while
+recent recipes exist sends nothing (`recipeSyncAction`), so it cannot clear the
+domain.
+
+**Native.** `DorkroomSpotlightModule` (`Name("DorkroomSpotlight")`) is a second
+module class in the `dorkroom-shared` pod, so a dev client built before it
+reports it missing and `src/lib/spotlight.ts` falls back to a no-op with one
+development warning. `DorkroomSpotlight.swift` imports only system frameworks
+(`swiftc -typecheck` works on it alone). The content type is `UTType.text`.
+
+**Taps.** `DorkroomSpotlightAppDelegateSubscriber`, registered with
+`appDelegateSubscribers` in `expo-module.config.json`, handles
+`CSSearchableItemActionType` only: it validates `CSSearchableItemActivityIdentifier`
+against the allow-list and hands `dorkroom://<path>` to the app delegate's
+`application(_:open:options:)`, exactly as the scene delegate
+(`plugins/with-ios-scene-lifecycle`) hands it every real URL: expo-linking's
+subscriber records it synchronously, so on a cold launch (this runs before the
+JS bundle) it is the initial URL expo-router reads, `RCTLinkingManager` posts it
+to a running app, and `redirectSystemPath` routes it (warm through the hub
+handoff). Not `UIApplication.open`, an OS round trip whose delivery while the
+scene is still connecting is less certain. The scene delegate forwards
+launch-time activities and `scene(_:continue:)` to the app delegate, which calls
+every subscriber. That delegate method is deprecated in iOS 26 (a compiler
+warning, as in the scene delegate).
+
+**"Search in App" is deliberately off** (no `CoreSpotlightContinuation` in
+`app.json`): expo-router 57.0.29's `ExpoHeadAppDelegateSubscriber`, which would
+handle that activity, encodes the query with `.urlHostAllowed` (so `+` becomes a
+space and `&` cuts the question short) and only posts it to a running app (so a
+cold launch loses it). Our subscriber never handles
+`CSQueryContinuationActionType` (a test checks), so turning the row on later
+cannot make one tap open two URLs; expo-router's acts only on that type or an
+`href` in the user info, ours only on `CSSearchableItemActionType`.
+
+**Ask Dorkroom.** `AskDorkroomIntent.swift` (app target, in the
+`with-app-intents` file list): a required `String` parameter "Question" with the
+request dialog "What do you want to know?", `openAppWhenRun` (the app target's
+proven style), and `perform()` opening `dorkroom://search?q=<question>`,
+percent-encoded to RFC 3986 unreserved characters. Its App Shortcut phrases
+("Ask Dorkroom", "Ask Dorkroom a darkroom question", ...) hold no parameter
+(App Shortcut phrases cannot include a `String`), so Siri asks for the question.
+There are 7 App Shortcuts of the 10 allowed. The answer shows in the app, in
+Home's answer card, not in Siri: answering inside Siri would need the catalog and
+the parser in Swift. `CalculateReciprocityIntent` stays a stub; "reciprocity
+for 30s on HP5" style questions go through Ask Dorkroom and Search.
+`tool-manifest.test.ts` reads the URL and the encoding set from the Swift and
+checks a question reaches Home as a search event, cold and warm.
+
+**Verified on the iOS 27.2 Simulator** (iPhone 18 Pro, Debug dev build): every
+index, remove and domain call resolved true and `searchd` logged each donation as
+completed; on a launch the roll sync ran at +3.0 s with no Spotlight call before
+it; a new roll was sent alone (the diff), a rename re-sent only that roll, a
+delete sent one remove; Spotlight showed a QA roll and all three recent recipes
+by title, and tapping them opened the roll or recipe cold and warm (warm through
+the hub, Back naming the phase); after the delete the result was gone and the
+roll's link opened the film log cold and warm; a frame's note, place and
+location (37.7749, -122.4194) matched no Dorkroom result; the Shortcuts app
+listed all seven App Shortcuts, Ask Dorkroom showed "What do you want to know?"
+and opened Home with the question and its answer card cold and warm, `+`, `&`
+and `#` intact.
+
+**Not seen on the Simulator, or flaky there:** Spotlight's ranking surfaced
+Dorkroom results only for some queries (titles such as "Zephyr", "DD-X",
+"BwXX"; the same query sometimes showed none), and never for a keyword alone
+(film, camera or lens names), although the items were accepted. Unverified:
+Siri voice, so the App Shortcut phrases and Ask Dorkroom through Siri (the
+Simulator has no Siri voice); Spotlight ranking and keyword matching on a
+device.
 
 ### Components
 

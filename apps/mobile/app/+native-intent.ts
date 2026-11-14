@@ -2,12 +2,17 @@ import {
   APP_SCHEME,
   resolveIncomingLink,
   resolveLogFrameLink,
+  resolveMissingRollLink,
   splitSearchLink,
   stampTimerLink,
 } from '@/lib/deep-link';
+import { getRolls } from '@/lib/film-log-storage';
 import { noteInitialUrl, pushSearchLink } from '@/lib/home/search-link-store';
 import { handOffWarmLink } from '@/lib/link-handoff';
 import { currentMeterRollId } from '@/lib/meter-roll';
+
+const rollExists = (id: string): boolean =>
+  getRolls().some((roll) => roll.id === id);
 
 // Rewrites incoming external URLs so they land on a route that exists now.
 // expo-router passes the FULL URL here (`dorkroom://meter`), not a path, and
@@ -26,9 +31,14 @@ export function redirectSystemPath({
     // "Log a frame" (a Control Center control) becomes the add-shot form for
     // the meter's roll, or the film log list without an active roll. A timer
     // link with an exposure or a start and no `at` is stamped with the arrival
-    // time so every opening is ordered (see `stampTimerLink`).
+    // time so every opening is ordered (see `stampTimerLink`). A link to a
+    // roll that was deleted (a Spotlight result, the roll widget) lands on the
+    // film log list.
     const resolved = stampTimerLink(
-      resolveLogFrameLink(resolveIncomingLink(path), currentMeterRollId),
+      resolveMissingRollLink(
+        resolveLogFrameLink(resolveIncomingLink(path), currentMeterRollId),
+        rollExists
+      ),
       Date.now()
     );
     const asPath = resolved
