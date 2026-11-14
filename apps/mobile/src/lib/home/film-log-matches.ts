@@ -1,5 +1,7 @@
+import { frameLensName } from '@/lib/camera-lenses';
 import { rollRowText } from '@/lib/film-log-list';
 import { formatCameraFormat, joinFacts } from '@/lib/film-log-options';
+import { cameraDisplayName } from '@/lib/gear-display';
 import type { Camera, FilmRoll, Lens } from '@/schemas/film-log.schema';
 
 export interface RollMatch {
@@ -77,18 +79,22 @@ export function matchFilmLog(
 
   const cameraById = new Map(data.cameras.map((c) => [c.id, c]));
   const lensById = new Map(data.lenses.map((l) => [l.id, l]));
+  const cameraName = (id: string) => {
+    const camera = cameraById.get(id);
+    return camera ? cameraDisplayName(camera) : undefined;
+  };
 
   const rolls = data.rolls
     .map((roll, index) => ({ roll, index }))
     .filter(({ roll }) => {
       const lensNames = roll.shots.flatMap((shot) => {
-        const lens = shot.lensId ? lensById.get(shot.lensId) : undefined;
-        return lens ? [lens.name] : [];
+        const name = frameLensName(shot, (id) => lensById.get(id)?.name);
+        return name ? [name] : [];
       });
       const haystack = [
         roll.name,
         roll.filmStockName,
-        cameraById.get(roll.cameraId)?.name,
+        cameraName(roll.cameraId),
         ...lensNames,
         roll.notes,
         roll.iso !== undefined ? String(roll.iso) : undefined,
@@ -104,7 +110,7 @@ export function matchFilmLog(
     )
     .slice(0, MAX_ROLLS)
     .map(({ roll }) => {
-      const text = rollRowText(roll, cameraById.get(roll.cameraId)?.name, '');
+      const text = rollRowText(roll, cameraName(roll.cameraId), '');
       return {
         rollId: roll.id,
         title: text.title,
@@ -117,17 +123,16 @@ export function matchFilmLog(
   const cameras = data.cameras
     .map((camera) => ({
       camera,
+      name: cameraDisplayName(camera),
       used: data.rolls.filter((r) => r.cameraId === camera.id).length,
     }))
-    .filter(({ camera }) => matchesAll(words(camera.name), tokens))
-    .sort(
-      (a, b) => b.used - a.used || a.camera.name.localeCompare(b.camera.name)
-    )
+    .filter(({ name }) => matchesAll(words(name), tokens))
+    .sort((a, b) => b.used - a.used || a.name.localeCompare(b.name))
     .slice(0, MAX_CAMERAS)
-    .map(({ camera, used }) => {
+    .map(({ camera, name, used }) => {
       return {
         cameraId: camera.id,
-        title: camera.name,
+        title: name,
         subtitle: joinFacts([
           formatCameraFormat(camera.format),
           used === 0 ? 'No rolls' : `${used} ${used === 1 ? 'roll' : 'rolls'}`,

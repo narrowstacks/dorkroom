@@ -18,6 +18,7 @@ import { SectionLabel } from '@/components/section-label';
 import { TabBarScrollView } from '@/components/tab-bar-scroll-view';
 import { useCameras, useLenses, useRoll } from '@/hooks/use-film-log';
 import { useMeterRoll } from '@/hooks/use-meter-roll';
+import { frameLensName } from '@/lib/camera-lenses';
 import { frameCountLabel } from '@/lib/film-log-list';
 import { shareRollAsCsv, shareRollAsGpx } from '@/lib/film-log-share';
 import { deleteRoll } from '@/lib/film-log-storage';
@@ -25,6 +26,7 @@ import { framePoints, locatedFrames } from '@/lib/frame-map-items';
 import { loadAppleMaps } from '@/lib/frame-map-native';
 import { thumbnailDots } from '@/lib/frame-map-thumbnail';
 import { frameRowText } from '@/lib/frame-row-text';
+import { cameraDisplayName } from '@/lib/gear-display';
 import { toolHref } from '@/lib/home/destination';
 import { toHref } from '@/lib/href';
 import { openToolPath } from '@/lib/open-tool-path';
@@ -161,7 +163,7 @@ export function RollDetailScreen() {
 
   const lensName = useMemo(() => {
     const map = new Map(lenses.map((lens) => [lens.id, lens.name]));
-    return (id: string | undefined) => (id ? map.get(id) : undefined);
+    return (id: string) => map.get(id);
   }, [lenses]);
 
   const shots = roll?.shots;
@@ -198,7 +200,7 @@ export function RollDetailScreen() {
       const photo = item.photo?.fileName;
       return (
         <FrameRow
-          text={frameRowText(item, lensName(item.lensId))}
+          text={frameRowText(item, frameLensName(item, lensName))}
           photoFileName={photo}
           href={toHref(
             `/shoot/film-log/shot?rollId=${encodeURIComponent(rollId ?? '')}&shotId=${encodeURIComponent(item.id)}`
@@ -223,7 +225,8 @@ export function RollDetailScreen() {
     );
   }
 
-  const cameraName = cameras.find((c) => c.id === roll.cameraId)?.name;
+  const camera = cameras.find((c) => c.id === roll.cameraId);
+  const cameraName = camera ? cameraDisplayName(camera) : undefined;
   const hasFrames = roll.shots.length > 0;
   const title = roll.name?.trim() ? roll.name : (roll.filmStockName ?? 'Roll');
   const action = nextLifecycleAction(roll.status);

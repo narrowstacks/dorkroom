@@ -1,6 +1,7 @@
 // Smart lists and summary stats over the film log. Pure: data in, data out, so
 // it runs (and is tested) outside the app. A roll's `startedAt` that does not
 // parse is never thrown on: it is left out of "This year" and sorted last.
+import { cameraDisplayName } from '@/lib/gear-display';
 import type { Camera, FilmRoll } from '@/schemas/film-log.schema';
 
 export type RollFilter = 'all' | 'in-camera' | 'to-develop' | 'this-year';
@@ -154,7 +155,7 @@ export function filmLogStats(
   }
 
   const cameraNames = new Map(
-    cameras.map((camera) => [camera.id, camera.name])
+    cameras.map((camera) => [camera.id, cameraDisplayName(camera)])
   );
   const camera = topEntry(
     rolls.flatMap((roll) =>

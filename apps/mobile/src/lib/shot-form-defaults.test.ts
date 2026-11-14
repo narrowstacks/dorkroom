@@ -145,9 +145,19 @@ describe('shotFormDefaults', () => {
     expect(
       shotFormDefaults({ lensId: 'gone' }, undefined, roll, lenses).lensId
     ).toBe('l1');
-    expect(shotFormDefaults({ lensId: 'l2' }, undefined, roll, []).lensId).toBe(
-      'l1'
-    );
+    // The last-used fallback must itself be offered (#733).
+    expect(
+      shotFormDefaults({ lensId: 'l2' }, undefined, roll, []).lensId
+    ).toBeUndefined();
+  });
+
+  it('falls back to the last-used lens only while the camera offers it', () => {
+    expect(shotFormDefaults({}, undefined, roll, lenses).lensId).toBe('l1');
+    // Deleted, or no longer fitting the camera: no hidden default.
+    expect(
+      shotFormDefaults({}, undefined, roll, [{ id: 'l2' }]).lensId
+    ).toBeUndefined();
+    expect(shotFormDefaults({}, undefined, roll, []).lensId).toBeUndefined();
   });
 
   it('reads array params by their first value', () => {

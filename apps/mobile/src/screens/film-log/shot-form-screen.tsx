@@ -10,6 +10,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Keyboard, Text, View } from 'react-native';
 import { CommitButton } from '@/components/commit-button';
+import { FrameLensField } from '@/components/film-log/frame-lens-field';
 import { FrameLocationField } from '@/components/film-log/frame-location-field';
 import { SelectField } from '@/components/film-log/select-field';
 import { ShotPhotoRow } from '@/components/film-log/shot-photo-row';
@@ -19,12 +20,18 @@ import { Screen } from '@/components/screen';
 import { Stepper } from '@/components/stepper';
 import { Surface } from '@/components/surface';
 import {
+  useCameraLenses,
   useCameras,
-  useLensesForCamera,
+  useLenses,
   useRoll,
   useRolls,
 } from '@/hooks/use-film-log';
 import { useFormState } from '@/hooks/use-form-state';
+import {
+  frameLensFields,
+  initialLensChoice,
+  lensChoiceForRoll,
+} from '@/lib/camera-lenses';
 import { cameraUsesBacks, nextFrameNumber } from '@/lib/film-log-options';
 import {
   deletePhotoFile,
@@ -124,7 +131,8 @@ export function ShotFormScreen() {
   const roll = useRoll(rollId);
   const cameras = useCameras();
   const camera = cameras.find((c) => c.id === roll?.cameraId);
-  const lenses = useLensesForCamera(roll?.cameraId);
+  const cameraLenses = useCameraLenses(roll?.cameraId);
+  const allLenses = useLenses();
   const existing = roll?.shots.find(
     (shot) => shot.id === firstParam(params.shotId)
   );
@@ -139,18 +147,24 @@ export function ShotFormScreen() {
     roll?.iso !== undefined &&
     meteredIso !== roll.iso;
   const nextFrame = nextFrameNumber(roll?.shots ?? []);
-  const defaults = shotFormDefaults(params, existing, roll, lenses, {
-    aperture:
-      prefillAperture === undefined
-        ? undefined
-        : snapToStandardStop(prefillAperture, STANDARD_APERTURES, false)
-            .standard.value,
-    shutterSpeed:
-      prefillShutter === undefined
-        ? undefined
-        : snapToStandardStop(prefillShutter, STANDARD_SHUTTER_SPEEDS, true)
-            .standard.value,
-  });
+  const defaults = shotFormDefaults(
+    params,
+    existing,
+    roll,
+    cameraLenses.kind === 'interchangeable' ? cameraLenses.lenses : [],
+    {
+      aperture:
+        prefillAperture === undefined
+          ? undefined
+          : snapToStandardStop(prefillAperture, STANDARD_APERTURES, false)
+              .standard.value,
+      shutterSpeed:
+        prefillShutter === undefined
+          ? undefined
+          : snapToStandardStop(prefillShutter, STANDARD_SHUTTER_SPEEDS, true)
+              .standard.value,
+    }
+  );
 
   const [handoffLocation] = useState(() =>
     peekFrameLocationHandoff(params.photo)
@@ -163,7 +177,9 @@ export function ShotFormScreen() {
     frameNumber: existing?.frameNumber ?? nextFrame,
     aperture: defaults.aperture,
     shutterSpeed: defaults.shutterSpeed,
-    lensId: defaults.lensId,
+    // A choice, not always an id: a fixed-lens camera's lens and a frame's
+    // recorded lens snapshot have their own values (`camera-lenses.ts`).
+    lensId: initialLensChoice(cameraLenses, existing, defaults.lensId),
     back: defaults.back,
     notes: defaults.notes,
     place: defaults.place,
@@ -206,10 +222,6 @@ export function ShotFormScreen() {
     label: r.name?.trim() ? r.name : (r.filmStockName ?? 'Roll'),
     value: r.id,
   }));
-  const lensOptions = useMemo(
-    () => lenses.map((lens) => ({ label: lens.name, value: lens.id })),
-    [lenses]
-  );
   const backOptions = useMemo(
     () => (camera?.backs ?? []).map((b) => ({ label: b, value: b })),
     [camera]
@@ -249,11 +261,14 @@ export function ShotFormScreen() {
 
   const onSave = () => {
     if (!roll || locating) return;
-    const fields = shotFormFields(form, {
-      showBacks,
-      source:
-        existing?.source ?? (params.source === 'meter' ? 'meter' : 'manual'),
-    });
+    const fields = {
+      ...shotFormFields(form, {
+        showBacks,
+        source:
+          existing?.source ?? (params.source === 'meter' ? 'meter' : 'manual'),
+      }),
+      ...frameLensFields(form.lensId, cameraLenses, existing),
+    };
     if (existing) {
       // Clean up the old photo file if the photo was replaced.
       if (existing.photo && existing.photo.fileName !== form.photo?.fileName) {
@@ -310,7 +325,10 @@ export function ShotFormScreen() {
             label="Roll"
             value={rollId}
             options={rollOptions}
-            onChange={setRollId}
+            onChange={(id) => {
+              setRollId(id);
+              set('lensId', lensChoiceForRoll(id, rolls, cameras, allLenses));
+            }}
           />
         ) : null}
         <View className="gap-2">
@@ -336,24 +354,12 @@ export function ShotFormScreen() {
           options={SHUTTER_OPTIONS}
           onChange={(v) => set('shutterSpeed', v)}
         />
-        {lensOptions.length > 0 ? (
-          <SelectField
-            label="Lens"
-            value={form.lensId}
-            options={lensOptions}
-            onChange={(v) => set('lensId', v)}
-            placeholder="Select a lens"
-          />
-        ) : (
-          <View className="gap-1">
-            <Text className="text-sm text-ink-60">Lens</Text>
-            <View className="rounded-xl border-hw border-line bg-surface-dim px-4 py-3">
-              <Text className="text-sm text-ink-40">
-                No saved lenses — add one under Cameras & lenses.
-              </Text>
-            </View>
-          </View>
-        )}
+        <FrameLensField
+          cameraLenses={cameraLenses}
+          existing={existing}
+          value={form.lensId}
+          onChange={(v) => set('lensId', v)}
+        />
         {showBacks && backOptions.length > 0 ? (
           <SelectField
             label="Holder / back"

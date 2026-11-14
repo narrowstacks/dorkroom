@@ -124,7 +124,9 @@ const COLUMNS: Column[] = [
   { header: 'ISO', cell: (_shot, roll) => numberCell(roll.iso) },
   {
     header: 'Lens',
-    cell: (shot, _roll, names) => textCell(names.lensName(shot.lensId)),
+    // A saved lens's name, else a fixed-lens camera's snapshot (#733).
+    cell: (shot, _roll, names) =>
+      textCell(names.lensName(shot.lensId) ?? shot.fixedLensName),
   },
   { header: 'Place', cell: (shot) => textCell(shot.place) },
   // Plain decimals, never quoted or guarded: a leading minus is a number here.

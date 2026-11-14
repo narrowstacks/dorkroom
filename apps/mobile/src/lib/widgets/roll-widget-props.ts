@@ -5,6 +5,7 @@
 // Frames SHOT, not frames left: a roll has no capacity field (a 35mm roll can
 // hold 24, 36 or a bulk-loaded count), so "left" would be a guess.
 import { rollLabel } from '@/lib/film-log-options';
+import { cameraDisplayName } from '@/lib/gear-display';
 import { pickMeterRoll } from '@/lib/meter-roll';
 import { pushPullLabel } from '@/lib/roll-lifecycle';
 import type { Camera, FilmRoll } from '@/schemas/film-log.schema';
@@ -75,7 +76,7 @@ export function buildRollWidgetProps(input: RollWidgetInput): RollWidgetProps {
     hasRoll: true,
     label: cutText(rollLabel(roll), MAX_LABEL),
     exposure,
-    camera: camera ? cutText(camera.name, MAX_CAMERA) : '',
+    camera: camera ? cutText(cameraDisplayName(camera), MAX_CAMERA) : '',
     frames: framesLabel(roll.shots.length),
     frameCount: roll.shots.length,
     url: rollUrl(roll.id),
