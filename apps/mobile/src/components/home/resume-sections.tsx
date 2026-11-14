@@ -1,8 +1,8 @@
 import { ChevronRight } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
-import { GlassCard } from '@/components/glass-card';
 import { NavRow } from '@/components/nav-row';
 import { SectionLabel } from '@/components/section-label';
+import { Surface } from '@/components/surface';
 import { ToolIcon } from '@/components/tool-icon';
 import type { EaselSummary } from '@/lib/home/easel-summary';
 import { getTool } from '@/lib/tools';
@@ -49,7 +49,7 @@ export function ResumeSections({
       {recentToolIds.length > 0 ? (
         <View className="gap-2">
           <SectionLabel>Recently used</SectionLabel>
-          <GlassCard className="px-0 py-1">
+          <Surface className="px-0 py-1">
             {recentToolIds.map((id) => {
               const tool = getTool(id);
               if (!tool) return null;
@@ -69,14 +69,14 @@ export function ResumeSections({
                 </Pressable>
               );
             })}
-          </GlassCard>
+          </Surface>
         </View>
       ) : null}
 
       {recentRecipes.length > 0 ? (
         <View className="gap-2">
           <SectionLabel>Recent recipes</SectionLabel>
-          <GlassCard className="px-0 py-1">
+          <Surface className="px-0 py-1">
             {recentRecipes.map((recipe) => (
               <Pressable
                 key={recipe.id}
@@ -96,7 +96,7 @@ export function ResumeSections({
                 {chevron}
               </Pressable>
             ))}
-          </GlassCard>
+          </Surface>
         </View>
       ) : null}
     </>

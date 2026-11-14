@@ -1,12 +1,7 @@
 import type { useDevelopmentRecipes } from '@dorkroom/logic';
-import {
-  Pressable,
-  ScrollView,
-  Text,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
+import { Button } from '@/components/button';
 import { OptionRow } from '@/components/option-row';
 import { SectionLabel } from '@/components/section-label';
 import { SegmentedControl } from '@/components/segmented-control';
@@ -120,15 +115,11 @@ export function FiltersSheet({
           onChange={onTagFilterChange}
         />
 
-        <Pressable
+        <Button
+          label="Reset sort & filters"
           onPress={resetSortAndFilters}
-          accessibilityRole="button"
-          className="mt-1 items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
-        >
-          <Text className="text-base font-semibold text-white">
-            Reset sort &amp; filters
-          </Text>
-        </Pressable>
+          className="mt-1"
+        />
 
         <Text className="text-center text-sm text-ink-40">
           {matchCount} {matchCount === 1 ? 'recipe matches' : 'recipes match'}

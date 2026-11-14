@@ -7,7 +7,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { GlassCard } from '@/components/glass-card';
+import { Surface } from '@/components/surface';
 
 interface CollapsibleSectionProps {
   title: string;
@@ -17,7 +17,7 @@ interface CollapsibleSectionProps {
 }
 
 /**
- * A GlassCard whose body expands/collapses on header tap. The chevron rotates
+ * A Surface whose body expands/collapses on header tap. The chevron rotates
  * via Reanimated; the body fades in when shown.
  */
 export function CollapsibleSection({
@@ -40,7 +40,7 @@ export function CollapsibleSection({
   };
 
   return (
-    <GlassCard className="gap-0">
+    <Surface className="gap-0">
       <Pressable
         onPress={toggle}
         accessibilityRole="button"
@@ -64,6 +64,6 @@ export function CollapsibleSection({
           {children}
         </Animated.View>
       ) : null}
-    </GlassCard>
+    </Surface>
   );
 }

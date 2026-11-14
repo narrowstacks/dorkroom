@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react-native';
 import { Text, View } from 'react-native';
-import { GlassCard } from '@/components/glass-card';
 import { SectionLabel } from '@/components/section-label';
+import { Surface } from '@/components/surface';
 import { agitationSummary } from '@/lib/timer/agitation';
 import type { TimerStage } from '@/lib/timer/types';
 import {
@@ -34,7 +34,7 @@ export function StageList({
   return (
     <View className="gap-2">
       <SectionLabel>Stages</SectionLabel>
-      <GlassCard className="gap-1">
+      <Surface className="gap-1">
         {stages.map((stage, index) => {
           const done = completed || index < currentStageIndex;
           const active = !completed && index === currentStageIndex;
@@ -86,7 +86,7 @@ export function StageList({
             </View>
           );
         })}
-      </GlassCard>
+      </Surface>
     </View>
   );
 }

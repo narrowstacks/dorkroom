@@ -2,9 +2,9 @@ import type { NegativeFilmType } from '@dorkroom/logic';
 import type { SFSymbol } from 'expo-symbols';
 import type { ReactNode } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
-import { GlassCard } from '@/components/glass-card';
 import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
+import { Surface } from '@/components/surface';
 import { EditorButton } from './editor-button';
 import { ToolButton, ToolHint } from './editor-chrome';
 import { ControlSlot } from './editor-frame';
@@ -173,7 +173,7 @@ export function InverterEmpty({
   return (
     <View className="flex-1">
       <Screen>
-        <GlassCard className="gap-4">
+        <Surface className="gap-4">
           <Text className="text-base text-ink-80">
             Photograph a negative on a light table, then convert it to a
             positive. Everything happens on your phone.
@@ -200,15 +200,15 @@ export function InverterEmpty({
           {error ? (
             <Text className="text-sm text-rose-400">{`Error: ${error}`}</Text>
           ) : null}
-        </GlassCard>
-        <GlassCard className="gap-2">
+        </Surface>
+        <Surface className="gap-2">
           <SectionLabel>Light table tips</SectionLabel>
           {LIGHT_TABLE_TIPS.map((tip) => (
             <Text key={tip} className="text-sm text-ink-70">
               {`• ${tip}`}
             </Text>
           ))}
-        </GlassCard>
+        </Surface>
       </Screen>
     </View>
   );

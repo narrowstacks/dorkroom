@@ -1,7 +1,7 @@
 import type { BorderDiagram, HomeAnswer } from '@dorkroom/logic';
 import { ArrowRight } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
-import { GlassCard } from '@/components/glass-card';
+import { Surface } from '@/components/surface';
 import { diagramSize } from './diagram';
 
 interface AnswerCardProps {
@@ -50,7 +50,7 @@ function EaselDiagram({ diagram }: { diagram: BorderDiagram }) {
 export function AnswerCard({ answer, example, onOpen }: AnswerCardProps) {
   const diagram = answer.kind === 'border' ? answer.diagram : null;
   return (
-    <GlassCard className="gap-4">
+    <Surface className="gap-4">
       {example ? (
         <Text className="text-xs text-ink-50">Try typing “{example}”</Text>
       ) : null}
@@ -59,7 +59,7 @@ export function AnswerCard({ answer, example, onOpen }: AnswerCardProps) {
         <Text className="flex-1 text-base font-semibold text-white">
           {answer.title}
         </Text>
-        <View className="rounded-lg border-hw border-line bg-surface px-2 py-0.5">
+        <View className="rounded-lg border-hw border-line bg-surface-strong px-2 py-0.5">
           <Text className="text-xs text-ink-70">{answer.badge}</Text>
         </View>
       </View>
@@ -70,7 +70,7 @@ export function AnswerCard({ answer, example, onOpen }: AnswerCardProps) {
           {answer.readAs.map((reading) => (
             <View
               key={reading.text}
-              className={`rounded-lg px-2 py-0.5 ${reading.assumed ? 'border border-dashed border-edge-30' : 'border-hw border-line bg-surface'}`}
+              className={`rounded-lg px-2 py-0.5 ${reading.assumed ? 'border border-dashed border-edge-30' : 'border-hw border-line bg-surface-strong'}`}
             >
               <Text
                 className={`text-xs ${reading.assumed ? 'text-ink-50' : 'text-ink-70'}`}
@@ -157,6 +157,6 @@ export function AnswerCard({ answer, example, onOpen }: AnswerCardProps) {
           <Text className="text-xs text-ink-40">{answer.footnote}</Text>
         ) : null}
       </View>
-    </GlassCard>
+    </Surface>
   );
 }

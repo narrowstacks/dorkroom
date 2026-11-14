@@ -2,12 +2,13 @@ import * as Haptics from 'expo-haptics';
 import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { Button } from '@/components/button';
 import { CommitButton } from '@/components/commit-button';
-import { GlassCard } from '@/components/glass-card';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import { PresetChipRow } from '@/components/preset-chip-row';
 import { SectionLabel } from '@/components/section-label';
 import { Stepper } from '@/components/stepper';
+import { Surface } from '@/components/surface';
 import {
   AGITATION_PRESETS,
   agitationLabel,
@@ -99,7 +100,7 @@ export function PresetEditor({
         const { minutes, seconds } = durationToParts(stage.durationSeconds);
         const pattern = stage.agitationPattern;
         return (
-          <GlassCard key={stage.id} className="gap-3">
+          <Surface key={stage.id} className="gap-3">
             <View className="flex-row items-center justify-between">
               <Text className="text-sm font-semibold text-ink-80">
                 Stage {index + 1}
@@ -274,24 +275,21 @@ export function PresetEditor({
                 </Text>
               ) : null}
             </View>
-          </GlassCard>
+          </Surface>
         );
       })}
 
-      <Pressable
+      <Button
+        label="Add stage"
+        icon={<Plus size={18} color="#ffffff" />}
         onPress={() => {
           Haptics.selectionAsync();
           onChangeStages(appendStage(stages));
         }}
-        accessibilityRole="button"
         accessibilityLabel="Add stage"
-        className="flex-row items-center justify-center gap-2 rounded-xl border-hw border-line bg-surface py-3"
-      >
-        <Plus size={18} color="#ffffff" />
-        <Text className="text-base font-semibold text-white">Add stage</Text>
-      </Pressable>
+      />
 
-      <GlassCard className="gap-3">
+      <Surface className="gap-3">
         <LabeledTextField
           label="Save as preset"
           value={presetName}
@@ -304,7 +302,7 @@ export function PresetEditor({
           label="Save preset"
           disabled={presetName.trim() === '' || stages.length === 0}
         />
-      </GlassCard>
+      </Surface>
     </View>
   );
 }

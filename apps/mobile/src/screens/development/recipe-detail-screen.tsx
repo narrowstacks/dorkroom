@@ -14,9 +14,9 @@ import {
   resolveDilution,
 } from '@/components/development/recipe-format';
 import { VolumeMixer } from '@/components/development/volume-mixer';
-import { GlassCard } from '@/components/glass-card';
 import { ResultRow } from '@/components/result-row';
 import { Screen } from '@/components/screen';
+import { Surface } from '@/components/surface';
 import { recordRecipeOpen } from '@/lib/recent-store';
 import { agitationSummary, patternFromRecipe } from '@/lib/timer/agitation';
 import {
@@ -99,14 +99,14 @@ export function RecipeDetailScreen() {
       </View>
 
       {/* Primary stats: dev time (the hero, in green), temperature, dilution.
-          `flex: 1` on each card's OUTER element (via GlassCard's style prop)
+          `flex: 1` on each card's OUTER element (via Surface's style prop)
           gives equal width; the row's default alignItems:'stretch' then makes
           all three the same height — the tallest (Temp, which has the °F line)
           sets it, and the shorter cards keep their content top-aligned. The
           dev-time card carries the teal accent border + teal value (the
           `text-teal-*` class doesn't resolve on the Liquid Glass build). */}
       <View className="flex-row gap-3">
-        <GlassCard
+        <Surface
           className="gap-0.5"
           style={{ flex: 1, borderWidth: 1, borderColor: tealLine }}
         >
@@ -121,8 +121,8 @@ export function RecipeDetailScreen() {
           >
             {formatRecipeTime(combination.timeMinutes)}
           </Text>
-        </GlassCard>
-        <GlassCard className="gap-0.5" style={{ flex: 1 }}>
+        </Surface>
+        <Surface className="gap-0.5" style={{ flex: 1 }}>
           <Text className="text-xs uppercase tracking-wide text-ink-50">
             Temp
           </Text>
@@ -144,8 +144,8 @@ export function RecipeDetailScreen() {
               'F'
             )}
           </Text>
-        </GlassCard>
-        <GlassCard className="gap-0.5" style={{ flex: 1 }}>
+        </Surface>
+        <Surface className="gap-0.5" style={{ flex: 1 }}>
           <Text className="text-xs uppercase tracking-wide text-ink-50">
             Dilution
           </Text>
@@ -156,11 +156,11 @@ export function RecipeDetailScreen() {
           >
             {dilution}
           </Text>
-        </GlassCard>
+        </Surface>
       </View>
 
       {/* Supporting details. */}
-      <GlassCard>
+      <Surface>
         <ResultRow
           label="Agitation"
           value={agitationSummary(
@@ -181,7 +181,7 @@ export function RecipeDetailScreen() {
             value={tags.map(officialTagLabel).join(', ')}
           />
         ) : null}
-      </GlassCard>
+      </Surface>
 
       <CommitButton
         onPress={() => {
@@ -204,10 +204,10 @@ export function RecipeDetailScreen() {
       />
 
       {combination.notes?.trim() ? (
-        <GlassCard className="gap-1">
+        <Surface className="gap-1">
           <Text className="text-sm font-semibold text-white">Notes</Text>
           <Text className="text-sm text-ink-70">{combination.notes}</Text>
-        </GlassCard>
+        </Surface>
       ) : null}
 
       <VolumeMixer dilutionString={dilution} />
@@ -237,13 +237,13 @@ export function RecipeDetailScreen() {
       ) : null}
 
       {combination.infoSource?.trim() ? (
-        <GlassCard>
+        <Surface>
           <LinkRow
             label="View source"
             sublabel={combination.infoSource}
             url={combination.infoSource}
           />
-        </GlassCard>
+        </Surface>
       ) : null}
     </Screen>
   );

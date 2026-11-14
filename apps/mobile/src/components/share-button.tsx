@@ -1,5 +1,6 @@
 import * as Haptics from 'expo-haptics';
-import { Pressable, Share, Text } from 'react-native';
+import { Share } from 'react-native';
+import { Button } from '@/components/button';
 
 export function ShareButton({ message }: { message: string }) {
   const onPress = async () => {
@@ -8,13 +9,5 @@ export function ShareButton({ message }: { message: string }) {
     // cancel, not an error, so it is intentionally ignored.
     await Share.share({ message }).catch(() => undefined);
   };
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      className="mt-1 flex-row items-center justify-center rounded-xl border-hw border-line bg-surface py-3"
-    >
-      <Text className="font-semibold text-white">Share result</Text>
-    </Pressable>
-  );
+  return <Button label="Share result" onPress={onPress} className="mt-1" />;
 }

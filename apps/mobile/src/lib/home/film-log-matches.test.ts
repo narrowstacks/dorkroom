@@ -107,7 +107,9 @@ describe('matchFilmLog', () => {
       {
         rollId: 'o',
         title: 'Portra 400',
-        subtitle: 'Shot · 0 shots',
+        subtitle: '0\u00a0frames',
+        status: 'Shot',
+        inCamera: false,
       },
     ]);
     expect(matchFilmLog('nikon', data([orphan])).rolls).toEqual([]);
@@ -124,11 +126,13 @@ describe('matchFilmLog', () => {
     expect(matchFilmLog('spring', data([r])).rolls[0]).toEqual({
       rollId: 'a',
       title: 'Spring',
-      subtitle: 'HP5+ · Nikon FM2 · EI 1600 · In camera · 2 shots',
+      subtitle: 'Nikon FM2 · HP5+ · EI\u00a01600 · 2\u00a0frames',
+      status: 'In camera',
+      inCamera: true,
     });
     const developed = roll('b', { name: 'Spring', status: 'developed' });
     expect(matchFilmLog('spring', data([developed])).rolls[0].subtitle).toBe(
-      'Nikon FM2 · Developed · 0 shots'
+      'Nikon FM2 · 0\u00a0frames'
     );
   });
 
@@ -137,7 +141,9 @@ describe('matchFilmLog', () => {
     expect(matchFilmLog('hp5', data([r])).rolls[0]).toEqual({
       rollId: 'a',
       title: 'Spring',
-      subtitle: 'HP5+ · Nikon FM2 · Shot · 0 shots',
+      subtitle: 'Nikon FM2 · HP5+ · 0\u00a0frames',
+      status: 'Shot',
+      inCamera: false,
     });
   });
 
