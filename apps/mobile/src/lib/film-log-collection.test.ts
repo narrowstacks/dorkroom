@@ -153,8 +153,8 @@ describe('filmLogStats', () => {
     expect(filmLogStats(rolls, cameras, NOW)).toEqual({
       rollsThisYear: 2,
       framesThisYear: 48,
-      topFilm: { name: 'HP5', rolls: 2 },
-      topCamera: { name: 'Nikon FM2', rolls: 3 },
+      topFilm: { name: 'HP5', rolls: 2, tied: false },
+      topCamera: { name: 'Nikon FM2', rolls: 3, tied: false },
     });
   });
 
@@ -172,8 +172,12 @@ describe('filmLogStats', () => {
       }),
     ];
     const stats = filmLogStats(rolls, cameras, NOW);
-    expect(stats.topFilm?.name).toBe('New');
-    expect(stats.topCamera?.name).toBe('Hasselblad');
+    expect(stats.topFilm).toEqual({ name: 'New', rolls: 1, tied: true });
+    expect(stats.topCamera).toEqual({
+      name: 'Hasselblad',
+      rolls: 1,
+      tied: true,
+    });
   });
 
   it('skips a deleted camera and unnamed film', () => {

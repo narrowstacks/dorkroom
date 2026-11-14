@@ -1,5 +1,6 @@
 import { Children, isValidElement, type ReactNode } from 'react';
 import { Text, View } from 'react-native';
+import { GROUP_CLASS, GROUP_SEPARATOR_CLASS } from './surface-style';
 
 interface InsetGroupProps {
   children: ReactNode;
@@ -14,13 +15,11 @@ interface InsetGroupProps {
 export function InsetGroup({ children, className }: InsetGroupProps) {
   const items = Children.toArray(children).filter(isValidElement);
   return (
-    <View
-      className={`overflow-hidden rounded-2xl border border-edge bg-surface-inset ${className ?? ''}`}
-    >
+    <View className={`${GROUP_CLASS} ${className ?? ''}`}>
       {items.map((child, index) => (
         <View
           key={child.key}
-          className={index > 0 ? 'border-t border-edge' : ''}
+          className={index > 0 ? GROUP_SEPARATOR_CLASS : ''}
         >
           {child}
         </View>
