@@ -11,6 +11,7 @@ import {
   formatCoordinatesCompact,
   isUsableLocation,
 } from '@/lib/frame-location-format';
+import { spokenDuration } from '@/lib/spoken-time';
 import type {
   FilmRoll,
   Lens,
@@ -77,8 +78,8 @@ export function buildLoggedShot(input: {
 }
 
 /**
- * What the sheet's Place card shows: the place text, else the compact
- * coordinates when the frame has a location, else null (the card prompts).
+ * What the sheet's Place row shows at medium: the place text, else the compact
+ * coordinates when the frame has a location, else null (the row prompts).
  */
 export function placeCardValue(
   place: string,
@@ -89,6 +90,56 @@ export function placeCardValue(
   return location && isUsableLocation(location)
     ? formatCoordinatesCompact(location)
     : null;
+}
+
+/**
+ * The Place row's VoiceOver label. It names the place, or says a location was
+ * added, but never reads the coordinates.
+ */
+export function placeRowLabel(
+  place: string,
+  location: ShotLocationFields | undefined
+): string {
+  const text = place.trim();
+  if (text) return `Place, ${text}`;
+  return location && isUsableLocation(location)
+    ? 'Place, not set, location added'
+    : 'Place, not set';
+}
+
+/**
+ * The lens chips: the lenses that fit the roll's camera, in their order, with
+ * the lens that was selected when the sheet opened (`leadId`) moved first so
+ * it is on screen however many lenses there are. Only the opening selection
+ * leads: a chip the user taps stays where it is.
+ */
+export function lensChipOptions(
+  lenses: readonly Lens[],
+  leadId?: string
+): { label: string; value: string; accessibilityLabel: string }[] {
+  const lead = lenses.find((lens) => lens.id === leadId);
+  const ordered = lead
+    ? [lead, ...lenses.filter((lens) => lens !== lead)]
+    : lenses;
+  return ordered.map((lens) => ({
+    label: lens.name,
+    value: lens.id,
+    accessibilityLabel: `Lens, ${lens.name}`,
+  }));
+}
+
+/**
+ * The lens that is selected: the picked id (at first the roll's last-used
+ * lens) when it is still one of the camera's lenses, else none. A deleted
+ * lens, or one that belongs to another body, is no pick.
+ */
+export function selectedLens(
+  lenses: readonly Lens[],
+  pickedId: string | undefined
+): Lens | undefined {
+  return pickedId === undefined
+    ? undefined
+    : lenses.find((lens) => lens.id === pickedId);
 }
 
 const positive = (n: number): number | undefined =>
@@ -118,42 +169,108 @@ export function readingFromValues(values: {
 export type ReadingSource = 'meter' | 'manual';
 
 /**
- * `f/8 · 1/125 · EI 800`, leaving out whatever the reading lacks. A meter
- * reading is at the roll's exposure index, so it says EI; a calculator's is
- * just an ISO.
+ * A shutter speed as the sheet shows it: `1/125`, `2"`, and from a minute (as
+ * rounded for display) the way the Reciprocity readout does (`3m 8.3s`, not
+ * `188.3"`).
  */
-export function formatReading(
-  reading: FrameReading,
-  source: ReadingSource
-): string {
-  const parts: string[] = [];
-  if (reading.aperture !== undefined) {
-    parts.push(formatAperture(reading.aperture));
-  }
-  if (reading.shutterSpeed !== undefined) {
-    // A minute or more (as rounded for display) reads as the Reciprocity readout does (3m 8.3s), not 188.3".
-    parts.push(
-      Math.round(reading.shutterSpeed * 10) / 10 >= 60
-        ? formatReciprocityTime(reading.shutterSpeed)
-        : formatShutterSpeed(reading.shutterSpeed)
-    );
-  }
-  if (reading.iso !== undefined) {
-    parts.push(`${source === 'meter' ? 'EI' : 'ISO'} ${reading.iso}`);
-  }
-  return parts.join(' · ');
+export function formatShutter(seconds: number): string {
+  return Math.round(seconds * 10) / 10 >= 60
+    ? formatReciprocityTime(seconds)
+    : formatShutterSpeed(seconds);
 }
 
-/** `HP5+ @ 800 · Nikon FM2`: the roll, its rated EI and its camera, when known. */
-export function rollSummary(
-  roll: Pick<FilmRoll, 'name' | 'filmStockName' | 'iso'>,
-  cameraName: string | undefined
-): string {
-  const film =
-    roll.iso !== undefined
-      ? `${rollLabel(roll)} @ ${roll.iso}`
-      : rollLabel(roll);
-  return cameraName ? `${film} · ${cameraName}` : film;
+const secondsWord = (n: string): string =>
+  `${n} ${Number(n) === 1 ? 'second' : 'seconds'}`;
+
+/** A shutter speed in words for VoiceOver: "1/125 second", "2 seconds",
+ * "3 minutes 8.3 seconds". */
+export function spokenShutter(seconds: number): string {
+  const shown = formatShutter(seconds);
+  // The shared formatter shows about 0.67 s to 1 s as "1/1"; say the time it
+  // stands for instead (to a tenth, like the Reciprocity readout).
+  if (shown === '1/1')
+    return secondsWord(String(Math.round(seconds * 10) / 10));
+  if (shown.includes('/')) return `${shown} second`;
+  const plain = /^([\d.]+)"$/.exec(shown);
+  if (plain?.[1] !== undefined) return secondsWord(plain[1]);
+  return spokenDuration(shown);
+}
+
+/** The speed the subtitle names: the roll's EI, else the reading's own ISO
+ * (EI for the Meter, which meters at the roll's EI; ISO for a calculator). */
+function speedLabel(
+  reading: FrameReading,
+  roll: Pick<FilmRoll, 'iso'>,
+  source: ReadingSource
+): string | null {
+  if (roll.iso !== undefined) return `EI ${roll.iso}`;
+  if (reading.iso !== undefined) {
+    return `${source === 'meter' ? 'EI' : 'ISO'} ${reading.iso}`;
+  }
+  return null;
+}
+
+/** What the sheet's readout shows, and the one sentence VoiceOver reads. */
+export interface FrameReadout {
+  /** The frame number as a figure, two digits at least: `08`. */
+  figure: string;
+  /** `f/8 · 1/125`, or null when the reading has neither. */
+  exposure: string | null;
+  /** `Ilford XP2 Super · Bessa R · EI 400`, leaving out what is unknown. */
+  subtitle: string;
+  /** `Frame 8, f/8 at 1/125 second, Ilford XP2 Super on Bessa R, EI 400`. */
+  spoken: string;
+}
+
+/**
+ * The readout at the top of the log sheet: the frame number, the exposure
+ * (aperture and shutter, whichever the reading has) and a subtitle with the
+ * roll (its name, else its film), the camera and the speed.
+ */
+export function frameReadout(input: {
+  frameNumber: number;
+  reading: FrameReading;
+  source: ReadingSource;
+  roll: Pick<FilmRoll, 'name' | 'filmStockName' | 'iso'>;
+  cameraName: string | undefined;
+}): FrameReadout {
+  const { reading, roll, cameraName } = input;
+  const aperture =
+    reading.aperture === undefined ? null : formatAperture(reading.aperture);
+  const shutter =
+    reading.shutterSpeed === undefined
+      ? null
+      : formatShutter(reading.shutterSpeed);
+  const spokenSpeed =
+    reading.shutterSpeed === undefined
+      ? null
+      : spokenShutter(reading.shutterSpeed);
+  const exposureParts = [aperture, shutter].filter(
+    (part): part is string => part !== null
+  );
+  const spokenExposure =
+    aperture && spokenSpeed
+      ? `${aperture} at ${spokenSpeed}`
+      : (aperture ?? spokenSpeed ?? 'no exposure');
+  const label = rollLabel(roll);
+  const speed = speedLabel(reading, roll, input.source);
+  const subtitle = [label, cameraName, speed]
+    .filter((part): part is string => Boolean(part))
+    .join(' · ');
+  const spoken = [
+    `Frame ${input.frameNumber}`,
+    spokenExposure,
+    cameraName ? `${label} on ${cameraName}` : label,
+    speed,
+  ]
+    .filter((part): part is string => Boolean(part))
+    .join(', ');
+  return {
+    figure: String(input.frameNumber).padStart(2, '0'),
+    exposure: exposureParts.length > 0 ? exposureParts.join(' · ') : null,
+    subtitle,
+    spoken,
+  };
 }
 
 /** A note when the reading was solved for a different ISO than the roll's EI. */
