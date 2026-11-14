@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { backTitleAfter } from '@/components/hub/back-title';
 import { PhaseStack } from '@/components/hub/phase-stack';
 import { BACK_SWIPE_ZONE } from '@/components/stage/stage-layout';
+import { STANDARD_TITLE } from '@/theme/stack-header-options';
 
 // A deep link builds the stack with the hub underneath the tool.
 export const unstable_settings = { initialRouteName: 'index' };
@@ -18,7 +19,7 @@ export default function ShootLayout() {
         name="film-log/roll-map"
         options={({ route, navigation }) => ({
           title: 'Map',
-          headerLargeTitle: false,
+          ...STANDARD_TITLE,
           // A sideways drag pans the map: Back starts only in the left edge
           // zone, as on the fixed-layout tools.
           gestureResponseDistance: { end: BACK_SWIPE_ZONE },

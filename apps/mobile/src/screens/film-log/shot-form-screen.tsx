@@ -8,7 +8,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Text, View } from 'react-native';
+import { Keyboard, Text, View } from 'react-native';
 import { CommitButton } from '@/components/commit-button';
 import { FrameLocationField } from '@/components/film-log/frame-location-field';
 import { SelectField } from '@/components/film-log/select-field';
@@ -240,6 +240,9 @@ export function ShotFormScreen() {
     }
     savedRef.current = true;
     committedFileRef.current = form.photo?.fileName;
+    // Close the keyboard while this form is still the focused screen, so the
+    // screen Back reveals does not handle its hide (see `Screen`).
+    Keyboard.dismiss();
     router.back();
   };
 

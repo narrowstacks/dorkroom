@@ -445,10 +445,57 @@ recipe's name after the prefill).
 - **No in-page title header.** The tab bar or the pushed stack header already
   names the screen, so don't render a redundant `<Text>Reciprocity</Text>`
   heading.
-- Wrap normal content in `<Screen>` (scrolls, padding 16, gap 16, bg `#0b0b0c`).
-  Full-bleed screens (the camera meter) skip it. The Meter is `fixedLayout`
+- Wrap normal content in `<Screen>` (scrolls, padding 16, gap 16, the phase
+  backdrop). Full-bleed screens (the camera meter) skip it. The Meter is `fixedLayout`
   (standard title, never large), and offsets its top controls by the real header
   height (`HeaderHeightContext`) so they sit below the Back button and title.
+- **Large titles: nothing may come before the scroll view.** The scroll view
+  a large title collapses with is found down the first-subview chain from the
+  screen (react-native-screens' `findScrollViewInFirstDescendantChainFrom`,
+  and UIKit's own search the same way): from the screen's root view, take
+  subview 0, then its subview 0, until a scroll view. Any view ahead of it in
+  that chain (a `GradientBackground` was one) hides it, and then the title
+  never shrinks and nothing keeps the content below the bar. A wrapper whose
+  first child is the scroll view is in the chain and is fine in principle
+  (the list screens collapse through `ScrollViewMarker`, a native wrapper),
+  but a plain wrapper `View` with the `ScrollView` first was still not picked
+  up on the Simulator, so `Screen` with no `header` returns its `ScrollView`
+  as the root and the list screens return `TabBarScrollView` + `FlatList` (a
+  fragment when modals sit beside it). The backdrop goes on the scroll view's
+  `style` (`useBackdropStyle()`), never a `GradientBackground` view in front.
+  An expo-router `Stack.Toolbar` with `placement="left"` or `"right"` renders
+  no native view and is safe anywhere; a bottom toolbar (`placement="bottom"`,
+  the default) renders a native `RouterToolbarHost` and must come after the
+  list. On iOS 26 the expanded title is drawn inside the scroll view, under
+  the bar, so `stackHeaderOptions` makes the bar clear at the top
+  (`headerLargeStyle` transparent) and blurred once scrolled; a standard-title
+  screen spreads `STANDARD_TITLE` (`theme/stack-header-options.ts`) to keep
+  the blur at the top too. Tapping the active tab scrolls to the top with the
+  title still small (react-native-screens scrolls to the collapsed inset); a
+  pull grows it.
+- **`Screen` adjusts for the keyboard only while focused, and not for a
+  keyboard it inherited** (`useKeyboardInsetsGate`, `src/hooks/`). React
+  Native's handler runs in every mounted scroll view on any keyboard frame
+  change, in other tabs and under the stack too, and re-applies the offset
+  through `scrollTo`, which clamps at `-contentInset.top`. That is 0 here,
+  because the header's inset is UIKit's adjusted inset, so every other
+  `Screen` moved to offset 0 with its first rows under the header: the hub bug
+  of #732. A screen that becomes focused while a keyboard is still up (a tab
+  switch, or Back from a form with a field focused) would handle that
+  keyboard's hide, so the gate stays off until it has gone; the forms also
+  call `Keyboard.dismiss()` before `router.back()` on save. Known limits, in
+  React Native's handler (`RCTScrollViewComponentView.mm`,
+  `_keyboardWillChangeFrame`): the visible screen still moves to offset 0 on
+  any keyboard frame change while it is scrolled within the header height of
+  its top and the focused field is not covered (as before #732), including a
+  field in a sheet over the screen; and with Reduce Motion plus Prefer
+  Cross-Fade Transitions the keyboard-hide path sets the visible screen's
+  offset to 0 outright. The real fix is a small native patch to that handler
+  (skip the re-scroll when the adjustment is 0, or clamp with
+  `adjustedContentInset.top`), tracked upstream in React Native PR #56189; it
+  is not applied here because it needs a native rebuild and a carried patch.
+  `scrollToOverflowEnabled` was tried instead and left a blank band where the
+  keyboard had been after scrolling to the end of a form.
 - **Answer-first calculators** (Exposure, Reciprocity, Camera Exposure, Lenses,
   Resize): the result is a `Readout` passed to `<Screen header={...}>`, a
   non-scrolling slot above the scroll view that clears the native header when
@@ -473,7 +520,7 @@ recipe's name after the prefill).
   the texts it has written (unordered), so during a drag any of them coming
   back is an echo, not an outside change. Keep it cheap: no per-tick views, no per-frame JS, no per-step state
   on the ruler. Mark the tool `answerFirst: true` in `TOOLS`. A pinned header
-  means the scroll view is not the first view, so a large title could never
+  means the scroll view is not the root view, so a large title could never
   collapse. `PhaseStack` (from the route params, via `usesLargeTitle`) gives
   such a tool a standard header. Each tool is its own screen in its phase
   stack (`dangerouslySingular` by tool id), so navigating to a tool already in
@@ -812,9 +859,14 @@ Back; the exported GPX validates against the GPX 1.1 schema.
   ignores Pressable `style` callbacks (`style={({ pressed }) => ...}` becomes
   `{}`), so use a plain style object and `active:` classes; a test enforces it. Rose text for
   Delete/Remove/errors is destructive, not a hue. A tool's accent is its phase's hue
-  (`PHASE_ACCENT`); the screens pass the literal. `GradientBackground` draws one
+  (`PHASE_ACCENT`); the screens pass the literal. The backdrop is one
   glow in the hue of the `PhaseProvider` it sits under (`PhaseStack` provides it),
-  neutral on Home and Settings. Direction-coded data (a pushed vs pulled recipe)
+  neutral on Home and Settings, true black under safelight: `backdropStyle`
+  (`theme/backdrop.ts`, a CSS `radial-gradient` in
+  `experimental_backgroundImage`), applied with `useBackdropStyle()` to a
+  scroll view or root view, or as the absolute-fill `GradientBackground` view
+  on a screen with no scroll view (stage screens, the Inverter frame, the
+  roll map). Direction-coded data (a pushed vs pulled recipe)
   uses `DIRECTION_COLOR`, outside the accent system.
 - Prefer `GlassCard` for surfaces: Liquid Glass on iOS 26, translucent
   `bg-white/10` fallback elsewhere. Capability checks are computed **once at
