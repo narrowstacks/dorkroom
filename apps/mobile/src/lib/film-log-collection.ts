@@ -86,17 +86,25 @@ export function sortRolls(rolls: FilmRoll[]): FilmRoll[] {
   });
 }
 
+/** The most used film or camera. `tied` says another one has as many rolls
+ * (the most recently started of them is the one named). */
+export interface TopEntry {
+  name: string;
+  rolls: number;
+  tied: boolean;
+}
+
 export interface FilmLogStats {
   rollsThisYear: number;
   framesThisYear: number;
-  topFilm?: { name: string; rolls: number };
-  topCamera?: { name: string; rolls: number };
+  topFilm?: TopEntry;
+  topCamera?: TopEntry;
 }
 
 /** The key with the most rolls; ties go to the most recently started. */
 function topEntry(
   entries: { key: string; time: number }[]
-): { key: string; rolls: number } | undefined {
+): { key: string; rolls: number; tied: boolean } | undefined {
   const tally = new Map<string, { rolls: number; latest: number }>();
   for (const { key, time } of entries) {
     const latest = Number.isNaN(time) ? -Infinity : time;
@@ -116,7 +124,12 @@ function topEntry(
       best = { key, ...value };
     }
   }
-  return best ? { key: best.key, rolls: best.rolls } : undefined;
+  if (!best) return undefined;
+  const winner = best;
+  const tied = [...tally].some(
+    ([key, value]) => key !== winner.key && value.rolls === winner.rolls
+  );
+  return { key: winner.key, rolls: winner.rolls, tied };
 }
 
 export function filmLogStats(
@@ -136,7 +149,9 @@ export function filmLogStats(
       return name ? [{ key: name, time: startedTime(roll) }] : [];
     })
   );
-  if (film) stats.topFilm = { name: film.key, rolls: film.rolls };
+  if (film) {
+    stats.topFilm = { name: film.key, rolls: film.rolls, tied: film.tied };
+  }
 
   const cameraNames = new Map(
     cameras.map((camera) => [camera.id, camera.name])
@@ -150,7 +165,11 @@ export function filmLogStats(
   );
   const cameraName = camera ? cameraNames.get(camera.key) : undefined;
   if (camera && cameraName) {
-    stats.topCamera = { name: cameraName, rolls: camera.rolls };
+    stats.topCamera = {
+      name: cameraName,
+      rolls: camera.rolls,
+      tied: camera.tied,
+    };
   }
   return stats;
 }

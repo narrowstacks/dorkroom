@@ -1,11 +1,16 @@
-import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
-import { Alert, FlatList, Pressable, Text, View } from 'react-native';
-import { CommitButton } from '@/components/commit-button';
-import { FilmLogStatsStrip } from '@/components/film-log/film-log-stats-strip';
-import { GlassCard } from '@/components/glass-card';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { memo, useCallback, useMemo, useState } from 'react';
+import { FlatList, Text, View } from 'react-native';
+import {
+  FirstRollEmptyState,
+  NoMatchEmptyState,
+} from '@/components/film-log/film-log-empty-state';
+import { RollRow } from '@/components/film-log/roll-row';
 import { useBackdropStyle } from '@/components/gradient-background';
 import { PresetChipRow } from '@/components/preset-chip-row';
+import { offersSafelightButton } from '@/components/safelight/offer';
+import { SafelightButton } from '@/components/safelight/safelight-button';
+import { useSafelight } from '@/components/safelight/safelight-provider';
 import { TabBarScrollView } from '@/components/tab-bar-scroll-view';
 import { useCameras, useRolls } from '@/hooks/use-film-log';
 import {
@@ -18,38 +23,64 @@ import {
   sortRolls,
 } from '@/lib/film-log-collection';
 import {
-  formatProcess,
-  rollLabel,
-  rollStatusLabel,
-} from '@/lib/film-log-options';
+  filmLogCaption,
+  filmLogEmptyState,
+  firstRollHint,
+  rollDateLabel,
+  rollRowText,
+} from '@/lib/film-log-list';
 import { shareRollsAsJson } from '@/lib/film-log-share';
 import { LINK_OPENED_PARAM } from '@/lib/link-prefill';
 import type { FilmRoll } from '@/schemas/film-log.schema';
+import { usePhase } from '@/theme/phase-context';
 
-// Static — hoisted so it isn't rebuilt on every render.
-const EMPTY_STATE = (
-  <View className="items-center gap-2 px-6 py-16">
-    <Text className="text-center text-base text-ink-60">
-      No rolls yet. Start one to log your shots.
-    </Text>
-  </View>
-);
+const openNewRoll = () => router.push('/shoot/film-log/roll-form');
+const openGear = () => router.push('/shoot/film-log/gear');
 
-const FILTER_EMPTY_TEXT = {
-  'in-camera': 'No film in a camera right now.',
-  'to-develop': 'Nothing waiting to be developed.',
-  'this-year': 'No rolls started this year.',
-} satisfies Record<Exclude<RollFilter, 'all'>, string>;
-
-function filterEmptyState(filter: Exclude<RollFilter, 'all'>) {
-  return (
-    <View className="items-center gap-2 px-6 py-16">
-      <Text className="text-center text-base text-ink-60">
-        {FILTER_EMPTY_TEXT[filter]}
-      </Text>
-    </View>
-  );
+interface HeaderItemsProps {
+  hasRolls: boolean;
 }
+
+/**
+ * The header's right side: `+` (New roll) and a More menu, native bar items.
+ * They replace the stack's `headerRight`, so the safelight switch the phase
+ * stack would put there is added back here while the stack offers it.
+ */
+// Memoized: its only prop changes rarely, so a chip tap does not re-register
+// the bar items. Its own hooks (phase, safelight) still re-render it.
+const FilmLogHeaderItems = memo(function FilmLogHeaderItems({
+  hasRolls,
+}: HeaderItemsProps) {
+  const phase = usePhase();
+  const { on } = useSafelight();
+  return (
+    <Stack.Toolbar placement="right">
+      {/* With no rolls the empty state's own New roll button is the action. */}
+      <Stack.Toolbar.Button
+        icon="plus"
+        accessibilityLabel="New roll"
+        hidden={!hasRolls}
+        onPress={openNewRoll}
+      />
+      <Stack.Toolbar.Menu icon="ellipsis" accessibilityLabel="More">
+        <Stack.Toolbar.MenuAction icon="camera" onPress={openGear}>
+          Cameras & lenses
+        </Stack.Toolbar.MenuAction>
+        <Stack.Toolbar.MenuAction
+          icon="square.and.arrow.up"
+          disabled={!hasRolls}
+          subtitle={hasRolls ? undefined : 'Add a roll first.'}
+          onPress={() => void shareRollsAsJson()}
+        >
+          Export all data
+        </Stack.Toolbar.MenuAction>
+      </Stack.Toolbar.Menu>
+      <Stack.Toolbar.View hidden={!offersSafelightButton(phase, on)}>
+        <SafelightButton />
+      </Stack.Toolbar.View>
+    </Stack.Toolbar>
+  );
+});
 
 export function FilmListScreen() {
   const backdrop = useBackdropStyle();
@@ -69,15 +100,20 @@ export function FilmListScreen() {
     setFilter(linkedFilter);
   }
 
-  // Only the calendar year matters to counts and stats, so it is the memo key:
-  // they stay put when the filter changes and refresh across New Year. The
-  // anchor date sits mid-year, which every local zone agrees is that year.
+  // Only the calendar year matters to counts, stats and row dates, so it is
+  // the memo key: they stay put when the filter changes and refresh across New
+  // Year. The anchor date sits mid-year, which every local zone agrees is that
+  // year.
   const year = new Date().getFullYear();
-  const { counts, stats } = useMemo(() => {
+  const { counts, caption } = useMemo(() => {
     const anchor = new Date(year, 6, 1);
     return {
       counts: rollCounts(rolls, anchor),
-      stats: filmLogStats(rolls, cameras, anchor),
+      caption: filmLogCaption(
+        filmLogStats(rolls, cameras, anchor),
+        year,
+        rolls.length
+      ),
     };
   }, [rolls, cameras, year]);
   const visible = useMemo(
@@ -101,119 +137,72 @@ export function FilmListScreen() {
 
   const cameraName = useMemo(() => {
     const map = new Map(cameras.map((camera) => [camera.id, camera.name]));
-    return (id: string) => map.get(id) ?? 'Unknown camera';
+    return (id: string) => map.get(id);
   }, [cameras]);
 
-  const onExport = useCallback(() => {
-    if (rolls.length === 0) {
-      Alert.alert('Nothing to export', 'Add a roll first.');
-      return;
-    }
-    void shareRollsAsJson();
-  }, [rolls.length]);
-
+  const count = visible.length;
   const renderRoll = useCallback(
-    ({ item }: { item: FilmRoll }) => {
-      const film = item.filmStockName ?? 'No film set';
-      const showName = Boolean(item.name?.trim());
-      const subtitle = [
-        cameraName(item.cameraId),
-        showName ? film : null,
-        formatProcess(item.process),
-      ]
-        .filter(Boolean)
-        .join(' · ');
-      const startedLabel = new Date(item.startedAt).toLocaleDateString(
-        undefined,
-        { month: 'short', day: 'numeric' }
-      );
+    ({ item, index }: { item: FilmRoll; index: number }) => {
+      const dateLabel = rollDateLabel(item.startedAt, new Date(year, 6, 1));
       return (
-        <Pressable
+        <RollRow
+          text={rollRowText(item, cameraName(item.cameraId), dateLabel)}
+          dateLabel={dateLabel}
+          inCamera={item.status === 'active'}
+          index={index}
+          count={count}
           onPress={() => router.push(`/shoot/film-log/roll/${item.id}`)}
-          accessibilityRole="button"
-          accessibilityLabel={`Open roll ${rollLabel(item)}, ${rollStatusLabel(item.status)}`}
-        >
-          <GlassCard className="gap-1">
-            <View className="flex-row items-center justify-between">
-              <Text
-                className="text-base font-semibold text-white"
-                numberOfLines={1}
-              >
-                {item.name?.trim() ? item.name : film}
-              </Text>
-              <Text className="text-xs uppercase tracking-wide text-ink-50">
-                {rollStatusLabel(item.status)}
-              </Text>
-            </View>
-            <Text className="text-sm text-ink-60" numberOfLines={1}>
-              {subtitle}
-            </Text>
-            <View className="flex-row items-center justify-between">
-              <Text className="text-sm text-ink-40">
-                {item.shots.length} {item.shots.length === 1 ? 'shot' : 'shots'}
-              </Text>
-              <Text className="text-sm text-ink-40">{startedLabel}</Text>
-            </View>
-          </GlassCard>
-        </Pressable>
+        />
       );
     },
-    [cameraName]
+    [cameraName, count, year]
   );
 
-  const header = (
-    <View className="gap-3 pb-2">
-      <CommitButton
-        onPress={() => router.push('/shoot/film-log/roll-form')}
-        label="+ New roll"
+  const showAll = useCallback(() => setFilter('all'), []);
+  const empty = filmLogEmptyState(rolls.length, filter, count);
+  const emptyComponent =
+    empty.kind === 'first-roll' ? (
+      <FirstRollEmptyState
+        hint={firstRollHint(cameras.length)}
+        onNewRoll={openNewRoll}
       />
-      <View className="flex-row gap-3">
-        <Pressable
-          onPress={() => router.push('/shoot/film-log/gear')}
-          accessibilityRole="button"
-          className="flex-1 items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
-        >
-          <Text className="text-base text-white">Cameras & lenses</Text>
-        </Pressable>
-        <Pressable
-          onPress={onExport}
-          accessibilityRole="button"
-          className="flex-1 items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
-        >
-          <Text className="text-base text-white">Export data</Text>
-        </Pressable>
+    ) : empty.kind === 'no-match' ? (
+      <NoMatchEmptyState message={empty.message} onShowAll={showAll} />
+    ) : null;
+
+  const header =
+    rolls.length > 0 ? (
+      <View className="gap-3 pb-3">
+        <PresetChipRow
+          options={chipOptions}
+          value={filter}
+          onSelect={setFilter}
+        />
+        {caption ? (
+          <Text className="text-sm text-ink-60">{caption}</Text>
+        ) : null}
       </View>
-      {rolls.length > 0 ? (
-        <>
-          <PresetChipRow
-            options={chipOptions}
-            value={filter}
-            onSelect={setFilter}
-          />
-          <FilmLogStatsStrip stats={stats} />
-        </>
-      ) : null}
-    </View>
-  );
+    ) : null;
 
-  // The list is the root native view, so the large title collapses with it
-  // (see `Screen`).
+  // A fragment, not a wrapper view: the list must be the root native view
+  // for the large title to collapse (see `Screen`). The header items render
+  // no native view, so they may follow it.
   return (
-    <TabBarScrollView>
-      <FlatList
-        style={backdrop}
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={{ padding: 16, gap: 12 }}
-        data={visible}
-        keyExtractor={(roll) => roll.id}
-        ListHeaderComponent={header}
-        ListEmptyComponent={
-          rolls.length === 0 || filter === 'all'
-            ? EMPTY_STATE
-            : filterEmptyState(filter)
-        }
-        renderItem={renderRoll}
-      />
-    </TabBarScrollView>
+    <>
+      <TabBarScrollView>
+        <FlatList
+          style={backdrop}
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerStyle={{ padding: 16 }}
+          data={visible}
+          keyExtractor={(roll) => roll.id}
+          ListHeaderComponent={header}
+          ListEmptyComponent={emptyComponent}
+          renderItem={renderRoll}
+        />
+      </TabBarScrollView>
+      {/* Renders no view: it sets the header's bar items. */}
+      <FilmLogHeaderItems hasRolls={rolls.length > 0} />
+    </>
   );
 }
