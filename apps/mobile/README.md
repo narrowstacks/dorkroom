@@ -142,6 +142,12 @@ bunx expo start --dev-client --host lan         # Metro; phone must be on same W
   location, while the app is in use only (when you tap "Add location" on a
   frame). Location is never read in the background and never looked up on its
   own, and the app does not turn coordinates into a place name.
+- The Home Screen search (Spotlight) lists your rolls and your recently opened
+  recipes. For a roll it holds the roll's name, film, camera, the lenses used,
+  its EI, its status and how many frames are shot; for a recipe, its name (film
+  and developer), time, dilution, EI and temperature. It never holds notes,
+  places or coordinates. The index is on the device only: nothing is made
+  public or sent anywhere, and a deleted roll is removed from it.
 - Exports contain what you choose to export: a roll's CSV or the whole log as
   JSON includes any frame locations you added. Sharing one sends it where you
   choose to send it.

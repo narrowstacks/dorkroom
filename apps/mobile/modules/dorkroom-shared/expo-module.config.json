@@ -1,6 +1,7 @@
 {
   "platforms": ["apple"],
   "apple": {
-    "modules": ["DorkroomSharedModule"]
+    "modules": ["DorkroomSharedModule", "DorkroomSpotlightModule"],
+    "appDelegateSubscribers": ["DorkroomSpotlightAppDelegateSubscriber"]
   }
 }
