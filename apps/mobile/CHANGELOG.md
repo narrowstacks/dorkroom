@@ -76,7 +76,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Fixed
 
-- **Hubs and other screens no longer open with their first row hidden after you type somewhere else.** Typing in a form or search could leave the Shoot, Develop or Print screen, Home or another screen you had open scrolled up, with its first row under the title. (#732)
+- **Hubs and other screens no longer open with their first row hidden after you type somewhere else.** Typing in a form or search could leave the Shoot, Develop or Print screen, Home or another screen you had open scrolled up, with its first row under the title. Opening Settings from Search while typing no longer hides its Units row either. (#732)
 - **Editing a shot with no lens or back keeps it that way.** It no longer fills in the roll's last-used lens or back, or an f/8 aperture and 1/125 shutter a shot never had. (#719)
 - **The Meter's shutter button shows its outer ring.** The ring was missing. (#712)
 - **Holding + or − on a stepper keeps changing the value.** It used to move once while the haptic kept ticking. Holding now steps repeatedly, and stops at the end of the range. This covers the volume mixer, the Process Timer preset editor and the film log's frame number. (fixes #317)

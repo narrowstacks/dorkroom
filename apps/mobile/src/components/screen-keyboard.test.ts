@@ -21,10 +21,33 @@ describe('keyboard insets on Screen', () => {
     );
   });
 
-  it('opens the gate only for the focused screen', () => {
+  it('feeds focus and keyboard visibility into the gate rule', () => {
     const gate = read('src', 'hooks', 'use-keyboard-insets-gate.ts');
     expect(gate).toMatch(/const focused = useIsFocused\(\);/);
-    expect(gate).toMatch(/return focused && !\w+;/);
+    // The will-event tracker, not Keyboard.isVisible(), which flips on the
+    // did-events after React Native's handler has already acted.
+    expect(gate).toMatch(
+      /const keyboard = createKeyboardTracker\(Keyboard\.isVisible\(\)\);/
+    );
+    expect(gate).toMatch(
+      /for \(const event of KEYBOARD_TRACKER_EVENTS\)[\s\S]*?Keyboard\.addListener\(event, \(\) => keyboard\.onEvent\(event\)\)/
+    );
+    expect(gate).toMatch(/initialKeyboardGate\(focused, keyboard\.isUp\(\)\)/);
+    expect(gate).toMatch(
+      /keyboardGateOnFocusChange\(gate, focused, keyboard\.isUp\(\)\)/
+    );
+    // Only to seed the tracker.
+    expect(gate.match(/Keyboard\.isVisible\(\)/g)).toHaveLength(1);
+    // The hide that clears a held or inherited keyboard's inset, including
+    // one that landed before the subscription.
+    expect(gate).toMatch(/const waiting = isWaitingForHide\(gate\);/);
+    expect(gate).toMatch(
+      /addListener\('keyboardDidHide', \(\) =>\s*setGate\(keyboardGateOnHide\)/
+    );
+    expect(gate).toMatch(
+      /if \(!keyboard\.isUp\(\)\) setGate\(keyboardGateOnHide\);/
+    );
+    expect(gate).toMatch(/return isKeyboardGateOpen\(gate\);/);
   });
 
   it.each([['roll-form-screen.tsx'], ['shot-form-screen.tsx']])(
