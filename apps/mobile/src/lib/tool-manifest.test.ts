@@ -351,6 +351,58 @@ describe('legacy entry points still land on a tool', () => {
   });
 });
 
+describe('Control Center controls', () => {
+  const swift = read(
+    'plugins',
+    'with-widget-controls',
+    'swift',
+    'ControlLinkIntent.swift'
+  );
+  const links = [
+    ...swift.matchAll(
+      /case \.(\w+): return URL\(string: "dorkroom:\/\/([^"]*)"\)/g
+    ),
+  ].map((m) => ({ link: m[1], url: `dorkroom://${m[2]}` }));
+
+  it('declares a deep link for each of the three buttons', () => {
+    expect(links.map((l) => l.link).sort()).toEqual([
+      'logFrame',
+      'openMeter',
+      'startLastTimer',
+    ]);
+  });
+
+  it('every control URL reaches its screen through redirectSystemPath, cold and warm', () => {
+    const NOW = Date.now();
+    const expected = {
+      // The add-shot form needs an active roll; with none (as here) the link
+      // lands on the film log list (see `logFrameTarget`).
+      logFrame: /^\/shoot\/film-log$/,
+      openMeter: /^\/shoot\/meter$/,
+      // Stamped with its arrival time, so every press is a new opening.
+      startLastTimer: /^\/develop\/recipes\/timer\?start=last&at=\d+$/,
+    } satisfies Record<string, RegExp>;
+    const patternOf = (link: string) =>
+      Object.entries(expected).find(([name]) => name === link)?.[1] ?? /^$/;
+    for (const { link, url } of links) {
+      // A canonical link comes back as the URL itself, which expo-router
+      // strips to its path (`dorkroom://develop/...` is `/develop/...`).
+      const cold = redirectSystemPath({ path: url, initial: true }).replace(
+        /^dorkroom:\//,
+        ''
+      );
+      expect(cold, url).toMatch(patternOf(link));
+      if (link === 'startLastTimer') {
+        expect(Number(cold.split('at=')[1])).toBeGreaterThanOrEqual(NOW);
+      }
+      // Warm, the phase hub shows first and the target opens on top of it.
+      const warm = redirectSystemPath({ path: url, initial: false });
+      expect(warm, url).toBe(`/${cold.split('/')[1]}`);
+      expect(takePendingLink(), url).toMatch(patternOf(link));
+    }
+  });
+});
+
 describe('removed pinning', () => {
   it('leaves no pin or More code behind', () => {
     for (const file of [

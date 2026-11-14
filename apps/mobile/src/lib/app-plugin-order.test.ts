@@ -10,7 +10,10 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 interface AppConfig {
-  expo: { plugins: Array<string | [string, object]> };
+  expo: {
+    ios: { deploymentTarget?: string };
+    plugins: Array<string | [string, object]>;
+  };
 }
 
 const config: AppConfig = JSON.parse(
@@ -35,5 +38,30 @@ describe('app.json plugin order', () => {
     );
     expect(entry).toBeDefined();
     expect(JSON.stringify(entry)).toContain('"enablePushNotifications":false');
+  });
+});
+
+describe('Control Center controls', () => {
+  it('lists with-widget-controls before expo-widgets, so it runs after it', () => {
+    // It patches the extension expo-widgets regenerates on every prebuild.
+    const controls = at('./plugins/with-widget-controls');
+    expect(controls).toBeGreaterThanOrEqual(0);
+    expect(at('expo-widgets')).toBeGreaterThan(controls);
+  });
+
+  it('builds the extension for the same iOS as the app', () => {
+    // Expo's built-in `ios.deploymentTarget` sets the app target and the
+    // Podfile properties, and expo-widgets reads it for the extension;
+    // expo-build-properties still carries its own copy for the app and the
+    // Podfile. Keep the two equal. Controls need iOS 18+.
+    const buildProperties = config.expo.plugins.find(
+      (p) => Array.isArray(p) && nameOf(p) === 'expo-build-properties'
+    );
+    const match = JSON.stringify(buildProperties).match(
+      /"deploymentTarget":"([^"]+)"/
+    );
+    expect(match?.[1]).toBeDefined();
+    expect(config.expo.ios.deploymentTarget).toBe(match?.[1]);
+    expect(Number(config.expo.ios.deploymentTarget)).toBeGreaterThanOrEqual(18);
   });
 });
