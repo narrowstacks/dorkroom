@@ -237,6 +237,27 @@ describe('tab layout', () => {
     expect(existsSync(join(TABS_DIR, 'index.tsx'))).toBe(false);
   });
 
+  it('gives the Search tab the search role with its own icon and label', () => {
+    const start = layout.indexOf('<NativeTabs.Trigger name="(home)"');
+    expect(start).toBeGreaterThan(-1);
+    const trigger = layout.slice(
+      start,
+      layout.indexOf('</NativeTabs.Trigger>', start)
+    );
+    // The search role gives Search its own button when the bar shrinks (see
+    // the tabs notes in CLAUDE.md). A system item without its own icon and
+    // label shows the stock icon and the route name "(home)" as its title.
+    expect(trigger).toMatch(
+      /^<NativeTabs\.Trigger name="\(home\)" role="search">/
+    );
+    expect(trigger).toMatch(
+      /<NativeTabs\.Trigger\.Icon\s+sf="magnifyingglass"/
+    );
+    expect(trigger).toMatch(
+      /<NativeTabs\.Trigger\.Label[\s\S]*>\s*Search\s*<\/NativeTabs\.Trigger\.Label>/
+    );
+  });
+
   it('gives every phase a tab symbol', () => {
     for (const phase of PHASES) {
       expect(layout, phase.id).toMatch(new RegExp(`${phase.id}: '[\\w.]+'`));
