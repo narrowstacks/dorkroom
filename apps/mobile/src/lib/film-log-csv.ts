@@ -95,6 +95,13 @@ function shutterLabel(seconds: number): string {
     : formatShutterSpeed(seconds);
 }
 
+/** The shutter as the CSV's `Shutter` column writes it (`1/125`, `2m 30s`),
+ * undefined when the frame has none. Shared with the GPX export. */
+export function shutterText(shot: Shot): string | undefined {
+  const seconds = shutterSeconds(shot);
+  return seconds === undefined ? undefined : shutterLabel(seconds);
+}
+
 interface Column {
   header: string;
   cell: (shot: Shot, roll: FilmRoll, names: CsvNames) => string;
@@ -112,10 +119,7 @@ const COLUMNS: Column[] = [
   { header: 'Shutter (s)', cell: (shot) => numberCell(shutterSeconds(shot)) },
   {
     header: 'Shutter',
-    cell: (shot) => {
-      const seconds = shutterSeconds(shot);
-      return seconds === undefined ? '' : textCell(shutterLabel(seconds));
-    },
+    cell: (shot) => textCell(shutterText(shot)),
   },
   { header: 'ISO', cell: (_shot, roll) => numberCell(roll.iso) },
   {
@@ -177,12 +181,25 @@ function slug(text: string): string {
  * hyphenated, at most 80 characters (the roll and camera parts are trimmed,
  * never the date or extension). */
 export function csvFileName(roll: FilmRoll, cameraName: string): string {
+  return rollFileName(roll, cameraName, 'csv');
+}
+
+/** The CSV's name with a `.gpx` extension. */
+export function gpxFileName(roll: FilmRoll, cameraName: string): string {
+  return rollFileName(roll, cameraName, 'gpx');
+}
+
+function rollFileName(
+  roll: FilmRoll,
+  cameraName: string,
+  extension: 'csv' | 'gpx'
+): string {
   const started = new Date(roll.startedAt);
   const date = Number.isNaN(started.getTime())
     ? undefined
     : localIso(started).slice(0, 10);
   const prefix = 'dorkroom-';
-  const suffix = `${date ? `-${date}` : ''}.csv`;
+  const suffix = `${date ? `-${date}` : ''}.${extension}`;
   const room = MAX_FILE_NAME - prefix.length - suffix.length;
   const body = [slug(rollLabel(roll)), slug(cameraName)]
     .filter(Boolean)
