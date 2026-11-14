@@ -41,6 +41,23 @@ describe('app.json plugin order', () => {
   });
 });
 
+describe('expo-location', () => {
+  it('asks for "when in use" only: no Always, Motion or background mode', () => {
+    const entry = config.expo.plugins.find(
+      (p) => Array.isArray(p) && nameOf(p) === 'expo-location'
+    );
+    expect(entry).toBeDefined();
+    const json = JSON.stringify(entry);
+    expect(json).toContain(
+      '"locationWhenInUsePermission":"Dorkroom saves your location with a frame only when you tap Add location. It is kept with your film log on this iPhone and leaves it only if you export or share that log."'
+    );
+    expect(json).toContain('"locationAlwaysAndWhenInUsePermission":false');
+    expect(json).toContain('"locationAlwaysPermission":false');
+    expect(json).toContain('"motionUsagePermission":false');
+    expect(json).toContain('"isIosBackgroundLocationEnabled":false');
+  });
+});
+
 describe('Control Center controls', () => {
   it('lists with-widget-controls before expo-widgets, so it runs after it', () => {
     // It patches the extension expo-widgets regenerates on every prebuild.

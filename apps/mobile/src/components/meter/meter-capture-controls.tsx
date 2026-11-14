@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { LogFrameSheet } from '@/components/film-log/log-frame-sheet';
 import { ShutterButton } from '@/components/meter/shutter-button';
 import type { useMeterCapture } from '@/hooks/use-meter-capture';
+import { setFrameLocationHandoff } from '@/lib/frame-location-handoff';
 
 interface MeterCaptureControlsProps {
   capture: ReturnType<typeof useMeterCapture>;
@@ -85,6 +86,9 @@ export function MeterCaptureControls({
               `place=${encodeURIComponent(draft.place)}`,
               `notes=${encodeURIComponent(draft.notes)}`,
             ];
+            // In memory, never in the URL: see frame-location-handoff.ts.
+            if (draft.location)
+              setFrameLocationHandoff(fileName, draft.location);
             router.push(`/shoot/film-log/shot?${params.join('&')}`);
           }}
         />
