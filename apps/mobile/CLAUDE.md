@@ -641,6 +641,10 @@ not turbo.
 - The mobile app versions **independently** from the web app: its own
   `apps/mobile/CHANGELOG.md` and its own CalVer in `apps/mobile/package.json`.
   Web-app changes go in the root `CHANGELOG.md`. Don't mix them.
+- `package.json` is the only place the version is written. `app.config.ts`
+  injects it into the Expo config on top of the static `app.json`; never add
+  `version` to `app.json`. EAS owns the build number (`appVersionSource:
+  remote`). See `README.md`, "Versioning".
 - Never apply the `eas-build` label to a PR unless you intend to trigger a build.
 
 ---

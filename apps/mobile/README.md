@@ -107,6 +107,64 @@ bunx expo start --dev-client --host lan         # Metro; phone must be on same W
 
 `bunx expo run:ios` also works for a debug build straight to a simulator/device.
 
+## Versioning
+
+`apps/mobile/package.json` is the single version source (CalVer, `YYYY.MM.DD`).
+`app.config.ts` reads it and overrides `version` on top of the static
+`app.json`, so the Settings screen (`Constants.expoConfig.version`) and the
+store's `CFBundleShortVersionString` always match `package.json` and
+`CHANGELOG.md`. Never add `version` to `app.json`. iOS requires one to three
+period-separated integers, so `app.config.ts` strips zero padding
+(`2026.07.03` becomes `2026.7.3`) and fails the build on anything else.
+
+Check the resolved value with `bunx expo config --type public --json`.
+
+**Build numbers** (`CFBundleVersion`) are owned by EAS: `eas.json` sets
+`appVersionSource: "remote"` and the `production` profile has
+`autoIncrement: true`, so each `eas build --profile production` bumps the
+number stored on EAS servers. The first remote build seeds from the local
+`ios.buildNumber` (or 1 if unset). To set it by hand, run
+`eas build:version:set`. Do not put `buildNumber` in `app.json`; it is ignored
+while the version source is remote.
+
+## TestFlight and App Store
+
+One-time setup:
+
+1. Create the app record in App Store Connect (My Apps, New App): bundle ID
+   `art.dorkroom.mobile`, platform iOS, a SKU of your choice. No record
+   existed when this was written (`GET /v1/apps?filter[bundleId]=` returned
+   empty).
+2. Copy its numeric Apple ID (App Information, or the id in the app's URL) and
+   put it in `eas.json` as `submit.production.ios.ascAppId`:
+   `"submit": { "production": { "ios": { "ascAppId": "<id>" } } }`.
+3. Fill the listing from [`docs/store-listing.md`](docs/store-listing.md) and
+   upload screenshots (sizes are listed there).
+
+Ship a build:
+
+```bash
+source ~/.app-store-connect/eas-asc.env
+cd apps/mobile
+# 1. bump apps/mobile/package.json + CHANGELOG.md (see the releasing skill)
+eas build --profile production --platform ios     # cloud build, auto build number
+eas submit --profile production --platform ios --latest   # upload to App Store Connect
+```
+
+Or `eas build --profile production --auto-submit` to do both. After Apple
+finishes processing (a few minutes), the build appears under TestFlight.
+Internal testers (App Store Connect users on the team, up to 100) can install
+it immediately with no beta review; add them under TestFlight, Internal
+Testing. External testers and App Store release need beta app review and
+review submission in App Store Connect.
+
+The ASC key env (`~/.app-store-connect/eas-asc.env`, see "Apple auth" above)
+is what lets EAS build and submit non-interactively. Interactive Apple ID
+login does not work here because the Apple account's 2FA is a YubiKey only,
+which EAS and Fastlane cannot answer; the App Store Connect API key bypasses
+the login entirely. `ITSAppUsesNonExemptEncryption` is already `false`
+in `app.json`, so submissions skip the export-compliance prompt.
+
 ## How code is shared (and the gotchas)
 
 - **Metro consumes `@dorkroom/*` from `src`, not `dist`** (`metro.config.js`

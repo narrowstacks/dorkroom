@@ -37,6 +37,10 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - **Border, Mat Cut and Resize keep the drawing still.** The preview now fills the screen and stays put while you adjust: the controls live in a panel over the bottom that shows the main controls and pulls up (or taps open) to show the rest, always leaving part of the drawing in view. On Border and Mat Cut the blade readings and border sizes sit on the edges they describe, and you can drag an edge to change it: any edge of the Border image sets the minimum border, dragging inside it moves the print when offsets are on, and each Mat Cut window edge sets its own border. Resize keeps its answer on top with the original and new sizes labelled on the drawing. (#712)
 - **Home opens the app and is the Search tab.** It is the last tab, labelled Search, and the app still opens on it. The Border calculator no longer opens at launch: find it from Search, from the Print tab, or from the Border shortcut. (#528)
 
+### Changed
+
+- **Settings shows the real app version.** It read a hand-kept number that had fallen months behind (2026.7.3); it now follows the app's release version.
+
 ### Fixed
 
 - **The Meter's shutter button shows its outer ring.** The ring was missing. (#712)
