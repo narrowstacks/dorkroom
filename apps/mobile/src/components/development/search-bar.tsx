@@ -1,4 +1,5 @@
 import { Search, X } from 'lucide-react-native';
+import type { Ref } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 import { useDimInk } from '@/theme/use-phase-accent';
 
@@ -7,6 +8,7 @@ interface SearchBarProps {
   onChangeText: (value: string) => void;
   placeholder?: string;
   onFocus?: () => void;
+  ref?: Ref<TextInput>;
 }
 
 /**
@@ -18,12 +20,14 @@ export function SearchBar({
   onChangeText,
   placeholder = 'Search film or developer',
   onFocus,
+  ref,
 }: SearchBarProps) {
   const placeholderColor = useDimInk('#71717a');
   return (
     <View className="flex-row items-center gap-2 rounded-xl border-hw border-line bg-surface px-3">
       <Search size={18} color="#a1a1aa" />
       <TextInput
+        ref={ref}
         value={value}
         onChangeText={onChangeText}
         onFocus={onFocus}

@@ -237,6 +237,25 @@ describe('tab layout', () => {
     expect(existsSync(join(TABS_DIR, 'index.tsx'))).toBe(false);
   });
 
+  it('gives the Search tab its own icon and label, and no system role', () => {
+    const start = layout.indexOf('<NativeTabs.Trigger name="(home)"');
+    expect(start).toBeGreaterThan(-1);
+    const trigger = layout.slice(
+      start,
+      layout.indexOf('</NativeTabs.Trigger>', start)
+    );
+    // `role="search"` adds a separate Search button to the minimized bar on
+    // iOS 27 (see the tabs notes in CLAUDE.md), so it stays off until chosen.
+    expect(trigger).toMatch(/^<NativeTabs\.Trigger name="\(home\)">/);
+    // The bar must never fall back to the route name or a stock icon.
+    expect(trigger).toMatch(
+      /<NativeTabs\.Trigger\.Icon\s+sf="magnifyingglass"/
+    );
+    expect(trigger).toMatch(
+      /<NativeTabs\.Trigger\.Label[\s\S]*>\s*Search\s*<\/NativeTabs\.Trigger\.Label>/
+    );
+  });
+
   it('gives every phase a tab symbol', () => {
     for (const phase of PHASES) {
       expect(layout, phase.id).toMatch(new RegExp(`${phase.id}: '[\\w.]+'`));
