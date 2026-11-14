@@ -186,7 +186,9 @@ what EXIF `DateTimeOriginal` wants); the capture time zone is not stored, so a
 file exported in another zone shows that zone's local time. The file is UTF-8
 without a BOM on purpose (a BOM can corrupt the first header for naive parsers),
 so Excel opened by double-click may misread accented characters: use its import
-dialog. One `COLUMNS` table builds the header and every row. A text cell gets a
+dialog. One `COLUMNS` table builds the header and every row (`Latitude`,
+`Longitude` and `Accuracy (m)` follow `Place`: 6 decimal numbers and whole
+meters, empty without a location, never quoted or guarded). A text cell gets a
 leading apostrophe only when a spreadsheet could read it as a formula: it starts
 with `=`, `@`, a tab or CR, or `+`/`-` directly followed by a letter, `(` or `=`
 (`-1 stop` and `+1 Main St` are left alone). Sharing it (`shareRollAsCsv` in
@@ -603,8 +605,70 @@ the reading's ISO is never stored (ISO is the roll's EI). `Readout` takes an
 `actions` slot under its `note`, outside the spoken summary, for next-step rows
 like "Save to roll".
 
-`Shot.place` is free text. There are no GPS coordinates yet: they need a
-location module, which is a native build, and will be a separate field.
+`Shot.place` is free text and independent of `Shot.location`: a frame can have
+a place name, coordinates, both or neither.
+
+**Frame location** (`Shot.location`, #719). **Status: Simulator-verified (iOS 27.0 Simulator); device behaviour unverified.** Optional and tolerant, in
+`film-log.schema.ts`: `latitude` (-90..90) and `longitude` (-180..180) are
+required inside it; `accuracyMeters`, `altitudeMeters` and `capturedAt` are
+per-field `.catch(undefined)`; the object is loose. The shot field is
+`.optional().catch(undefined)`, so a location with a missing or out-of-range
+coordinate reads as none and can never fail its shot, and so its roll (shots
+are nested in a roll, which parses as one record). Old data parses unchanged. A
+location that fails to parse reads as none and is erased on the next write of
+its roll (the same trade-off as `development`). `ShotLocationFields` is the
+strict type for building one (a misspelled key is a compile error);
+`ShotLocation` is the loose stored type, for reading.
+- **Getting it.** `src/lib/frame-location.ts` (native, untested) calls
+  `requestForegroundPermissionsAsync`, then `getLastKnownPositionAsync` (30 s,
+  100 m) as a fast answer, else one `getCurrentPositionAsync` at `Balanced`
+  accuracy raced against an 8 s timer that is always cleared. It resolves
+  `ok`, `denied`, `servicesOff`, `unavailable` or `timeout` and never throws. The pure half,
+  `frame-location-format.ts`, maps the fix (6 decimals) and formats it.
+  `FrameLocationField` is the row (log sheet, large detent, under Place, and the
+  shot form): "Add location", "Finding location…", the coordinates with
+  "Remove", an inline line for denied (with "Open Settings", `Linking.openSettings`),
+  one for Location Services off for the whole phone ("Location Services are off
+  for this iPhone. Turn them on in Settings, under Privacy & Security.", also
+  with Open Settings; `hasServicesEnabledAsync`, mapped by the pure `gateStatus`,
+  checked before the permission is requested), and one for unavailable or
+  timeout. A denied permission that cannot be asked again keeps the denied line;
+  "restricted" is not told apart. No system alert.
+- **Privacy rules.** Foreground ("when in use") only; the permission is asked
+  the first time the user taps "Add location", never at launch; nothing is
+  looked up when a sheet opens; there is no "always add location" setting (it is
+  manual every time). A location is stored only when the user logs or saves the
+  frame with it, never sent anywhere (the mobile app has no server for the film
+  log and no analytics), and never reverse geocoded (that would send the
+  coordinates to Apple). A new frame does not inherit the previous frame's
+  coordinates, unlike the place name. It does leave the device when the user
+  exports their own data: the JSON export carries `location` and the CSV has
+  `Latitude`, `Longitude` and `Accuracy (m)`.
+- **No coordinates in URLs.** "More options..." hands the sheet's location to
+  the shot form in memory (`frame-location-handoff.ts`, keyed by the capture's
+  photo file name, read once, cleared on unmount), never as a route param: the
+  shot route is reachable by an outside link that could plant coordinates, and
+  navigation state would carry them. The form ignores any `location` param.
+- **Busy rule.** While a fix is being found (`onBusyChange`), the sheet's Log
+  (header and footer), its "More options..." and the shot form's Save are disabled (`isCommitDisabled`),
+  because a commit would drop the location; the 8 s timeout bounds the wait. The
+  sheet's medium block says why. VoiceOver is told "Location added" or the
+  failure line (`announceForAccessibility`), never the coordinates.
+- **Accuracy.** `capturedAt` is the fix's own timestamp. With "Precise
+  Location" off a fix can be kilometers out, so when `accuracyMeters` is over
+  100 the row shows the accuracy (`±N m`, `±N.N km`) and rounds the displayed
+  coordinates to 2 decimals (stored values are unchanged). CSV has an
+  `Accuracy (m)` column (whole meters). The Simulator reports a denied
+  permission when Location Services are off, which is why that case is checked
+  first.
+- **Native build.** `expo-location` is a native module, so this needs a new dev
+  client (see Build vs. reload). The `app.json` plugin options write only
+  `NSLocationWhenInUseUsageDescription`: `locationAlwaysAndWhenInUsePermission`,
+  `locationAlwaysPermission` and `motionUsagePermission` are `false`, which
+  deletes those Info.plist keys, and `isIosBackgroundLocationEnabled` is
+  `false`, so no `location` background mode. `app-plugin-order.test.ts` pins
+  this. An older dev client has no `ExpoLocation` module: the row reports
+  "unavailable" (one development warning) instead of crashing.
 
 ### Styling
 

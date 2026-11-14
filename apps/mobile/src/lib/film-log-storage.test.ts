@@ -96,6 +96,13 @@ const fullShot = {
   back: 'A12 #2',
   notes: 'backlit',
   place: 'Harbor',
+  location: {
+    latitude: 37.7749,
+    longitude: -122.4194,
+    accuracyMeters: 8.5,
+    altitudeMeters: 16,
+    capturedAt: '2026-06-24T00:00:00.000Z',
+  },
   takenAt: '2026-06-24T00:00:00.000Z',
   source: 'meter',
 } satisfies Required<Shot>;

@@ -83,6 +83,16 @@
       ],
       "expo-audio",
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Dorkroom saves your location with a frame only when you tap Add location. It is kept with your film log on this iPhone and leaves it only if you export or share that log.",
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "motionUsagePermission": false,
+          "isIosBackgroundLocationEnabled": false
+        }
+      ],
+      [
         "expo-notifications",
         {
           "sounds": [

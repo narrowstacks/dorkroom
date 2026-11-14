@@ -10,6 +10,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
 import { CommitButton } from '@/components/commit-button';
+import { FrameLocationField } from '@/components/film-log/frame-location-field';
 import { SelectField } from '@/components/film-log/select-field';
 import { ShotPhotoRow } from '@/components/film-log/shot-photo-row';
 import { GlassCard } from '@/components/glass-card';
@@ -31,6 +32,11 @@ import {
   shouldGrayscale,
 } from '@/lib/film-log-photos';
 import { addShot, updateShot } from '@/lib/film-log-storage';
+import { isCommitDisabled } from '@/lib/frame-location-format';
+import {
+  clearFrameLocationHandoff,
+  peekFrameLocationHandoff,
+} from '@/lib/frame-location-handoff';
 import { gatePhotoPicker } from '@/lib/photo-picker-gate';
 import {
   firstParam,
@@ -121,6 +127,11 @@ export function ShotFormScreen() {
             .standard.value,
   });
 
+  const [handoffLocation] = useState(() =>
+    peekFrameLocationHandoff(params.photo)
+  );
+  const [locating, setLocating] = useState(false);
+
   // See shotFormDefaults: an existing shot starts exactly as saved, so a value
   // it never had stays unset (and unwritten) until the user picks one.
   const [form, set] = useFormState({
@@ -131,6 +142,9 @@ export function ShotFormScreen() {
     back: defaults.back,
     notes: defaults.notes,
     place: defaults.place,
+    // A new shot starts with the log sheet's location only when it was handed
+    // over in memory for this capture; a route param is never read.
+    location: existing ? defaults.location : handoffLocation,
     photo: existing?.photo ?? meterCapturePhoto(params.photo),
   });
 
@@ -142,6 +156,8 @@ export function ShotFormScreen() {
   // Seed the session set with the meter-capture file that was passed in as a param.
   useEffect(() => {
     if (params.photo) sessionFiles.current.add(params.photo);
+    // Read once above; whatever is left is dropped, here and on unmount.
+    clearFrameLocationHandoff();
     // eslint-disable-next-line react-doctor/exhaustive-deps -- one-time mount seed; sessionFiles ref is stable
   }, []);
 
@@ -151,6 +167,7 @@ export function ShotFormScreen() {
   // eslint-disable-next-line react-doctor/exhaustive-deps -- refs are stable; cleanup reads latest .current on unmount
   useEffect(() => {
     return () => {
+      clearFrameLocationHandoff();
       const kept = savedRef.current ? committedFileRef.current : undefined;
       // eslint-disable-next-line react-doctor/exhaustive-deps -- intentional: iterate latest sessionFiles ref at unmount; .current is the value we want at cleanup time
       for (const f of sessionFiles.current) {
@@ -206,7 +223,7 @@ export function ShotFormScreen() {
   };
 
   const onSave = () => {
-    if (!roll) return;
+    if (!roll || locating) return;
     const fields = shotFormFields(form, {
       showBacks,
       source:
@@ -330,6 +347,11 @@ export function ShotFormScreen() {
           onChangeText={(v) => set('place', v)}
           placeholder="Where you took it"
         />
+        <FrameLocationField
+          location={form.location}
+          onChange={(v) => set('location', v)}
+          onBusyChange={setLocating}
+        />
         <LabeledTextField
           label="Notes (optional)"
           value={form.notes}
@@ -345,6 +367,7 @@ export function ShotFormScreen() {
 
       <CommitButton
         onPress={onSave}
+        disabled={isCommitDisabled({ locating })}
         label={existing ? 'Save shot' : 'Add shot'}
       />
     </Screen>

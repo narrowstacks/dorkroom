@@ -130,6 +130,22 @@ bunx expo start --dev-client --host lan         # Metro; phone must be on same W
   symlinks Tailwind v3 into NativeWind's own `node_modules` so it doesn't
   resolve the hoisted v4. Runs automatically on install and in EAS Build.
 
+## Privacy
+
+- The film log (rolls, shots, gear), attached photos, settings and optional
+  frame locations are stored on the device, in the app's own data (which iOS
+  backups include). Nothing is sent to the developer, and the app does not
+  collect data: it has no accounts and no analytics.
+- Permissions, each asked for at the moment you use the feature that needs it:
+  camera (the Meter and the negative inverter), photos (choosing a photo to
+  attach or convert, saving captures), notifications (Process Timer alerts) and
+  location, while the app is in use only (when you tap "Add location" on a
+  frame). Location is never read in the background and never looked up on its
+  own, and the app does not turn coordinates into a place name.
+- Exports contain what you choose to export: a roll's CSV or the whole log as
+  JSON includes any frame locations you added. Sharing one sends it where you
+  choose to send it.
+
 ## Out of scope (v1)
 
 Development-recipes DB, custom recipes, favorites, in-app sharing/deep links,
