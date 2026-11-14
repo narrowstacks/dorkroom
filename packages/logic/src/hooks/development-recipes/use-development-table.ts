@@ -1,4 +1,3 @@
-import type { Combination, Developer, Film } from '@dorkroom/api';
 import {
   type ColumnDef,
   functionalUpdate,
@@ -11,14 +10,9 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { useMemo } from 'react';
+import type { DevelopmentCombinationView } from '../../types/development-recipe-view';
 
-export interface DevelopmentCombinationView {
-  combination: Combination;
-  film?: Film;
-  developer?: Developer;
-  source?: 'api' | 'custom';
-  canViewDetails?: boolean;
-}
+export type { DevelopmentCombinationView };
 
 interface UseDevelopmentTableOptions {
   rows: DevelopmentCombinationView[];
