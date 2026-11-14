@@ -84,8 +84,10 @@ under the tool. `PhaseHub` (`src/screens/phase-hub.tsx`) is the hub: two-column
 by `Readout`'s `toolId` prop through `useRecordResult`, 500ms trailing) or its
 blurb. Only a tool that is answer-first and restores its inputs
 (`persistsInputs`, typed as `RecordingToolId`) records one: a tool that resets
-when reopened would show a tile that contradicts the tool. Shoot adds the active roll card (the roll the Meter logs to, or a prompt to
-start one). There is one Settings screen, `/settings` (`SETTINGS_ROUTE`), pushed in the
+when reopened would show a tile that contradicts the tool. Above the grid each
+hub shows one roll card (see "Roll lifecycle" below): Shoot the roll in the
+camera (the roll the Meter logs to, or a prompt to start one), Develop the shot
+rolls waiting to be developed, Print the rolls developed last. There is one Settings screen, `/settings` (`SETTINGS_ROUTE`), pushed in the
 Search tab's own stack (`app/(tabs)/(home)/`: `index` is Home with no native
 header, `settings` is the screen). It is an ordinary pushed screen, not a modal (a
 link arriving while a modal is open would push the tool inside it), so Home is
@@ -197,6 +199,108 @@ punctuation on both sides, over a roll's name, film, camera, lenses used, notes
 and EI, and over camera names; `ResultGroups` shows the rows above the catalog
 groups, and they show even while the catalog is loading or failed. Filler words
 (`at`, `in`...) and one-character words are dropped from the query first.
+
+**Roll lifecycle.** A roll follows the phases: Loaded, Shot, Developed,
+Printing. They map onto the stored `status` without a new enum value: Loaded is
+`active`, Shot is `finished`, Developed is `developed`, and Printing is not a
+status at all (it is a developed roll in the Print hub's list). A new enum value
+would make an older build fail that roll's parse. The words are "In camera",
+"Shot" and "Developed", written once in `ROLL_STATUS_OPTIONS`
+(`film-log-options.ts`, `rollStatusLabel`), which the list, the roll form and
+Home's film-log rows all read. Transitions go through `film-log-storage.ts`:
+`markRollShot` (active to finished, `finishedAt` set if unset),
+`markRollDevelopedByHand` ("Mark as developed": keeps a record the roll already
+has, else records only the date) and `markRollDeveloped` ("Save to roll" from
+the timer, the ONLY path that replaces a record; the card says so when the roll
+has one). Each returns whether it changed anything, so a stale tap is a no-op.
+Going back (to the camera, or to Shot) is the roll form's status control, with
+the same rule (`rollStatusPatch` in `src/lib/roll-lifecycle.ts`): back in the
+camera clears `finishedAt`, and no status change ever deletes a development
+record (it is shown only while the roll is developed). The form writes status
+fields only when its status control differs from the status it opened with
+(`rollFormStatusPatch`), and never writes `finishedAt` or `development` from its
+own copy, so a form left open cannot undo Mark as shot or Save to roll made
+meanwhile from another tab. Mark as shot and Mark as developed confirm with
+`Alert.alert` (`confirm-roll-status.ts`), because Mark as shot changes which
+roll the Meter logs to.
+
+- **The development record** (`FilmRoll.development`, `rollDevelopmentSchema`):
+  `developedAt` plus optional snapshots of the recipe (`recipeId`, `recipeName`
+  such as "Ilford HP5 Plus in Ilford DD-X", `developer`, `dilution`,
+  `temperatureF`, `timeSeconds` as run, `shootingIso`, `notes`), taken like
+  `filmStockName` so a catalog change cannot orphan it. `timeSeconds` is the
+  develop time SET for the run, not a measured one (a stage skipped early still
+  records its set time); the roll page labels it "Time set". Its parse is
+  tolerant per field: each optional field has its own `.catch(undefined)`, so
+  one bad value costs only that value, and it is a `z.looseObject`, so keys a
+  newer build adds survive a read and write by this one (the storage layer
+  writes back the parsed value; the roll itself is a plain `z.object`, so
+  unknown ROLL-level keys are still stripped). A record without a valid
+  `developedAt` is no record (`.optional().catch(undefined)` on the roll's
+  field). Because the type of a stored record has an index signature, records
+  are BUILT as `RollDevelopmentFields` (the known keys only, so a misspelled or
+  renamed key does not compile; `RecipeSnapshot` derives from it). An
+  undated record is gone after the next write with no quarantine copy: the one
+  accepted loss. Without that catch a bad record would fail the whole roll,
+  which `parseCollection` then skips (records are parsed one by one, and the
+  next write quarantines the roll). The roll's other fields keep that strict,
+  per-roll behaviour.
+- **Hub cards.** Shoot: `ActiveRollCard`, whose body (opens the roll) and "Mark
+  as shot" are sibling buttons, never nested. Develop: `UndevelopedRollsCard`,
+  finished rolls oldest `finishedAt` first (`rollsToDevelop`), three rows and
+  "N more", which opens the film log on To develop (`/shoot/film-log?filter=to-develop&at=`,
+  applied once per opening during render, `rollFilterFromParam`). A row opens
+  Recipes through `recipesPathForRoll`: `film=<slug>` (a catalog film's
+  `filmStockId` is its slug, the identifier Home uses; a `custom-` film or none
+  opens Recipes unfiltered), `iso=<EI>` and `roll=<id>`. The recipe list (`use-recipe-browser.ts`) applies
+  `iso` with `setIsoFilter` in the same one-shot opening as Home's film and
+  developer (`recipeListOpening` in `recipe-views.ts`), but only when the film
+  has a recipe at exactly that ISO (`isoToApply`, alias and rebrand aware);
+  otherwise it filters by film alone rather than show "No recipes match". It
+  passes `roll` on to a recipe only while the film filter is still the one the
+  opening set (`rollForRecipeOpen`); a manual film pick or clear, or "Clear
+  all filters" / "Browse all recipes", forgets it (the Filters sheet's
+  "Reset sort & filters" keeps the film, so the roll is still carried), since the list stays mounted in its tab. A manual film change
+  also clears the ISO filter if it is still the one the opening set
+  (`clearsOpeningIso`), never one the user chose. Print: `RecentNegativesCard`, the three most recently
+  developed rolls (`development.developedAt`, else `updatedAt`), opening the roll
+  in Shoot with `openToolPath`. Each card renders only when it has a roll.
+  Back after "N more" or a Recent negatives row: both use `openToolPath`, so
+  they push onto the Shoot stack as the user left it. Back can name the roll
+  that was open there, and a Film Log already lower in that stack is not
+  reused (expo-router 57's `navigate` pushes unless the route is on top). It
+  is the same trade-off as the timer links above; `dismissTo` is unsafe
+  across tabs, so it is not used.
+  Per-frame print notes are not built yet.
+- **The development session** (`src/lib/timer/development-session.ts`): in
+  memory beside the timer store, in `prefill.ts`'s style. The recipe screen's
+  "Start Process Timer" queues it (the recipe snapshot from
+  `recipeSnapshotFrom`, and the `roll` param). It binds on the next timer
+  change if that change loaded the recipe's own stages, and is dropped
+  otherwise (the timer refused the recipe because a run was going). Once
+  bound, a preset, an exposure link, an edit that leaves no develop stage, or
+  Reset ends it; an edit that keeps a develop stage does not. It subscribes to
+  the timer store at module load; in development the store is kept on
+  `globalThis.__dorkroomDevelopmentSession` so Fast Refresh does not add a
+  second subscription (reused only while it follows the same timer store). It also counts
+  runs (idle to running) and remembers the saved run, so one run saves at most
+  once (`canSave`, `markSaved`), and "Not now" (`dismiss`) for that run.
+  `ranToEnd` is set only when the run goes from running or paused to
+  completed and cleared on any return to idle: Next tapped through every stage
+  from idle also completes the timer, and that is never offered or shown as
+  saved. Reset ends the session even with a recipe start still queued.
+- **Save to roll.** `SaveToRollCard` (`components/development/timer/`) is one
+  line in `timer-screen.tsx`, under the controls: shown for a completed run
+  that has a develop stage (a print exposure run never offers it) while a shot
+  roll waits. It starts on the session's roll, else the only shot roll, else
+  asks (`defaultRollToDevelop`: a session roll that is no longer waiting means
+  the user picks, never another roll; the list shows whenever nothing is
+  preselected, `showsRollPicker`, so it never dead-ends), and saves `developmentRecordFrom(recipe,
+  stages)`: the recipe snapshot with the develop stage's time and temperature
+  as run, or only those and the date for a run without a recipe. It is not a
+  system alert, so it cannot appear over another screen or the Lock Screen;
+  its state lives in the session store, so leaving the timer and coming back
+  keeps it until Reset or a new run.
 
 **Calculator links.** Home answers open a calculator pre-filled by passing the
 link's params (`xCalculatorLink.build`) as search params on the tool's route.
@@ -876,10 +980,19 @@ second (or the stage or status) changes, so they redraw at 1 Hz.
     guard reads with `Number.isFinite`.
   - Film log data is validated with Zod on read (`src/schemas/film-log.schema.ts`).
     It is user data with no server copy, so a parse failure must degrade, not throw.
+    Each record is parsed on its own (`stored-collection.ts`): one that fails is
+    skipped and quarantined on the next write, never the whole list.
     The film-log types (`FilmRoll`, `Shot`, `Camera`, ...) are `z.infer` of
     those schemas and exported from the same file. Add a field to the schema
     only: zod strips unlisted keys, so a field on a hand-written type would be
     erased on the next MMKV read.
+  - **Schema changes to the film log are additive and optional.** Old data must
+    parse unchanged, with a hydration test that proves it. Never add a value
+    to an existing enum: an older build reading newer data would fail that
+    record and quarantine it on its next write. Give a new optional sub-object
+    `.optional().catch(undefined)` (as `FilmRoll.development` does) so a
+    malformed one costs only itself. An older build still drops a field it does
+    not know on its next write; that is the accepted cost of an additive field.
 - Server data goes through TanStack Query (`providers/query-client.ts`: no
   window-focus refetch, retry 2, 5-min `staleTime`) and is **persisted to MMKV**
   by `PersistQueryClientProvider`. `gcTime` is kept equal to the persister's

@@ -5,6 +5,7 @@
 import { createMMKV } from 'react-native-mmkv';
 import { deletePhotoFile } from '@/lib/film-log-photos';
 import { generateId } from '@/lib/id';
+import { rollStatusPatch } from '@/lib/roll-lifecycle';
 import { parseCollection, writeCollection } from '@/lib/stored-collection';
 import {
   cameraSchema,
@@ -17,6 +18,7 @@ import type {
   FilmRoll,
   FilmStock,
   Lens,
+  RollDevelopment,
   Shot,
   ShotPhoto,
 } from '@/schemas/film-log.schema';
@@ -79,6 +81,47 @@ export function updateRoll(
       roll.id === id ? { ...roll, ...patch, updatedAt: nowIso() } : roll
     )
   );
+}
+
+// --- Roll lifecycle --------------------------------------------------------
+// In camera (`active`) -> Shot (`finished`) -> Developed (`developed`). Each
+// returns whether it changed anything, so a stale tap on a roll that moved on
+// (or was deleted) is a no-op. Going back (to the camera, or to Shot) is the
+// roll form's status control, through the same `rollStatusPatch` rule.
+
+/** In camera to Shot: the roll leaves the Meter, `finishedAt` is set if unset. */
+export function markRollShot(id: string): boolean {
+  const roll = getRolls().find((r) => r.id === id);
+  if (!roll || roll.status !== 'active') return false;
+  updateRoll(id, rollStatusPatch(roll, 'finished', nowIso()));
+  return true;
+}
+
+/** "Mark as developed" by hand: any roll not yet developed (in the camera
+ * too, as the form allows). Keeps a development record the roll already has
+ * (set back to Shot and marked again), else records only the date. */
+export function markRollDevelopedByHand(id: string): boolean {
+  const roll = getRolls().find((r) => r.id === id);
+  if (!roll || roll.status === 'developed') return false;
+  updateRoll(id, rollStatusPatch(roll, 'developed', nowIso()));
+  return true;
+}
+
+/** "Save to roll" from the Process Timer: any roll not yet developed (in the
+ * camera too, as the form allows) becomes developed with this run's record.
+ * The only path that replaces a record the roll already has. */
+export function markRollDeveloped(
+  id: string,
+  development: RollDevelopment
+): boolean {
+  const roll = getRolls().find((r) => r.id === id);
+  if (!roll || roll.status === 'developed') return false;
+  updateRoll(id, {
+    status: 'developed',
+    finishedAt: roll.finishedAt ?? development.developedAt,
+    development,
+  });
+  return true;
 }
 
 export function deleteRoll(id: string): void {

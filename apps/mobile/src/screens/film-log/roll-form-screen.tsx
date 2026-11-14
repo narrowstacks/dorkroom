@@ -20,6 +20,7 @@ import {
   ROLL_STATUS_OPTIONS,
 } from '@/lib/film-log-options';
 import { addRoll, updateRoll } from '@/lib/film-log-storage';
+import { rollFormStatusPatch } from '@/lib/roll-lifecycle';
 import type { FilmStock } from '@/schemas/film-log.schema';
 import { usePhaseHue } from '@/theme/use-phase-accent';
 
@@ -35,6 +36,9 @@ export function RollFormScreen() {
     refetch: refetchFilms,
   } = useFilmCatalog();
   const [showCustomFilm, setShowCustomFilm] = useState(false);
+  // The status the form opened with: saving writes status only if the user
+  // changed it here, so an open form cannot undo a change made elsewhere.
+  const [openedStatus] = useState(existing?.status);
 
   const [form, set] = useFormState({
     name: existing?.name ?? '',
@@ -85,14 +89,23 @@ export function RollFormScreen() {
       filmStockName: resolveFilmStockName(stock, form.filmStockId, existing),
       process: form.process,
       iso: Number.isFinite(ei) && ei > 0 ? ei : undefined,
-      status: form.status,
       back: showBacks ? form.back : undefined,
       notes: sanitizeText(form.notes, 2000),
     };
+    // The same status rule as Mark as shot / developed, so the dates agree.
+    const now = new Date().toISOString();
     if (existing) {
-      updateRoll(existing.id, fields);
+      updateRoll(existing.id, {
+        ...fields,
+        ...rollFormStatusPatch(existing, openedStatus, form.status, now),
+      });
     } else {
-      addRoll({ ...fields, startedAt: new Date().toISOString() });
+      addRoll({
+        ...fields,
+        status: form.status,
+        ...rollFormStatusPatch(undefined, undefined, form.status, now),
+        startedAt: now,
+      });
     }
     router.back();
   };

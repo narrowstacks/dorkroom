@@ -4,7 +4,9 @@ import {
   lastUsedLensId,
   lastUsedPlace,
   nextFrameNumber,
+  ROLL_STATUS_OPTIONS,
   rollLabel,
+  rollStatusLabel,
   rollSubtitle,
   shotCountLabel,
 } from './film-log-options';
@@ -100,5 +102,21 @@ describe('nextFrameNumber', () => {
   it('is one past the highest frame, not the count', () => {
     expect(nextFrameNumber([shot(1), shot(2), shot(3)])).toBe(4);
     expect(nextFrameNumber([shot(7), shot(2)])).toBe(8);
+  });
+});
+
+describe('roll status words', () => {
+  it('names the stored statuses by the phase they stand for', () => {
+    expect(rollStatusLabel('active')).toBe('In camera');
+    expect(rollStatusLabel('finished')).toBe('Shot');
+    expect(rollStatusLabel('developed')).toBe('Developed');
+  });
+
+  it('keeps the stored values (no new enum value)', () => {
+    expect(ROLL_STATUS_OPTIONS.map((option) => option.value)).toEqual([
+      'active',
+      'finished',
+      'developed',
+    ]);
   });
 });
