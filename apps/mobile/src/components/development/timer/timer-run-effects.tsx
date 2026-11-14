@@ -8,6 +8,7 @@ import { playCue } from '@/lib/timer/cue-audio';
 import { firstActive, syncLiveActivity } from '@/lib/timer/live-activity';
 import { installNotificationHandler } from '@/lib/timer/timer-alerts';
 import { isRunActive, timerStore } from '@/lib/timer/timer-store';
+import { syncTimerWidget } from '@/lib/widgets/widgets';
 
 /** How often the display re-samples the wall clock while a run is going. */
 const SYNC_INTERVAL_MS = 250;
@@ -58,12 +59,15 @@ export function TimerRunEffects() {
     return () => clearInterval(id);
   }, [status]);
 
-  // The Live Activity follows the schedule, not the clock: the system counts
-  // its timers down by itself, so it is told only when something changes. This
-  // effect has no dependency list on purpose: the controller compares what it
-  // would send with what it last sent, so a tick costs one cheap comparison.
+  // The Live Activity and the timer widget follow the schedule, not the clock:
+  // the system counts their timers down by itself, so they are told only when
+  // something changes. This effect has no dependency list on purpose: each
+  // compares what it would send with what it last sent, so a tick costs one
+  // cheap comparison. (Importing the widgets module also builds the Home
+  // Screen widgets once, at app start.)
   useEffect(() => {
     syncLiveActivity();
+    syncTimerWidget();
   });
 
   // Coming back to the front refreshes which stage the activity highlights, and
@@ -73,6 +77,7 @@ export function TimerRunEffects() {
       if (next !== 'active') return;
       timerStore.sync();
       syncLiveActivity();
+      syncTimerWidget();
     });
     return () => subscription.remove();
   }, []);

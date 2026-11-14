@@ -796,8 +796,9 @@ While a run is active it shows on the Lock Screen and in the Dynamic Island,
 and stays right with the app suspended or killed. Built with **expo-widgets**
 (`~57.0.27`, pinned below the recommended 57.0.28 only because that was inside
 the 7-day release gate) and `@expo/ui/swift-ui`; the `expo-widgets` plugin entry
-in `app.json` (no `widgets[]`: a Live Activity is not a home-screen widget; push
-off) generates the `ExpoWidgetsTarget` extension. Keep the entry AFTER
+in `app.json` (push off; its `widgets[]` declares only the Home Screen widgets
+below, a Live Activity needs no entry there) generates the `ExpoWidgetsTarget`
+extension. Keep the entry AFTER
 `with-local-notifications-only`: the widgets plugin writes `aps-environment`
 whatever `enablePushNotifications` says, and mods run in reverse list order, so
 the strip must run last. Files, all in `src/lib/timer/`:
@@ -996,6 +997,183 @@ second (or the stage or status) changes, so they redraw at 1 Hz.
   the hue comes from `useAccentColor(PHASE_ACCENT.develop)`, not the phase, since
   it sits outside every `PhaseProvider`.
 
+### Widgets (Home Screen and Lock Screen)
+
+Three WidgetKit widgets from the hub tiles, declared in the `expo-widgets`
+entry's `widgets[]` in `app.json` (each becomes a generated
+`StaticConfiguration` in the extension; `widget-config.test.ts` pins the names
+and families to the code):
+
+| Widget (`name`) | Families | Shows | Link |
+| --- | --- | --- | --- |
+| Roll in the camera (`RollWidget`) | `systemSmall`, `accessoryRectangular`, `accessoryInline` | the roll the Meter logs to (`pickMeterRoll`, as `useMeterRoll`): `rollLabel`, `EI <iso>` and push/pull, camera, frames shot; else "No roll in the camera" | that roll (`/shoot/film-log/roll/<id>`), else the film log |
+| Last answers (`LastResultWidget`) | `systemSmall`, `accessoryRectangular` | the last result of each tool that records one, in hub order | the Shoot hub (`/shoot`) |
+| Process timer (`TimerWidget`) | `systemSmall`, `systemMedium`, `accessoryRectangular` | the stage, "Stage n of N", a ticking stage countdown, "ends 7:42 PM" (small, medium), run left, next stage (medium); paused frozen; Done; idle "No timer running" and "Last: <title>" | the timer |
+
+- **Frames SHOT, not left.** A roll has no capacity field (24, 36, bulk loads),
+  so the widget counts up ("23 frames shot"). Do not invent a capacity.
+- **Last answers, not "last print exposure".** Only a tool that is answer-first
+  AND `persistsInputs` records a result, and Print's Exposure does not persist
+  its inputs, so no Print tool records one. The recording rule was not changed
+  (a tile must never contradict a tool that resets); the widget shows what
+  does record (Camera Exposure and Lenses, both Shoot, so the Shoot hue and
+  link). If a Print tool starts recording, revisit its link and name
+  (`last-result-widget-props.test.ts` fails then).
+- **Isolated runtime.** Each layout (`src/lib/widgets/roll-widget.tsx`,
+  `last-result-widget.tsx`, `timer-widget.tsx`) follows the Live Activity's
+  rules exactly: a `'widget'` function compiled to a string, every helper
+  inside it, colours as literal hex props (`widget-palette.ts`), no clock. The
+  root view of every family carries `containerBackground(bg, 'widget')` and the
+  one `widgetURL`. `src/test/widget-runtime.ts` is the harness the three
+  widget tests share (compile with the app's Babel config, render with only the
+  runtime's globals, allow-lists checked against the exported declarations of
+  the installed `@expo/ui`). `live-activity-widget.test.ts` keeps its own copy
+  of the same harness, unchanged, rather than risk weakening it in a move; each layout test renders every
+  family in every state (empty, normal, long text, paused, done) and checks
+  one-line text with tail ellipsis. The family comes from
+  `environment.widgetFamily`, matched with `indexOf` so a differently
+  formatted description cannot fall through to the wrong layout.
+- **Props builders** are pure and tested: `roll-widget-props.ts`,
+  `last-result-widget-props.ts` and the timer's `src/lib/timer/widget-timeline.ts`.
+  Strings arrive formatted and cut (`cutText`, an ellipsis within the limit).
+- **Sync** (`src/lib/widgets/widgets.ts`): loads expo-widgets only once its
+  native module exists, builds the three `Widget` objects ONCE at module load
+  (each constructor stores its layout in the App Group, so a placed widget
+  never shows "No layout found" once the app has run), and falls back to a
+  no-op with one development warning when the bundle or dev client is stale
+  (`selectWidgetNative`, `widgets-missing-native.test.ts`). It is first
+  imported by `TimerRunEffects`, so it loads at app start. Pushes: all three at
+  load and on every `AppState` `active`; the roll on MMKV value changes of the
+  film log's `rolls` and `cameras` and the Meter's `meterRollId`, and last
+  answers on the last-result store's key, both coalesced for 300 ms so a burst
+  of writes parses the store once (`createCoalescer`); the timer from
+  `TimerRunEffects` (every render and on foreground, beside
+  `syncLiveActivity`). `createWidgetPusher` (`widget-sync.ts`) takes a KEY and
+  a builder: it pushes only when the key differs from what was last pushed
+  (the props for the roll and last answers, the schedule for the timer), and
+  builds the timeline only then, after a debounce that a steady stream cannot
+  hold back (200 ms for the timer).
+- **Live Activity buttons flush the widget.** A Pause, Resume or Skip pressed
+  on the Live Activity runs in the app inside a 5 s background hold, and a
+  React render may never happen before iOS suspends the app again, so the
+  widget would go on counting through a pause. `createTimerActionRunner`
+  (`live-activity-interaction.ts`) therefore calls the widget's `sync` and
+  `flushNow` (`syncTimerWidget`, `flushTimerWidget`) right after the
+  activity's own update, in a `finally`, so it runs even when that failed. The
+  tab bar accessory's pause goes through the same runner.
+- **The timer TIMELINE.** A widget, unlike a Live Activity, CAN change on a
+  schedule without the app: WidgetKit shows each timeline entry from its
+  date. So a running run is pushed once as one entry per stage, dated at that
+  stage's absolute start, each naming its own stage, number and next stage and
+  carrying that stage's `[start, end]` and the run's; then "Done" at the run's
+  end; then idle ("Last: <title>") `DONE_SHOWN_MS` (30 min) later, so Done does
+  not sit on the Lock Screen for days; then the keep-alive (below). Paused and
+  idle are one entry each. The anchoring is the Live Activity's
+  (`buildActivityProps` from the store's `anchorMs`), so the two never
+  disagree. Two steps: `timerWidgetSchedule` (status, absolute stage times,
+  frozen values) is the change key, and `timerWidgetEntries` builds the
+  entries from it at push time, dropping those wholly in the past
+  (`dropPastEntries`): the first entry is always the current stage, which is
+  what WidgetKit's snapshot (the gallery preview) shows. Because the key is the
+  schedule and not the entry list, a stage boundary passing is not a change;
+  `timerScheduleChanged` compares times within the Live Activity's
+  `TIME_TOLERANCE_MS`, so only start, pause, resume, skip, reset and completion
+  push. A completed run's Done is dated at the run end last pushed (the Live
+  Activity controller's rule), not when the app noticed. A 12-stage run pushed
+  at its start is 15 entries, about 8 KB with every name at its cut length (a
+  test caps it at 10 KB), and shrinks as stages pass.
+- **Zero-length stages** are left out of the widget: never an entry, never
+  "next", not counted in "Stage n of N" (such a stage is current for no time at
+  all). So "Stage n of N" counts timed stages only, and can read "of 3" where
+  the timer screen lists 4 rows. A run paused on one (a skip landed there) shows
+  the stage that resumes, or, past the last timed stage (a trailing 0 s stage,
+  such as a blank one just added), the last timed stage with 0:00 left and no
+  next. The Live Activity does NOT do this: it lists every stage as a row, a 0 s
+  stage reading 0:00, and counts it in "+N more"; it was left unchanged.
+- **"ends 7:42 PM".** Small and medium show the current stage's end as a clock
+  time (`Text` with `date` and `dateStyle="time"`) beside the ticking
+  countdown. It cannot go stale (each entry carries its own stage's absolute
+  end, and the next entry takes over at that moment), whereas a countdown is
+  right only while it ticks, and on the Simulator's Home Screen the medium
+  family's did not (see below). The rectangular accessory has no free line for it and its countdown
+  ticked on the Lock Screen, so it is left out there. Paused shows no end.
+- **Keep-alive entry and reload budget.** Every push is `updateTimeline`,
+  which writes the App Group and calls `WidgetCenter.reloadTimelines(ofKind:)`.
+  WidgetKit budgets reloads requested while the app is not in front, so never
+  push per tick or re-push identical keys; reloads made while the app is active
+  are not budgeted. expo-widgets' timeline policy is `.atEnd`: once every entry
+  is in the past WidgetKit asks for a new timeline, gets the same one and asks
+  again. So every timeline ends with a copy of its last entry dated a year
+  later (`KEEP_ALIVE_MS`, `withKeepAlive`; `snapshotTimeline` for the roll and
+  last answers). No layout depends on the time of day, so the copy shows the
+  same thing; the timeline ends only in a year, and the app pushes a fresh one
+  long before, on any launch or change.
+- **What can go stale.** A run that dies with the app (killed) keeps its
+  timeline on the widget until the app next runs and pushes idle (at most it
+  reads Done, then idle 30 minutes after the planned end); the notifications
+  and the Live Activity have the same limit. A paused run reads Paused until
+  the app changes it. The roll and last answers change only when the app
+  writes them, and the app pushes on every write.
+- **What a locked phone shows.** Exactly the pushed fields, nothing else: the
+  roll's label (its name or film), EI and push/pull, camera name and frame
+  count; the two last answers with their tool names; the timer's preset title,
+  stage names, stage number and count, times and the last run's title. No
+  place, coordinates, notes, photo names or roll ids beyond the link URL.
+- **Safelight: normal palette always.** System surfaces are not dimmed, and a
+  widget sits beside the wallpaper and other apps' widgets, so a red widget
+  would not make the screen darkroom-safe; and its look is fixed until the
+  next push, so a widget drawn red would stay red after the mode is switched
+  off from Control Center with the app closed. The Live Activity's red look
+  (drawn while a run is going, refreshed on every mode change while the app
+  runs) does not carry over to widgets the user leaves on the Home Screen for
+  weeks. All three are consistent.
+- **Data stays put.** The widgets read only what is pushed through
+  expo-widgets; the film log stays in the app's container. Never add the
+  Info.plist key `AppGroupIdentifier` (see "The shared module").
+- **A layout edit needs an app relaunch**, not just Fast Refresh: the layout
+  string is stored when the `Widget` objects are built, and in development the
+  runtime is kept on `globalThis.__dorkroomWidgets`.
+
+**Verified on the iOS 27.0 Simulator** (widgets added through the real widget
+gallery with `idb`: long-press the Home Screen, Edit, Add Widget, "Dorkroom";
+Lock Screen: long-press, Customize, Lock Screen, Add Widget): the gallery and
+the Lock Screen picker show all families with real data; a shot logged in the
+app reaches the roll widget within a few seconds, and Mark as shot moves it to
+the next roll in the camera; a skip, a pause and a reset each reached the timer
+widget within a few seconds; at a stage boundary, with the app untouched, the
+widget switched to the next entry by itself; a short run reached Done on its
+own and the pushed timeline then held Done at the scheduled end, idle 30
+minutes later and the keep-alive; Pause, Skip and Resume pressed on the Live
+Activity with the app in the background reached the Lock Screen and Home
+Screen widgets within about 4 s (the Simulator does not suspend the app, so
+this does not prove the flush beats a real suspension); each widget's tap
+opens its screen.
+
+**Ticking on the Simulator's Home Screen.** A `ProgressView(timerInterval:)`
+anywhere in a layout stopped that widget's timer text from animating, so the
+widgets have no timer progress bars. Without one, `systemSmall` ticks and the
+Lock Screen accessory ticks in step with the Live Activity, but `systemMedium`
+still showed its value from render time (unchanged with its root as a
+`VStack`, with `Text(date, style: .timer)` or without `minimumScaleFactor`);
+the cause is unknown and it is unchecked on a device. The "ends 7:42 PM" line
+keeps it correct either way.
+
+**The gallery preview** shows the timeline's first STORED entry. Past entries
+are dropped when a timeline is pushed, so it is right at push time, but after
+a later stage boundary with no push it shows the finished stage (reading 0:00
+and its past end time). Fixing it would mean a push at every boundary.
+
+**Unverified on a device:** the Home Screen countdown ticking (the medium
+family above); stage
+switches at boundaries with the app suspended or killed (the Simulator does not
+suspend the way iOS does); a Live Activity Pause, Resume or Skip pressed with
+the app SUSPENDED reaching the widget within the 5 s hold (the runner flushes
+it; see the Simulator note above); the reload budget when pushes come from the
+background; `accessoryInline` and the
+last-answers `accessoryRectangular` placed on a Lock Screen (only previewed);
+the Lock Screen's vibrant rendering of the palette; a run that reaches its
+natural end showing Done (unit-tested only).
+
 ### Control Center controls
 
 Four controls (iOS 18 `ControlWidget`s, Swift in
@@ -1023,7 +1201,10 @@ pins it):
 - copies the Swift files into `ios/ExpoWidgetsTarget/` and adds
   `DorkroomControlsBundle().body` under the `WidgetLiveActivity()` line of
   `index.swift` (`patch-index-swift.js`, pure, tested against the real generated
-  text). The anchor is strict: if that line is missing or appears more than
+  text, with and without the Home Screen widgets). With `widgets[]` the
+  generated bundle lists the widgets first and still ends with one
+  `WidgetLiveActivity()` (expo-widgets puts four widgets per bundle and the
+  Live Activity at the end of the last one), so the anchor needed no change. The anchor is strict: if that line is missing or appears more than
   once the prebuild THROWS, so an expo-widgets upgrade that changes the
   generated file fails loudly instead of shipping without the controls. Update
   the anchor (and the test's fixture) then.
