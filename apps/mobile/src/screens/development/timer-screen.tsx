@@ -18,6 +18,7 @@ import {
   TIMER_LABEL_PARAM,
   TIMER_START_PARAM,
 } from '@/lib/next-step';
+import { developmentSession } from '@/lib/timer/development-session';
 import { totalRemainingSeconds } from '@/lib/timer/engine';
 import {
   exposureSecondsFromParam,
@@ -134,6 +135,9 @@ export function TimerScreen() {
       hasLastRun: lastRun !== null,
     });
     if (decision !== 'start' || lastRun === null) return;
+    // The stored run carries no recipe: end the loaded recipe's session so the
+    // run is not saved to its roll with its developer.
+    developmentSession.end();
     setSelectedPresetId(restoredPresetId(lastRun, listPresets()));
     applyStages(lastRun.stages);
     startRun();

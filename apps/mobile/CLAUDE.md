@@ -287,8 +287,10 @@ roll the Meter logs to.
   `recipeSnapshotFrom`, and the `roll` param). It binds on the next timer
   change if that change loaded the recipe's own stages, and is dropped
   otherwise (the timer refused the recipe because a run was going). Once
-  bound, a preset, an exposure link, an edit that leaves no develop stage, or
-  Reset ends it; an edit that keeps a develop stage does not. It subscribes to
+  bound, a preset, an exposure link, an edit that leaves no develop stage,
+  Reset, or Start last timer restoring the stored run (`end()`; a stored run
+  holds no recipe, so it must not inherit the loaded recipe's session) ends it;
+  an edit that keeps a develop stage does not. It subscribes to
   the timer store at module load; in development the store is kept on
   `globalThis.__dorkroomDevelopmentSession` so Fast Refresh does not add a
   second subscription (reused only while it follows the same timer store). It also counts
