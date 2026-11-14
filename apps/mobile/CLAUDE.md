@@ -816,12 +816,34 @@ recipe's name after the prefill).
   through `scrollTo`, which clamps at `-contentInset.top`. That is 0 here,
   because the header's inset is UIKit's adjusted inset, so every other
   `Screen` moved to offset 0 with its first rows under the header: the hub bug
-  of #732. A screen that becomes focused while a keyboard is still up (a tab
-  switch, or Back from a form with a field focused) would handle that
-  keyboard's hide, so the gate stays off until it has gone; the forms also
-  call `Keyboard.dismiss()` before `router.back()` on save. Known limits, in
-  React Native's handler (`RCTScrollViewComponentView.mm`,
-  `_keyboardWillChangeFrame`): the visible screen still moves to offset 0 on
+  of #732. A screen that becomes focused or mounts while a keyboard is still
+  up (a tab switch, a push, or Back from a form with a field focused) would
+  handle that keyboard's hide, so the gate stays off until it has gone; the
+  forms also call `Keyboard.dismiss()` before `router.back()` on save. The
+  other way round, a screen that loses focus with its own keyboard up keeps
+  the gate open until that keyboard has hidden: with the prop off the handler
+  returns early, and it is the only thing that clears the keyboard's bottom
+  inset (`contentInset` and `verticalScrollIndicatorInsets`), so a missed hide
+  left a keyboard-sized blank band at the end of the screen. That happened on
+  Home: type, tap the gear (Settings pushes while the keyboard is up), Back.
+  On Back, UIKit hands the field its keyboard back before JS sees Home
+  focused, so Home still counts that keyboard as inherited and does not
+  adjust for it; harmless now that the hide on leaving cleared the inset, but
+  the end of a long result list stays under that keyboard until it is
+  dismissed. Handling the hide off screen only re-applies the same clamp a
+  dismissal in place does. A tab switch, a deep link (`dorkroom://print`) and
+  a Home result that opens another tab while typing also blur with the
+  keyboard up; they happened to recover before, because the keyboard came
+  back on return after JS saw the focus. The rule is a pure state machine in
+  `src/lib/keyboard-insets-gate.ts`, with its tests. Its idea of whether a
+  keyboard is up comes from a tracker fed by `keyboardWillShow` and
+  `keyboardWillHide` (the did-events as a backstop), not `Keyboard.isVisible()`,
+  which flips only on the did-events after React Native's handler has acted.
+  A future screen that auto-focuses a field on mount while another screen's
+  keyboard is up would inherit that keyboard and leave its field covered until
+  it is dismissed; no screen does this today. Known limits, in React Native's
+  handler (`RCTScrollViewComponentView.mm`, `_keyboardWillChangeFrame`): the
+  visible screen still moves to offset 0 on
   any keyboard frame change while it is scrolled within the header height of
   its top and the focused field is not covered (as before #732), including a
   field in a sheet over the screen; and with Reduce Motion plus Prefer
