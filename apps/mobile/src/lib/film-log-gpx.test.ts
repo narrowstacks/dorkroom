@@ -1,12 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { FilmRoll, Shot } from '@/schemas/film-log.schema';
 import { gpxFileName, rollToCsv } from './film-log-csv';
-import {
-  buildRollGpx,
-  escapeXml,
-  gpxTime,
-  hasLocatedFrame,
-} from './film-log-gpx';
+import { buildRollGpx, escapeXml, gpxTime } from './film-log-gpx';
 
 function roll(shots: Shot[], patch: Partial<FilmRoll> = {}): FilmRoll {
   return {
@@ -226,16 +221,6 @@ describe('gpxTime', () => {
     );
     expect(gpxTime(undefined)).toBeUndefined();
     expect(gpxTime('')).toBeUndefined();
-  });
-});
-
-describe('hasLocatedFrame', () => {
-  it('is true only with a usable location', () => {
-    expect(hasLocatedFrame([])).toBe(false);
-    expect(hasLocatedFrame([shot(1)])).toBe(false);
-    expect(
-      hasLocatedFrame([shot(1, { location: { latitude: 1, longitude: 2 } })])
-    ).toBe(true);
   });
 });
 

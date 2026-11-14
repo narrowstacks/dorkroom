@@ -7,7 +7,11 @@ import {
   formatRecipeTime,
   pushPullDisplay,
 } from '@/components/development/recipe-format';
-import { rollLabel, shotCountLabel } from '@/lib/film-log-options';
+import {
+  rollLabel,
+  rollStatusLabel,
+  shotCountLabel,
+} from '@/lib/film-log-options';
 import { queryOf, toolHref } from '@/lib/home/destination';
 import { LINK_OPENED_PARAM } from '@/lib/link-prefill';
 import type {
@@ -151,43 +155,6 @@ export function developedInLabel(
   return parts || undefined;
 }
 
-/**
- * The rows of a roll's "Developed" section, in the recipe screen's formats
- * (°C first, then °F, as the recipe shows them). The date is left to the
- * screen, which formats it in the user's locale. Unknown fields are left out.
- */
-export function developmentDetails(
-  development: RollDevelopment
-): { label: string; value: string }[] {
-  const rows: { label: string; value: string }[] = [];
-  const recipe = development.recipeName?.trim();
-  const developer = development.developer?.trim();
-  if (recipe) rows.push({ label: 'Recipe', value: recipe });
-  else if (developer) rows.push({ label: 'Developer', value: developer });
-  const dilution = development.dilution?.trim();
-  if (dilution) rows.push({ label: 'Dilution', value: dilution });
-  const f = development.temperatureF;
-  if (f !== undefined && Number.isFinite(f)) {
-    const c = toCelsius(f);
-    rows.push({
-      label: 'Temperature',
-      value: `${formatRecipeTemp(c, f, 'C')} · ${formatRecipeTemp(c, f, 'F')}`,
-    });
-  }
-  const seconds = development.timeSeconds;
-  if (seconds !== undefined && Number.isFinite(seconds) && seconds > 0) {
-    // The develop time set for the run, not a measured one (see the schema).
-    rows.push({ label: 'Time set', value: formatRecipeTime(seconds / 60) });
-  }
-  if (development.shootingIso !== undefined) {
-    rows.push({
-      label: 'Shooting ISO',
-      value: String(development.shootingIso),
-    });
-  }
-  return rows;
-}
-
 /** Catalog film ids are the film's slug; a user's own film is `custom-...`
  * and has no recipes in the catalog. */
 function catalogFilmSlug(filmStockId: string | undefined): string | undefined {
@@ -268,4 +235,94 @@ export function markDevelopedCopy(
     message: `${label} moves to Developed with today's date. Runs saved from the Process Timer also record the recipe.`,
     accessibilityLabel: "Mark as developed. Records today's date.",
   };
+}
+
+/** Where a step of the lifecycle track stands against the roll's status. */
+export type LifecycleStepState = 'done' | 'current' | 'upcoming';
+
+export interface LifecycleStep {
+  status: RollStatus;
+  /** The app's status word ("In camera", "Shot", "Developed"). */
+  label: string;
+  state: LifecycleStepState;
+}
+
+const LIFECYCLE_ORDER: readonly RollStatus[] = [
+  'active',
+  'finished',
+  'developed',
+];
+
+/** The roll page's track: In camera, Shot, Developed, each done, current or
+ * still to come. */
+export function lifecycleTrack(status: RollStatus): LifecycleStep[] {
+  const at = LIFECYCLE_ORDER.indexOf(status);
+  return LIFECYCLE_ORDER.map((step, index) => ({
+    status: step,
+    label: rollStatusLabel(step),
+    state: index < at ? 'done' : index === at ? 'current' : 'upcoming',
+  }));
+}
+
+/** The track as one VoiceOver label: "Status: Shot, step 2 of 3. In camera,
+ * then Shot, then Developed." */
+export function lifecycleTrackLabel(status: RollStatus): string {
+  const steps = lifecycleTrack(status);
+  const index = LIFECYCLE_ORDER.indexOf(status);
+  const all = steps.map((step) => step.label).join(', then ');
+  return `Status: ${rollStatusLabel(status)}, step ${index + 1} of ${steps.length}. ${all}.`;
+}
+
+/** The one step forward a roll's page offers, or null at the last step. */
+export type LifecycleAction =
+  | { kind: 'mark-shot'; label: 'Mark as shot' }
+  | { kind: 'mark-developed'; label: 'Mark as developed' };
+
+export function nextLifecycleAction(
+  status: RollStatus
+): LifecycleAction | null {
+  switch (status) {
+    case 'active':
+      return { kind: 'mark-shot', label: 'Mark as shot' };
+    case 'finished':
+      return { kind: 'mark-developed', label: 'Mark as developed' };
+    case 'developed':
+      return null;
+  }
+}
+
+/**
+ * A developed roll's record in one line for the roll page: what it was
+ * developed in, the dilution (when the recipe's name does not carry it), the
+ * temperature in °C then °F, the develop time set, and the recipe's EI when it
+ * differs from the roll's. The date is left to the dates line. Undefined for a
+ * record with nothing but its date ("Mark as developed").
+ *
+ * "Ilford HP5 Plus in Ilford DD-X · 1+4 · 20°C (68°F) · Time set 9m 30s"
+ */
+export function developmentSummaryLine(
+  development: RollDevelopment,
+  rollIso: number | undefined
+): string | undefined {
+  const recipe = development.recipeName?.trim();
+  const dilution = development.dilution?.trim();
+  const parts: string[] = [];
+  const developedIn = developedInLabel(development);
+  if (developedIn) parts.push(developedIn);
+  // Without a recipe name, `developedInLabel` already joined the dilution.
+  if (recipe && dilution) parts.push(dilution);
+  const f = development.temperatureF;
+  if (f !== undefined && Number.isFinite(f)) {
+    const c = toCelsius(f);
+    parts.push(
+      `${formatRecipeTemp(c, f, 'C')} (${formatRecipeTemp(c, f, 'F')})`
+    );
+  }
+  const seconds = development.timeSeconds;
+  if (seconds !== undefined && Number.isFinite(seconds) && seconds > 0) {
+    parts.push(`Time set ${formatRecipeTime(seconds / 60)}`);
+  }
+  const iso = development.shootingIso;
+  if (iso !== undefined && iso !== rollIso) parts.push(`for EI ${iso}`);
+  return parts.length > 0 ? parts.join(' · ') : undefined;
 }

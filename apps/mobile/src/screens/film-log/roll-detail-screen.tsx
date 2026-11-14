@@ -1,82 +1,162 @@
-import { formatAperture, formatShutterSpeed } from '@dorkroom/logic';
-import { Image } from 'expo-image';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
-import { useCallback, useMemo, useState } from 'react';
-import { Alert, FlatList, Pressable, Text, View } from 'react-native';
-import { CommitButton } from '@/components/commit-button';
+import { memo, useCallback, useMemo, useState } from 'react';
+import { Alert, FlatList, Text, View } from 'react-native';
+import { Button } from '@/components/button';
 import {
   confirmMarkDeveloped,
   confirmMarkShot,
 } from '@/components/film-log/confirm-roll-status';
 import { developedDateText } from '@/components/film-log/developed-date';
+import { FrameRow } from '@/components/film-log/frame-row';
 import { PhotoViewer } from '@/components/film-log/photo-viewer';
-import { RollDevelopmentSection } from '@/components/film-log/roll-development-section';
-import { GlassCard } from '@/components/glass-card';
+import { RollSummary } from '@/components/film-log/roll-summary';
 import { useBackdropStyle } from '@/components/gradient-background';
-import { NeutralButton } from '@/components/neutral-button';
+import { offersSafelightButton } from '@/components/safelight/offer';
+import { SafelightButton } from '@/components/safelight/safelight-button';
+import { useSafelight } from '@/components/safelight/safelight-provider';
+import { SectionLabel } from '@/components/section-label';
 import { TabBarScrollView } from '@/components/tab-bar-scroll-view';
 import { useCameras, useLenses, useRoll } from '@/hooks/use-film-log';
-import { hasLocatedFrame } from '@/lib/film-log-gpx';
-import { formatProcess, rollStatusLabel } from '@/lib/film-log-options';
-import { photoUri } from '@/lib/film-log-photos';
+import { useMeterRoll } from '@/hooks/use-meter-roll';
+import { frameCountLabel } from '@/lib/film-log-list';
 import { shareRollAsCsv, shareRollAsGpx } from '@/lib/film-log-share';
 import { deleteRoll } from '@/lib/film-log-storage';
-import { isUsableLocation } from '@/lib/frame-location-format';
-import { markDevelopedCopy } from '@/lib/roll-lifecycle';
-import type { Shot } from '@/schemas/film-log.schema';
-import { usePhaseHue } from '@/theme/use-phase-accent';
+import { framePoints, locatedFrames } from '@/lib/frame-map-items';
+import { loadAppleMaps } from '@/lib/frame-map-native';
+import { thumbnailDots } from '@/lib/frame-map-thumbnail';
+import { frameRowText } from '@/lib/frame-row-text';
+import { toolHref } from '@/lib/home/destination';
+import { toHref } from '@/lib/href';
+import { openToolPath } from '@/lib/open-tool-path';
+import {
+  developmentSummaryLine,
+  markDevelopedCopy,
+  nextLifecycleAction,
+} from '@/lib/roll-lifecycle';
+import {
+  locatedCountLabel,
+  noFramesMessage,
+  offersMeterShortcut,
+  rollDatesLine,
+  rollSetupLine,
+} from '@/lib/roll-summary';
+import type { FilmRoll, Shot } from '@/schemas/film-log.schema';
+import { usePhase } from '@/theme/phase-context';
 
-function exposureSummary(shot: Shot, rollIso: number | undefined): string {
-  const parts: string[] = [];
-  if (shot.aperture !== undefined) parts.push(formatAperture(shot.aperture));
-  if (shot.shutterSpeed !== undefined)
-    parts.push(formatShutterSpeed(shot.shutterSpeed));
-  if (rollIso !== undefined) parts.push(`ISO ${rollIso}`);
-  return parts.length > 0 ? parts.join(' · ') : 'No exposure set';
+const addFramePath = (rollId: string) =>
+  toHref(`/shoot/film-log/shot?rollId=${encodeURIComponent(rollId)}`);
+const rollMapPath = (rollId: string) =>
+  toHref(`/shoot/film-log/roll-map?rollId=${encodeURIComponent(rollId)}`);
+
+interface RollHeaderItemsProps {
+  rollId: string;
+  hasFrames: boolean;
+  located: boolean;
+  onDelete: () => void;
 }
 
-interface ExportButtonProps {
-  label: string;
-  /** Shown under the label when the export is not possible yet; disables it. */
-  disabledLine: string | undefined;
-  hint: string;
-  onPress: () => void;
-}
-
-function ExportButton({
-  label,
-  disabledLine,
-  hint,
-  onPress,
-}: ExportButtonProps) {
-  const disabled = disabledLine !== undefined;
+/**
+ * The header's right side: `+` (Add frame) and a More menu, native bar items.
+ * They replace the stack's `headerRight`, so the safelight switch the phase
+ * stack would put there is added back here while the stack offers it.
+ */
+// Memoized: its props change rarely, so a re-render of the page does not
+// re-register the bar items. Its own hooks (phase, safelight) still re-render it.
+const RollHeaderItems = memo(function RollHeaderItems({
+  rollId,
+  hasFrames,
+  located,
+  onDelete,
+}: RollHeaderItemsProps) {
+  const phase = usePhase();
+  const { on } = useSafelight();
   return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      accessibilityRole="button"
-      accessibilityState={{ disabled }}
-      accessibilityHint={hint}
-      className="flex-1 items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
-    >
-      <Text className={`text-base text-white ${disabled ? 'opacity-40' : ''}`}>
-        {label}
+    <Stack.Toolbar placement="right">
+      <Stack.Toolbar.Button
+        icon="plus"
+        accessibilityLabel="Add frame"
+        onPress={() => router.push(addFramePath(rollId))}
+      />
+      <Stack.Toolbar.Menu icon="ellipsis" accessibilityLabel="More">
+        <Stack.Toolbar.MenuAction
+          icon="pencil"
+          onPress={() =>
+            router.push(
+              toHref(
+                `/shoot/film-log/roll-form?rollId=${encodeURIComponent(rollId)}`
+              )
+            )
+          }
+        >
+          Edit roll
+        </Stack.Toolbar.MenuAction>
+        {located ? (
+          <Stack.Toolbar.MenuAction
+            icon="map"
+            onPress={() => router.push(rollMapPath(rollId))}
+          >
+            Show map
+          </Stack.Toolbar.MenuAction>
+        ) : null}
+        <Stack.Toolbar.Menu icon="square.and.arrow.up" title="Share">
+          <Stack.Toolbar.MenuAction
+            icon="tablecells"
+            disabled={!hasFrames}
+            subtitle={hasFrames ? undefined : 'Log a frame to export.'}
+            onPress={() => void shareRollAsCsv(rollId)}
+          >
+            Export CSV
+          </Stack.Toolbar.MenuAction>
+          <Stack.Toolbar.MenuAction
+            icon="mappin"
+            disabled={!located}
+            subtitle={
+              located ? undefined : 'Add a location to a frame to export GPX.'
+            }
+            onPress={() => void shareRollAsGpx(rollId)}
+          >
+            Export GPX
+          </Stack.Toolbar.MenuAction>
+        </Stack.Toolbar.Menu>
+        {/* An inline section, so Delete sits apart below a separator. */}
+        <Stack.Toolbar.Menu inline>
+          <Stack.Toolbar.MenuAction icon="trash" destructive onPress={onDelete}>
+            Delete roll
+          </Stack.Toolbar.MenuAction>
+        </Stack.Toolbar.Menu>
+      </Stack.Toolbar.Menu>
+      <Stack.Toolbar.View hidden={!offersSafelightButton(phase, on)}>
+        <SafelightButton />
+      </Stack.Toolbar.View>
+    </Stack.Toolbar>
+  );
+});
+
+/** A roll with no frames: one sentence and the page's one commit. */
+function NoFramesEmptyState({
+  roll,
+  onAddFrame,
+}: {
+  roll: Pick<FilmRoll, 'status'>;
+  onAddFrame: () => void;
+}) {
+  return (
+    <View className="gap-3 pt-1">
+      <Text className="text-base text-ink-60">
+        {noFramesMessage(roll.status)}
       </Text>
-      {disabled ? (
-        <Text className="text-center text-xs text-ink-60">{disabledLine}</Text>
-      ) : null}
-    </Pressable>
+      <Button variant="commit" label="Add frame" onPress={onAddFrame} />
+    </View>
   );
 }
 
 export function RollDetailScreen() {
   const backdrop = useBackdropStyle();
-  const hue = usePhaseHue();
   const { rollId } = useLocalSearchParams<{ rollId: string }>();
   const roll = useRoll(rollId);
   const cameras = useCameras();
   const lenses = useLenses();
+  const { setRoll: setMeterRoll } = useMeterRoll();
   const [viewerFile, setViewerFile] = useState<string | null>(null);
 
   const lensName = useMemo(() => {
@@ -84,87 +164,55 @@ export function RollDetailScreen() {
     return (id: string | undefined) => (id ? map.get(id) : undefined);
   }, [lenses]);
 
+  const shots = roll?.shots;
+  const { located, mapDots } = useMemo(() => {
+    const frames = locatedFrames(shots ?? []);
+    return {
+      located: frames.length,
+      mapDots: thumbnailDots(framePoints(frames)),
+    };
+  }, [shots]);
+
   const onDelete = useCallback(() => {
-    if (!roll) return;
+    if (!rollId) return;
     Alert.alert('Delete roll?', 'This removes the roll and all its shots.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
         style: 'destructive',
         onPress: () => {
-          deleteRoll(roll.id);
+          deleteRoll(rollId);
           router.back();
         },
       },
     ]);
-  }, [roll]);
+  }, [rollId]);
 
+  const openMap = useCallback(() => {
+    if (rollId) router.push(rollMapPath(rollId));
+  }, [rollId]);
+
+  const count = shots?.length ?? 0;
   const renderShot = useCallback(
-    ({ item }: { item: Shot }) => {
-      const lens = lensName(item.lensId);
-      const meta = [lens, item.back].filter(Boolean).join(' · ');
+    ({ item, index }: { item: Shot; index: number }) => {
+      const photo = item.photo?.fileName;
       return (
-        <Pressable
-          onPress={() =>
-            router.push(
-              `/shoot/film-log/shot?rollId=${roll?.id}&shotId=${item.id}`
-            )
-          }
-          accessibilityRole="button"
-          accessibilityLabel={`Edit frame ${item.frameNumber}${isUsableLocation(item.location) ? ', has location' : ''}`}
-        >
-          <GlassCard className="flex-row items-center gap-3">
-            {item.photo ? (
-              <Pressable
-                onPress={() => setViewerFile(item.photo!.fileName)}
-                accessibilityRole="imagebutton"
-                accessibilityLabel="View photo"
-              >
-                <Image
-                  source={{ uri: photoUri(item.photo.fileName) }}
-                  style={{ width: 40, height: 54, borderRadius: 6 }}
-                  contentFit="cover"
-                />
-              </Pressable>
-            ) : (
-              <Text
-                className="w-10 text-lg font-semibold"
-                style={{ color: hue }}
-              >
-                #{item.frameNumber}
-              </Text>
-            )}
-            <View className="flex-1 gap-0.5">
-              <Text className="text-base text-white">
-                {item.photo
-                  ? `#${item.frameNumber} · ${exposureSummary(item, roll?.iso)}`
-                  : exposureSummary(item, roll?.iso)}
-              </Text>
-              {meta ? (
-                <Text className="text-sm text-ink-50">{meta}</Text>
-              ) : null}
-              {item.place ? (
-                <Text className="text-sm text-ink-60" numberOfLines={1}>
-                  {item.place}
-                </Text>
-              ) : null}
-              {item.notes ? (
-                <Text className="text-sm text-ink-60" numberOfLines={1}>
-                  {item.notes}
-                </Text>
-              ) : null}
-            </View>
-            {isUsableLocation(item.location) ? (
-              <SymbolView name="location.fill" size={14} tintColor={hue} />
-            ) : null}
-            {item.source === 'meter' ? (
-              <Text className="text-xs uppercase text-ink-40">meter</Text>
-            ) : null}
-          </GlassCard>
-        </Pressable>
+        <FrameRow
+          text={frameRowText(item, lensName(item.lensId))}
+          photoFileName={photo}
+          href={toHref(
+            `/shoot/film-log/shot?rollId=${encodeURIComponent(rollId ?? '')}&shotId=${encodeURIComponent(item.id)}`
+          )}
+          index={index}
+          count={count}
+          onViewPhoto={() => {
+            if (photo) setViewerFile(photo);
+          }}
+          onShowOnMap={openMap}
+        />
       );
     },
-    [hue, lensName, roll?.id, roll?.iso, setViewerFile]
+    [count, lensName, openMap, rollId]
   );
 
   if (!roll) {
@@ -175,105 +223,61 @@ export function RollDetailScreen() {
     );
   }
 
-  const cameraName =
-    cameras.find((c) => c.id === roll.cameraId)?.name ?? 'Unknown camera';
-  const hasShots = roll.shots.length > 0;
-  const located = hasLocatedFrame(roll.shots);
+  const cameraName = cameras.find((c) => c.id === roll.cameraId)?.name;
+  const hasFrames = roll.shots.length > 0;
   const title = roll.name?.trim() ? roll.name : (roll.filmStockName ?? 'Roll');
+  const action = nextLifecycleAction(roll.status);
+  const onAction = () => {
+    if (action?.kind === 'mark-shot') confirmMarkShot(roll);
+    if (action?.kind === 'mark-developed') confirmMarkDeveloped(roll);
+  };
+  const actionAccessibilityLabel =
+    action?.kind === 'mark-shot'
+      ? 'Mark as shot. Moves the roll to To develop.'
+      : action?.kind === 'mark-developed'
+        ? markDevelopedCopy(roll, developedDateText).accessibilityLabel
+        : undefined;
+  const development =
+    roll.status === 'developed' ? roll.development : undefined;
+  // The thumbnail opens the map screen, so it shows only when this build has
+  // the map; "Show map" in the menu stays (that screen explains a missing map
+  // and still lists the frames).
+  const showThumbnail = located > 0 && loadAppleMaps() !== null;
+  const addFrame = () => router.push(addFramePath(roll.id));
+  const openMeter = offersMeterShortcut(roll.status)
+    ? () => {
+        // The Meter logs to its persisted pick among the rolls in the camera
+        // (`useMeterRoll`), the same setter its roll pill uses.
+        setMeterRoll(roll.id);
+        openToolPath(toolHref('meter'));
+      }
+    : undefined;
 
   const header = (
-    <View className="gap-3 pb-2">
-      <GlassCard className="gap-1">
-        <Text className="text-sm text-ink-60">{cameraName}</Text>
-        <Text className="text-base text-white">
-          {roll.filmStockName ?? 'No film set'} · {formatProcess(roll.process)}
-          {roll.iso !== undefined ? ` · EI ${roll.iso}` : ''}
-        </Text>
-        <Text className="text-sm text-ink-60">
-          {rollStatusLabel(roll.status)}
-        </Text>
-        {roll.back ? (
-          <Text className="text-sm text-ink-50">Back: {roll.back}</Text>
-        ) : null}
-        {roll.notes ? (
-          <Text className="text-sm text-ink-60">{roll.notes}</Text>
-        ) : null}
-      </GlassCard>
-      {roll.status === 'developed' && roll.development ? (
-        <RollDevelopmentSection development={roll.development} />
-      ) : null}
-      {roll.status === 'active' ? (
-        <NeutralButton
-          onPress={() => confirmMarkShot(roll)}
-          label="Mark as shot"
-          accessibilityLabel="Mark as shot. Moves the roll to To develop."
-        />
-      ) : null}
-      {roll.status === 'finished' ? (
-        <NeutralButton
-          onPress={() => confirmMarkDeveloped(roll)}
-          label="Mark as developed"
-          accessibilityLabel={
-            markDevelopedCopy(roll, developedDateText).accessibilityLabel
-          }
-        />
-      ) : null}
-      <View className="flex-row gap-3">
-        <Pressable
-          onPress={() =>
-            router.push(`/shoot/film-log/roll-form?rollId=${roll.id}`)
-          }
-          accessibilityRole="button"
-          className="flex-1 items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
-        >
-          <Text className="text-base text-white">Edit roll</Text>
-        </Pressable>
-        <Pressable
-          onPress={onDelete}
-          accessibilityRole="button"
-          className="flex-1 items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
-        >
-          <Text className="text-base text-rose-400">Delete</Text>
-        </Pressable>
-      </View>
-      {located ? (
-        <NeutralButton
-          onPress={() =>
-            router.push(`/shoot/film-log/roll-map?rollId=${roll.id}`)
-          }
-          label="Map"
-          accessibilityLabel="Map"
-          accessibilityHint="Shows the frames that have a location"
-        />
-      ) : null}
-      <View className="flex-row gap-3">
-        <ExportButton
-          label="Export CSV"
-          disabledLine={hasShots ? undefined : 'Log a shot to export.'}
-          hint={
-            hasShots
-              ? 'Opens the share sheet with a CSV file of this roll'
-              : 'Log a shot first. There is nothing to export yet.'
-          }
-          onPress={() => void shareRollAsCsv(roll.id)}
-        />
-        <ExportButton
-          label="Export GPX"
-          disabledLine={
-            located ? undefined : 'Add a location to a frame to export GPX.'
-          }
-          hint={
-            located
-              ? 'Opens the share sheet with a GPX file of the frames that have a location'
-              : 'No frame has a location yet. Add one from a frame.'
-          }
-          onPress={() => void shareRollAsGpx(roll.id)}
-        />
-      </View>
-      <CommitButton
-        onPress={() => router.push(`/shoot/film-log/shot?rollId=${roll.id}`)}
-        label="+ Add shot"
+    <View className="gap-6 pb-3">
+      <RollSummary
+        status={roll.status}
+        setup={rollSetupLine(roll, cameraName)}
+        dates={rollDatesLine(roll, new Date())}
+        development={
+          development
+            ? developmentSummaryLine(development, roll.iso)
+            : undefined
+        }
+        developmentNotes={development?.notes?.trim() || undefined}
+        back={roll.back?.trim() || undefined}
+        notes={roll.notes?.trim() || undefined}
+        action={action}
+        actionAccessibilityLabel={actionAccessibilityLabel}
+        onAction={onAction}
+        frames={frameCountLabel(roll.shots.length)}
+        located={locatedCountLabel(located)}
+        mapDots={showThumbnail ? mapDots : null}
+        mapAccessibilityLabel={`Map of ${frameCountLabel(located)} with a location`}
+        onOpenMap={openMap}
+        onOpenMeter={openMeter}
       />
+      <SectionLabel>Frames</SectionLabel>
     </View>
   );
 
@@ -286,14 +290,12 @@ export function RollDetailScreen() {
         <FlatList
           style={backdrop}
           contentInsetAdjustmentBehavior="automatic"
-          contentContainerStyle={{ padding: 16, gap: 12 }}
+          contentContainerStyle={{ padding: 16 }}
           data={roll.shots}
           keyExtractor={(shot) => shot.id}
           ListHeaderComponent={header}
           ListEmptyComponent={
-            <Text className="px-2 py-6 text-center text-ink-50">
-              No shots logged yet.
-            </Text>
+            <NoFramesEmptyState roll={roll} onAddFrame={addFrame} />
           }
           renderItem={renderShot}
         />
@@ -302,6 +304,13 @@ export function RollDetailScreen() {
         visible={!!viewerFile}
         fileName={viewerFile}
         onClose={() => setViewerFile(null)}
+      />
+      {/* Renders no view: it sets the header's bar items. */}
+      <RollHeaderItems
+        rollId={roll.id}
+        hasFrames={hasFrames}
+        located={located > 0}
+        onDelete={onDelete}
       />
     </>
   );
