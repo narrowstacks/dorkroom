@@ -106,7 +106,7 @@ describe('fixed-layout and answer-first tools', () => {
 
   it('takes the header style from usesLargeTitle in every phase stack', () => {
     expect(read('src', 'components', 'hub', 'phase-stack.tsx')).toMatch(
-      /headerLargeTitle: usesLargeTitle\(tool\)/
+      /\.\.\.\(usesLargeTitle\(tool\) \? undefined : STANDARD_TITLE\)/
     );
   });
 

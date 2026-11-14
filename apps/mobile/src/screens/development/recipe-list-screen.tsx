@@ -14,7 +14,7 @@ import { FilmDeveloperBar } from '@/components/development/film-developer-bar';
 import { OptionPickerSheet } from '@/components/development/option-picker-sheet';
 import { RecipeCard } from '@/components/development/recipe-card';
 import { SearchBar } from '@/components/development/search-bar';
-import { GradientBackground } from '@/components/gradient-background';
+import { useBackdropStyle } from '@/components/gradient-background';
 import { NeutralButton } from '@/components/neutral-button';
 import { TabBarScrollView } from '@/components/tab-bar-scroll-view';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
@@ -46,6 +46,7 @@ const RecipeRow = memo(function RecipeRow({
 });
 
 export function RecipeListScreen() {
+  const backdrop = useBackdropStyle();
   // The browser's state, with a link's filters applied (see the hook).
   const {
     recipes,
@@ -202,8 +203,7 @@ export function RecipeListScreen() {
 
   if (recipes.isLoading && !recipes.isLoaded) {
     return (
-      <View className="flex-1">
-        <GradientBackground />
+      <View className="flex-1" style={backdrop}>
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color="#ffffff" />
         </View>
@@ -213,8 +213,7 @@ export function RecipeListScreen() {
 
   if (recipes.error && !recipes.isLoaded) {
     return (
-      <View className="flex-1">
-        <GradientBackground />
+      <View className="flex-1" style={backdrop}>
         <View className="flex-1 items-center justify-center gap-3 px-8">
           <Text className="text-center text-base text-ink-70">
             Couldn’t load recipes. Check your connection and try again.
@@ -231,10 +230,12 @@ export function RecipeListScreen() {
   }
 
   return (
-    <View className="flex-1">
-      <GradientBackground />
+    // A fragment, not a wrapper view: the list must be the root native view
+    // for the large title to collapse (see `Screen`).
+    <>
       <TabBarScrollView>
         <FlatList
+          style={backdrop}
           contentInsetAdjustmentBehavior="automatic"
           contentContainerStyle={{ padding: 16, gap: 12 }}
           data={deferredVisible}
@@ -285,7 +286,7 @@ export function RecipeListScreen() {
         onChange={onPickDeveloper}
         onClose={() => setPicker(null)}
       />
-    </View>
+    </>
   );
 }
 

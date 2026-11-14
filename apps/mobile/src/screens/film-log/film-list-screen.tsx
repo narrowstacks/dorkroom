@@ -4,7 +4,7 @@ import { Alert, FlatList, Pressable, Text, View } from 'react-native';
 import { CommitButton } from '@/components/commit-button';
 import { FilmLogStatsStrip } from '@/components/film-log/film-log-stats-strip';
 import { GlassCard } from '@/components/glass-card';
-import { GradientBackground } from '@/components/gradient-background';
+import { useBackdropStyle } from '@/components/gradient-background';
 import { PresetChipRow } from '@/components/preset-chip-row';
 import { TabBarScrollView } from '@/components/tab-bar-scroll-view';
 import { useCameras, useRolls } from '@/hooks/use-film-log';
@@ -52,6 +52,7 @@ function filterEmptyState(filter: Exclude<RollFilter, 'all'>) {
 }
 
 export function FilmListScreen() {
+  const backdrop = useBackdropStyle();
   const rolls = useRolls();
   const cameras = useCameras();
   const [filter, setFilter] = useState<RollFilter>('all');
@@ -195,24 +196,24 @@ export function FilmListScreen() {
     </View>
   );
 
+  // The list is the root native view, so the large title collapses with it
+  // (see `Screen`).
   return (
-    <View className="flex-1">
-      <GradientBackground />
-      <TabBarScrollView>
-        <FlatList
-          contentInsetAdjustmentBehavior="automatic"
-          contentContainerStyle={{ padding: 16, gap: 12 }}
-          data={visible}
-          keyExtractor={(roll) => roll.id}
-          ListHeaderComponent={header}
-          ListEmptyComponent={
-            rolls.length === 0 || filter === 'all'
-              ? EMPTY_STATE
-              : filterEmptyState(filter)
-          }
-          renderItem={renderRoll}
-        />
-      </TabBarScrollView>
-    </View>
+    <TabBarScrollView>
+      <FlatList
+        style={backdrop}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={{ padding: 16, gap: 12 }}
+        data={visible}
+        keyExtractor={(roll) => roll.id}
+        ListHeaderComponent={header}
+        ListEmptyComponent={
+          rolls.length === 0 || filter === 'all'
+            ? EMPTY_STATE
+            : filterEmptyState(filter)
+        }
+        renderItem={renderRoll}
+      />
+    </TabBarScrollView>
   );
 }

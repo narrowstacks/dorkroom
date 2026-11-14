@@ -1,50 +1,27 @@
-import { StyleSheet, View } from 'react-native';
-import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
 import { useSafelight } from '@/components/safelight/safelight-provider';
-import { ACCENT, PHASE_ACCENT } from '@/theme/accents';
+import { backdropStyle } from '@/theme/backdrop';
 import { usePhase } from '@/theme/phase-context';
-import { SAFELIGHT } from '@/theme/safelight';
-
-/** The glow on Home and Settings, which belong to no phase. */
-const NEUTRAL_GLOW = '#ffffff';
-const GLOW_OPACITY = 0.12;
 
 /**
- * Near-black backdrop with one radial glow at the top of the screen, in the
- * hue of the phase the screen lives in (neutral on Home and Settings).
- * Absolute-fill and non-interactive, so it sits behind scroll content and
- * stays fixed.
+ * The screen backdrop for the current phase and mode (`backdropStyle`). Put it
+ * on the screen's root view, so a scroll view can stay the root's first child.
  */
-export function GradientBackground() {
+export function useBackdropStyle(): ViewStyle {
   const phase = usePhase();
   const { on } = useSafelight();
-  // Safelight mode: true black, no glow.
-  if (on) {
-    return (
-      <View
-        pointerEvents="none"
-        style={[
-          StyleSheet.absoluteFill,
-          { backgroundColor: SAFELIGHT.background },
-        ]}
-      />
-    );
-  }
-  const glow = phase === null ? NEUTRAL_GLOW : ACCENT[PHASE_ACCENT[phase]];
+  return backdropStyle(phase, on);
+}
+
+/**
+ * The backdrop as an absolute-fill, non-interactive view, for screens with no
+ * scroll view (stage screens, the Inverter's frame). Never put it in front of
+ * a scroll view on a large-title screen: put `useBackdropStyle()` on the root
+ * view instead.
+ */
+export function GradientBackground() {
+  const backdrop = useBackdropStyle();
   return (
-    <View
-      pointerEvents="none"
-      style={[StyleSheet.absoluteFill, { backgroundColor: '#070708' }]}
-    >
-      <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
-        <Defs>
-          <RadialGradient id="glow" cx="50%" cy="-10%" r="75%">
-            <Stop offset="0" stopColor={glow} stopOpacity={GLOW_OPACITY} />
-            <Stop offset="0.55" stopColor={glow} stopOpacity={0} />
-          </RadialGradient>
-        </Defs>
-        <Rect x="0" y="0" width="100%" height="100%" fill="url(#glow)" />
-      </Svg>
-    </View>
+    <View pointerEvents="none" style={[StyleSheet.absoluteFill, backdrop]} />
   );
 }

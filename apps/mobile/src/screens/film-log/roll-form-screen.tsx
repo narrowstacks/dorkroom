@@ -1,7 +1,7 @@
 import { parseDecimalInput, sanitizeText } from '@dorkroom/logic';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { Alert, Keyboard, Pressable, Text, View } from 'react-native';
 import { CommitButton } from '@/components/commit-button';
 import { CustomFilmForm } from '@/components/film-log/custom-film-form';
 import { FilmStockPicker } from '@/components/film-log/film-stock-picker';
@@ -107,6 +107,9 @@ export function RollFormScreen() {
         startedAt: now,
       });
     }
+    // Close the keyboard while this form is still the focused screen, so the
+    // screen Back reveals does not handle its hide (see `Screen`).
+    Keyboard.dismiss();
     router.back();
   };
 

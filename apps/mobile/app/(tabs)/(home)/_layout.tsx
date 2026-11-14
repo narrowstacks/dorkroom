@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import { useSafelight } from '@/components/safelight/safelight-provider';
 import { chromeOptions } from '@/theme/stack-chrome';
+import { STANDARD_TITLE } from '@/theme/stack-header-options';
 
 // A deep link to Settings builds Home underneath it, so Back has somewhere to go.
 export const unstable_settings = { initialRouteName: 'index' };
@@ -22,7 +23,7 @@ export default function HomeLayout() {
           pushes the tool on top with a working Back. */}
       <Stack.Screen
         name="settings"
-        options={{ title: 'Settings', headerLargeTitle: false }}
+        options={{ title: 'Settings', ...STANDARD_TITLE }}
       />
     </Stack>
   );
