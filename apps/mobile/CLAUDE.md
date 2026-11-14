@@ -179,9 +179,35 @@ phase hub, never the tool that happened to be open.
 list's smart filters (`filterRolls`, `rollCounts`: In camera is `active`, To
 develop is `finished`, This year is by `startedAt` in local time), `sortRolls`
 (active, finished, developed; newest first; unparseable dates last) and the
-stats strip (`filmLogStats`: this year by `startedAt`, top film and camera over
-all time, ties to the most recent). The chip row is `PresetChipRow`, selection
-is screen state. `film-log-csv.ts` (pure) writes one roll as CSV: no metadata
+stats (`filmLogStats`: this year by `startedAt`, top film and camera over all
+time, ties to the most recent and flagged `tied`). The chip row is
+`PresetChipRow`, selection is screen state.
+
+**The Film Log list** (`film-list-screen.tsx`). The header's right side is
+native bar items (`Stack.Toolbar placement="right"`, expo-router 57): `+` (New
+roll, hidden while there are no rolls, when the empty state's own button is the
+action) and a More menu (`ellipsis`) with "Cameras & lenses" and "Export all
+data" (disabled with "Add a roll first." while there are no rolls). Bar items
+replace the stack's `headerRight` on iOS, so the screen adds the safelight
+switch back as a `Stack.Toolbar.View` while `offersSafelightButton` says so.
+The body is the chips, then one caption line (`filmLogCaption` in
+`film-log-list.ts`, pure: "2026: 9 rolls, 23 frames. All time, most shot: HP5
+Plus; most used camera: FM2."). It is hidden below three rolls (it would only
+repeat the rows). Film and camera are counted apart, so they are two facts,
+never a pairing, and each is named only when it leads with two rolls or more
+and no tie. Then the rolls as one grouped list (`RollRow`: label, then camera,
+film when the label is a name, EI and frames; a status pill, In camera in the
+phase tint, Shot and Developed neutral, and the start date trailing, under the
+text from the accessibility text sizes, `stacksRollRow`). Each row is one
+VoiceOver button (`rollRowText`). The group is drawn row by row
+(`groupRowClassName`, the `InsetGroup` look) so the `FlatList` keeps
+virtualizing. Empty states come
+from `filmLogEmptyState`: no rolls at all shows the guided "Load a roll"
+(`FirstRollEmptyState`, the screen's only full-width commit, with
+`firstRollHint`: "Add your cameras and lenses first, in the More menu." while
+there is no camera, since the roll form then only offers Cameras & lenses,
+else "Your cameras and lenses are in the More menu."); a filter that
+hides every roll shows one line naming it and "Show all rolls". `film-log-csv.ts` (pure) writes one roll as CSV: no metadata
 preamble (EXIF tools want a clean header row, so roll facts go in the file name,
 `csvFileName`, which uses the local start date), RFC 4180 quoting, CRLF, rows by
 frame number, and no photo file column (an internal name). "Taken at" is local
@@ -440,8 +466,8 @@ recipe's name after the prefill).
   never reintroduce a `StatusBar` component. `app.json` sets `userInterfaceStyle: "dark"`.
 - **Screens are thin view layers.** A screen is an exported `PascalCaseScreen`,
   pulls all state and logic from a shared `@dorkroom/logic` hook (e.g.
-  `useExposureCalculator`), and composes `<Screen>` plus `GlassCard` plus row
-  components. Calculator math belongs in `@dorkroom/logic`, never in a screen.
+  `useExposureCalculator`), and composes `<Screen>` plus `Surface` (or
+  `GlassCard` where glass is allowed, see Surfaces) plus row components. Calculator math belongs in `@dorkroom/logic`, never in a screen.
 - **No in-page title header.** The tab bar or the pushed stack header already
   names the screen, so don't render a redundant `<Text>Reciprocity</Text>`
   heading.
@@ -850,7 +876,8 @@ Back; the exported GPX validates against the GPX 1.1 schema.
 - **Three hues, one per phase** (`theme/accents.ts`): yellow for Shoot, teal for
   Develop, rose for Print, used in the treatments that file documents (tinted
   glass for selection, a solid fill only for commit buttons). Controls take the
-  hue from the surrounding `PhaseProvider`: `CommitButton` and `useCommitStyle`
+  hue from the surrounding `PhaseProvider`: `Button variant="commit"` (or
+  `CommitButton`) and `useCommitStyle`
   (dark ink on the fill; the hues are light and white fails 4.5:1),
   `useSelectionTint`, `usePhaseHue`. With no phase (Home, Settings) selection is
   a neutral white tint and a commit fill is the brand rose. Never write
@@ -868,9 +895,33 @@ Back; the exported GPX validates against the GPX 1.1 schema.
   on a screen with no scroll view (stage screens, the Inverter frame, the
   roll map). Direction-coded data (a pushed vs pulled recipe)
   uses `DIRECTION_COLOR`, outside the accent system.
-- Prefer `GlassCard` for surfaces: Liquid Glass on iOS 26, translucent
-  `bg-white/10` fallback elsewhere. Capability checks are computed **once at
-  import**, never per render (see `glass-card.tsx`).
+- **Surfaces.** Glass is for chrome and for controls that float over media:
+  header items, the tab bar and its accessory, sheet chrome, and controls over
+  a photo, the camera, a map or a drawing (Meter pills, the Inverter's editor,
+  the stage `DetentPanel`). Content sits on the flat `Surface`
+  (`components/surface.tsx`): one fill (`bg-surface`), radius 16, no blur, no
+  rim; under safelight the fill drops and the hairline carries the shape, so it
+  needs no branch. It takes `GlassCard`'s props (`compact`, `flush`, `style`),
+  so converting a content card is a rename; a `GlassCard` left in the content
+  layer is a review flag. Repeated items of one kind are rows in one group,
+  not a card per item. There is ONE grouped look (inset fill, `edge` outline,
+  radius 16, an `edge` line between rows; tokens in `surface-style.ts`): use
+  `InsetGroup` / `InsetRow` for a few rows laid out at once, and
+  `groupRowClassName(index, count)` on each row of a `FlatList`, where an
+  `InsetGroup` would defeat virtualization. A tinted fill is for state only (a selected chip, the In
+  camera pill). Most screens still use `GlassCard` for content; they move to
+  `Surface` in follow-up PRs (#732). `GlassCard` itself is Liquid Glass on iOS
+  26 with a translucent fallback, its capability check computed **once at
+  import**, never per render.
+- **Buttons.** One system, `Button` (`components/button.tsx`, classes in the
+  pure `button-style.ts`): `commit` (the solid phase hue, one per screen at
+  most), `secondary` (the flat fill, white), `plain` (phase-hue text, no fill)
+  and `destructive` (the flat fill, rose text). All share a 44pt minimum
+  height, radius 12, semibold label that wraps rather than truncates,
+  `active:opacity-70` and `opacity-40` with `accessibilityState.disabled`.
+  `CommitButton` and `NeutralButton` are `Button` with the variant fixed. An
+  action that is not the screen's main task belongs in the header (a bar item
+  or the More menu), not in the body.
 
 ### Safelight mode
 
@@ -986,10 +1037,12 @@ may still show the bar.
   is audio, not light.
 - The **system keyboard** and its Done accessory (the scrub row's accessory gets
   its own black bar and overlay).
-- **System sheets**: `Alert.alert` (shot and roll forms, export, film list),
+- **System sheets**: `Alert.alert` (shot and roll forms, export),
   `ActionSheetIOS` (the Inverter's photo chooser), `Share.share` (share buttons,
   film log export, Inverter share) and the **photo picker** (gated, above). They
   stay full colour and the Settings footnote says so.
+- **Header menus** (the Film Log's More menu, a native `UIMenu`) may draw
+  above the overlay like the sheets; not yet checked under the mode.
 - A roll's **map** (Apple Maps) is hidden behind "Show map anyway" while the
   mode is on; once shown it is tinted red like a photo, not dimmed.
 - The **photo viewer and camera previews** become full-brightness red images
