@@ -204,8 +204,8 @@ called, never when it settles, because on iOS picking a target and cancelling
 inside it settles neither callback. A one second window after the call also
 ignores taps (`shouldIgnoreExportTap` in `export-tap-guard.ts`, pure), covering
 the gap before iOS presents the sheet; a negative elapsed time (the clock set
-back) never counts as inside it. A map of frames and GPX export wait for
-coordinates (a later native build); "Expiring" waits for film inventory.
+back) never counts as inside it. GPX export and the roll map are under
+"Frame map and GPX"; "Expiring" waits for film inventory.
 
 **Film log in Search.** Home also searches the on-device film log (mobile-only
 MMKV data, so `@dorkroom/logic`'s `searchHome` cannot see it). `matchFilmLog`
@@ -485,7 +485,8 @@ recipe's name after the prefill).
 Border, Mat Cut and Resize are **stage screens**: `fixedLayout: true` in `TOOLS`
 (standard header; iOS 26 lets Back start anywhere on a screen, so `PhaseStack`
 gives every `fixedLayout` tool `gestureResponseDistance: { end: 24 }` and Back
-starts only in the left 24pt: `fullScreenGestureEnabled: false` was tried and
+starts only in the left 24pt (the roll map, `film-log/roll-map`, sets the same
+in the Shoot layout so a drag right pans the map): `fullScreenGestureEnabled: false` was tried and
 also stopped the left-edge swipe on the simulator, so it is not used), no scroll
 view, the drawing fills the screen and holds
 still while the controls sit in a panel over the bottom. `StageScreen`
@@ -646,8 +647,10 @@ strict type for building one (a misspelled key is a compile error);
   log and no analytics), and never reverse geocoded (that would send the
   coordinates to Apple). A new frame does not inherit the previous frame's
   coordinates, unlike the place name. It does leave the device when the user
-  exports their own data: the JSON export carries `location` and the CSV has
-  `Latitude`, `Longitude` and `Accuracy (m)`.
+  exports their own data: the JSON export carries `location`, the CSV has
+  `Latitude`, `Longitude` and `Accuracy (m)`, and the GPX has one waypoint per
+  located frame. Opening a roll's map makes MapKit fetch tiles from Apple for
+  the region in view (see "Frame map and GPX").
 - **No coordinates in URLs.** "More options..." hands the sheet's location to
   the shot form in memory (`frame-location-handoff.ts`, keyed by the capture's
   photo file name, read once, cleared on unmount), never as a route param: the
@@ -673,6 +676,119 @@ strict type for building one (a misspelled key is a compile error);
   `false`, so no `location` background mode. `app-plugin-order.test.ts` pins
   this. An older dev client has no `ExpoLocation` module: the row reports
   "unavailable" (one development warning) instead of crashing.
+
+**Frame map and GPX** (#719). **Status: Simulator-verified (iOS 27.0
+Simulator, dev build with the `ExpoMaps` pod); device behaviour unverified.**
+Both read `Shot.location`; neither changes the schema. Seen on the Simulator:
+no location prompt, no location button or dot; separate pins and a shared pin
+each select the right frames; a drag right pans the map and an edge swipe goes
+Back; the exported GPX validates against the GPX 1.1 schema.
+
+- **GPX export.** `buildRollGpx(roll, shots, context)` (`film-log-gpx.ts`,
+  pure) writes GPX 1.1 with `creator="Dorkroom"`: a `<metadata>` (the roll's
+  `rollLabel` and the export time) and one `<wpt>` per frame with a usable
+  location, by frame number, and returns how many it wrote. Each waypoint has
+  `<time>` (UTC with `Z`, whole seconds, from `takenAt`, else the fix's
+  `capturedAt`, else none), `<name>` ("Frame 12") and `<desc>` (aperture,
+  shutter as the CSV writes it, ISO, lens, place and notes, one per line;
+  notes because the CSV exports them), in the schema's element order. No
+  `<trk>` (frames are not a path), no `<ele>`, and no accuracy (GPX 1.1 has no
+  waypoint field for it and no extension is invented; the CSV carries it).
+  Coordinates are `toFixed(6)`, so the separator is `.` in every locale; a
+  longitude that rounds to `180.000000` is written `-180.000000`
+  (`gpxLongitude`; GPX's `longitudeType` is `[-180, 180)`; the CSV keeps 180).
+  Every
+  text value is XML-escaped and stripped of characters XML 1.0 cannot carry.
+  The file name is the CSV's with `.gpx` (`gpxFileName`). `shareRollAsGpx`
+  shares it through the same path as the CSV (`shareRollFile` in
+  `film-log-share.ts`: the cache folder, its cleanup, and the double-tap flag
+  and window, shared by both formats). RN's `Share.share` takes no MIME type on
+  iOS; the sheet types the file from `.gpx` (`application/gpx+xml`). On a
+  roll's page Export GPX sits beside Export CSV and, like it, is disabled with
+  a line under the label ("Add a location to a frame to export GPX.") until a
+  frame has a location (`hasLocatedFrame`).
+- **The map.** `/shoot/film-log/roll-map?rollId=<id>`
+  (`app/(tabs)/shoot/film-log/roll-map.tsx`, `RollMapScreen`), flat in the
+  Shoot stack, standard header titled "Map" (Back reads "Roll"), no in-page
+  title, and `gestureResponseDistance: { end: BACK_SWIPE_ZONE }` so a drag
+  right pans the map and Back starts only in the left 24pt. It takes the roll id and nothing else: coordinates never go in route
+  params, logs, analytics, widgets or Spotlight, and an unknown id shows "Roll
+  not found." The roll's page shows a Map button only when a frame has a
+  location. The map is pinned above a list of the located frames
+  (`locatedFrames` and `locatedFrameLabel` in `frame-map-items.ts`: number,
+  place, coordinates as the shot form shows them, coarse accuracy), each row a
+  button that opens the frame's shot form, so VoiceOver never depends on the
+  markers. A notice shown instead of the map (no build support, safelight,
+  nothing located) scrolls with the list, so large Dynamic Type cannot push it
+  off screen. A pin can stand for several frames: expo-maps resolves a tapped
+  marker by `MKMapItem` equality and items at one coordinate are equal, so
+  `framePoints` groups the located frames by point (6 decimals) into one
+  marker each (id = the point's coordinate key, `"48.858400,2.294500"`, so it
+  stays the same while frames at that spot are edited or removed; monogram the
+  frame number, a run `3-5`, else `3+`, else the count, at most 4 characters;
+  title "Frame 12", "Frames 3-5" or "3 frames"). Tapping a pin pins a card
+  under the map (`key` = the point, so switching pins resets its scroll),
+  listing every frame at that point with its place,
+  coordinates and its own "Edit frame". The map keeps ONE height for the
+  whole visit (`mapHeightFor`: 36% of the window within 220..440pt, lowered
+  to as little as 160pt in a very short window so the card's minimum still
+  fits; it depends on the window only, never on anything the card measures),
+  and the screen never moves the camera after the opening fit, so a tapped
+  pin stays exactly where it was. While a card is open it takes the room
+  between the map and the tab bar (the bottom inset inside a tab includes it)
+  in place of the list; its title and "Close" stay fixed (text capped at 2x)
+  and its frames scroll inside, at least 96pt of them, so at the largest text
+  size the header and part of a frame show. An earlier version shrank the map
+  and re-centred and restored the camera to make room; it was removed because
+  its pending restore could fire late and move the camera away from the pin.
+  Close clears the map's own selection as well (`selectMarker(undefined)`):
+  MapKit keeps the tapped marker selected, and tapping the same pin again
+  would otherwise send no event (seen on the Simulator). A selected point
+  that vanishes while the shot form is open (its last frame deleted or moved)
+  is cleared on focus (`useFocusEffect`), state and native selection both.
+  That `selectMarker` promise is caught. The map re-frames to `frameMapCamera` (losing the user's
+  pan and zoom) only when a located coordinate actually changes, since the
+  camera prop is memoized on the located frames. The opening camera is
+  `frameMapCamera`
+  (`frame-map-region.ts`, pure): center and an expo-maps zoom from the larger
+  of the latitude span and the narrowest longitude arc (antimeridian-aware),
+  times 1.4 padding, a 0.01 degree minimum span for one point or identical
+  points, zoom clamped to 1..18 and center latitude to ±85. expo-maps turns
+  `zoom` into a region whose latitude and longitude deltas are both
+  `360 / 2^zoom`. Known limit: a very wide spread, wider than about 130
+  degrees of longitude (London and Tokyo) or a very tall north-south one,
+  cannot be framed through that zoom-only API; MapKit picks a narrower view
+  and the outer pins sit at the edges (a
+  Mercator-aware cap on the delta was tried on the Simulator and framed less,
+  so it was not kept). Pinch to see them; the list always has every frame.
+- **expo-maps** (`~57.0.4`, the SDK 57 version in `bundledNativeModules.json`;
+  Apple Maps through SwiftUI `Map`, no API key on iOS). It is NOT in the
+  `app.json` plugins: its plugin only writes a location string when
+  `requestLocationPermission` is set, and autolinking needs no plugin, so the
+  build gains the `ExpoMaps` pod (MapKit) and no Info.plist key. The view gets
+  `myLocationButtonEnabled: false` (its default is TRUE, and the button would
+  use the location permission), `isMyLocationEnabled: false`,
+  `selectionEnabled: false` (no POI selection) and `colorScheme` DARK. Never
+  call its `requestPermissionsAsync` or `getPermissionsAsync`, and always pass
+  a `cameraPosition` (the native side falls back to `.userLocation` without
+  one). Importing `expo-maps` throws without its native module, so
+  `loadAppleMaps` (`frame-map-native.ts`) requires it only after
+  `requireOptionalNativeModule` finds both `ExpoMaps` and `ExpoAppleMaps`
+  (`createAppleMapsLoader`, dependencies injected); a missing module or a
+  throwing require returns null with one development warning, and
+  `frameMapView` turns that into "Map needs the latest app build."
+  (`MAP_NEEDS_BUILD`) with the list still there. Both paths are tested. vitest maps
+  `expo-maps` to a stand-in that throws (`src/test/expo-maps.ts`).
+- **Safelight.** The root overlay is in the same window, so it does reach the
+  map (as it does a photo), but Apple Maps cannot be dimmed and a map is
+  mostly light pixels. Under the mode the map is replaced by a notice ("The
+  map is hidden in Safelight mode.") with "Show map anyway", for that visit
+  only. The list stays.
+- **Privacy.** The app sends no coordinates anywhere. While the map is open,
+  MapKit fetches tiles from Apple for the region in view; README Privacy says
+  so. No reverse geocoding.
+- **Native build.** `expo-maps` is a native dependency: the map needs a new
+  dev client (see Build vs. reload). GPX export is JS only.
 
 ### Styling
 
@@ -822,6 +938,8 @@ may still show the bar.
   `ActionSheetIOS` (the Inverter's photo chooser), `Share.share` (share buttons,
   film log export, Inverter share) and the **photo picker** (gated, above). They
   stay full colour and the Settings footnote says so.
+- A roll's **map** (Apple Maps) is hidden behind "Show map anyway" while the
+  mode is on; once shown it is tinted red like a photo, not dimmed.
 - The **photo viewer and camera previews** become full-brightness red images
   under the mode: the overlay keeps their red channel as it is, so a bright photo
   is a lot of red light. The Meter, the Inverter stage and the film log photo

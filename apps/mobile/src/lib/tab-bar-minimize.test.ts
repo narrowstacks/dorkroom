@@ -92,6 +92,7 @@ describe('minimizing list screens', () => {
       `${recipes}/recipe/abc`,
       `${filmLog}/gear`,
       `${filmLog}/roll-form`,
+      `${filmLog}/roll-map`,
       `${filmLog}/shot`,
     ];
     for (const route of others) {

@@ -47,8 +47,9 @@ export default defineConfig({
       },
       // Native-module entry points the timer's Live Activity code reaches. `expo`
       // reports every optional native module as missing (so the no-op path is
-      // taken); expo-widgets must never be imported without its native module,
-      // so its stand-in throws; expo-notifications is only called at run time.
+      // taken); expo-widgets and expo-maps must never be imported without their
+      // native modules, so their stand-ins throw; expo-notifications is only
+      // called at run time.
       {
         find: /^expo$/,
         replacement: fileURLToPath(
@@ -59,6 +60,12 @@ export default defineConfig({
         find: /^expo-widgets$/,
         replacement: fileURLToPath(
           new URL('./src/test/expo-widgets.ts', import.meta.url)
+        ),
+      },
+      {
+        find: /^expo-maps$/,
+        replacement: fileURLToPath(
+          new URL('./src/test/expo-maps.ts', import.meta.url)
         ),
       },
       {

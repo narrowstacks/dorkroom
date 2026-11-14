@@ -4,6 +4,7 @@ interface NeutralButtonProps {
   label: string;
   onPress: () => void;
   accessibilityLabel?: string;
+  accessibilityHint?: string;
   /** Layout only, e.g. `flex-1`. */
   className?: string;
 }
@@ -17,6 +18,7 @@ export function NeutralButton({
   label,
   onPress,
   accessibilityLabel,
+  accessibilityHint,
   className = '',
 }: NeutralButtonProps) {
   return (
@@ -24,6 +26,7 @@ export function NeutralButton({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
       className={`items-center rounded-xl border-hw border-line bg-surface px-4 py-3 active:opacity-70 ${className}`}
     >
       <Text className="text-base font-semibold text-white">{label}</Text>
