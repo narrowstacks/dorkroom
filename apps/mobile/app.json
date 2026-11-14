@@ -14,7 +14,7 @@
         "ITSAppUsesNonExemptEncryption": false,
         "UIViewControllerBasedStatusBarAppearance": true,
         "NSCameraUsageDescription": "Dorkroom uses the camera to meter the light in your scene and to photograph negatives for the inverter.",
-        "NSPhotoLibraryUsageDescription": "Choose a photo from your library to attach to a film log shot or to convert a negative to a positive.",
+        "NSPhotoLibraryUsageDescription": "Choose a photo from your library to attach to a frame in your film log or to convert a negative to a positive.",
         "NSPhotoLibraryAddUsageDescription": "Save light meter captures and converted negatives to your Photos library."
       }
     },
@@ -77,7 +77,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Choose a photo from your library to attach to a film log shot or to convert a negative to a positive.",
+          "photosPermission": "Choose a photo from your library to attach to a frame in your film log or to convert a negative to a positive.",
           "cameraPermission": "Dorkroom uses the camera to meter the light in your scene and to photograph negatives for the inverter."
         }
       ],
@@ -140,6 +140,14 @@
                   "systemMedium",
                   "accessoryRectangular"
                 ]
+              }
+            },
+            {
+              "name": "FavoritesWidget",
+              "displayName": "Favorites",
+              "description": "Your favorite tools, in the order you set in the app. Tap one to open it.",
+              "ios": {
+                "supportedFamilies": ["systemSmall", "systemMedium"]
               }
             }
           ]

@@ -4,7 +4,12 @@ import {
   searchHome,
   suggestHome,
 } from '@dorkroom/logic';
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import {
+  router,
+  useFocusEffect,
+  useIsFocused,
+  useLocalSearchParams,
+} from 'expo-router';
 import {
   useCallback,
   useEffect,
@@ -16,6 +21,12 @@ import {
 import { Text, type TextInput, View } from 'react-native';
 import { SearchBar } from '@/components/development/search-bar';
 import { AnswerCard } from '@/components/home/answer-card';
+import { FavoritesBar } from '@/components/home/favorites-bar';
+import {
+  favoritesBarItems,
+  favoritesContentInset,
+  showsFavoritesBar,
+} from '@/components/home/favorites-bar-layout';
 import { ResultGroups } from '@/components/home/result-groups';
 import { ResumeSections } from '@/components/home/resume-sections';
 import { HomeSettingsButton } from '@/components/home/settings-button';
@@ -27,8 +38,10 @@ import { Surface } from '@/components/surface';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { useCameras, useLenses, useRolls } from '@/hooks/use-film-log';
 import { useHomeSearchData } from '@/hooks/use-home-search-data';
+import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
 import { useMeasurementUnit } from '@/hooks/use-measurement-unit';
 import { useSearchTabFocus } from '@/hooks/use-search-tab-focus';
+import { useFavoriteIds } from '@/lib/favorites-store';
 import {
   homeDestination,
   type HomeRoute,
@@ -116,6 +129,21 @@ export function HomeScreen() {
   const searching = settled.trim() !== '';
   const [unit] = useMeasurementUnit();
 
+  // The favorites row pinned over the bottom (#734). It hides while the
+  // keyboard is up on Home itself (not for a keyboard in another tab). The
+  // scroll view keeps a bottom inset of the row's last measured height either
+  // way, so the last result can be scrolled clear of it and the inset never
+  // changes under the keyboard (see `favoritesContentInset`).
+  const favoriteIds = useFavoriteIds();
+  const favoriteItems = useMemo(
+    () => favoritesBarItems(favoriteIds),
+    [favoriteIds]
+  );
+  const keyboardHeight = useKeyboardHeight();
+  const homeFocused = useIsFocused();
+  const showsFavorites = showsFavoritesBar(keyboardHeight, homeFocused);
+  const [favoritesHeight, setFavoritesHeight] = useState(0);
+
   // Native tabs keep Home mounted, so re-read on every focus: a tool opened,
   // a recipe viewed or an easel saved elsewhere shows up on return. The read
   // comes before markHomeSeen, so the first visit still shows the example and
@@ -184,112 +212,128 @@ export function HomeScreen() {
   const card = answer && !cameraLink ? answer : null;
 
   return (
-    <Screen onScroll={onScroll}>
-      <View className="flex-row items-center gap-2">
-        <View className="flex-1">
-          <SearchBar
-            ref={searchInput}
-            value={query}
-            onChangeText={setQuery}
-            onFocus={() => setFocused(true)}
-            placeholder="Ask: hp5 at 800 in dd-x"
+    // The favorites row comes AFTER the scroll view, absolutely positioned, so
+    // `Screen`'s scroll view stays the root's first subview (the chain UIKit
+    // and react-native-screens search; see "Large titles" in CLAUDE.md).
+    <>
+      <Screen
+        onScroll={onScroll}
+        // The row's LAST measured height, kept while it is unmounted for
+        // the keyboard, so the inset never changes with the keyboard up.
+        contentBottomInset={favoritesContentInset(favoritesHeight)}
+      >
+        <View className="flex-row items-center gap-2">
+          <View className="flex-1">
+            <SearchBar
+              ref={searchInput}
+              value={query}
+              onChangeText={setQuery}
+              onFocus={() => setFocused(true)}
+              placeholder="Ask: hp5 at 800 in dd-x"
+            />
+          </View>
+          <HomeSettingsButton
+            onPress={() => router.navigate(toHref(SETTINGS_ROUTE))}
           />
         </View>
-        <HomeSettingsButton
-          onPress={() => router.navigate(toHref(SETTINGS_ROUTE))}
-        />
-      </View>
 
-      {!searching ? <TryChips onTry={setQuery} /> : null}
+        {!searching ? <TryChips onTry={setQuery} /> : null}
 
-      {searching ? (
-        <SuggestionList suggestions={suggestions} onPick={setQuery} />
-      ) : null}
+        {searching ? (
+          <SuggestionList suggestions={suggestions} onPick={setQuery} />
+        ) : null}
 
-      {card ? (
-        <AnswerCard answer={card} onOpen={() => openTarget(card.link.target)} />
-      ) : null}
-
-      {cameraLink ? (
-        <Surface className="gap-2">
-          <Text className="text-base font-semibold text-white">
-            {cameraLink.title}
-          </Text>
-          {cameraLink.notes.map((note) => (
-            <Text key={note} className="text-sm text-ink-60">
-              {note}
-            </Text>
-          ))}
-          <Text
-            onPress={() => openTarget(cameraLink.link.target)}
-            accessibilityRole="button"
-            className="pt-1 text-sm font-medium text-rose-400"
-          >
-            {cameraLink.link.label}
-          </Text>
-        </Surface>
-      ) : null}
-
-      {result && !answer && result.pending ? (
-        <Surface>
-          <Text className="text-sm text-ink-60">
-            {loadError ?? 'Loading recipes and films…'}
-          </Text>
-        </Surface>
-      ) : null}
-
-      {result &&
-      !answer &&
-      !result.pending &&
-      result.groups.length === 0 &&
-      toolIds.length === 0 &&
-      !hasFilmLogMatches ? (
-        <Surface className="gap-3">
-          <Text className="text-sm text-ink-60">
-            Nothing matches that yet. Name a film, a developer or a size, or try
-            one of these.
-          </Text>
-          <TryChips onTry={setQuery} />
-        </Surface>
-      ) : null}
-
-      {result ? (
-        <ResultGroups
-          groups={result.groups}
-          toolIds={toolIds}
-          filmLog={filmLog}
-          onOpen={openTarget}
-          onOpenTool={(id) => go(toolHref(id))}
-          onOpenRoll={(id) =>
-            go(`${FILM_LOG_ROUTE}/roll/${encodeURIComponent(id)}`)
-          }
-          onOpenGear={() => go(`${FILM_LOG_ROUTE}/gear`)}
-        />
-      ) : null}
-
-      {showExample && example ? (
-        <View className="gap-2">
-          <SectionLabel>Example</SectionLabel>
+        {card ? (
           <AnswerCard
-            answer={example}
-            example={EXAMPLE_QUERY}
-            onOpen={() => openTarget(example.link.target)}
+            answer={card}
+            onOpen={() => openTarget(card.link.target)}
           />
-        </View>
-      ) : null}
+        ) : null}
 
-      {!searching && !showExample ? (
-        <ResumeSections
-          easel={easel}
-          recentToolIds={resume.toolIds}
-          recentRecipes={recentRecipes}
-          onOpenEasel={() => openRoute('/border')}
-          onOpenTool={(id) => go(toolHref(id))}
-          onOpenRecipe={(id) =>
-            go(`/develop/recipes/recipe/${encodeURIComponent(id)}`)
-          }
-        />
+        {cameraLink ? (
+          <Surface className="gap-2">
+            <Text className="text-base font-semibold text-white">
+              {cameraLink.title}
+            </Text>
+            {cameraLink.notes.map((note) => (
+              <Text key={note} className="text-sm text-ink-60">
+                {note}
+              </Text>
+            ))}
+            <Text
+              onPress={() => openTarget(cameraLink.link.target)}
+              accessibilityRole="button"
+              className="pt-1 text-sm font-medium text-rose-400"
+            >
+              {cameraLink.link.label}
+            </Text>
+          </Surface>
+        ) : null}
+
+        {result && !answer && result.pending ? (
+          <Surface>
+            <Text className="text-sm text-ink-60">
+              {loadError ?? 'Loading recipes and films…'}
+            </Text>
+          </Surface>
+        ) : null}
+
+        {result &&
+        !answer &&
+        !result.pending &&
+        result.groups.length === 0 &&
+        toolIds.length === 0 &&
+        !hasFilmLogMatches ? (
+          <Surface className="gap-3">
+            <Text className="text-sm text-ink-60">
+              Nothing matches that yet. Name a film, a developer or a size, or
+              try one of these.
+            </Text>
+            <TryChips onTry={setQuery} />
+          </Surface>
+        ) : null}
+
+        {result ? (
+          <ResultGroups
+            groups={result.groups}
+            toolIds={toolIds}
+            filmLog={filmLog}
+            onOpen={openTarget}
+            onOpenTool={(id) => go(toolHref(id))}
+            onOpenRoll={(id) =>
+              go(`${FILM_LOG_ROUTE}/roll/${encodeURIComponent(id)}`)
+            }
+            onOpenGear={() => go(`${FILM_LOG_ROUTE}/gear`)}
+          />
+        ) : null}
+
+        {showExample && example ? (
+          <View className="gap-2">
+            <SectionLabel>Example</SectionLabel>
+            <AnswerCard
+              answer={example}
+              example={EXAMPLE_QUERY}
+              onOpen={() => openTarget(example.link.target)}
+            />
+          </View>
+        ) : null}
+
+        {!searching && !showExample ? (
+          <ResumeSections
+            easel={easel}
+            recentToolIds={resume.toolIds}
+            recentRecipes={recentRecipes}
+            onOpenEasel={() => openRoute('/border')}
+            onOpenTool={(id) => go(toolHref(id))}
+            onOpenRecipe={(id) =>
+              go(`/develop/recipes/recipe/${encodeURIComponent(id)}`)
+            }
+          />
+        ) : null}
+      </Screen>
+      {showsFavorites ? (
+        <FavoritesBar items={favoriteItems} onHeight={setFavoritesHeight} />
       ) : null}
-    </Screen>
+    </>
   );
 }
