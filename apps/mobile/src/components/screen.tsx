@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, type ScrollViewProps, View } from 'react-native';
 import { useBackdropStyle } from '@/components/gradient-background';
 import { useHeaderClearance } from '@/hooks/use-header-clearance';
 import { useKeyboardInsetsGate } from '@/hooks/use-keyboard-insets-gate';
@@ -11,6 +11,8 @@ interface ScreenProps {
    * keyboard rises. Used by the answer-first calculators for their readout.
    */
   header?: ReactNode;
+  /** Passed to the scroll view; Home reads its offset from it. */
+  onScroll?: ScrollViewProps['onScroll'];
 }
 
 /** Side padding of the scrolling content. */
@@ -35,7 +37,7 @@ function PinnedHeader({ children }: { children: ReactNode }) {
   );
 }
 
-export function Screen({ children, header }: ScreenProps) {
+export function Screen({ children, header, onScroll }: ScreenProps) {
   const backdrop = useBackdropStyle();
   const adjustsForKeyboard = useKeyboardInsetsGate();
   const scroll = (
@@ -56,6 +58,7 @@ export function Screen({ children, header }: ScreenProps) {
       automaticallyAdjustKeyboardInsets={adjustsForKeyboard}
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={{ padding: SCREEN_PADDING, gap: 16 }}
+      onScroll={onScroll}
     >
       {children}
     </ScrollView>
