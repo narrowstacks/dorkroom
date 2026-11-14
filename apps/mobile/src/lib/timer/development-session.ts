@@ -14,6 +14,8 @@
 //   an edit that leaves no develop stage. An edit that keeps a develop stage
 //   keeps it (the develop time saved is the one that ran).
 // - Reset (a return to idle with the same stages) ends it.
+// - `end` ends it by hand: Start last timer restores a stored run, which holds
+//   no recipe, so it must not inherit the recipe loaded before it.
 //
 // Separately it counts runs (each idle to running start is a new run) and
 // remembers which run was saved, so one run can be saved at most once.
@@ -205,6 +207,9 @@ export interface DevelopmentSessionStore {
   /** Record that the current run was saved to `rollId`. False when it was
    * already saved, or nothing completed: the caller must not write then. */
   markSaved: (rollId: string) => boolean;
+  /** End the session and drop a queued one, for stages that belong to no
+   * recipe (Start last timer restoring a stored run). */
+  end: () => void;
   /** Turn down the offer for the current run ("Not now"). */
   dismiss: () => void;
 }
@@ -255,6 +260,11 @@ export function createDevelopmentSessionStore(
         ...state,
         pending: { session, stages: stagesFromCombination(combination) },
       });
+    },
+    end: () => {
+      if (state.active || state.pending) {
+        commit({ ...state, active: null, pending: null });
+      }
     },
     canSave,
     markSaved: (rollId) => {

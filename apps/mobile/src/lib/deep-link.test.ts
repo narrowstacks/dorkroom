@@ -5,10 +5,12 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { redirectSystemPath } from '../../app/+native-intent';
 import {
   APP_SCHEME,
+  logFrameTarget,
   resolveIncomingLink,
   resolveLegacyPath,
+  resolveLogFrameLink,
   splitSearchLink,
-  stampTimerExposureLink,
+  stampTimerLink,
   toolIdForPath,
 } from './deep-link';
 import {
@@ -363,62 +365,49 @@ describe('APP_SCHEME', () => {
   });
 });
 
-describe('stampTimerExposureLink', () => {
+describe('stampTimerLink', () => {
   const NOW = 1_794_000_000_000;
   const TIMER = '/develop/recipes/timer';
 
   it('stamps an app-scheme timer link that has an exposure and no at', () => {
     expect(
-      stampTimerExposureLink(
-        `dorkroom://develop/recipes/timer?exposure=60`,
-        NOW
-      )
+      stampTimerLink(`dorkroom://develop/recipes/timer?exposure=60`, NOW)
     ).toBe(`dorkroom://develop/recipes/timer?exposure=60&at=${NOW}`);
   });
 
   it('stamps a bare path, keeping other params and the hash', () => {
-    expect(stampTimerExposureLink(`${TIMER}?exposure=60&label=X`, NOW)).toBe(
+    expect(stampTimerLink(`${TIMER}?exposure=60&label=X`, NOW)).toBe(
       `${TIMER}?exposure=60&label=X&at=${NOW}`
     );
-    expect(stampTimerExposureLink(`${TIMER}?exposure=60#top`, NOW)).toBe(
+    expect(stampTimerLink(`${TIMER}?exposure=60#top`, NOW)).toBe(
       `${TIMER}?exposure=60&at=${NOW}#top`
     );
   });
 
   it('stamps the legacy timer path once it is resolved', () => {
     expect(
-      stampTimerExposureLink(
-        resolveIncomingLink('dorkroom://timer?exposure=9'),
-        NOW
-      )
+      stampTimerLink(resolveIncomingLink('dorkroom://timer?exposure=9'), NOW)
     ).toBe(`${TIMER}?exposure=9&at=${NOW}`);
   });
 
   it('each opening gets its own time, so the same URL twice is two openings', () => {
     const url = `dorkroom://develop/recipes/timer?exposure=60`;
-    expect(stampTimerExposureLink(url, NOW)).not.toBe(
-      stampTimerExposureLink(url, NOW + 5)
-    );
+    expect(stampTimerLink(url, NOW)).not.toBe(stampTimerLink(url, NOW + 5));
   });
 
   it('leaves a link that already has an at, or no exposure, alone', () => {
     const withAt = `${TIMER}?exposure=60&at=5`;
-    expect(stampTimerExposureLink(withAt, NOW)).toBe(withAt);
-    expect(stampTimerExposureLink(TIMER, NOW)).toBe(TIMER);
-    expect(stampTimerExposureLink(`${TIMER}?label=X`, NOW)).toBe(
-      `${TIMER}?label=X`
-    );
+    expect(stampTimerLink(withAt, NOW)).toBe(withAt);
+    expect(stampTimerLink(TIMER, NOW)).toBe(TIMER);
+    expect(stampTimerLink(`${TIMER}?label=X`, NOW)).toBe(`${TIMER}?label=X`);
   });
 
   it('leaves other routes and other schemes alone', () => {
-    expect(stampTimerExposureLink('/print/exposure?exposure=60', NOW)).toBe(
+    expect(stampTimerLink('/print/exposure?exposure=60', NOW)).toBe(
       '/print/exposure?exposure=60'
     );
     expect(
-      stampTimerExposureLink(
-        'https://x.test/develop/recipes/timer?exposure=60',
-        NOW
-      )
+      stampTimerLink('https://x.test/develop/recipes/timer?exposure=60', NOW)
     ).toBe('https://x.test/develop/recipes/timer?exposure=60');
   });
 
@@ -533,5 +522,89 @@ describe('redirectSystemPath search links', () => {
       go(url, true);
     }
     expect(getSearchLinkSnapshot().seq).toBe(0);
+  });
+});
+
+describe('stampTimerLink with start=last', () => {
+  const NOW = 1_794_000_000_000;
+
+  it('stamps a start link with no at, like an exposure link', () => {
+    expect(
+      stampTimerLink('dorkroom://develop/recipes/timer?start=last', NOW)
+    ).toBe(`dorkroom://develop/recipes/timer?start=last&at=${NOW}`);
+    expect(stampTimerLink('/develop/recipes/timer?start=last', NOW)).toBe(
+      `/develop/recipes/timer?start=last&at=${NOW}`
+    );
+  });
+
+  it('leaves a start link that already has an at alone', () => {
+    const link = '/develop/recipes/timer?start=last&at=5';
+    expect(stampTimerLink(link, NOW)).toBe(link);
+  });
+
+  it('ignores start on any other path', () => {
+    expect(stampTimerLink('/shoot/meter?start=last', NOW)).toBe(
+      '/shoot/meter?start=last'
+    );
+  });
+});
+
+describe('logFrameTarget', () => {
+  it('opens the add-shot form for the meter roll', () => {
+    expect(logFrameTarget('r1')).toBe('/shoot/film-log/shot?rollId=r1');
+    expect(logFrameTarget('a b')).toBe('/shoot/film-log/shot?rollId=a%20b');
+  });
+
+  it('opens the film log list when no roll is active', () => {
+    expect(logFrameTarget(undefined)).toBe('/shoot/film-log');
+  });
+});
+
+describe('resolveLogFrameLink', () => {
+  const roll = () => 'r1';
+
+  it('resolves the app-scheme URL and the bare path, any case or query', () => {
+    for (const link of [
+      'dorkroom://log-frame',
+      'dorkroom://log-frame/',
+      'DORKROOM://Log-Frame?x=1',
+      '/log-frame',
+    ]) {
+      expect(resolveLogFrameLink(link, roll), link).toBe(
+        '/shoot/film-log/shot?rollId=r1'
+      );
+    }
+  });
+
+  it('asks for the roll only for this link', () => {
+    let asked = 0;
+    const counting = () => {
+      asked += 1;
+      return 'r1';
+    };
+    expect(resolveLogFrameLink('dorkroom://meter', counting)).toBe(
+      'dorkroom://meter'
+    );
+    expect(resolveLogFrameLink('https://x.test/log-frame', counting)).toBe(
+      'https://x.test/log-frame'
+    );
+    expect(resolveLogFrameLink('/log-frame/more', counting)).toBe(
+      '/log-frame/more'
+    );
+    expect(asked).toBe(0);
+  });
+
+  it('lands on the film log list when the roll cannot be read', () => {
+    expect(
+      resolveLogFrameLink('dorkroom://log-frame', () => {
+        throw new Error('bad film log storage');
+      })
+    ).toBe('/shoot/film-log');
+  });
+
+  it('lands on the film log list with no active roll', () => {
+    expect(resolveLogFrameLink('dorkroom://log-frame', () => undefined)).toBe(
+      '/shoot/film-log'
+    );
   });
 });

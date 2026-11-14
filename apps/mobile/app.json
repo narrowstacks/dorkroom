@@ -9,6 +9,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "art.dorkroom.mobile",
+      "deploymentTarget": "26.0",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIViewControllerBasedStatusBarAppearance": true,
@@ -90,6 +91,7 @@
           ]
         }
       ],
+      "./plugins/with-widget-controls",
       [
         "expo-widgets",
         {
