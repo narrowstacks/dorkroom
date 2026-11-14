@@ -45,6 +45,19 @@ const TAKEN = TAKEN_DATE.toISOString();
 const TAKEN_CELL = /^2026-07-01T12:00:05[+-]\d\d:\d\d$/;
 
 describe('rollToCsv', () => {
+  it("names a fixed-lens camera's frame by its lens snapshot (#733)", () => {
+    const csv = rollToCsv(
+      roll([
+        shot(1, { fixedLensName: '90mm f/3.5' }),
+        shot(2, { lensId: 'l1' }),
+      ]),
+      names
+    );
+    expect(lines(csv)[0]).toBe(HEADER);
+    expect(lines(csv)[1]?.split(',')[6]).toBe('90mm f/3.5');
+    expect(lines(csv)[2]?.split(',')[6]).toBe('50mm f/1.8');
+  });
+
   it('is header only for an empty roll, with no preamble', () => {
     expect(rollToCsv(roll([]), names)).toBe(`${HEADER}\r\n`);
     expect(CSV_HEADER).toHaveLength(13);

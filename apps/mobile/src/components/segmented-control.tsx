@@ -15,6 +15,9 @@ interface SegmentedControlProps<T extends string | number | boolean> {
    * Prefixed to each segment's spoken label so VoiceOver gives the context
    * with every segment, not only on a separate label element. */
   accessibilityLabel?: string;
+  /** Segments in a column instead of a row, for labels that cannot fit side
+   * by side (large Dynamic Type). */
+  stacked?: boolean;
 }
 
 export function SegmentedControl<T extends string | number | boolean>({
@@ -24,10 +27,13 @@ export function SegmentedControl<T extends string | number | boolean>({
   accent,
   accessibilityHint,
   accessibilityLabel,
+  stacked = false,
 }: SegmentedControlProps<T>) {
   const tint = useSelectionTint(accent);
   return (
-    <View className="flex-row rounded-xl border-hw border-line bg-surface p-1">
+    <View
+      className={`${stacked ? 'flex-col' : 'flex-row'} rounded-xl border-hw border-line bg-surface p-1`}
+    >
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -47,7 +53,7 @@ export function SegmentedControl<T extends string | number | boolean>({
             }
             accessibilityState={{ selected }}
             accessibilityHint={accessibilityHint}
-            className="flex-1 items-center rounded-lg py-2"
+            className={`${stacked ? '' : 'flex-1 '}items-center rounded-lg py-2`}
             style={
               selected
                 ? {
@@ -59,6 +65,12 @@ export function SegmentedControl<T extends string | number | boolean>({
             }
           >
             <Text
+              // Stacked labels are long ("Interchangeable lenses"): at the
+              // largest sizes each shrinks to fit one line, since iOS would
+              // otherwise break inside a word.
+              numberOfLines={stacked ? 1 : undefined}
+              adjustsFontSizeToFit={stacked}
+              minimumFontScale={0.4}
               className={selected ? undefined : 'text-ink-70'}
               style={
                 selected ? { color: tint.color, fontWeight: '600' } : undefined

@@ -30,6 +30,7 @@ import {
   rollRowText,
 } from '@/lib/film-log-list';
 import { shareRollsAsJson } from '@/lib/film-log-share';
+import { cameraDisplayName } from '@/lib/gear-display';
 import { LINK_OPENED_PARAM } from '@/lib/link-prefill';
 import type { FilmRoll } from '@/schemas/film-log.schema';
 import { usePhase } from '@/theme/phase-context';
@@ -136,7 +137,9 @@ export function FilmListScreen() {
   );
 
   const cameraName = useMemo(() => {
-    const map = new Map(cameras.map((camera) => [camera.id, camera.name]));
+    const map = new Map(
+      cameras.map((camera) => [camera.id, cameraDisplayName(camera)])
+    );
     return (id: string) => map.get(id);
   }, [cameras]);
 

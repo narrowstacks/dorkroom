@@ -6,6 +6,8 @@ import { ensurePhotoDir, photoUri } from '@/lib/film-log-photos';
 // the implementation itself (same module, so the same store).
 import type {
   Camera,
+  CustomBrand,
+  CustomMount,
   FilmRoll,
   FilmStock,
   Lens,
@@ -14,15 +16,20 @@ import type {
   ShotPhoto,
 } from '@/schemas/film-log.schema';
 import { resetFileSystem } from '@/test/expo-file-system';
+import { heldBrandToStore, heldMountToStore } from './custom-gear';
 import {
   addCamera,
+  addCustomBrand,
   addCustomFilm,
+  addCustomMount,
   addLens,
   addRoll,
   addShot,
   deleteRoll,
   getCameras,
+  getCustomBrands,
   getCustomFilms,
+  getCustomMounts,
   getLenses,
   getRolls,
   KEYS,
@@ -32,11 +39,14 @@ import {
   parseRolls,
   removeShot,
   setCameras,
+  setCustomBrands,
   setCustomFilms,
+  setCustomMounts,
   setLenses,
   setRolls,
   setShotPhoto,
   storage,
+  updateCamera,
   updateRoll,
   updateShot,
 } from './film-log-storage';
@@ -93,6 +103,8 @@ const fullShot = {
   shutterSpeed: 0.008,
   photo: fullPhoto,
   lensId: 'lens1',
+  // Only a fixed-lens frame stores it (without lensId); here to prove it persists.
+  fixedLensName: '90mm f/3.5',
   back: 'A12 #2',
   notes: 'backlit',
   place: 'Harbor',
@@ -146,6 +158,10 @@ const fullCamera = {
   backs: ['A12 #1', 'A12 #2'],
   notes: 'needs new seals',
   createdAt: '2026-01-01T00:00:00.000Z',
+  brand: 'Hasselblad',
+  // The forms never write both; here to prove each field persists.
+  mountId: 'hasselblad-v',
+  fixedLens: { name: 'Planar', focalLength: 80, maxAperture: 2.8 },
 } satisfies Required<Camera>;
 
 const fullLens = {
@@ -156,7 +172,21 @@ const fullLens = {
   maxAperture: 2.8,
   notes: 'C T*',
   createdAt: '2026-01-01T00:00:00.000Z',
+  brand: 'Zeiss',
+  mountId: 'hasselblad-v',
 } satisfies Required<Lens>;
+
+const fullBrand = {
+  id: 'custom-brand-1',
+  name: 'Kiev-Arsenal',
+  createdAt: '2026-01-01T00:00:00.000Z',
+} satisfies Required<CustomBrand>;
+
+const fullMount = {
+  id: 'custom-mount-1',
+  name: 'Graflex XL',
+  createdAt: '2026-01-01T00:00:00.000Z',
+} satisfies Required<CustomMount>;
 
 const fullFilm = {
   id: 'custom-1',
@@ -272,10 +302,132 @@ describe('film-log storage', () => {
     setCameras([fullCamera]);
     setLenses([fullLens]);
     setCustomFilms([fullFilm]);
+    setCustomBrands([fullBrand]);
+    setCustomMounts([fullMount]);
     expect(getRolls()).toEqual([fullRoll]);
     expect(getCameras()).toEqual([fullCamera]);
     expect(getLenses()).toEqual([fullLens]);
     expect(getCustomFilms()).toEqual([fullFilm]);
+    expect(getCustomBrands()).toEqual([fullBrand]);
+    expect(getCustomMounts()).toEqual([fullMount]);
+  });
+
+  describe('brands and mounts (#733)', () => {
+    it('stores a typed brand once, keeping a built-in spelling', () => {
+      expect(addCustomBrand('voigtlander')).toBe('Voigtländer');
+      expect(getCustomBrands()).toEqual([]);
+      expect(addCustomBrand('Kiev-Arsenal')).toBe('Kiev-Arsenal');
+      expect(addCustomBrand('kiev arsenal')).toBe('Kiev-Arsenal');
+      expect(getCustomBrands().map((b) => b.name)).toEqual(['Kiev-Arsenal']);
+      expect(getCustomBrands()[0]?.id.startsWith('custom-brand-')).toBe(true);
+    });
+
+    it('stores a typed mount once and resolves built-in names and aliases', () => {
+      const pending = (name: string) => ({ id: 'custom-mount-p1', name });
+      expect(addCustomMount(pending('L39'))).toBe('leica-ltm');
+      expect(addCustomMount(pending('leica m'))).toBe('leica-m');
+      expect(getCustomMounts()).toEqual([]);
+      expect(addCustomMount(pending('  Graflex   XL '))).toBe(
+        'custom-mount-p1'
+      );
+      expect(getCustomMounts()).toMatchObject([
+        { id: 'custom-mount-p1', name: 'Graflex XL' },
+      ]);
+      // Another form typing the same name gets the stored one.
+      expect(
+        addCustomMount({ id: 'custom-mount-p2', name: 'graflex xl' })
+      ).toBe('custom-mount-p1');
+      expect(getCustomMounts()).toHaveLength(1);
+      expect(addCustomMount(pending('   '))).toBeUndefined();
+      expect(getCustomMounts()).toHaveLength(1);
+    });
+
+    it('stores a held entry once when the form keeps it, and not at all when it does not', () => {
+      const held = { id: 'custom-mount-held', name: 'Graflex XL' };
+      // Added, then a built-in picked before Save: nothing is stored.
+      expect(heldMountToStore('nikon-f', held)).toBeUndefined();
+      expect(heldBrandToStore('Nikon', 'Shen Hao')).toBeUndefined();
+      expect(getCustomMounts()).toEqual([]);
+      expect(getCustomBrands()).toEqual([]);
+      // Kept, and saved by two forms in turn: stored once.
+      for (let i = 0; i < 2; i++) {
+        const mount = heldMountToStore('custom-mount-held', held);
+        if (mount) addCustomMount(mount);
+        const brand = heldBrandToStore('Shen Hao', 'Shen Hao');
+        if (brand) addCustomBrand(brand);
+      }
+      expect(getCustomMounts().map((m) => m.id)).toEqual(['custom-mount-held']);
+      expect(getCustomBrands().map((b) => b.name)).toEqual(['Shen Hao']);
+    });
+
+    it('cleans a typed brand with the 80 character cap', () => {
+      expect(addCustomBrand('  Shen   Hao ')).toBe('Shen Hao');
+      expect(addCustomBrand('shen hao')).toBe('Shen Hao');
+      expect(addCustomBrand('')).toBeUndefined();
+      const long = addCustomBrand('x'.repeat(200));
+      expect(long).toBe(`${'x'.repeat(80)}...`);
+      expect(getCustomBrands().map((b) => b.name)).toEqual(['Shen Hao', long]);
+    });
+
+    it('skips a malformed custom entry without losing the others', () => {
+      storage.set(
+        KEYS.customMounts,
+        JSON.stringify([fullMount, { id: 7, name: null }])
+      );
+      expect(getCustomMounts()).toEqual([fullMount]);
+      addCustomMount({ id: 'custom-mount-x', name: 'Another' });
+      // The unreadable entry is quarantined, not dropped.
+      expect(getQuarantined(storage, KEYS.customMounts)).toEqual([
+        JSON.stringify({ id: 7, name: null }),
+      ]);
+    });
+
+    it('leaves a pre-#733 camera and lens byte for byte on read', () => {
+      const legacyCamera = {
+        id: 'c1',
+        name: 'Nikon FM2',
+        format: '35mm',
+        createdAt: '2020-01-01T00:00:00.000Z',
+      };
+      const legacyLens = {
+        id: 'l1',
+        name: '50mm f/1.8',
+        cameraId: null,
+        focalLength: 50,
+        createdAt: '2020-01-01T00:00:00.000Z',
+      };
+      const rawCameras = JSON.stringify([legacyCamera]);
+      const rawLenses = JSON.stringify([legacyLens]);
+      storage.set(KEYS.cameras, rawCameras);
+      storage.set(KEYS.lenses, rawLenses);
+      expect(JSON.stringify(getCameras())).toBe(rawCameras);
+      expect(JSON.stringify(getLenses())).toBe(rawLenses);
+      // Reading writes nothing.
+      expect(storage.getString(KEYS.cameras)).toBe(rawCameras);
+      expect(storage.getString(KEYS.lenses)).toBe(rawLenses);
+    });
+
+    it('editing a camera keeps the fields it does not change', () => {
+      const camera = addCamera({ name: 'Bessa R', format: '35mm' });
+      updateCamera(camera.id, { brand: 'Voigtländer', mountId: 'leica-ltm' });
+      updateCamera(camera.id, { notes: 'meter works' });
+      expect(getCameras()[0]).toMatchObject({
+        name: 'Bessa R',
+        brand: 'Voigtländer',
+        mountId: 'leica-ltm',
+        notes: 'meter works',
+      });
+      // Switching to a fixed lens clears the mount.
+      updateCamera(camera.id, {
+        mountId: undefined,
+        fixedLens: { focalLength: 90, maxAperture: 3.5 },
+      });
+      expect(getCameras()[0]?.mountId).toBeUndefined();
+      expect(getCameras()[0]?.fixedLens).toEqual({
+        focalLength: 90,
+        maxAperture: 3.5,
+      });
+    });
   });
 
   it('keeps a null lens cameraId (used across bodies)', () => {

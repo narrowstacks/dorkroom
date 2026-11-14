@@ -238,3 +238,39 @@ describe('matchFilmLog', () => {
     expect(matchFilmLog('film', d).cameras).toEqual([]);
   });
 });
+
+describe('matchFilmLog with brands and fixed lenses (#733)', () => {
+  const bessa: Camera = {
+    ...camera('bessa', 'Bessa R'),
+    brand: 'Voigtländer',
+    mountId: 'leica-ltm',
+  };
+  const gw: Camera = {
+    ...camera('gw', 'GW690III', '120'),
+    brand: 'Fujifilm',
+    fixedLens: { focalLength: 90 },
+  };
+  const d = {
+    rolls: [
+      roll('a', { cameraId: 'bessa', filmStockName: 'HP5+' }),
+      roll('b', {
+        cameraId: 'gw',
+        shots: [
+          { id: 's', frameNumber: 1, fixedLensName: '90mm', source: 'manual' },
+        ],
+      }),
+    ],
+    cameras: [bessa, gw],
+    lenses,
+  };
+
+  it('finds and titles a camera by its brand and model', () => {
+    const found = matchFilmLog('voigtländer bessa', d);
+    expect(found.cameras.map((c) => c.title)).toEqual(['Voigtländer Bessa R']);
+    expect(found.rolls.map((r) => r.rollId)).toEqual(['a']);
+  });
+
+  it("finds a roll by a fixed-lens frame's lens", () => {
+    expect(matchFilmLog('90mm', d).rolls.map((r) => r.rollId)).toEqual(['b']);
+  });
+});

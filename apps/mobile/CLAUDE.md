@@ -321,11 +321,172 @@ the gap before iOS presents the sheet; a negative elapsed time (the clock set
 back) never counts as inside it. GPX export and the roll map are under
 "Frame map and GPX"; "Expiring" waits for film inventory.
 
+**Cameras, lenses and mounts** (#733). A camera has an optional brand, a lens
+mount or a fixed lens; a lens has an optional brand and mount. So several
+bodies and lenses of one system are described once, and a lens is offered on
+every body with its mount, including ones added later.
+
+- **Data model** (`film-log.schema.ts`, all additive, optional and tolerant,
+  `.optional().catch(undefined)`, so a bad value reads as absent and never
+  fails its camera, lens or roll). `Camera.brand` and `Lens.brand` are display
+  TEXT (a built-in brand's name, "Voigtländer", or what the user typed), never
+  an id, so a brand can never be unresolvable. `Camera.mountId` and
+  `Lens.mountId` are a built-in mount id (`gear-catalog.ts`, ids never change
+  or get reused) or a user-added one (`custom-mount-...`); an id neither list
+  knows shows as "Unknown mount" and still matches by equality.
+  `Camera.fixedLens` (`z.looseObject`: optional `name`, `focalLength`,
+  `maxAperture`, each tolerant; `{}` is a fixed lens with nothing known) marks
+  a fixed-lens camera. A camera has a mount OR a fixed lens OR neither (data
+  from before #733); the camera form never writes both, and if both are stored
+  the fixed lens wins (`cameraLensKind`). `Camera.name` is the model and is
+  never rewritten; `Lens.cameraId` is unchanged. `Shot.fixedLensName` is the
+  lens snapshot of a frame shot on a fixed-lens camera (below). There is no
+  migration: nothing is written until the user saves an item in a form, and a
+  pre-#733 record parses to the same bytes (tests run the old schemas beside
+  the new ones).
+- **Downgrade.** An older build does not know the new fields: it strips them on
+  read (zod drops unlisted keys) and persists the stripped collection on its
+  next write to that COLLECTION, not just the item it edits. One frame logged
+  anywhere (rolls are one collection) removes `fixedLensName` from every frame;
+  one camera or lens save removes brand, mount and fixed lens from every camera
+  or every lens. `customBrands` and `customMounts` are untouched (it never
+  reads or writes those keys). No roll, frame, camera or lens becomes
+  unreadable, because every new field is optional. This is the accepted cost of
+  an additive field; the changelog needs nothing about it.
+- **The one function.** `lensesForCamera(cameraId, cameras, lenses)`
+  (`src/lib/camera-lenses.ts`, pure; `useCameraLenses` in the hooks) is the
+  only rule for which lenses a frame can be shot with, used by the log-a-frame
+  sheet (and so the Meter and Save to roll) and the shot form
+  (`FrameLensField`). A fixed-lens camera gives `{ kind: 'fixed', label }`,
+  its own lens and nothing else. Any other camera gives the lenses whose
+  `mountId` equals its `mountId`, the lenses pinned to it by `cameraId`, and the
+  lenses with neither a mount nor a `cameraId`, in stored order. A lens with a
+  mount is never offered on a camera with another mount, or none, unless it is
+  pinned there. With no mounts anywhere this is exactly the old rule
+  (`!lens.cameraId || lens.cameraId === cameraId`); `camera-lenses.test.ts` runs
+  both over every subset of a fixture set. `camerasForLens` is its inverse for
+  the lens form's "Fits:" line. The roll form does not filter lenses.
+- **A fixed lens is not a saved `Lens`.** A frame shot with one stores no
+  `lensId` and a `fixedLensName` snapshot ("90mm f/3.5", from
+  `fixedLensLabel`), like a roll's `filmStockName`: the frame keeps its lens
+  when the camera is later edited, switched to interchangeable lenses or
+  deleted. A persisted lens record was not used because it would appear in the
+  lens list and on other cameras, and would be orphaned when the camera goes.
+  The field is NOT called `lensName` because the JSON export already writes a
+  derived `lensName` on each shot (the saved lens's name), which an import
+  must not read back as a snapshot. Choosing a frame's lens uses choice values
+  (`FIXED_LENS_CHOICE`, `RECORDED_LENS_CHOICE` for a snapshot the camera no
+  longer offers), never stored: `initialLensChoice` (an existing frame starts
+  on what it records, never an invented lens), `lensChoices` (adds the
+  recorded lens when the camera no longer offers it) and `frameLensFields`
+  (both keys always set, so a saved lens clears a snapshot and the reverse).
+  Changing a camera to a fixed lens never touches its frames. Every lens name
+  shown for a frame goes through `frameLensName` (saved lens, else snapshot):
+  the roll page, Search, Spotlight, CSV, GPX and the JSON export.
+- **Display.** `cameraDisplayName` (`gear-display.ts`) is brand then model,
+  "Voigtländer Bessa R", or the name alone when it already starts with the
+  brand, or one of a built-in brand's aliases, as a whole word (accents and
+  case ignored: brand Nikon, name "Nikon FM2" stays "Nikon FM2"; Pentax with
+  "Asahi Pentax Spotmatic" and Fujifilm with "Fuji GW690" show the name
+  alone; Leica with "Leicaflex SL" is still prefixed); a camera with no brand
+  shows exactly its name. It is
+  used by the roll list, a roll's page, the roll form's camera picker, the log
+  sheet's subtitle, the Film Log caption's most used camera, Search, Spotlight,
+  the roll widget, the lens form and the exports (the JSON `cameraName`, the
+  CSV and GPX file names). The hubs show no camera. `lensDisplayName` (same
+  rule) is used only in Cameras & lenses; frames show the lens name as before.
+  Cameras & lenses rows: a camera's detail line leads with its mount or "Fixed
+  lens 90mm f/3.5", then format and backs as before (`cameraDetailLine`); a
+  lens's is its focal length, then its mount and "also <camera>" for a pin, or
+  with no mount the camera or "Any camera" as before (`lensDetailLine`).
+- **Catalog and search.** `gear-catalog.ts` holds `LENS_MOUNTS` (id, name,
+  aliases) and `GEAR_BRANDS` (with `camera` and `lens` flags; one list because
+  makers overlap). Large format is one "Large format (lens board)" entry with
+  Copal, Compur and board aliases: lenses move between view cameras on boards,
+  so per-board mounts would not model "fits". Leica thread mount (L39) and
+  Zenit M39 (SLR) are separate entries: the same thread with a different
+  flange distance, so a bare "M39" alias is on neither and a search for it
+  lists both (and still offers Add). Aliases are mount names, never a lens
+  line that spans mounts (no "Nikkor", "Rokkor", bare "Zuiko"). There is one
+  Mamiya 645 entry: Mamiya 645 AF lenses do not work on the manual 645 bodies,
+  so a user with both may want a custom mount for the AF lenses.
+  `gear-catalog.test.ts` checks
+  unique ids and that no folded name or alias belongs to two entries. One
+  matcher, `searchByTerms` (`catalog-search.ts`): case, accent and punctuation
+  insensitive ("voigtlander", "c/y"), over name and aliases, ranked exact,
+  prefix, word prefix, then substring, ties in list order. Brand and Mount are
+  `GearPickerField`s (searchable `BottomSheet`, a "No brand"/"No mount" row, and
+  `Add "..."` when the typed text is not already a name or alias;
+  `gear-picker-logic.ts`, pure).
+- **The shot form's lens on a new frame.** It starts on `newFrameLensChoice`:
+  the fixed lens, else the roll's last-used lens only while the camera still
+  offers it (as the log sheet's `selectedLens`; `shotFormDefaults` applies the
+  same rule to the param fallback). Switching the roll in the form resets the
+  lens the same way for the new roll's camera, and `frameLensFields` stores
+  for a NEW frame only a choice the camera offers now. An existing frame is
+  never validated: it keeps a lens since deleted or no longer fitting, and a
+  fixed-lens frame keeps its snapshot even when its camera is no longer
+  fixed.
+- **User additions.** `customBrands` and `customMounts` are their own MMKV keys
+  in `dorkroom-film-log`, read per record like custom films. The picker's
+  `Add "..."` does NOT write: `usePendingGear` holds the typed entry in the
+  form (a pending mount gets its `custom-mount-...` id at once) and the form's
+  save stores it (`addCustomBrand`, `addCustomMount`), so Cancel leaves
+  nothing behind. The name goes through `cleanGearName` (`custom-gear.ts`:
+  spaces collapsed, then `sanitizeText` with the name fields' 80 character
+  cap, which cuts a longer name and ends it in "..."). A name that is already
+  a built-in or stored entry, ignoring case, accents and spacing (or a mount
+  alias), selects that entry instead, so "l39" picks the built-in mount and
+  nothing is stored twice. There is
+  no delete in this version: a camera or lens may use the entry. The Brand
+  picker also offers any brand already on a camera (camera form) or a lens
+  (lens form).
+- **Forms.** Camera: Brand, Model (the name), "Interchangeable lenses" /
+  "Fixed lens" (`SegmentedControl`), then Lens mount, or focal length, max
+  aperture and an optional lens name; format, holders and notes as before. A
+  pre-#733 camera opens on interchangeable with no mount, and saving it
+  unchanged writes no new field. Lens: Brand, Name, Lens mount ("No mount"
+  keeps today's behaviour), then with a mount "Fits: ..." and an optional "Also
+  use on" pin (an adapted lens), or with no mount the old "Used on". Fixed-lens
+  cameras are not offered as a pin unless the lens already has that pin. Both
+  forms are a `FormSheetBody`: the fields scroll, the commit is pinned under
+  them, Delete is the last item of the scrolling fields, and the scrolling
+  part's height (`formBodyMaxHeight`, pure) shrinks with the keyboard and the
+  header so the sheet's title and the commit stay on screen at any text size;
+  the Brand and Mount pickers size their list the same way
+  (`useSheetBodyMaxHeight`). From 1.3x text the "Interchangeable lenses" /
+  "Fixed lens" choice stacks (`SegmentedControl stacked`, each label shrunk to
+  one line, since iOS would break "Interchangeable" mid-word). `BottomSheet`'s
+  title and dismiss action are capped at the app's chrome cap, 1.3x
+  (`CHROME_MAX_FONT_SCALE` in `theme/tokens.ts`, also the detent sheet's
+  header), and set without a Tailwind line height, which is not held to the
+  cap and made the header several times its text's height at the largest
+  sizes. So the header is always 76pt (`sheetHeaderHeight`: 16pt padding, the
+  44pt row the Cancel button sets, 16pt gap), and the body maths keeps a 24pt
+  gap under the status bar with the keyboard up.
+- **Delete camera and Delete lens ask first** (`Alert.alert`, the Delete roll
+  pattern: "Delete camera?" or "Delete lens?", Cancel and a destructive
+  Delete), and once confirmed delete exactly as before. The message, from
+  `gear-delete.ts` (pure, tested), counts what stays behind at the moment of
+  the tap (`getRolls()`): "Nikon FM2 is removed from your cameras. 3 rolls used
+  it. They stay in your film log, and their pages show "Unknown camera"." or
+  "50mm f1.8 is removed from your lenses. 2 frames used it. They stay in your
+  film log but no longer show a lens." (or "No rolls use it." / "No frames use
+  it."). A fixed-lens frame's snapshot never counts: it does not depend on a
+  saved lens.
+- **Export.** The JSON export carries every new field as stored plus
+  `customBrands` and `customMounts` (still version 1: the change is
+  additive). There is no import in the app yet; the
+  export tests read an old and a new export back through the app's own
+  per-record parsers and get the same data. CSV and GPX gain no column (a roll's
+  CSV has no camera column, and the Lens column is a name); their Lens value
+  falls back to the snapshot.
+
 **Film log in Search.** Home also searches the on-device film log (mobile-only
 MMKV data, so `@dorkroom/logic`'s `searchHome` cannot see it). `matchFilmLog`
 (`src/lib/home/film-log-matches.ts`, pure) ANDs the query words, ignoring
 punctuation on both sides, over a roll's name, film, camera, lenses used, notes
-and EI, and over camera names; `ResultGroups` shows the rows above the catalog
+and EI, and over camera display names (`cameraDisplayName`); `ResultGroups` shows the rows above the catalog
 groups, and they show even while the catalog is loading or failed. Filler words
 (`at`, `in`...) and one-character words are dropped from the query first.
 
@@ -841,8 +1002,10 @@ Dynamic Type, then shrunk to fit), a subtitle with the roll (`rollLabel`),
 camera and EI (the reading's own ISO only when the roll has none), the Meter
 photo as a small thumbnail beside it, then the ISO mismatch note and "Photo
 saved in B&W" when they apply; the lens chips (`PresetChipRow`, the lenses of
-`useLensesForCamera`, last-used lens preselected and moved first so it is on
-screen, no "No lens" chip because a camera with lenses needs one, `needsLens`),
+`useCameraLenses`, last-used lens preselected and moved first so it is on
+screen, no "No lens" chip because a camera with lenses needs one,
+`needsLensChoice`; a fixed-lens camera's one lens, preselected, and never a
+block),
 or "No saved lenses. Add one under Cameras & lenses."; the Place row. Place is
 ONE always-editable `TextInput` inside a row `Pressable`: at medium the row is
 the button (spoken by `placeRowLabel`, never coordinates; the input is hidden
@@ -854,7 +1017,8 @@ nudged mid-typing keeps the field. Large adds the location row,
 Notes and "More options…" (`Button variant="plain"`). Pure half:
 `src/lib/log-frame.ts` (`buildLoggedShot`, `frameReadout`, `formatShutter`,
 `spokenShutter`, `placeCardValue`, `placeRowLabel`, `lensChipOptions`,
-`selectedLens`, `isoMismatchNote`, `needsLens`). The frame number is always
+`selectedLens`, `isoMismatchNote`; the lens rules are in `camera-lenses.ts`,
+see "Cameras, lenses and mounts"). The frame number is always
 `nextFrameNumber`; the reading's ISO is never stored (ISO is the roll's EI).
 For a visual check without a camera, open it from Reciprocity's "Save to roll"
 with an active roll (no photo, no "More options…"). `Readout` takes an
