@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Shot } from '@/schemas/film-log.schema';
 import {
+  frameCountLabel,
   lastUsedLensId,
   lastUsedPlace,
   nextFrameNumber,
@@ -8,7 +9,6 @@ import {
   rollLabel,
   rollStatusLabel,
   rollSubtitle,
-  shotCountLabel,
 } from './film-log-options';
 
 const shot = (frameNumber: number, lensId?: string, place?: string): Shot => ({
@@ -47,11 +47,11 @@ describe('rollLabel', () => {
   });
 });
 
-describe('shotCountLabel', () => {
+describe('frameCountLabel', () => {
   it('pluralises', () => {
-    expect(shotCountLabel(1)).toBe('1 shot');
-    expect(shotCountLabel(0)).toBe('0 shots');
-    expect(shotCountLabel(24)).toBe('24 shots');
+    expect(frameCountLabel(1)).toBe('1 frame');
+    expect(frameCountLabel(0)).toBe('0 frames');
+    expect(frameCountLabel(24)).toBe('24 frames');
   });
 });
 

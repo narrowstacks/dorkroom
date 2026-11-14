@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { Button } from '@/components/button';
 import { PhotoViewer } from '@/components/film-log/photo-viewer';
 import { photoUri } from '@/lib/film-log-photos';
 import type { ShotPhoto } from '@/schemas/film-log.schema';
@@ -30,29 +31,11 @@ export function ShotPhotoRow({ photo, onChoose, onRemove }: ShotPhotoRowProps) {
               contentFit="cover"
             />
           </Pressable>
-          <Pressable
-            onPress={() => setViewerOpen(true)}
-            accessibilityRole="button"
-            className="rounded-xl border-hw border-line bg-surface px-4 py-3"
-          >
-            <Text className="text-base text-white">View</Text>
-          </Pressable>
-          <Pressable
-            onPress={onRemove}
-            accessibilityRole="button"
-            className="rounded-xl border-hw border-line bg-surface px-4 py-3"
-          >
-            <Text className="text-base text-rose-400">Remove</Text>
-          </Pressable>
+          <Button label="View" onPress={() => setViewerOpen(true)} />
+          <Button label="Remove" variant="destructive" onPress={onRemove} />
         </View>
       ) : (
-        <Pressable
-          onPress={onChoose}
-          accessibilityRole="button"
-          className="items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
-        >
-          <Text className="text-base text-white">Choose from library</Text>
-        </Pressable>
+        <Button label="Choose from library" onPress={onChoose} />
       )}
       <PhotoViewer
         visible={viewerOpen}

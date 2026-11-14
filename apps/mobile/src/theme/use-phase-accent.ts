@@ -13,6 +13,7 @@ import {
   resolveDirection,
   resolveHue,
   resolveSelectionTint,
+  resolveWarningLine,
 } from '@/theme/resolve-accent';
 import { SAFELIGHT } from '@/theme/safelight';
 
@@ -124,4 +125,11 @@ export function useModeColor(normal: string, safelight: string): string {
 export function useNeutralFill(normal: string): string {
   const { on } = useSafelight();
   return on ? SAFELIGHT.wash : normal;
+}
+
+/** A warning card's outline: amber normally, the theme's selected outline
+ * under safelight (amber would be the one colour on a red screen). */
+export function useWarningLine(): string {
+  const { on } = useSafelight();
+  return resolveWarningLine(on);
 }

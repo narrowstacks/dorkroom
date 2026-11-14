@@ -46,10 +46,29 @@ export function buttonClassName(
   return [BASE, FILL[variant], state, className].filter(Boolean).join(' ');
 }
 
+/** What VoiceOver is told: `disabled` and `expanded` only when the caller set
+ * them, so a plain enabled button carries no state at all. */
+export function buttonAccessibilityState(
+  disabled: boolean | undefined,
+  expanded: boolean | undefined
+): { disabled?: boolean; expanded?: boolean } | undefined {
+  if (disabled === undefined && expanded === undefined) return undefined;
+  return { disabled, expanded };
+}
+
 /** The label's classes; `commit`, `plain` and `tinted` take their colour
  * from a style. */
-export function buttonLabelClassName(variant: ButtonVariant): string {
-  return ['text-center text-base font-semibold', LABEL_INK[variant]]
+export function buttonLabelClassName(
+  variant: ButtonVariant,
+  withIcon = false
+): string {
+  // Beside a glyph the label must be able to shrink, or it cannot wrap at the
+  // accessibility text sizes.
+  return [
+    'text-center text-base font-semibold',
+    withIcon ? 'shrink' : '',
+    LABEL_INK[variant],
+  ]
     .filter(Boolean)
     .join(' ');
 }

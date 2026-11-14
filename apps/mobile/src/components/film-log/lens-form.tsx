@@ -1,7 +1,8 @@
 import { parseDecimalInput, sanitizeText } from '@dorkroom/logic';
 import { useMemo } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { View } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
+import { Button } from '@/components/button';
 import { CommitButton } from '@/components/commit-button';
 import { SelectField } from '@/components/film-log/select-field';
 import { LabeledTextField } from '@/components/labeled-text-field';
@@ -110,13 +111,11 @@ export function LensForm({ visible, lens, onClose }: LensFormProps) {
           label={lens ? 'Save lens' : 'Add lens'}
         />
         {lens ? (
-          <Pressable
+          <Button
+            label="Delete lens"
+            variant="destructive"
             onPress={onDelete}
-            accessibilityRole="button"
-            className="items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
-          >
-            <Text className="text-base text-rose-400">Delete lens</Text>
-          </Pressable>
+          />
         ) : null}
       </View>
     </BottomSheet>

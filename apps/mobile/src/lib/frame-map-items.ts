@@ -7,12 +7,16 @@ import {
   formatCoordinateNumber,
   isUsableLocation,
 } from '@/lib/frame-location-format';
+import { frameRowText } from '@/lib/frame-row-text';
 import type { Shot } from '@/schemas/film-log.schema';
 
 export interface LocatedFrame {
   shotId: string;
   frameNumber: number;
   place?: string;
+  /** "f/8 · 1/125" as the roll page shows it; absent when the frame has no
+   * aperture or shutter set. */
+  exposure?: string;
   latitude: number;
   longitude: number;
   /** The coordinates as the shot form shows them (coarser for a coarse fix). */
@@ -38,15 +42,28 @@ export function locatedFrames(shots: readonly Shot[]): LocatedFrame[] {
       };
       const place = shot.place?.trim();
       if (place) frame.place = place;
+      if (shot.aperture !== undefined || shot.shutterSpeed !== undefined) {
+        frame.exposure = frameRowText(shot, undefined).exposure;
+      }
       return [frame];
     })
     .sort((a, b) => a.frameNumber - b.frameNumber);
 }
 
-/** What VoiceOver reads for a frame in the list: number, place, coordinates. */
+/** The main line of a frame in the map's list: its exposure and place, as the
+ * roll page words them; empty when it has neither (the row then shows only its
+ * coordinates). */
+export function locatedFrameTitle(frame: LocatedFrame): string {
+  return [frame.exposure, frame.place].filter(Boolean).join(' · ');
+}
+
+/** What VoiceOver reads for a frame in the list: number, exposure, place,
+ * coordinates. */
 export function locatedFrameLabel(frame: LocatedFrame): string {
   return [
     `Frame ${frame.frameNumber}`,
+    // Spoken as on the roll page: "f/8, 1/125", not with the middle dot.
+    frame.exposure?.replaceAll(' · ', ', '),
     frame.place,
     frame.coordinatesText,
     frame.accuracyText ? `accuracy ${frame.accuracyText}` : undefined,

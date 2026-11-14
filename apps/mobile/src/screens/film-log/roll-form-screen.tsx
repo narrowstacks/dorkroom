@@ -7,11 +7,11 @@ import { CustomFilmForm } from '@/components/film-log/custom-film-form';
 import { FilmStockPicker } from '@/components/film-log/film-stock-picker';
 import { resolveFilmStockName } from '@/components/film-log/film-stock-picker-logic';
 import { SelectField } from '@/components/film-log/select-field';
-import { GlassCard } from '@/components/glass-card';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import { NeutralButton } from '@/components/neutral-button';
 import { Screen } from '@/components/screen';
 import { SegmentedControl } from '@/components/segmented-control';
+import { Surface } from '@/components/surface';
 import { useCameras, useFilmCatalog, useRoll } from '@/hooks/use-film-log';
 import { useFormState } from '@/hooks/use-form-state';
 import {
@@ -116,7 +116,7 @@ export function RollFormScreen() {
   if (cameras.length === 0) {
     return (
       <Screen>
-        <GlassCard className="gap-3">
+        <Surface className="gap-3">
           <Text className="text-base text-white">
             Add a camera before starting a roll.
           </Text>
@@ -124,14 +124,14 @@ export function RollFormScreen() {
             onPress={() => router.replace('/shoot/film-log/gear')}
             label="Go to Cameras & lenses"
           />
-        </GlassCard>
+        </Surface>
       </Screen>
     );
   }
 
   return (
     <Screen>
-      <GlassCard className="gap-4">
+      <Surface className="gap-4">
         <LabeledTextField
           label="Roll name (optional)"
           value={form.name}
@@ -215,7 +215,7 @@ export function RollFormScreen() {
           onChangeText={(v) => set('notes', v)}
           placeholder="Developer, push/pull, reminders…"
         />
-      </GlassCard>
+      </Surface>
 
       <CommitButton
         onPress={onSave}

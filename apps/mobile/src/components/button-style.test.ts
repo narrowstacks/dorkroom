@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buttonAccessibilityState,
   buttonClassName,
   buttonLabelClassName,
   type ButtonVariant,
@@ -53,5 +54,31 @@ describe('buttonLabelClassName', () => {
     expect(buttonLabelClassName('commit')).not.toMatch(/text-(white|rose)/);
     expect(buttonLabelClassName('plain')).not.toMatch(/text-(white|rose)/);
     expect(buttonLabelClassName('tinted')).not.toMatch(/text-(white|rose)/);
+  });
+});
+
+describe('icon labels', () => {
+  it.each(VARIANTS)(
+    '%s label shrinks beside an icon so it can wrap',
+    (variant) => {
+      expect(buttonLabelClassName(variant, true).split(' ')).toContain(
+        'shrink'
+      );
+      expect(buttonLabelClassName(variant).split(' ')).not.toContain('shrink');
+    }
+  );
+});
+
+describe('buttonAccessibilityState', () => {
+  it('is absent until the caller sets disabled or expanded', () => {
+    expect(buttonAccessibilityState(undefined, undefined)).toBeUndefined();
+    expect(buttonAccessibilityState(false, undefined)).toEqual({
+      disabled: false,
+      expanded: undefined,
+    });
+    expect(buttonAccessibilityState(undefined, true)).toEqual({
+      disabled: undefined,
+      expanded: true,
+    });
   });
 });

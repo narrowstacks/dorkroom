@@ -32,7 +32,8 @@ export function LabeledTextField({
   const placeholderColor = useDimInk('#71717a');
   return (
     <View className="gap-1">
-      <Text className="text-sm text-ink-60">{label}</Text>
+      {/* An empty label leaves no blank line above the field. */}
+      {label ? <Text className="text-sm text-ink-60">{label}</Text> : null}
       <TextInput
         ref={inputRef}
         accessibilityLabel={label}

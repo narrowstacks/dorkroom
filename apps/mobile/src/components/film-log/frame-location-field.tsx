@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Button } from '@/components/button';
 import { requestFrameLocation } from '@/lib/frame-location';
 import {
   describeLocation,
@@ -144,13 +145,10 @@ export function FrameLocationField({
       {notice === 'denied' || notice === 'servicesOff' ? (
         <View className="gap-2">
           <Text className="text-sm text-ink-60">{noticeText(notice)}</Text>
-          <Pressable
+          <Button
+            label="Open Settings"
             onPress={() => void Linking.openSettings()}
-            accessibilityRole="button"
-            className="min-h-11 items-center justify-center rounded-xl border-hw border-line bg-surface px-4 active:opacity-80"
-          >
-            <Text className="text-base text-white">Open Settings</Text>
-          </Pressable>
+          />
         </View>
       ) : notice ? (
         <Text className="text-sm text-ink-60">{noticeText(notice)}</Text>

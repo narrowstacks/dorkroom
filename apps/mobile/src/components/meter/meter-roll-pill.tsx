@@ -6,7 +6,7 @@ import { BottomSheet } from '@/components/bottom-sheet';
 import { GlassPill } from '@/components/meter/glass-pill';
 import { NeutralButton } from '@/components/neutral-button';
 import { useMeterRoll } from '@/hooks/use-meter-roll';
-import { rollLabel, shotCountLabel } from '@/lib/film-log-options';
+import { frameCountLabel, rollLabel } from '@/lib/film-log-options';
 import { selectableRowStyle, useSelectionTint } from '@/theme/use-phase-accent';
 
 /** Top-of-meter pill showing which roll captures log to; tap to pick another. */
@@ -73,7 +73,7 @@ export function MeterRollPill() {
                   <Text className="text-base text-white">{rollLabel(r)}</Text>
                   <Text className="text-sm text-ink-50">
                     {r.filmStockName ?? 'No film'} ·{' '}
-                    {shotCountLabel(r.shots.length)}
+                    {frameCountLabel(r.shots.length)}
                   </Text>
                 </Pressable>
               );

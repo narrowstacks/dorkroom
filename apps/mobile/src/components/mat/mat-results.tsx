@@ -1,9 +1,9 @@
 import type { UseMatCalculatorReturn } from '@dorkroom/logic';
 import { Text, View } from 'react-native';
-import { GlassCard } from '@/components/glass-card';
 import { buildMobileMatDimensionRows } from '@/components/mat/format';
 import { ResultCard } from '@/components/result-card';
 import { ResultStat } from '@/components/result-stat';
+import { Surface } from '@/components/surface';
 import { useAccentColor } from '@/theme/use-phase-accent';
 
 interface MatResultsProps {
@@ -61,7 +61,7 @@ export function MatResults({
         />
       </ResultCard>
 
-      <GlassCard className="gap-3">
+      <Surface className="gap-3">
         <Text className="text-base font-semibold" style={{ color: rose }}>
           Cutter guide-bar settings
         </Text>
@@ -79,9 +79,9 @@ export function MatResults({
             <Text className="text-sm text-ink-50">{cut.setup}</Text>
           </View>
         ))}
-      </GlassCard>
+      </Surface>
 
-      <GlassCard className="gap-3">
+      <Surface className="gap-3">
         <Text className="text-base font-semibold" style={{ color: rose }}>
           All dimensions
         </Text>
@@ -96,7 +96,7 @@ export function MatResults({
             <Text className="text-sm text-ink-50">{note}</Text>
           </View>
         ))}
-      </GlassCard>
+      </Surface>
     </View>
   );
 }

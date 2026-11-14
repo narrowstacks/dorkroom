@@ -554,8 +554,8 @@ recipe's name after the prefill).
   never reintroduce a `StatusBar` component. `app.json` sets `userInterfaceStyle: "dark"`.
 - **Screens are thin view layers.** A screen is an exported `PascalCaseScreen`,
   pulls all state and logic from a shared `@dorkroom/logic` hook (e.g.
-  `useExposureCalculator`), and composes `<Screen>` plus `Surface` (or
-  `GlassCard` where glass is allowed, see Surfaces) plus row components. Calculator math belongs in `@dorkroom/logic`, never in a screen.
+  `useExposureCalculator`), and composes `<Screen>` plus `Surface` (never
+  `GlassCard` for content, see Surfaces) plus row components. Calculator math belongs in `@dorkroom/logic`, never in a screen.
 - **No in-page title header.** The tab bar or the pushed stack header already
   names the screen, so don't render a redundant `<Text>Reciprocity</Text>`
   heading.
@@ -905,8 +905,12 @@ Back; the exported GPX validates against the GPX 1.1 schema.
   params, logs, analytics, widgets or Spotlight, and an unknown id shows "Roll
   not found." The roll's page offers it ("Show map" in the More menu, and
   the summary's drawn thumbnail) only when a frame has a location. The map is pinned above a list of the located frames
-  (`locatedFrames` and `locatedFrameLabel` in `frame-map-items.ts`: number,
-  place, coordinates as the shot form shows them, coarse accuracy), each row a
+  (`locatedFrames`, `locatedFrameTitle` and `locatedFrameLabel` in
+  `frame-map-items.ts`: number, the exposure and place as the main line (the
+  roll page's `frameRowText` wording, "f/8 · 1/125 · Mission"), then the
+  coordinates as the shot form shows them and the coarse accuracy as the
+  secondary line; VoiceOver reads the exposure with commas), the rows
+  one grouped list (`groupRowClassName`, virtualized), each row a
   button that opens the frame's shot form, so VoiceOver never depends on the
   markers. A notice shown instead of the map (no build support, safelight,
   nothing located) scrolls with the list, so large Dynamic Type cannot push it
@@ -1026,9 +1030,16 @@ Back; the exported GPX validates against the GPX 1.1 schema.
   `InsetGroup` / `InsetRow` for a few rows laid out at once, and
   `groupRowClassName(index, count)` on each row of a `FlatList`, where an
   `InsetGroup` would defeat virtualization. A tinted fill is for state (a selected chip, the In camera
-  pill) and for a roll's one next step (`Button variant="tinted"`). The hubs (tiles, roll cards, empty states) and Settings are flat; most
-  other screens still use `GlassCard` for content and move to `Surface` in
-  follow-up PRs (#732). `GlassCard` itself is Liquid Glass on iOS
+  pill) and for a roll's one next step (`Button variant="tinted"`). Every content screen is flat: the hubs, Settings, Film Log, Home and
+  Search (a Home film log row is a roll row: the Film Log's detail line and
+  `StatusPill`), recipes, the forms, the timer (stages, preset editor, Save to
+  roll), the roll map's list and notices, and the calculators' results and
+  `WarningsCard` (which keeps an amber outline and its warning mark, so a
+  warning stays distinct without glass). A card with an accent outline (a
+  result, the dev time) is a `Surface` with a `borderColor` style. `GlassCard`
+  stays only in the stage `DetentPanel` and the Inverter's editor chrome,
+  adjustment panel and focus panel (controls over a photo or drawing). The
+  Inverter's start screen (`InverterEmpty`) and no-camera card are `Surface`. It is Liquid Glass on iOS
   26 with a translucent fallback, its capability check computed **once at
   import**, never per render.
 - **Buttons.** One system, `Button` (`components/button.tsx`, classes in the
@@ -1036,7 +1047,10 @@ Back; the exported GPX validates against the GPX 1.1 schema.
   most), `secondary` (the flat fill, white), `plain` (phase-hue text, no fill),
   `tinted` (the selection tint as a fill, hue text: only the one next step on
   a roll's page, Mark as shot or Mark as developed) and `destructive` (the
-  flat fill, rose text). All share a 44pt minimum
+  flat fill, rose text). `icon` puts a glyph before the label and `expanded`
+  tells VoiceOver the button opens something below it. Every grey
+  button in the body is this component; a hand-rolled `Pressable` with
+  `rounded-xl border-hw border-line bg-surface px-4 py-3` is a review flag. All share a 44pt minimum
   height, radius 12, semibold label that wraps rather than truncates,
   `active:opacity-70` and `opacity-40` with `accessibilityState.disabled`.
   `CommitButton` and `NeutralButton` are `Button` with the variant fixed. An
