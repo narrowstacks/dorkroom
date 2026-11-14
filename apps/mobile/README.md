@@ -148,6 +148,11 @@ bunx expo start --dev-client --host lan         # Metro; phone must be on same W
   and developer), time, dilution, EI and temperature. It never holds notes,
   places or coordinates. The index is on the device only: nothing is made
   public or sent anywhere, and a deleted roll is removed from it.
+- Home Screen and Lock Screen widgets show only what the app passes them, which
+  iOS keeps in a container shared with the widget extension on the device. The
+  Favorites widget gets your favorite tools' ids with their fixed names, icons
+  and links, in your order, and nothing else. Favorites themselves are a list
+  of tool ids (fixed names, never text you typed) in the app's own data.
 - Exports contain what you choose to export: a roll's CSV or GPX file, or the
   whole log as JSON, includes any frame locations you added. Sharing one sends
   it where you choose to send it.

@@ -7,8 +7,14 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { setRolls } from '@/lib/film-log-storage';
 import { takePendingLink } from '@/lib/link-handoff';
 import { TIMER_WIDGET_URL } from '@/lib/timer/widget-timeline';
+import { TOOLS } from '@/lib/tools';
 import { MOBILE_ROOT } from '@/test/widget-runtime';
 import { redirectSystemPath } from '../../../app/+native-intent';
+import {
+  buildFavoritesWidgetProps,
+  EDIT_FAVORITES_URL,
+  HOME_WIDGET_URL,
+} from './favorites-widget-props';
 import { LAST_RESULT_URL } from './last-result-widget-props';
 import { FILM_LOG_URL, rollUrl } from './roll-widget-props';
 
@@ -45,7 +51,33 @@ describe('widget links', () => {
     [FILM_LOG_URL, '/shoot/film-log', 'shoot/film-log/index.tsx'],
     [LAST_RESULT_URL, '/shoot', 'shoot/index.tsx'],
     [TIMER_WIDGET_URL, '/develop/recipes/timer', 'develop/recipes/timer.tsx'],
+    // Favorites: Edit favorites while there are none, Home between the cells,
+    // and every tool's cell (any tool can be a favorite).
+    [EDIT_FAVORITES_URL, '/favorites', '(home)/favorites.tsx'],
+    [HOME_WIDGET_URL, '/', '(home)/index.tsx'],
+    ...buildFavoritesWidgetProps(TOOLS.map((t) => t.id))
+      .cells.concat(
+        buildFavoritesWidgetProps(TOOLS.slice(8).map((t) => t.id)).cells
+      )
+      .map((cell): [string, string, string] => {
+        const tool = TOOLS.find((t) => t.id === cell.id);
+        const route = tool?.route ?? '';
+        const file =
+          tool?.kind === 'screen'
+            ? `${tool.phase}/[tool].tsx`
+            : existsSync(join(TABS, `${route.slice(1)}.tsx`))
+              ? `${route.slice(1)}.tsx`
+              : `${route.slice(1)}/index.tsx`;
+        return [cell.url, route, file];
+      }),
   ];
+
+  it('covers a cell for every tool in the manifest', () => {
+    const toolUrls = cases.map(([url]) => url);
+    for (const tool of TOOLS) {
+      expect(toolUrls, tool.id).toContain(`dorkroom:/${tool.route}`);
+    }
+  });
 
   it('each serves a route file', () => {
     for (const [, , file] of cases) {
@@ -61,7 +93,7 @@ describe('widget links', () => {
       );
       expect(cold, url).toBe(path);
       const warm = redirectSystemPath({ path: url, initial: false });
-      const hub = `/${path.split('/')[1]}`;
+      const hub = `/${path.split('/')[1] ?? ''}`;
       if (path === hub) {
         // the hub itself has nothing to hand off
         expect(warm.replace(/^dorkroom:\//, ''), url).toBe(hub);

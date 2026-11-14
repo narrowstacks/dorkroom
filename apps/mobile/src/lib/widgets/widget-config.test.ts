@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { TIMER_WIDGET_NAME } from '@/lib/timer/widget-timeline';
 import { recordsLastResult, TOOLS } from '@/lib/tools';
 import { MOBILE_ROOT } from '@/test/widget-runtime';
+import { FAVORITES_WIDGET_NAME } from './favorites-widget-props';
 import { LAST_RESULT_WIDGET_NAME } from './last-result-widget-props';
 import { ROLL_WIDGET_NAME } from './roll-widget-props';
 
@@ -28,11 +29,12 @@ const entry = config.expo.plugins.find(
 const widgets = entry?.[1].widgets ?? [];
 
 describe('app.json widgets', () => {
-  it('declares the three widgets under the names the app pushes to', () => {
+  it('declares the four widgets under the names the app pushes to', () => {
     expect(widgets.map((w) => w.name)).toEqual([
       ROLL_WIDGET_NAME,
       LAST_RESULT_WIDGET_NAME,
       TIMER_WIDGET_NAME,
+      FAVORITES_WIDGET_NAME,
     ]);
   });
 
@@ -51,6 +53,7 @@ describe('app.json widgets', () => {
         'systemMedium',
         'accessoryRectangular',
       ],
+      [FAVORITES_WIDGET_NAME]: ['systemSmall', 'systemMedium'],
     });
   });
 

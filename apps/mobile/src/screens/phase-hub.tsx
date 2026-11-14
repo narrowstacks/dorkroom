@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { useWindowDimensions, View } from 'react-native';
 import { ActiveRollCard } from '@/components/hub/active-roll-card';
 import { HubEmptyState } from '@/components/hub/hub-empty-state';
@@ -13,7 +12,8 @@ import { RecentNegativesCard } from '@/components/hub/recent-negatives-card';
 import { ToolTile } from '@/components/hub/tool-tile';
 import { UndevelopedRollsCard } from '@/components/hub/undeveloped-rolls-card';
 import { Screen, SCREEN_PADDING } from '@/components/screen';
-import { toHref } from '@/lib/href';
+import { MAX_FAVORITES } from '@/lib/favorites';
+import { toggleFavoriteTool, useFavoriteIds } from '@/lib/favorites-store';
 import { useLastResults } from '@/lib/last-result-store';
 import { type Phase, toolsForPhase } from '@/lib/tools';
 
@@ -27,6 +27,9 @@ import { type Phase, toolsForPhase } from '@/lib/tools';
  */
 export function PhaseHub({ phase }: { phase: Phase }) {
   const results = useLastResults();
+  const favoriteIds = useFavoriteIds();
+  const favoritesFull = favoriteIds.length >= MAX_FAVORITES;
+  const favorites = new Set(favoriteIds);
   const rows = tileRows(toolsForPhase(phase));
   // Capped so a wide iPad window keeps phone-sized tiles, centred.
   const contentWidth = hubWidth(useWindowDimensions().width);
@@ -56,7 +59,9 @@ export function PhaseHub({ phase }: { phase: Phase }) {
                 secondary={tileSecondaryLine(tool, results)}
                 width={width}
                 wide={row.wide}
-                onPress={() => router.push(toHref(tool.route))}
+                favorite={favorites.has(tool.id)}
+                favoritesFull={favoritesFull}
+                onToggleFavorite={() => toggleFavoriteTool(tool.id)}
               />
             ))}
           </View>

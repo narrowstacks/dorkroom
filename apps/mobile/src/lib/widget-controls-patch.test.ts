@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
   CONTROLS_LINE,
@@ -51,6 +54,54 @@ describe('patchIndexSwift with Home Screen widgets', () => {
     for (const name of ['RollWidget', 'LastResultWidget', 'TimerWidget']) {
       expect(patched).toContain(`    ${name}()\n`);
     }
+  });
+});
+
+// With the Favorites widget (#734) the bundle holds four widgets: still one
+// chunk (expo-widgets 57.0.27 chunks four per bundle, `Math.ceil(4 / 4)`), so
+// `WidgetLiveActivity()` still ends the one @main bundle. Matches the file
+// `expo prebuild --platform ios --clean` generated for #734 exactly (patched
+// form compared byte for byte).
+const GENERATED_WITH_FOUR_WIDGETS =
+  'import WidgetKit\nimport SwiftUI\ninternal import ExpoWidgets\n\n@main\n' +
+  'struct ExportWidgets0: WidgetBundle {\n  var body: some Widget {\n' +
+  '    RollWidget()\n    LastResultWidget()\n    TimerWidget()\n' +
+  '    FavoritesWidget()\n' +
+  '    WidgetLiveActivity()\n  }\n}';
+
+describe('patchIndexSwift with the Favorites widget', () => {
+  it('still finds one anchor and keeps all four widgets', () => {
+    const patched = patchIndexSwift(GENERATED_WITH_FOUR_WIDGETS);
+    expect(patched).toBe(
+      GENERATED_WITH_FOUR_WIDGETS.replace(
+        '    WidgetLiveActivity()\n',
+        '    WidgetLiveActivity()\n    DorkroomControlsBundle().body\n'
+      )
+    );
+    for (const name of [
+      'RollWidget',
+      'LastResultWidget',
+      'TimerWidget',
+      'FavoritesWidget',
+    ]) {
+      expect(patched).toContain(`    ${name}()\n`);
+    }
+    expect(patchIndexSwift(patched)).toBe(patched);
+  });
+
+  it('matches the template expo-widgets ships', () => {
+    const generator = readFileSync(
+      join(
+        fileURLToPath(new URL('../../../..', import.meta.url)),
+        'node_modules/expo-widgets/plugin/build/ios/withWidgetSourceFiles.js'
+      ),
+      'utf8'
+    );
+    // Four widgets per bundle, the Live Activity at the end of the last one.
+    expect(generator).toContain('Math.ceil(numberOfWidgets / 4)');
+    expect(generator).toContain(
+      '${!isLastChunk ? `ExportWidgets${index + 1}().body` : `WidgetLiveActivity()`}'
+    );
   });
 });
 

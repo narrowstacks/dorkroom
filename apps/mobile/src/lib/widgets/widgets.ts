@@ -1,7 +1,7 @@
 // Native half of the Home Screen / Lock Screen widgets: expo-widgets behind
-// `WidgetNative`, the three `Widget` objects, and what pushes their timelines.
+// `WidgetNative`, the four `Widget` objects, and what pushes their timelines.
 // Constructing a `Widget` writes its layout string to the App Group, so all
-// three are built ONCE when this module loads (at app start, through
+// four are built ONCE when this module loads (at app start, through
 // `TimerRunEffects`), before any is placed: without a stored layout the system
 // draws a "No layout found" box. The widgets read only what is pushed here;
 // the film log itself stays in the app's own container.
@@ -10,6 +10,7 @@
 // - the roll: when the film log's rolls or cameras, or the Meter's roll, change
 //   (MMKV value listeners, coalesced so a burst of writes is parsed once);
 // - last answers: when a tool records a result (`last-result-store`);
+// - favorites: when the favorites list changes (`favorites-store`);
 // - the timer: from `TimerRunEffects`, on every render and on foreground, like
 //   the Live Activity, and at once after a Live Activity button press
 //   (`flushTimerWidget`, from `createTimerActionRunner`); the pusher sends only
@@ -20,6 +21,11 @@
 // the expo-widgets config plugin is required).
 import { requireOptionalNativeModule } from 'expo';
 import { AppState } from 'react-native';
+import {
+  FAVORITES_KEY,
+  getFavoriteIds,
+  storage as favoritesStorage,
+} from '@/lib/favorites-store';
 import {
   getCameras,
   getRolls,
@@ -45,6 +51,11 @@ import {
   type TimerWidgetSchedule,
   timerWidgetSchedule,
 } from '@/lib/timer/widget-timeline';
+import {
+  buildFavoritesWidgetProps,
+  FAVORITES_WIDGET_NAME,
+  type FavoritesWidgetProps,
+} from './favorites-widget-props';
 import {
   buildLastResultWidgetProps,
   LAST_RESULT_WIDGET_NAME,
@@ -85,6 +96,7 @@ interface Layouts {
   roll: (typeof import('./roll-widget'))['rollWidget'];
   lastResult: (typeof import('./last-result-widget'))['lastResultWidget'];
   timer: (typeof import('./timer-widget'))['timerWidget'];
+  favorites: (typeof import('./favorites-widget'))['favoritesWidget'];
 }
 
 function loadWidgets(): { widgets: WidgetsModule; layouts: Layouts } | null {
@@ -94,12 +106,14 @@ function loadWidgets(): { widgets: WidgetsModule; layouts: Layouts } | null {
     const roll: typeof import('./roll-widget') = require('./roll-widget');
     const lastResult: typeof import('./last-result-widget') = require('./last-result-widget');
     const timer: typeof import('./timer-widget') = require('./timer-widget');
+    const favorites: typeof import('./favorites-widget') = require('./favorites-widget');
     return {
       widgets,
       layouts: {
         roll: roll.rollWidget,
         lastResult: lastResult.lastResultWidget,
         timer: timer.timerWidget,
+        favorites: favorites.favoritesWidget,
       },
     };
   } catch {
@@ -112,6 +126,7 @@ interface WidgetsNative {
   roll: (entries: WidgetEntry<RollWidgetProps>[]) => void;
   lastResult: (entries: WidgetEntry<LastResultWidgetProps>[]) => void;
   timer: (entries: WidgetEntry<TimerWidgetProps>[]) => void;
+  favorites: (entries: WidgetEntry<FavoritesWidgetProps>[]) => void;
 }
 
 /** Stands in when widgets cannot be used: every push is dropped. */
@@ -119,6 +134,7 @@ const NOOP_WIDGETS: WidgetsNative = {
   roll: () => {},
   lastResult: () => {},
   timer: () => {},
+  favorites: () => {},
 };
 
 function createNative(widgets: WidgetsModule, layouts: Layouts): WidgetsNative {
@@ -130,10 +146,15 @@ function createNative(widgets: WidgetsModule, layouts: Layouts): WidgetsNative {
     layouts.lastResult
   );
   const timer = new widgets.Widget(TIMER_WIDGET_NAME, layouts.timer);
+  const favorites = new widgets.Widget(
+    FAVORITES_WIDGET_NAME,
+    layouts.favorites
+  );
   return {
     roll: (entries) => roll.updateTimeline(entries),
     lastResult: (entries) => lastResult.updateTimeline(entries),
     timer: (entries) => timer.updateTimeline(entries),
+    favorites: (entries) => favorites.updateTimeline(entries),
   };
 }
 
@@ -141,6 +162,7 @@ interface WidgetsRuntime {
   roll: WidgetPusher<RollWidgetProps, RollWidgetProps>;
   lastResult: WidgetPusher<LastResultWidgetProps, LastResultWidgetProps>;
   timer: WidgetPusher<TimerWidgetSchedule, TimerWidgetProps>;
+  favorites: WidgetPusher<FavoritesWidgetProps, FavoritesWidgetProps>;
   titleOf: (presetId: string) => string | null;
   /** The end of the run as last offered while running, for "Done"'s time. */
   runEndMs: number | null;
@@ -166,6 +188,11 @@ function syncRoll(runtime: WidgetsRuntime): void {
 function syncLastResult(runtime: WidgetsRuntime): void {
   const props = buildLastResultWidgetProps(getLastResults());
   runtime.lastResult.offer(props, () => snapshotTimeline(props, Date.now()));
+}
+
+function syncFavorites(runtime: WidgetsRuntime): void {
+  const props = buildFavoritesWidgetProps(getFavoriteIds());
+  runtime.favorites.offer(props, () => snapshotTimeline(props, Date.now()));
 }
 
 const TIMER_PALETTE = widgetPalette('teal');
@@ -195,7 +222,12 @@ function createRuntime(): WidgetsRuntime {
   const loaded = loadWidgets();
   const choice = loaded
     ? selectWidgetNative(
-        [loaded.layouts.roll, loaded.layouts.lastResult, loaded.layouts.timer],
+        [
+          loaded.layouts.roll,
+          loaded.layouts.lastResult,
+          loaded.layouts.timer,
+          loaded.layouts.favorites,
+        ],
         () => createNative(loaded.widgets, loaded.layouts),
         NOOP_WIDGETS
       )
@@ -222,6 +254,12 @@ function createRuntime(): WidgetsRuntime {
       scheduler,
       debounceMs: TIMER_DEBOUNCE_MS,
     }),
+    favorites: createWidgetPusher({
+      push: choice.native.favorites,
+      changed: propsChanged,
+      scheduler,
+      debounceMs: 0,
+    }),
     titleOf: createTitleResolver(findPresetName),
     runEndMs: null,
   };
@@ -232,6 +270,12 @@ function createRuntime(): WidgetsRuntime {
   );
   const lastResultSoon = createCoalescer(
     () => syncLastResult(runtime),
+    DATA_DEBOUNCE_MS,
+    scheduler
+  );
+
+  const favoritesSoon = createCoalescer(
+    () => syncFavorites(runtime),
     DATA_DEBOUNCE_MS,
     scheduler
   );
@@ -249,16 +293,21 @@ function createRuntime(): WidgetsRuntime {
   lastResultStorage.addOnValueChangedListener((key) => {
     if (key === LAST_RESULTS_KEY) lastResultSoon();
   });
+  favoritesStorage.addOnValueChangedListener((key) => {
+    if (key === FAVORITES_KEY) favoritesSoon();
+  });
   AppState.addEventListener('change', (next) => {
     if (next !== 'active') return;
     syncRoll(runtime);
     syncLastResult(runtime);
     syncTimer(runtime);
+    syncFavorites(runtime);
   });
 
   syncRoll(runtime);
   syncLastResult(runtime);
   syncTimer(runtime);
+  syncFavorites(runtime);
   return runtime;
 }
 
@@ -281,6 +330,8 @@ const runtime = getRuntime();
 export const syncRollWidget = (): void => syncRoll(runtime);
 /** Push the recorded last answers if they changed. */
 export const syncLastResultWidget = (): void => syncLastResult(runtime);
+/** Push the favorite tools if they changed. */
+export const syncFavoritesWidget = (): void => syncFavorites(runtime);
 /** Push the timer's timeline if its schedule changed (never on a tick). */
 export const syncTimerWidget = (): void => syncTimer(runtime);
 /**

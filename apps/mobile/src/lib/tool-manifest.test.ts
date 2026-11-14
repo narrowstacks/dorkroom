@@ -3,13 +3,19 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { redirectSystemPath } from '../../app/+native-intent';
-import { resolveLegacyPath } from './deep-link';
+import { resolveLegacyPath, toolIdForPath } from './deep-link';
 import {
   getSearchLinkSnapshot,
   resetSearchLinks,
 } from './home/search-link-store';
 import { takePendingLink } from './link-handoff';
-import { PHASES, recordsLastResult, SETTINGS_ROUTE, TOOLS } from './tools';
+import {
+  FAVORITES_ROUTE,
+  PHASES,
+  recordsLastResult,
+  SETTINGS_ROUTE,
+  TOOLS,
+} from './tools';
 
 // Parity and pin tests for the iOS tool manifest (#455). `TOOLS` in
 // `tools.ts` is the source of truth; the phase layouts, the `[tool]` routes,
@@ -209,6 +215,43 @@ describe('route files', () => {
     const stack = read('src', 'components', 'hub', 'phase-stack.tsx');
     expect(stack).not.toMatch(/name="settings"/);
     expect(stack).not.toMatch(/presentation:/);
+  });
+
+  it('has Edit favorites beside Settings in the Search tab stack, with no params', () => {
+    expect(FAVORITES_ROUTE).toBe('/favorites');
+    expect(read('app', '(tabs)', '(home)', 'favorites.tsx')).toMatch(
+      /FavoritesScreen/
+    );
+    for (const phase of PHASES) {
+      expect(
+        existsSync(join(TABS_DIR, phase.id, 'favorites.tsx')),
+        phase.id
+      ).toBe(false);
+    }
+    const home = read('app', '(tabs)', '(home)', '_layout.tsx');
+    expect(home).toMatch(/name="favorites"/);
+    expect(home).toMatch(
+      /name="favorites"\s+options=\{\{ title: 'Edit favorites', \.\.\.STANDARD_TITLE \}\}/
+    );
+    // An outside link can open the screen but cannot pass it anything.
+    const screen = read('src', 'screens', 'favorites-screen.tsx');
+    expect(screen).not.toMatch(/useLocalSearchParams|useGlobalSearchParams/);
+    // It belongs to no tool and no phase, so it is never "recently used".
+    expect(toolIdForPath(FAVORITES_ROUTE)).toBeUndefined();
+    expect(resolveLegacyPath(FAVORITES_ROUTE)).toBe(FAVORITES_ROUTE);
+  });
+
+  it('opens Edit favorites from an app link, cold and warm, without a handoff', () => {
+    for (const url of ['dorkroom://favorites', 'dorkroom://Favorites']) {
+      for (const initial of [true, false]) {
+        const landed = redirectSystemPath({ path: url, initial }).replace(
+          /^dorkroom:\//,
+          ''
+        );
+        expect(landed.toLowerCase(), url).toBe('/favorites');
+        expect(takePendingLink()).toBeNull();
+      }
+    }
   });
 
   it('has no gear on the hubs', () => {
