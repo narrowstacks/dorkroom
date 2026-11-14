@@ -4,15 +4,23 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, FlatList, Pressable, Text, View } from 'react-native';
 import { CommitButton } from '@/components/commit-button';
+import {
+  confirmMarkDeveloped,
+  confirmMarkShot,
+} from '@/components/film-log/confirm-roll-status';
+import { developedDateText } from '@/components/film-log/developed-date';
 import { PhotoViewer } from '@/components/film-log/photo-viewer';
+import { RollDevelopmentSection } from '@/components/film-log/roll-development-section';
 import { GlassCard } from '@/components/glass-card';
 import { GradientBackground } from '@/components/gradient-background';
+import { NeutralButton } from '@/components/neutral-button';
 import { TabBarScrollView } from '@/components/tab-bar-scroll-view';
 import { useCameras, useLenses, useRoll } from '@/hooks/use-film-log';
-import { formatProcess } from '@/lib/film-log-options';
+import { formatProcess, rollStatusLabel } from '@/lib/film-log-options';
 import { photoUri } from '@/lib/film-log-photos';
 import { shareRollAsCsv } from '@/lib/film-log-share';
 import { deleteRoll } from '@/lib/film-log-storage';
+import { markDevelopedCopy } from '@/lib/roll-lifecycle';
 import type { Shot } from '@/schemas/film-log.schema';
 import { usePhaseHue } from '@/theme/use-phase-accent';
 
@@ -138,6 +146,9 @@ export function RollDetailScreen() {
           {roll.filmStockName ?? 'No film set'} · {formatProcess(roll.process)}
           {roll.iso !== undefined ? ` · EI ${roll.iso}` : ''}
         </Text>
+        <Text className="text-sm text-ink-60">
+          {rollStatusLabel(roll.status)}
+        </Text>
         {roll.back ? (
           <Text className="text-sm text-ink-50">Back: {roll.back}</Text>
         ) : null}
@@ -145,6 +156,25 @@ export function RollDetailScreen() {
           <Text className="text-sm text-ink-60">{roll.notes}</Text>
         ) : null}
       </GlassCard>
+      {roll.status === 'developed' && roll.development ? (
+        <RollDevelopmentSection development={roll.development} />
+      ) : null}
+      {roll.status === 'active' ? (
+        <NeutralButton
+          onPress={() => confirmMarkShot(roll)}
+          label="Mark as shot"
+          accessibilityLabel="Mark as shot. Moves the roll to To develop."
+        />
+      ) : null}
+      {roll.status === 'finished' ? (
+        <NeutralButton
+          onPress={() => confirmMarkDeveloped(roll)}
+          label="Mark as developed"
+          accessibilityLabel={
+            markDevelopedCopy(roll, developedDateText).accessibilityLabel
+          }
+        />
+      ) : null}
       <View className="flex-row gap-3">
         <Pressable
           onPress={() =>

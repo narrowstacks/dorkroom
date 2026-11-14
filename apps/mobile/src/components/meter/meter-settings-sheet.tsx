@@ -36,8 +36,9 @@ export function MeterSettingsSheet({
             onChange={setLinkFilmLog}
           />
           <Text className="px-1 text-xs text-ink-50">
-            Show the active roll and EI lock, pin ISO to the roll's EI, and log
-            shots from the shutter. Turn off for a clean, standalone meter.
+            Show the roll in the camera and EI lock, pin ISO to the roll's EI,
+            and log shots from the shutter. Turn off for a clean, standalone
+            meter.
           </Text>
         </View>
 

@@ -86,6 +86,44 @@ export const shotSchema = z.object({
   source: z.enum(['manual', 'meter']),
 });
 
+/** An optional field that reads as absent when its stored value is malformed,
+ * so one bad value costs only that value. */
+const tolerant = <T extends z.ZodType>(schema: T) =>
+  schema.optional().catch(undefined);
+
+/**
+ * How a roll was developed, recorded when it is marked developed (from the
+ * Process Timer's "Save to roll", or bare `developedAt` from "Mark as
+ * developed"). Every name is a snapshot, like `filmStockName`, so a later
+ * catalog change cannot orphan it.
+ *
+ * Tolerant per field, unlike the rest of the film log: a malformed optional
+ * value reads as absent, and the object is loose, so keys a newer build adds
+ * survive a read and write by this one. A record without a valid
+ * `developedAt` is no record (the roll's `.catch` below).
+ */
+const developmentRecordFields = {
+  /** ISO instant. */
+  developedAt: z.string(),
+  /** The recipe's uuid (or numeric id as a string) when it came from one. */
+  recipeId: tolerant(z.string()),
+  /** e.g. "Ilford HP5 Plus in Ilford DD-X". */
+  recipeName: tolerant(z.string()),
+  /** e.g. "Ilford DD-X". */
+  developer: tolerant(z.string()),
+  /** e.g. "1+4" or "Stock". */
+  dilution: tolerant(z.string()),
+  temperatureF: tolerant(z.number()),
+  /** The develop stage's duration as set for the run, in seconds (not the
+   * time elapsed: a stage skipped early still records its set time). */
+  timeSeconds: tolerant(z.number()),
+  /** The recipe's shooting ISO (EI). */
+  shootingIso: tolerant(z.number()),
+  notes: tolerant(z.string()),
+};
+
+export const rollDevelopmentSchema = z.looseObject(developmentRecordFields);
+
 export const filmRollSchema = z.object({
   id: z.string(),
   name: z.string().optional(),
@@ -105,6 +143,13 @@ export const filmRollSchema = z.object({
   shots: z.array(shotSchema),
   startedAt: z.string(),
   finishedAt: z.string().optional(),
+  /**
+   * Set when the roll is marked developed. Tolerant: a record whose
+   * `developedAt` is missing or malformed reads as no record (`.catch`), so it
+   * can never make the whole roll fail its schema and drop out of the list.
+   * Rolls stored before it existed have none.
+   */
+  development: rollDevelopmentSchema.optional().catch(undefined),
   notes: z.string().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -122,4 +167,13 @@ export type Camera = z.infer<typeof cameraSchema>;
 export type Lens = z.infer<typeof lensSchema>;
 export type ShotPhoto = z.infer<typeof shotPhotoSchema>;
 export type Shot = z.infer<typeof shotSchema>;
+/** A stored record: the fields below plus any key a newer build added (the
+ * schema is loose). Read it; build new records as {@link RollDevelopmentFields}. */
+export type RollDevelopment = z.infer<typeof rollDevelopmentSchema>;
+/** The record's known fields only, with no index signature, so a misspelled
+ * or renamed key is a compile error where a record is built. */
+export type RollDevelopmentFields = z.output<
+  z.ZodObject<typeof developmentRecordFields>
+>;
 export type FilmRoll = z.infer<typeof filmRollSchema>;
+export type RollStatus = FilmRoll['status'];
