@@ -8,9 +8,9 @@ import {
   pushPullDisplay,
 } from '@/components/development/recipe-format';
 import {
+  frameCountLabel,
   rollLabel,
   rollStatusLabel,
-  shotCountLabel,
 } from '@/lib/film-log-options';
 import { queryOf, toolHref } from '@/lib/home/destination';
 import { LINK_OPENED_PARAM } from '@/lib/link-prefill';
@@ -128,14 +128,14 @@ export function pushPullLabel(stops: number | undefined): string | undefined {
   return `${display.direction === 'push' ? 'Push' : 'Pull'} ${display.label}`;
 }
 
-/** The line under a roll waiting to be developed: EI, push/pull, shots. */
+/** The line under a roll waiting to be developed: EI, push/pull, frames. */
 export function rollToDevelopLine(
   roll: Pick<FilmRoll, 'iso' | 'pushPull' | 'shots'>
 ): string {
   return [
     roll.iso !== undefined ? `EI ${roll.iso}` : undefined,
     pushPullLabel(roll.pushPull),
-    shotCountLabel(roll.shots.length),
+    frameCountLabel(roll.shots.length),
   ]
     .filter(Boolean)
     .join(' · ');

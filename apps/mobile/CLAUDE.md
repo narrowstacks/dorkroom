@@ -81,14 +81,26 @@ screens the phase passes as children. Section screens sit flat in the phase stac
 there is only one header. Each layout exports
 `unstable_settings = { initialRouteName: 'index' }` so a deep link builds the hub
 under the tool. `PhaseHub` (`src/screens/phase-hub.tsx`) is the hub: two-column
-`ToolTile`s, each showing the tool's last result (`last-result-store.ts`, written
+`ToolTile`s on flat `Surface`s (`tileRows` in `hub-layout.ts`, pure: an odd tool
+count makes the last tile `wide`, spanning both columns with the icon beside
+the text, so Shoot's fifth and Develop's third tool leave no empty cell), each
+showing the tool's last result (`last-result-store.ts`, written
 by `Readout`'s `toolId` prop through `useRecordResult`, 500ms trailing) or its
 blurb. Only a tool that is answer-first and restores its inputs
 (`persistsInputs`, typed as `RecordingToolId`) records one: a tool that resets
 when reopened would show a tile that contradicts the tool. Above the grid each
 hub shows one roll card (see "Roll lifecycle" below): Shoot the roll in the
-camera (the roll the Meter logs to, or a prompt to start one), Develop the shot
-rolls waiting to be developed, Print the rolls developed last. There is one Settings screen, `/settings` (`SETTINGS_ROUTE`), pushed in the
+camera (the roll the Meter logs to), Develop the shot rolls waiting to be
+developed, Print the rolls developed last. Where that card is absent, the hub
+shows one quiet line (`HubEmptyState`, deciding in `hubEmptyState`,
+`src/lib/hub-rolls.ts`, pure, counting with the cards' own selectors in
+`hubRollCounts` so a card and its line never both show or both go missing).
+Shoot's, "No roll in the camera." with a plain "New roll" (the form Film Log's +
+opens), takes the card's slot ABOVE the tools, so the primary Shoot action stays
+on the first screen. Develop's, "Nothing waiting to be developed.", and Print's,
+"No developed rolls yet." (plus a plain "To develop: N" that opens the Develop
+hub when rolls are waiting), follow the tool grid so they never push a tool
+down. There is one Settings screen, `/settings` (`SETTINGS_ROUTE`), pushed in the
 Search tab's own stack (`app/(tabs)/(home)/`: `index` is Home with no native
 header, `settings` is the screen). It is an ordinary pushed screen, not a modal (a
 link arriving while a modal is open would push the tool inside it), so Home is
@@ -373,7 +385,15 @@ roll the Meter logs to.
   also clears the ISO filter if it is still the one the opening set
   (`clearsOpeningIso`), never one the user chose. Print: `RecentNegativesCard`, the three most recently
   developed rolls (`development.developedAt`, else `updatedAt`), opening the roll
-  in Shoot with `openToolPath`. Each card renders only when it has a roll.
+  in Shoot with `openToolPath`. Each card renders only when it has a roll,
+  and each is flat: the roll rows are one `LabeledGroup` (section label, an
+  `InsetGroup`, an optional footer) of `HubRollRow`s (To develop, Recent
+  negatives), and Shoot's card is a group of two rows, the roll with the Film
+  Log's In camera `StatusPill` and a plain "Mark as shot" `Button` aligned to
+  the row text. Hub rows say "frames" (`frameCountLabel`, `rollSubtitle`,
+  `rollToDevelopLine`; the Save to roll card shares the last). A Recent negatives row shows what the roll was
+  developed in, else "Developed Nov 13" from the date the development record
+  stores (`recentNegativeLine`), then its frame count only when it has frames.
   Back after "N more" or a Recent negatives row: both use `openToolPath`, so
   they push onto the Shoot stack as the user left it. Back can name the roll
   that was open there, and a Film Log already lower in that stack is not
@@ -1006,8 +1026,9 @@ Back; the exported GPX validates against the GPX 1.1 schema.
   `InsetGroup` / `InsetRow` for a few rows laid out at once, and
   `groupRowClassName(index, count)` on each row of a `FlatList`, where an
   `InsetGroup` would defeat virtualization. A tinted fill is for state (a selected chip, the In camera
-  pill) and for a roll's one next step (`Button variant="tinted"`). Most screens still use `GlassCard` for content; they move to
-  `Surface` in follow-up PRs (#732). `GlassCard` itself is Liquid Glass on iOS
+  pill) and for a roll's one next step (`Button variant="tinted"`). The hubs (tiles, roll cards, empty states) and Settings are flat; most
+  other screens still use `GlassCard` for content and move to `Surface` in
+  follow-up PRs (#732). `GlassCard` itself is Liquid Glass on iOS
   26 with a translucent fallback, its capability check computed **once at
   import**, never per render.
 - **Buttons.** One system, `Button` (`components/button.tsx`, classes in the
@@ -1177,7 +1198,8 @@ read of the shared stamp and its write can be overwritten. See "Control Center c
 **Controls.** `SafelightButton` (a `switch` with a visible on-state) is the
 `headerRight` of every Print screen, and of every Shoot and Develop screen while
 the mode is on (`offersSafelightButton`), the hubs included. Settings has a
-"Safelight mode" `ToggleRow`. Home has no header and no button.
+"Safelight mode" `ToggleRow` (a `grouped` row of its own Safelight group).
+Home has no header and no button.
 Toggling takes effect everywhere at once with no reload or navigation reset.
 Native chrome follows through `chromeOptions` (`theme/stack-chrome.ts`) and the
 `NativeTabs` colour props in `app/(tabs)/_layout.tsx`.

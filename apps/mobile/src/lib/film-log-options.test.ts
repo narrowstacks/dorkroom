@@ -59,10 +59,10 @@ describe('rollSubtitle', () => {
   it('names the film only when the label is a roll name', () => {
     expect(
       rollSubtitle({ name: 'Iceland', filmStockName: 'HP5+', shots: [shot(1)] })
-    ).toBe('HP5+ · 1 shot');
+    ).toBe('HP5+ · 1 frame');
     expect(
       rollSubtitle({ name: undefined, filmStockName: 'HP5+', shots: [] })
-    ).toBe('0 shots');
+    ).toBe('0 frames');
   });
 });
 

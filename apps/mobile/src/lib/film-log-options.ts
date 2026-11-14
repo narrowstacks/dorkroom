@@ -115,11 +115,17 @@ export function shotCountLabel(count: number): string {
   return `${count} ${count === 1 ? 'shot' : 'shots'}`;
 }
 
+/** "1 frame", "24 frames": the word the Film Log, roll page, hubs and Save to
+ * roll use. */
+export function frameCountLabel(count: number): string {
+  return `${count} ${count === 1 ? 'frame' : 'frames'}`;
+}
+
 /** The line under a roll's label: its film (when the label is a name, not the
- * film itself) and how many shots it holds. */
+ * film itself) and how many frames it holds. */
 export function rollSubtitle(
   roll: Pick<FilmRoll, 'name' | 'filmStockName' | 'shots'>
 ): string {
   const film = roll.name?.trim() ? roll.filmStockName : undefined;
-  return [film, shotCountLabel(roll.shots.length)].filter(Boolean).join(' · ');
+  return [film, frameCountLabel(roll.shots.length)].filter(Boolean).join(' · ');
 }
