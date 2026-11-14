@@ -12,7 +12,14 @@ import { shouldIgnoreExportTap } from '@/lib/export-tap-guard';
 import { csvFileName, gpxFileName, rollToCsv } from '@/lib/film-log-csv';
 import { buildRollsExport } from '@/lib/film-log-export';
 import { buildRollGpx } from '@/lib/film-log-gpx';
-import { getCameras, getLenses, getRolls } from '@/lib/film-log-storage';
+import {
+  getCameras,
+  getCustomBrands,
+  getCustomMounts,
+  getLenses,
+  getRolls,
+} from '@/lib/film-log-storage';
+import { cameraDisplayName } from '@/lib/gear-display';
 import type { FilmRoll } from '@/schemas/film-log.schema';
 
 /** Opens the share sheet with the full log serialized as pretty JSON. */
@@ -21,6 +28,8 @@ export async function shareRollsAsJson(): Promise<void> {
     rolls: getRolls(),
     cameras: getCameras(),
     lenses: getLenses(),
+    customBrands: getCustomBrands(),
+    customMounts: getCustomMounts(),
     exportedAt: new Date().toISOString(),
   });
   await Share.share({ message: JSON.stringify(payload, null, 2) });
@@ -81,9 +90,10 @@ async function shareRollFile(
       Alert.alert('Export failed', 'That roll no longer exists.');
       return;
     }
-    const cameraName =
-      getCameras().find((camera) => camera.id === roll.cameraId)?.name ??
-      'Unknown camera';
+    const camera = getCameras().find(
+      (candidate) => candidate.id === roll.cameraId
+    );
+    const cameraName = camera ? cameraDisplayName(camera) : 'Unknown camera';
     const lensNames = new Map(getLenses().map((lens) => [lens.id, lens.name]));
     const file = format.build(roll, {
       cameraName,

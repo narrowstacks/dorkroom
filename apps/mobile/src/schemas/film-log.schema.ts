@@ -33,14 +33,50 @@ export const filmStockSchema = z.object({
   process: filmProcessSchema,
 });
 
+/** An optional field that reads as absent when its stored value is malformed,
+ * so one bad value costs only that value. */
+const tolerant = <T extends z.ZodType>(schema: T) =>
+  schema.optional().catch(undefined);
+
+/**
+ * The lens built into a fixed-lens camera (a point and shoot, a Fuji GW690).
+ * Every field is optional and tolerant, and the object is loose so keys a
+ * newer build adds survive; `{}` is a fixed-lens camera whose lens is not
+ * described. It is not a saved `Lens`: a frame shot with it records the lens
+ * as the `Shot.fixedLensName` snapshot instead of a `lensId` (see
+ * `lib/camera-lenses.ts`).
+ */
+const fixedLensFields = {
+  /** Optional display name, e.g. "EBC Fujinon 90mm". */
+  name: tolerant(z.string()),
+  focalLength: tolerant(z.number().positive()),
+  maxAperture: tolerant(z.number().positive()),
+};
+
+export const fixedLensSchema = z.looseObject(fixedLensFields);
+
 export const cameraSchema = z.object({
   id: z.string(),
+  /** The model ("Bessa R"). Never rewritten: older cameras may hold the brand
+   * too ("Nikon FM2"); `cameraDisplayName` avoids doubling it. */
   name: z.string(),
   format: cameraFormatSchema,
   /** Holder/back labels for multi-back or sheet-film bodies, e.g. ['A12 #1','A12 #2']. */
   backs: z.array(z.string()).optional(),
   notes: z.string().optional(),
   createdAt: z.string(),
+  // #733. All optional and tolerant: a malformed value reads as absent and
+  // never fails the camera. Nothing is written until the user edits the camera.
+  /** The maker as display text: a built-in brand's name ("Voigtländer") or
+   * what the user typed. Text, not an id, so it can never be unresolvable. */
+  brand: tolerant(z.string()),
+  /** A built-in mount id (`gear-catalog.ts`) or a user-added one
+   * (`custom-mount-...`). Unknown ids show as "Unknown mount". */
+  mountId: tolerant(z.string()),
+  /** Present for a fixed-lens camera. A camera has a mount, a fixed lens or
+   * neither; the forms never write both, and if both are stored the fixed lens
+   * wins (`cameraLensKind`). */
+  fixedLens: fixedLensSchema.optional().catch(undefined),
 });
 
 export const lensSchema = z.object({
@@ -52,6 +88,27 @@ export const lensSchema = z.object({
   maxAperture: z.number().optional(),
   notes: z.string().optional(),
   createdAt: z.string(),
+  // #733, tolerant like the camera's.
+  /** The maker as display text, as on a camera. */
+  brand: tolerant(z.string()),
+  /** The lens mount: the lens is offered on every camera with the same
+   * `mountId`, as well as on the camera `cameraId` pins it to. */
+  mountId: tolerant(z.string()),
+});
+
+/** A brand the user added that the built-in list lacks (`customBrands`). */
+export const customBrandSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  createdAt: tolerant(z.string()),
+});
+
+/** A lens mount the user added (`customMounts`); its `id` is what cameras and
+ * lenses store in `mountId`. */
+export const customMountSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  createdAt: tolerant(z.string()),
 });
 
 export const shotPhotoSchema = z.object({
@@ -64,11 +121,6 @@ export const shotPhotoSchema = z.object({
   /** True when the stored file was desaturated for a B&W roll. */
   grayscale: z.boolean().optional(),
 });
-
-/** An optional field that reads as absent when its stored value is malformed,
- * so one bad value costs only that value. */
-const tolerant = <T extends z.ZodType>(schema: T) =>
-  schema.optional().catch(undefined);
 
 /**
  * Where a frame was taken, recorded only when the user asked for it. Same rules
@@ -99,6 +151,10 @@ export const shotSchema = z.object({
   photo: shotPhotoSchema.optional(),
   // ISO is a roll-level property (the rated EI); shots inherit FilmRoll.iso.
   lensId: z.string().optional(),
+  /** Snapshot of a fixed-lens camera's lens ("90mm f/3.5"), set instead of
+   * `lensId` for a frame shot with it (#733), so the frame keeps its lens
+   * when the camera is later edited or deleted. Tolerant. */
+  fixedLensName: tolerant(z.string()),
   /** Per-shot holder/back override (defaults to the roll's `back`). */
   back: z.string().optional(),
   notes: z.string().optional(),
@@ -178,12 +234,20 @@ export const camerasSchema = z.array(cameraSchema);
 export const lensesSchema = z.array(lensSchema);
 export const rollsSchema = z.array(filmRollSchema);
 export const customFilmsSchema = z.array(filmStockSchema);
+export const customBrandsSchema = z.array(customBrandSchema);
+export const customMountsSchema = z.array(customMountSchema);
 
 export type FilmProcess = z.infer<typeof filmProcessSchema>;
 export type CameraFormat = z.infer<typeof cameraFormatSchema>;
 export type FilmStock = z.infer<typeof filmStockSchema>;
 export type Camera = z.infer<typeof cameraSchema>;
 export type Lens = z.infer<typeof lensSchema>;
+/** A stored fixed lens: the fields below plus any key a newer build added. */
+export type FixedLens = z.infer<typeof fixedLensSchema>;
+/** The fixed lens's known fields only, for building one. */
+export type FixedLensFields = z.output<z.ZodObject<typeof fixedLensFields>>;
+export type CustomBrand = z.infer<typeof customBrandSchema>;
+export type CustomMount = z.infer<typeof customMountSchema>;
 export type ShotPhoto = z.infer<typeof shotPhotoSchema>;
 /** A stored location: the fields below plus any key a newer build added. Read it. */
 export type ShotLocation = z.infer<typeof shotLocationSchema>;

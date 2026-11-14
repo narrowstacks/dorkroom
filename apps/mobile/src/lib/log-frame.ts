@@ -6,6 +6,7 @@ import {
   formatShutterSpeed,
   sanitizeText,
 } from '@dorkroom/logic';
+import type { LensChoice } from '@/lib/camera-lenses';
 import { nextFrameNumber, rollLabel } from '@/lib/film-log-options';
 import {
   formatCoordinatesCompact,
@@ -14,7 +15,6 @@ import {
 import { spokenDuration } from '@/lib/spoken-time';
 import type {
   FilmRoll,
-  Lens,
   Shot,
   ShotLocationFields,
   ShotPhoto,
@@ -48,6 +48,8 @@ export function buildLoggedShot(input: {
   roll: FilmRoll;
   reading: FrameReading;
   lensId?: string;
+  /** A fixed-lens camera's lens snapshot, set instead of `lensId`. */
+  fixedLensName?: string;
   place?: string;
   location?: ShotLocationFields;
   notes?: string;
@@ -66,6 +68,7 @@ export function buildLoggedShot(input: {
     shot.shutterSpeed = reading.shutterSpeed;
   }
   if (input.lensId) shot.lensId = input.lensId;
+  else if (input.fixedLensName) shot.fixedLensName = input.fixedLensName;
   const place = cleaned(input.place, PLACE_MAX);
   if (place) shot.place = place;
   if (input.location && isUsableLocation(input.location)) {
@@ -114,7 +117,7 @@ export function placeRowLabel(
  * leads: a chip the user taps stays where it is.
  */
 export function lensChipOptions(
-  lenses: readonly Lens[],
+  lenses: readonly LensChoice[],
   leadId?: string
 ): { label: string; value: string; accessibilityLabel: string }[] {
   const lead = lenses.find((lens) => lens.id === leadId);
@@ -133,10 +136,10 @@ export function lensChipOptions(
  * lens) when it is still one of the camera's lenses, else none. A deleted
  * lens, or one that belongs to another body, is no pick.
  */
-export function selectedLens(
-  lenses: readonly Lens[],
+export function selectedLens<T extends LensChoice>(
+  lenses: readonly T[],
   pickedId: string | undefined
-): Lens | undefined {
+): T | undefined {
   return pickedId === undefined
     ? undefined
     : lenses.find((lens) => lens.id === pickedId);
@@ -288,12 +291,4 @@ export function isoMismatchNote(
   }
   const verb = source === 'meter' ? 'Metered at' : 'Worked out for';
   return `${verb} ISO ${reading.iso}; this roll is rated EI ${roll.iso}.`;
-}
-
-/** True when lenses exist but none is picked: the frame cannot be logged yet. */
-export function needsLens(
-  lenses: readonly Lens[],
-  lensId: string | undefined
-): boolean {
-  return lenses.length > 0 && !lensId;
 }

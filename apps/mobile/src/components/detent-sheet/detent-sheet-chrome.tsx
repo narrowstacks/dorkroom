@@ -7,6 +7,7 @@ import {
   HEADER_HEIGHT,
 } from '@/components/detent-sheet/detent-sheet-layout';
 import type { useKeepFieldVisible } from '@/components/stage/use-keep-field-visible';
+import { CHROME_MAX_FONT_SCALE } from '@/theme/tokens';
 import { usePhaseHue } from '@/theme/use-phase-accent';
 
 type Gesture = ComponentProps<typeof GestureDetector>['gesture'];
@@ -60,10 +61,10 @@ export function GrabStrip({ gesture, stripHeight, resizable }: GrabStripProps) {
 
 /**
  * The header row is a fixed 44pt, like a navigation bar, so its labels stop
- * growing at this text scale (as UIKit's bar items do); past it, Cancel ran
+ * growing at the chrome cap (as UIKit's bar items do); past it, Cancel ran
  * into the title and both were cut off at the top.
  */
-const HEADER_MAX_FONT_SCALE = 1.3;
+const HEADER_MAX_FONT_SCALE = CHROME_MAX_FONT_SCALE;
 
 interface DetentHeaderProps {
   gesture: Gesture;

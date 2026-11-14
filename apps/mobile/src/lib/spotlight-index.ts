@@ -15,7 +15,9 @@ import {
   formatRecipeTime,
   resolveDilution,
 } from '@/components/development/recipe-format';
+import { frameLensName } from '@/lib/camera-lenses';
 import { rollLabel, rollStatusLabel } from '@/lib/film-log-options';
+import { cameraDisplayName } from '@/lib/gear-display';
 import { framesLabel } from '@/lib/widgets/roll-widget-props';
 import type { Camera, FilmRoll, Lens } from '@/schemas/film-log.schema';
 
@@ -99,9 +101,13 @@ export function rollSpotlightItem(
 ): SpotlightItem | null {
   const id = spotlightPath('rolls', roll.id);
   if (id === null) return null;
-  const camera = cameras.find((c) => c.id === roll.cameraId)?.name;
-  const lensNames = roll.shots.map(
-    (shot) => lenses.find((lens) => lens.id === shot.lensId)?.name
+  const found = cameras.find((c) => c.id === roll.cameraId);
+  const camera = found ? cameraDisplayName(found) : undefined;
+  const lensNames = roll.shots.map((shot) =>
+    frameLensName(
+      shot,
+      (lensId) => lenses.find((lens) => lens.id === lensId)?.name
+    )
   );
   const description = joinParts([
     camera,

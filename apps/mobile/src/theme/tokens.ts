@@ -12,6 +12,13 @@ export const readoutText: TextStyle = {
   fontVariant: ['tabular-nums'],
 };
 
+/**
+ * Chrome text (a sheet's header, bar-like rows) stops growing with Dynamic
+ * Type at this scale, as UIKit's bar items do: the rows have a fixed 44pt
+ * height, and past it labels ran into each other and were cut off.
+ */
+export const CHROME_MAX_FONT_SCALE = 1.3;
+
 /** Shared design tokens mirrored from the web palette. */
 export const tokens = {
   color: {
