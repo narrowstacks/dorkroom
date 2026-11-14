@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { ROLL_ROW_STACK_FONT_SCALE } from '@/lib/film-log-list';
 import type { Shot } from '@/schemas/film-log.schema';
 import {
   FRAME_NUMBER_COLUMN_WIDTH,
   frameNumberColumnWidth,
   frameNumberLabel,
   frameRowText,
+  stacksFrameRow,
 } from './frame-row-text';
 
 function shot(over: Partial<Shot> = {}): Shot {
@@ -115,5 +117,16 @@ describe('frameNumberColumnWidth', () => {
   it('falls back to the normal width for a bad scale', () => {
     expect(frameNumberColumnWidth(0)).toBe(FRAME_NUMBER_COLUMN_WIDTH);
     expect(frameNumberColumnWidth(Number.NaN)).toBe(FRAME_NUMBER_COLUMN_WIDTH);
+  });
+});
+
+describe('stacksFrameRow', () => {
+  it('stacks from the font scale a roll row stacks at, and not below it', () => {
+    expect(stacksFrameRow(1)).toBe(false);
+    expect(stacksFrameRow(1.35)).toBe(false);
+    expect(stacksFrameRow(ROLL_ROW_STACK_FONT_SCALE - 0.01)).toBe(false);
+    expect(stacksFrameRow(ROLL_ROW_STACK_FONT_SCALE)).toBe(true);
+    expect(stacksFrameRow(3.1)).toBe(true);
+    expect(ROLL_ROW_STACK_FONT_SCALE).toBe(1.5);
   });
 });

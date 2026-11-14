@@ -108,6 +108,8 @@ underneath. The hubs have no gear: Home's search row ends in a 44pt gear
 (`HomeSettingsButton`) that pushes it. The screen resets the phase context so
 Settings keeps the neutral glow. Pushed screens keep the native back button: it
 shows the previous scene's title (the phase name on a hub, "Search" on Home).
+Its About links are `ToolListRow`s with `external`: role link, spoken "GitHub,
+opens in the browser", the chevron hidden from VoiceOver.
 
 **Legacy paths.** Quick actions (`app.json`), App Intents, `dorkroom://` links
 and old shares still carry pre-phase paths (`/more/meter`, `/lenses`,
@@ -117,7 +119,7 @@ passes everything else through (`/search` is Home; legacy `/settings` and `/more
 `/shoot/settings`, `/develop/settings` and `/print/settings`, open `/settings`).
 Two links come from the Control Center controls (below). `dorkroom://log-frame`
 is rewritten in `redirectSystemPath` by `resolveLogFrameLink` (`deep-link.ts`,
-pure, the roll passed in) to the add-shot form for the roll the Meter logs to
+pure, the roll passed in) to the Add frame form for the roll the Meter logs to
 (`/shoot/film-log/shot?rollId=<id>`, from `currentMeterRollId` in
 `src/lib/meter-roll.ts`, the same pick as `useMeterRoll`), or to the film log
 list when no roll is active (`logFrameTarget`). A link to one roll
@@ -259,7 +261,9 @@ Meter keep logging to this roll until another is picked) and opens the Meter
 with `openToolPath`, pushed on the Shoot stack, so Back returns to the roll.
 The track becomes a column from iOS XXL (`stacksLifecycleTrack`, 1.2: in a
 row it needs about 320pt, more than a 375pt phone has there) and its labels
-can wrap; at the accessibility text sizes (`stacksSummary`) the counts,
+can wrap; its step glyphs scale with the text (`lifecycleGlyphSize`, 14pt at
+the default size, capped at 2x: content may pass the 1.3x the chrome is capped
+at, but a glyph taller than its label only crowds the track); at the accessibility text sizes (`stacksSummary`) the counts,
 thumbnail and Meter stack too. Under it, "Frames" and the frames
 as one grouped list of `FrameRow`s (`groupRowClassName`, virtualized): the
 edge number (`frameNumberLabel`, "07") in a fixed column in the phase hue
@@ -270,7 +274,11 @@ a thumbnail with an outline only when the frame has a photo, the exposure
 the first line of the notes (one line, wrapping at the accessibility sizes),
 and grey `mappin` and
 `camera.metering.center.weighted` glyphs for a location and a frame logged
-from the Meter. `frameRowText` (pure) builds the text and the one VoiceOver
+from the Meter. From the accessibility text sizes (`stacksFrameRow`, the same
+1.5 threshold as `stacksRollRow`) the row stacks: number, thumbnail and glyphs
+on a first line, the text lines full width below, so the number column and
+glyphs never squeeze the text into a strip. The wrapper, tap, long press and
+context menu are the same either way. `frameRowText` (pure) builds the text and the one VoiceOver
 label ("Frame 7, f/8, 1/125, Color Skopar, Embarcadero, has location, logged
 from the Meter", notes included; never coordinates). A tap opens the shot
 form; the row is an expo-router `Link` with `Link.Menu`, so a long press shows
@@ -391,7 +399,14 @@ roll the Meter logs to.
   negatives), and Shoot's card is a group of two rows, the roll with the Film
   Log's In camera `StatusPill` and a plain "Mark as shot" `Button` aligned to
   the row text. Hub rows say "frames" (`frameCountLabel`, `rollSubtitle`,
-  `rollToDevelopLine`; the Save to roll card shares the last). A Recent negatives row shows what the roll was
+  `rollToDevelopLine`; the Save to roll card shares the last). These are display
+  strings: a count keeps its unit (`frameCountDisplay`, no-break spaces, so a
+  large size never wraps "2 / frames") and each " · " is bound to the fact after
+  it (`joinFacts`, the dot then a no-break space), so a wrap never leaves a dot
+  dangling at a line end. No-break spaces are for
+  display strings only: every accessibility label built from one runs it
+  through `spokenText` (back to plain spaces), so they never reach VoiceOver. The Film Log
+  row detail and caption use the same helpers. A Recent negatives row shows what the roll was
   developed in, else "Developed Nov 13" from the date the development record
   stores (`recentNegativeLine`), then its frame count only when it has frames.
   Back after "N more" or a Recent negatives row: both use `openToolPath`, so

@@ -2,7 +2,12 @@
 // Pure, so the copy is tested. Hubs say "frames", like the Film Log list and a
 // roll's page.
 import { rollDateLabel } from '@/lib/film-log-list';
-import { frameCountLabel, rollLabel } from '@/lib/film-log-options';
+import {
+  frameCountDisplay,
+  joinFacts,
+  rollLabel,
+  spokenText,
+} from '@/lib/film-log-options';
 import {
   developedInLabel,
   recentDevelopedRolls,
@@ -16,7 +21,8 @@ import type { FilmRoll } from '@/schemas/film-log.schema';
  * roll has a recipe, else the date its development record stores ("Developed
  * Nov 13"; "Developed" alone when that date does not parse), then its frame
  * count, left out for a roll with none so "0 frames" is never the only detail.
- * Nothing here comes from a date the roll does not store.
+ * Nothing here comes from a date the roll does not store. A display string:
+ * the count keeps together and a wrap never strands a separator.
  */
 export function recentNegativeLine(
   roll: Pick<FilmRoll, 'shots' | 'development'>,
@@ -29,8 +35,8 @@ export function recentNegativeLine(
     : '';
   const developed = recipe ?? (date ? `Developed ${date}` : 'Developed');
   const frames =
-    roll.shots.length > 0 ? frameCountLabel(roll.shots.length) : undefined;
-  return [developed, frames].filter(Boolean).join(' · ');
+    roll.shots.length > 0 ? frameCountDisplay(roll.shots.length) : undefined;
+  return joinFacts([developed, frames]);
 }
 
 /** The one spoken label of a recent negatives row. */
@@ -39,7 +45,7 @@ export function recentNegativeLabel(
   now: Date,
   locale?: string
 ): string {
-  return `${rollLabel(roll)}, ${recentNegativeLine(roll, now, locale)}`;
+  return `${rollLabel(roll)}, ${spokenText(recentNegativeLine(roll, now, locale))}`;
 }
 
 /** What the hubs know about the user's rolls. */

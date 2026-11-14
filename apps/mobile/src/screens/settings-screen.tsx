@@ -81,6 +81,7 @@ export function SettingsScreen() {
             key="github"
             label="GitHub"
             accessoryText="›"
+            external
             onPress={() =>
               Linking.openURL('https://github.com/narrowstacks/dorkroom')
             }
@@ -89,6 +90,7 @@ export function SettingsScreen() {
             key="newsletter"
             label="Newsletter"
             accessoryText="›"
+            external
             onPress={() => Linking.openURL('https://news.dorkroom.art')}
           />
         </LabeledGroup>

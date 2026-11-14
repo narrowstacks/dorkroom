@@ -126,13 +126,14 @@ describe('matchFilmLog', () => {
     expect(matchFilmLog('spring', data([r])).rolls[0]).toEqual({
       rollId: 'a',
       title: 'Spring',
-      subtitle: 'Nikon FM2 · HP5+ · EI\u00a01600 · 2\u00a0frames',
+      subtitle:
+        'Nikon FM2 \u00b7\u00a0HP5+ \u00b7\u00a0EI\u00a01600 \u00b7\u00a02\u00a0frames',
       status: 'In camera',
       inCamera: true,
     });
     const developed = roll('b', { name: 'Spring', status: 'developed' });
     expect(matchFilmLog('spring', data([developed])).rolls[0].subtitle).toBe(
-      'Nikon FM2 · 0\u00a0frames'
+      'Nikon FM2 \u00b7\u00a00\u00a0frames'
     );
   });
 
@@ -141,7 +142,7 @@ describe('matchFilmLog', () => {
     expect(matchFilmLog('hp5', data([r])).rolls[0]).toEqual({
       rollId: 'a',
       title: 'Spring',
-      subtitle: 'Nikon FM2 · HP5+ · 0\u00a0frames',
+      subtitle: 'Nikon FM2 \u00b7\u00a0HP5+ \u00b7\u00a00\u00a0frames',
       status: 'Shot',
       inCamera: false,
     });
@@ -224,10 +225,14 @@ describe('matchFilmLog', () => {
       roll('b', { cameraId: 'rb' }),
     ]);
     expect(matchFilmLog('mamiya', d).cameras).toEqual([
-      { cameraId: 'rb', title: 'Mamiya RB67', subtitle: '120 · 2 rolls' },
+      {
+        cameraId: 'rb',
+        title: 'Mamiya RB67',
+        subtitle: '120 \u00b7\u00a02 rolls',
+      },
     ]);
     expect(matchFilmLog('nikon', d).cameras[0].subtitle).toBe(
-      '35mm · No rolls'
+      '35mm \u00b7\u00a0No rolls'
     );
     // A camera is not found through a roll's film or notes.
     expect(matchFilmLog('film', d).cameras).toEqual([]);

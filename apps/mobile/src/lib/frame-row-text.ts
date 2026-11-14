@@ -1,6 +1,7 @@
 // One frame's row on a roll's page: the edge number, the exposure, the lens
 // and place, and one spoken label. Pure, so the wording is tested.
 import { formatAperture, formatShutterSpeed } from '@dorkroom/logic';
+import { stacksRollRow } from '@/lib/film-log-list';
 import { isUsableLocation } from '@/lib/frame-location-format';
 import type { Shot } from '@/schemas/film-log.schema';
 
@@ -88,4 +89,11 @@ export const FRAME_NUMBER_COLUMN_WIDTH = 36;
 export function frameNumberColumnWidth(fontScale: number): number {
   const scale = Number.isFinite(fontScale) && fontScale > 0 ? fontScale : 1;
   return Math.ceil(FRAME_NUMBER_COLUMN_WIDTH * scale);
+}
+
+/** From the same text size a roll row stacks at, a frame row stacks too: the
+ * number and glyphs on a first line, the text lines full width below, so the
+ * fixed number column and the glyphs never squeeze the text into a strip. */
+export function stacksFrameRow(fontScale: number): boolean {
+  return stacksRollRow(fontScale);
 }

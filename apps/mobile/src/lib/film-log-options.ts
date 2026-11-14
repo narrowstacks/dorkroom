@@ -117,11 +117,43 @@ export function frameCountLabel(count: number): string {
   return `${count} ${count === 1 ? 'frame' : 'frames'}`;
 }
 
+/** Joins a short fact's words with no-break spaces, so a wrapping line breaks
+ * between facts and never inside one ("2 / frames"). Display strings only. */
+export function keepTogether(text: string): string {
+  return text.replace(/ /g, '\u00a0');
+}
+
+/** `frameCountLabel` for a line that can wrap: "24 frames" never breaks. */
+export function frameCountDisplay(count: number): string {
+  return keepTogether(frameCountLabel(count));
+}
+
+/**
+ * Joins the facts of a detail line with " · ", each separator bound to the fact
+ * after it by a no-break space, so a wrap starts the next line with the dot
+ * and never leaves one dangling at a line end. Display strings only: run the
+ * result through `spokenText` for an accessibility label.
+ */
+export function joinFacts(
+  facts: readonly (string | undefined | false)[]
+): string {
+  return facts
+    .filter((fact): fact is string => Boolean(fact))
+    .map((fact, index) => (index === 0 ? fact : `\u00b7\u00a0${fact}`))
+    .join(' ');
+}
+
+/** A display string as plain words for VoiceOver: no-break spaces become
+ * spaces, so "A ·\u00a0B" reads "A · B". */
+export function spokenText(display: string): string {
+  return display.replace(/\u00a0/g, ' ');
+}
+
 /** The line under a roll's label: its film (when the label is a name, not the
- * film itself) and how many frames it holds. */
+ * film itself) and how many frames it holds. A display string. */
 export function rollSubtitle(
   roll: Pick<FilmRoll, 'name' | 'filmStockName' | 'shots'>
 ): string {
   const film = roll.name?.trim() ? roll.filmStockName : undefined;
-  return [film, frameCountLabel(roll.shots.length)].filter(Boolean).join(' · ');
+  return joinFacts([film, frameCountDisplay(roll.shots.length)]);
 }

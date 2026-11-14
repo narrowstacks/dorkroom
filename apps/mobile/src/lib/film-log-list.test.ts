@@ -28,20 +28,22 @@ describe('filmLogCaption', () => {
         9
       )
     ).toBe(
-      '2026: 9 rolls, 23 frames. All time, most shot: HP5 Plus; most used camera: FM2.'
+      '2026: 9 rolls, 23\u00a0frames. All time, most shot: HP5 Plus; most used camera: FM2.'
     );
   });
 
   it('reads naturally with a personal camera name', () => {
     expect(
       filmLogCaption(stats({ topCamera: lead("Dad's FM2") }), 2026, 9)
-    ).toBe("2026: 9 rolls, 23 frames. All time, most used camera: Dad's FM2.");
+    ).toBe(
+      "2026: 9 rolls, 23\u00a0frames. All time, most used camera: Dad's FM2."
+    );
   });
 
   it('names the film alone when only the film leads', () => {
     expect(
       filmLogCaption(stats({ topFilm: lead('Portra 400', 2) }), 2026, 9)
-    ).toBe('2026: 9 rolls, 23 frames. All time, most shot: Portra 400.');
+    ).toBe('2026: 9 rolls, 23\u00a0frames. All time, most shot: Portra 400.');
   });
 
   it('is null below three rolls, where it would only repeat the rows', () => {
@@ -58,19 +60,19 @@ describe('filmLogCaption', () => {
     ).toBeNull();
     expect(
       filmLogCaption(stats({ rollsThisYear: 3, framesThisYear: 3 }), 2026, 3)
-    ).toBe('2026: 3 rolls, 3 frames.');
+    ).toBe('2026: 3 rolls, 3\u00a0frames.');
   });
 
   it('uses the singular for one roll and one frame this year', () => {
     expect(
       filmLogCaption(stats({ rollsThisYear: 1, framesThisYear: 1 }), 2026, 4)
-    ).toBe('2026: 1 roll, 1 frame.');
+    ).toBe('2026: 1 roll, 1\u00a0frame.');
   });
 
   it('counts zero frames plainly', () => {
     expect(
       filmLogCaption(stats({ rollsThisYear: 3, framesThisYear: 0 }), 2026, 3)
-    ).toBe('2026: 3 rolls, 0 frames.');
+    ).toBe('2026: 3 rolls, 0\u00a0frames.');
   });
 
   it('says so when no roll was started this year', () => {
@@ -97,7 +99,7 @@ describe('filmLogCaption', () => {
         2026,
         9
       )
-    ).toBe('2026: 9 rolls, 23 frames.');
+    ).toBe('2026: 9 rolls, 23\u00a0frames.');
   });
 
   it('leaves out a tied film or camera', () => {
@@ -111,12 +113,12 @@ describe('filmLogCaption', () => {
         9
       );
     expect(caption(true, false)).toBe(
-      '2026: 9 rolls, 23 frames. All time, most used camera: FM2.'
+      '2026: 9 rolls, 23\u00a0frames. All time, most used camera: FM2.'
     );
     expect(caption(false, true)).toBe(
-      '2026: 9 rolls, 23 frames. All time, most shot: HP5 Plus.'
+      '2026: 9 rolls, 23\u00a0frames. All time, most shot: HP5 Plus.'
     );
-    expect(caption(true, true)).toBe('2026: 9 rolls, 23 frames.');
+    expect(caption(true, true)).toBe('2026: 9 rolls, 23\u00a0frames.');
   });
 });
 
@@ -212,7 +214,7 @@ describe('rollRowText', () => {
       )
     ).toEqual({
       title: 'Ilford XP2 Super',
-      detail: 'Bessa R · EI\u00a0400 · 7\u00a0frames',
+      detail: 'Bessa R \u00b7\u00a0EI\u00a0400 \u00b7\u00a07\u00a0frames',
       status: 'In camera',
       accessibilityLabel:
         'Ilford XP2 Super, In camera, Bessa R, EI 400, 7 frames, started Nov 1',
@@ -231,7 +233,9 @@ describe('rollRowText', () => {
       'Oct 2, 2025'
     );
     expect(text.title).toBe('Paris trip');
-    expect(text.detail).toBe('FM2 · Portra 400 · 1\u00a0frame');
+    expect(text.detail).toBe(
+      'FM2 \u00b7\u00a0Portra 400 \u00b7\u00a01\u00a0frame'
+    );
     expect(text.status).toBe('Developed');
     expect(text.accessibilityLabel).toBe(
       'Paris trip, Portra 400, Developed, FM2, 1 frame, started Oct 2, 2025'
@@ -245,7 +249,9 @@ describe('rollRowText', () => {
       'Nov 1'
     );
     expect(text.title).toBe('Roll');
-    expect(text.detail).toBe('FM2 · EI\u00a0200 · 2\u00a0frames');
+    expect(text.detail).toBe(
+      'FM2 \u00b7\u00a0EI\u00a0200 \u00b7\u00a02\u00a0frames'
+    );
     expect(text.accessibilityLabel).toBe(
       'Roll, In camera, FM2, EI 200, 2 frames, started Nov 1'
     );
@@ -258,7 +264,7 @@ describe('rollRowText', () => {
       'Nov 1'
     );
     expect(text.title).toBe('Test roll');
-    expect(text.detail).toBe('FM2 · 0\u00a0frames');
+    expect(text.detail).toBe('FM2 \u00b7\u00a00\u00a0frames');
     expect(text.accessibilityLabel).toBe(
       'Test roll, Shot, FM2, 0 frames, started Nov 1'
     );

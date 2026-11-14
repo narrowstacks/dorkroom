@@ -105,6 +105,7 @@ export function CameraForm({ visible, camera, onClose }: CameraFormProps) {
             <View className="flex-1">
               <LabeledTextField
                 label=""
+                accessibilityLabel="New holder"
                 value={form.backDraft}
                 onChangeText={(v) => set('backDraft', v)}
                 placeholder="e.g. A12 #1 or Holder 3"
