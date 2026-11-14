@@ -12,7 +12,9 @@
 //   field starting with `=`, `@`, a tab or a CR, or with `+` or `-` directly
 //   followed by a letter, `(` or `=` (`-SUM(A1)`, `+cmd`). Ordinary values such
 //   as `-1 stop` or `+1 Main St` are left alone, since the apostrophe would
-//   otherwise land in image metadata. Numbers are never affected.
+//   otherwise land in image metadata. Numbers are never affected: `Latitude` and
+//   `Longitude` are plain decimals (6 places) and `Accuracy (m)` whole meters,
+//   all empty when the frame has no location (or no known accuracy), so a leading minus is never guarded.
 // - "Taken at" is local wall-clock time with an explicit offset (EXIF
 //   `DateTimeOriginal` is local time). The capture time zone is not stored, so
 //   a file exported in another zone shows that zone's local time.
@@ -22,6 +24,10 @@
 //   import the file through Excel's data import dialog (UTF-8) instead.
 import { formatReciprocityTime, formatShutterSpeed } from '@dorkroom/logic';
 import { rollLabel } from '@/lib/film-log-options';
+import {
+  formatAccuracyMeters,
+  formatCoordinateNumber,
+} from '@/lib/frame-location-format';
 import type { FilmRoll, Shot } from '@/schemas/film-log.schema';
 
 interface CsvNames {
@@ -117,6 +123,19 @@ const COLUMNS: Column[] = [
     cell: (shot, _roll, names) => textCell(names.lensName(shot.lensId)),
   },
   { header: 'Place', cell: (shot) => textCell(shot.place) },
+  // Plain decimals, never quoted or guarded: a leading minus is a number here.
+  {
+    header: 'Latitude',
+    cell: (shot) => formatCoordinateNumber(shot.location?.latitude),
+  },
+  {
+    header: 'Longitude',
+    cell: (shot) => formatCoordinateNumber(shot.location?.longitude),
+  },
+  {
+    header: 'Accuracy (m)',
+    cell: (shot) => formatAccuracyMeters(shot.location?.accuracyMeters),
+  },
   { header: 'Back', cell: (shot, roll) => textCell(shot.back ?? roll.back) },
   { header: 'Notes', cell: (shot) => textCell(shot.notes) },
 ];

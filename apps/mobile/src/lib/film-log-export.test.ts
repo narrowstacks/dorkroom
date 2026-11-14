@@ -57,6 +57,33 @@ describe('buildRollsExport', () => {
     expect(result.rolls[0]?.shots[0]?.place).toBe('Harbor');
   });
 
+  it("carries each shot's location through JSON, and none when absent", () => {
+    const location = {
+      latitude: 37.7749,
+      longitude: -122.4194,
+      accuracyMeters: 10,
+    };
+    const withLocation = buildRollsExport({
+      rolls: [
+        {
+          ...rolls[0],
+          shots: [
+            { id: 's1', frameNumber: 1, source: 'manual', location },
+            { id: 's2', frameNumber: 2, source: 'manual' },
+          ],
+        },
+      ],
+      cameras,
+      lenses,
+      exportedAt: '2026-06-23T00:00:00.000Z',
+    });
+    const parsed: { rolls: { shots: object[] }[] } = JSON.parse(
+      JSON.stringify(withLocation)
+    );
+    expect(parsed.rolls[0].shots[0]).toHaveProperty('location', location);
+    expect(parsed.rolls[0].shots[1]).not.toHaveProperty('location');
+  });
+
   it('adds human-readable exposure labels', () => {
     expect(result.rolls[0]?.shots[0]?.apertureLabel).toBe('f/8');
     expect(result.rolls[0]?.shots[0]?.shutterLabel).toBe('1/125');

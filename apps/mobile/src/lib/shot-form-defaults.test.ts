@@ -182,6 +182,7 @@ describe('shotFormFields', () => {
       notes: defaults.notes,
       place: defaults.place,
       photo: existing.photo,
+      location: defaults.location,
     };
   };
   const context = { showBacks: false, source: 'manual' as const };
@@ -243,6 +244,7 @@ describe('shotFormFields', () => {
         notes: defaults.notes,
         place: defaults.place,
         photo: undefined,
+        location: defaults.location,
       },
       { showBacks: true, source: 'meter' }
     );
@@ -261,6 +263,64 @@ describe('shotFormFields', () => {
         { ...fromShot(shot({ id: 'e', frameNumber: 1, back: 'A12' })) },
         context
       ).back
+    ).toBeUndefined();
+  });
+});
+
+describe('shot location', () => {
+  const location = { latitude: 37.7749, longitude: -122.4194 };
+  const fieldsFor = (existing: Shot, patch: Partial<ShotFormValues> = {}) => {
+    const defaults = shotFormDefaults({}, existing, undefined, []);
+    return shotFormFields(
+      {
+        frameNumber: existing.frameNumber,
+        aperture: defaults.aperture,
+        shutterSpeed: defaults.shutterSpeed,
+        lensId: defaults.lensId,
+        back: defaults.back,
+        notes: defaults.notes,
+        place: defaults.place,
+        photo: existing.photo,
+        location: defaults.location,
+        ...patch,
+      },
+      { showBacks: false, source: 'manual' }
+    );
+  };
+
+  it('starts an existing shot with its own location', () => {
+    expect(
+      shotFormDefaults({}, shot({ location }), undefined, []).location
+    ).toEqual(location);
+  });
+
+  it('keeps an existing location when only the notes change', () => {
+    expect(fieldsFor(shot({ location }), { notes: 'x' }).location).toEqual(
+      location
+    );
+  });
+
+  it('removes it when the user removes it', () => {
+    expect(
+      fieldsFor(shot({ location }), { location: undefined }).location
+    ).toBeUndefined();
+  });
+
+  it('does not give a new shot the previous frame location', () => {
+    const previous = { shots: [shot({ place: 'Harbor', location })] };
+    const defaults = shotFormDefaults({}, undefined, previous, []);
+    expect(defaults.place).toBe('Harbor');
+    expect(defaults.location).toBeUndefined();
+  });
+
+  it('ignores a location route param, even a valid one', () => {
+    const planted = JSON.stringify(location);
+    const params = { place: undefined, location: planted };
+    expect(
+      shotFormDefaults(params, undefined, roll, []).location
+    ).toBeUndefined();
+    expect(
+      shotFormDefaults(params, shot({ id: 'e' }), roll, []).location
     ).toBeUndefined();
   });
 });

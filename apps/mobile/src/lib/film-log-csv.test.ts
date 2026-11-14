@@ -9,7 +9,7 @@ import {
 } from './film-log-csv';
 
 const HEADER =
-  'Frame,Taken at (local ISO 8601),Aperture,Shutter (s),Shutter,ISO,Lens,Place,Back,Notes';
+  'Frame,Taken at (local ISO 8601),Aperture,Shutter (s),Shutter,ISO,Lens,Place,Latitude,Longitude,Accuracy (m),Back,Notes';
 
 function roll(shots: Shot[], patch: Partial<FilmRoll> = {}): FilmRoll {
   return {
@@ -47,7 +47,7 @@ const TAKEN_CELL = /^2026-07-01T12:00:05[+-]\d\d:\d\d$/;
 describe('rollToCsv', () => {
   it('is header only for an empty roll, with no preamble', () => {
     expect(rollToCsv(roll([]), names)).toBe(`${HEADER}\r\n`);
-    expect(CSV_HEADER).toHaveLength(10);
+    expect(CSV_HEADER).toHaveLength(13);
   });
 
   it('writes a full row with local time and no photo column', () => {
@@ -66,7 +66,7 @@ describe('rollToCsv', () => {
       names
     );
     expect(lines(csv)[1]).toBe(
-      `1,${localIso(new Date(TAKEN))},8,0.008,1/125,400,50mm f/1.8,Harbor,A12,fog`
+      `1,${localIso(new Date(TAKEN))},8,0.008,1/125,400,50mm f/1.8,Harbor,,,,A12,fog`
     );
   });
 
@@ -75,12 +75,39 @@ describe('rollToCsv', () => {
       roll([shot(3)], { iso: undefined, back: 'B2' }),
       names
     );
-    expect(lines(csv)[1]).toBe('3,,,,,,,,B2,');
+    expect(lines(csv)[1]).toBe('3,,,,,,,,,,,B2,');
+  });
+
+  it('writes latitude and longitude as plain 6 decimal numbers, unquoted', () => {
+    const csv = rollToCsv(
+      roll([
+        shot(1, {
+          place: 'Harbor',
+          location: { latitude: 37.7749, longitude: -122.419412 },
+        }),
+        shot(2, { location: { latitude: -33.9, longitude: 151.2 } }),
+        shot(3, {
+          location: { latitude: 1, longitude: 2, accuracyMeters: 12.6 },
+        }),
+      ]),
+      names
+    );
+    const rows = lines(csv);
+    expect(rows[1]).toBe('1,,,,,400,,Harbor,37.774900,-122.419412,,,');
+    expect(rows[2]).toBe('2,,,,,400,,,-33.900000,151.200000,,,');
+    expect(rows[3]).toBe('3,,,,,400,,,1.000000,2.000000,13,,');
+    expect(rows[1]).not.toContain("'");
+  });
+
+  it('leaves both columns empty for a frame without a location', () => {
+    expect(lines(rollToCsv(roll([shot(1)]), names))[1]).toBe(
+      '1,,,,,400,,,,,,,'
+    );
   });
 
   it('emits no placeholder for a zero shutter', () => {
     const csv = rollToCsv(roll([shot(1, { shutterSpeed: 0 })]), names);
-    expect(lines(csv)[1]).toBe('1,,,,,400,,,,');
+    expect(lines(csv)[1]).toBe('1,,,,,400,,,,,,,');
     expect(csv).not.toContain('\u2014');
   });
 
@@ -112,7 +139,7 @@ describe('rollToCsv', () => {
       roll([shot(1, { notes: 'a, "b"\nline two', place: 'x\r\ny' })]),
       names
     );
-    expect(csv).toContain('"x\r\ny",,"a, ""b""\nline two"');
+    expect(csv).toContain('"x\r\ny",,,,,"a, ""b""\nline two"');
   });
 
   it('keeps Unicode and leading or trailing spaces as written', () => {
@@ -120,7 +147,7 @@ describe('rollToCsv', () => {
       roll([shot(1, { place: '  Café 東京 \u{1F4F7}  ', notes: ' x ' })]),
       names
     );
-    expect(lines(csv)[1]).toContain(',  Café 東京 \u{1F4F7}  ,, x ');
+    expect(lines(csv)[1]).toContain(',  Café 東京 \u{1F4F7}  ,,,,, x ');
   });
 
   it('guards formula-like text but not numbers or ordinary values', () => {
@@ -139,7 +166,7 @@ describe('rollToCsv', () => {
     expect(cell('+1 Main St')).toBe('+1 Main St');
     expect(cell('plain')).toBe('plain');
     const row = lines(rollToCsv(roll([shot(1, { aperture: 8 })]), names))[1];
-    expect(row).toBe('1,,8,,,400,,,,');
+    expect(row).toBe('1,,8,,,400,,,,,,,');
   });
 
   it('guards a CR-prefixed field inside its quotes', () => {
