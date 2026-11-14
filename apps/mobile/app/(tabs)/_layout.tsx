@@ -92,8 +92,13 @@ export default function TabsLayout() {
       })}
       {/* Home is the search tab and the launch route: "/" opens it. The name is
           the `(home)` directory: a group folder with its own `_layout` is one
-          route of this navigator, holding Home and Settings as a stack. */}
-      <NativeTabs.Trigger name="(home)">
+          route of this navigator, holding Home and Settings as a stack. The
+          search role is the system search item: on iOS 27 it gives Search its
+          own button when the bar shrinks (expected to detach in the full bar on
+          iOS 26, unverified). Keep the Icon and Label, or the bar shows the
+          stock icon and the route name. */}
+      {/* eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- `role` here is the native tab bar item's system item, not an ARIA role */}
+      <NativeTabs.Trigger name="(home)" role="search">
         <NativeTabs.Trigger.Icon
           sf="magnifyingglass"
           selectedColor={on ? SAFELIGHT.text : NEUTRAL_SELECTED}

@@ -547,27 +547,29 @@ recipe's name after the prefill).
   roll until you leave and return (library behaviour, no app-side fix). The bar
   comes back only after enough upward scroll, and the bounce at the end of a
   short list counts as one (seen on the Simulator, not from the library source).
-  **Home is a plain last tab, not `role="search"` (#732, item 7).** The role
-  maps to react-native-screens' `systemItem: 'search'`, a legacy
+  **The Search trigger has `role="search"` (#732, item 7).** The role maps
+  to react-native-screens' `systemItem: 'search'`, a legacy
   `UITabBarItem(tabBarSystemItem: .search)` on a `viewControllers` tab bar
-  controller. react-native-screens 4.26.2 has no `UITab`/`UISearchTab` and
-  never sets `prominentTabIdentifier`. Seen on the iOS 27 Simulator with the
-  role set and the trigger's own Icon and Label kept: the full bar is
-  pixel-identical to the bar without it (Search stays inside the capsule), but
-  the MINIMIZED bar (Recipes, the film log, a roll) gains a separate Search
-  circle at the trailing side next to the selected tab's circle; tapping it
-  switches to Search. `tabPress` still fires for the system item, and the
-  re-tap focus below worked unchanged with it. That minimized circle is a
-  visible change on iOS 27, so the role is off.
-  Without its own Icon and Label the item shows the stock icon and the route
-  name "(home)" as its title, so keep both if the role is ever set
-  (`tool-manifest.test.ts` pins them). On iOS 26 the system item is expected
-  to detach into the separate trailing Search button (react-native-screens'
-  `systemItem` docs, Apple's iOS 26 tab bar) but this is UNVERIFIED until
-  checked on a device. Doing it properly on iOS 27 needs react-native-screens
-  to support `prominentTabIdentifier` or `UISearchTab` (a native change and a
-  rebuild). If the role is adopted, check first that the system adds no search
-  field of its own (Home has no native search controller).
+  controller; react-native-screens 4.26.2 has no `UITab`/`UISearchTab` and
+  never sets `prominentTabIdentifier`. On iOS 27 (Simulator): the full bar is
+  pixel-identical to the bar without the role (Search stays inside the
+  capsule), but the MINIMIZED bar (Recipes, the film log, a roll) shows a
+  separate Search circle at the trailing side, beside the selected tab's
+  circle. Tapping the selected tab's circle expands the bar, tapping the
+  Search circle switches to Search, and the full bar returns on scrolling
+  back up. A running timer's pill sits between the two circles without
+  overlapping, Safelight draws both circles black and red, and nothing clips
+  at the largest text size. `tabPress` still fires for the system item, so
+  the re-tap focus below works through it. The trigger keeps its own Icon and
+  Label: without them the item shows the stock icon and the route name
+  "(home)" as its title (`tool-manifest.test.ts` pins all three). On iOS 26
+  the system item is expected to detach into the separate trailing Search
+  button in the full bar too (react-native-screens' `systemItem` docs, Apple's
+  iOS 26 tab bar), but this is UNVERIFIED until checked on a device, as is
+  whether the system then adds a search field of its own (Home has no native
+  search controller, so it should not). A full Photos-style split bar on
+  iOS 27 needs react-native-screens to support `prominentTabIdentifier` or
+  `UISearchTab` (a native change and a rebuild).
   **Tapping Search again types** (`useSearchTabFocus`, `src/hooks/`, deciding
   in `searchTabPressAction`, `src/lib/home/search-tab-press.ts`, pure). A tap
   on a tab reaches JS as the tab navigator's `tabPress` for every tap, first

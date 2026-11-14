@@ -237,17 +237,19 @@ describe('tab layout', () => {
     expect(existsSync(join(TABS_DIR, 'index.tsx'))).toBe(false);
   });
 
-  it('gives the Search tab its own icon and label, and no system role', () => {
+  it('gives the Search tab the search role with its own icon and label', () => {
     const start = layout.indexOf('<NativeTabs.Trigger name="(home)"');
     expect(start).toBeGreaterThan(-1);
     const trigger = layout.slice(
       start,
       layout.indexOf('</NativeTabs.Trigger>', start)
     );
-    // `role="search"` adds a separate Search button to the minimized bar on
-    // iOS 27 (see the tabs notes in CLAUDE.md), so it stays off until chosen.
-    expect(trigger).toMatch(/^<NativeTabs\.Trigger name="\(home\)">/);
-    // The bar must never fall back to the route name or a stock icon.
+    // The search role gives Search its own button when the bar shrinks (see
+    // the tabs notes in CLAUDE.md). A system item without its own icon and
+    // label shows the stock icon and the route name "(home)" as its title.
+    expect(trigger).toMatch(
+      /^<NativeTabs\.Trigger name="\(home\)" role="search">/
+    );
     expect(trigger).toMatch(
       /<NativeTabs\.Trigger\.Icon\s+sf="magnifyingglass"/
     );
