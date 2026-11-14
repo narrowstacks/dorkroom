@@ -2,7 +2,7 @@
 // the native event. The press runs in the app process while iOS may be about to
 // suspend it again, so nothing here waits for a React render or the activity's
 // debounce: in order it changes the timer, settles the alerts with iOS, then
-// updates the activity right away. A press for an activity this process does
+// updates the activity right away, then the timer widget. A press for an activity this process does
 // not own (a cold background launch, a run that is gone) does nothing at all.
 // The tab bar accessory's pause button runs the same steps, without the
 // ownership check (it is pressed in the app, where the run is in memory).
@@ -37,6 +37,14 @@ export interface TimerActionDeps {
     /** Send the queued update now, bypassing the debounce. Resolves when iOS has it. */
     flushNow: () => Promise<void>;
   };
+  /**
+   * The Home Screen timer widget, told after the activity: `sync` offers the
+   * new schedule, `flushNow` pushes it without the debounce. Without this a
+   * press made with the app in the background reaches the widget only through
+   * a React render, which iOS may never allow before it suspends the app again,
+   * and the widget would go on counting through a pause.
+   */
+  widget?: { sync: () => void; flushNow: () => void };
 }
 
 export interface InteractionDeps extends TimerActionDeps {
@@ -57,7 +65,7 @@ export interface InteractionEvent {
 export function createTimerActionRunner(
   deps: TimerActionDeps
 ): (action: TimerAction) => Promise<void> {
-  const { store, alerts, activity } = deps;
+  const { store, alerts, activity, widget } = deps;
   return async (action) => {
     store.dispatch(action);
     store.sync();
@@ -67,7 +75,13 @@ export function createTimerActionRunner(
     } finally {
       // Even when the alerts failed, the activity must show the new state.
       activity.sync();
-      await activity.flushNow();
+      try {
+        await activity.flushNow();
+      } finally {
+        // Then the widget, even when the activity update failed.
+        widget?.sync();
+        widget?.flushNow();
+      }
     }
   };
 }

@@ -211,8 +211,11 @@ export function buildActivityProps(
   };
 }
 
-/** Timestamps closer than this are the same schedule seen a tick apart. */
-const TIME_TOLERANCE_MS = 750;
+/**
+ * Timestamps closer than this are the same schedule seen a tick apart. The
+ * timer widget's timeline comparison (`widget-timeline.ts`) uses it too.
+ */
+export const TIME_TOLERANCE_MS = 750;
 
 /**
  * Whether `next` differs from `prev` in anything the widget shows. The clock

@@ -57,6 +57,10 @@ function setup(owned: string | null = 'act-1') {
         log.push('flush');
       },
     },
+    widget: {
+      sync: () => log.push('widget-sync'),
+      flushNow: () => log.push('widget-flush'),
+    },
   });
   return { handler, log, getTimer: () => timer };
 }
@@ -71,7 +75,7 @@ describe('actionForTarget', () => {
 });
 
 describe('interaction handler', () => {
-  it('changes the timer, settles the alerts, then flushes the activity, in that order', async () => {
+  it('changes the timer, settles the alerts, flushes the activity, then the widget, in that order', async () => {
     const t = setup();
     await t.handler({ source: 'act-1', target: 'pause' });
     expect(t.log).toEqual([
@@ -81,6 +85,8 @@ describe('interaction handler', () => {
       'alerts-settled',
       'activity-sync',
       'flush',
+      'widget-sync',
+      'widget-flush',
     ]);
     expect(t.getTimer().status).toBe('paused');
   });
@@ -200,11 +206,21 @@ describe('interaction handler when the alerts fail', () => {
           calls.push('flush');
         },
       },
+      widget: {
+        sync: () => calls.push('widget-sync'),
+        flushNow: () => calls.push('widget-flush'),
+      },
     });
     await expect(handler({ source: 'a', target: 'pause' })).rejects.toThrow(
       'iOS refused'
     );
-    expect(calls).toEqual(['cancel-fails', 'activity-sync', 'flush']);
+    expect(calls).toEqual([
+      'cancel-fails',
+      'activity-sync',
+      'flush',
+      'widget-sync',
+      'widget-flush',
+    ]);
     // the claim was released: the same paused state asks iOS again
     failing = false;
     await handler({ source: 'a', target: 'pause' });
@@ -244,6 +260,10 @@ describe('timer action runner (the tab bar accessory)', () => {
           log.push('flush');
         },
       },
+      widget: {
+        sync: () => log.push('widget-sync'),
+        flushNow: () => log.push('widget-flush'),
+      },
     });
     await run({ type: 'PAUSE' });
     await run({ type: 'RESUME' });
@@ -253,12 +273,57 @@ describe('timer action runner (the tab bar accessory)', () => {
       'alerts:paused',
       'activity-sync',
       'flush',
+      'widget-sync',
+      'widget-flush',
       'dispatch:RESUME',
       'sync',
       'alerts:running',
       'activity-sync',
       'flush',
+      'widget-sync',
+      'widget-flush',
     ]);
     expect(timer.status).toBe('running');
+  });
+
+  it('still flushes the widget when the activity update fails', async () => {
+    const log: string[] = [];
+    let timer: TimerState = timerReducer(
+      createTimerState([stage('a', 60)]),
+      START
+    );
+    const run = createTimerActionRunner({
+      store: {
+        dispatch: (action) => {
+          timer = timerReducer(timer, action);
+        },
+        sync: () => {},
+        getSnapshot: () => ({
+          timer,
+          selectedPresetId: '',
+          alertsDenied: false,
+          anchorMs: T0,
+        }),
+      },
+      alerts: { ensure: async () => {} },
+      activity: {
+        sync: () => log.push('activity-sync'),
+        flushNow: async () => {
+          log.push('flush-fails');
+          throw new Error('activity gone');
+        },
+      },
+      widget: {
+        sync: () => log.push('widget-sync'),
+        flushNow: () => log.push('widget-flush'),
+      },
+    });
+    await expect(run({ type: 'PAUSE' })).rejects.toThrow('activity gone');
+    expect(log).toEqual([
+      'activity-sync',
+      'flush-fails',
+      'widget-sync',
+      'widget-flush',
+    ]);
   });
 });
