@@ -16,7 +16,6 @@ import {
 } from '@/components/camera-exposure/format';
 import { SaveToRollAction } from '@/components/film-log/save-to-roll-action';
 import { FormulaRow } from '@/components/formula-row';
-import { GlassCard } from '@/components/glass-card';
 import { Readout } from '@/components/readout';
 import { ResultRow } from '@/components/result-row';
 import { ResultStat } from '@/components/result-stat';
@@ -24,6 +23,7 @@ import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
 import { SegmentedControl } from '@/components/segmented-control';
 import { ShareButton } from '@/components/share-button';
+import { Surface } from '@/components/surface';
 import { WarningsCard } from '@/components/warnings-card';
 import { useLinkOverrides } from '@/hooks/use-link-overrides';
 import { readingFromValues } from '@/lib/log-frame';
@@ -103,7 +103,7 @@ function CameraExposureScreenBody({
         />
       }
     >
-      <GlassCard className="gap-3">
+      <Surface className="gap-3">
         <SectionLabel>Exposure A</SectionLabel>
         <ExposureTriangleFields
           aperture={values.aperture}
@@ -113,7 +113,7 @@ function CameraExposureScreenBody({
           onShutterSpeedChange={(v) => set('shutterSpeed', v)}
           onIsoChange={(v) => set('iso', v)}
         />
-      </GlassCard>
+      </Surface>
 
       {/* No invalid-EV fallback: the pickers only offer positive standard
           values and hydration only accepts positive numbers. */}
@@ -130,7 +130,7 @@ function CameraExposureScreenBody({
         />
       </View>
 
-      <GlassCard className="gap-3">
+      <Surface className="gap-3">
         <SectionLabel>Lighting presets</SectionLabel>
         <Text className="text-sm text-ink-60">
           Pick a scene. The calculator adjusts the value you choose to match.
@@ -150,18 +150,18 @@ function CameraExposureScreenBody({
           onChange={(v) => set('solveFor', v)}
         />
         <EvPresetGrid onSelect={onPresetSelect} />
-      </GlassCard>
+      </Surface>
 
       <WarningsCard warnings={warning ? [warning] : []} />
 
       {exposureValue.isValid && equivalentExposures.length > 0 ? (
-        <GlassCard className="gap-3">
+        <Surface className="gap-3">
           <SectionLabel>{`Equivalent exposures · EV ${exposureValue.ev} at ISO ${values.iso}`}</SectionLabel>
           <EquivalentExposureList exposures={equivalentExposures} />
-        </GlassCard>
+        </Surface>
       ) : null}
 
-      <GlassCard className="gap-3">
+      <Surface className="gap-3">
         <SectionLabel>Compare with exposure B</SectionLabel>
         <ExposureTriangleFields
           aperture={values.compareAperture}
@@ -183,7 +183,7 @@ function CameraExposureScreenBody({
             <ResultRow label="Exposure B" value={`EV ${comparison.evB}`} />
           </View>
         ) : null}
-      </GlassCard>
+      </Surface>
     </Screen>
   );
 }

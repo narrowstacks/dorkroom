@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { Button } from '@/components/button';
 import { CameraForm } from '@/components/film-log/camera-form';
 import { LensForm } from '@/components/film-log/lens-form';
-import { GlassCard } from '@/components/glass-card';
+import { InsetGroup } from '@/components/inset-group';
 import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
 import { useCameras, useLenses } from '@/hooks/use-film-log';
@@ -25,9 +26,9 @@ export function GearScreen() {
     <Screen>
       <View className="gap-2">
         <SectionLabel>Cameras</SectionLabel>
-        <GlassCard className="gap-2">
+        <InsetGroup>
           {cameras.length === 0 ? (
-            <Text className="text-ink-50">No cameras saved yet.</Text>
+            <Text className="px-4 py-3 text-ink-50">No cameras saved yet.</Text>
           ) : (
             cameras.map((camera) => (
               <Pressable
@@ -35,7 +36,7 @@ export function GearScreen() {
                 onPress={() => setCameraEdit({ mode: 'edit', camera })}
                 accessibilityRole="button"
                 accessibilityLabel={`Edit ${camera.name}`}
-                className="flex-row items-center justify-between py-2"
+                className="min-h-11 flex-row items-center justify-between gap-3 px-4 py-3 active:opacity-70"
               >
                 <View className="flex-1">
                   <Text className="text-base text-white">{camera.name}</Text>
@@ -50,21 +51,18 @@ export function GearScreen() {
               </Pressable>
             ))
           )}
-        </GlassCard>
-        <Pressable
+        </InsetGroup>
+        <Button
+          label="+ Add camera"
           onPress={() => setCameraEdit({ mode: 'new' })}
-          accessibilityRole="button"
-          className="items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
-        >
-          <Text className="text-base text-white">+ Add camera</Text>
-        </Pressable>
+        />
       </View>
 
       <View className="gap-2">
         <SectionLabel>Lenses</SectionLabel>
-        <GlassCard className="gap-2">
+        <InsetGroup>
           {lenses.length === 0 ? (
-            <Text className="text-ink-50">No lenses saved yet.</Text>
+            <Text className="px-4 py-3 text-ink-50">No lenses saved yet.</Text>
           ) : (
             lenses.map((lens) => {
               const owner = cameraName(lens.cameraId) ?? 'Any camera';
@@ -78,7 +76,7 @@ export function GearScreen() {
                   onPress={() => setLensEdit({ mode: 'edit', lens })}
                   accessibilityRole="button"
                   accessibilityLabel={`Edit ${lens.name}`}
-                  className="flex-row items-center justify-between py-2"
+                  className="min-h-11 flex-row items-center justify-between gap-3 px-4 py-3 active:opacity-70"
                 >
                   <View className="flex-1">
                     <Text className="text-base text-white">{lens.name}</Text>
@@ -92,14 +90,11 @@ export function GearScreen() {
               );
             })
           )}
-        </GlassCard>
-        <Pressable
+        </InsetGroup>
+        <Button
+          label="+ Add lens"
           onPress={() => setLensEdit({ mode: 'new' })}
-          accessibilityRole="button"
-          className="items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
-        >
-          <Text className="text-base text-white">+ Add lens</Text>
-        </Pressable>
+        />
       </View>
 
       {cameraEdit ? (

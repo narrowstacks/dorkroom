@@ -2,6 +2,7 @@ import { parseDecimalInput } from '@dorkroom/logic';
 import { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
+import { Button } from '@/components/button';
 import { CommitButton } from '@/components/commit-button';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import {
@@ -81,15 +82,7 @@ export function CustomIsoSheet({
                 onSubmitEditing={submit}
               />
               <View className="flex-row gap-3">
-                <Pressable
-                  onPress={onClose}
-                  accessibilityRole="button"
-                  className="flex-1 items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
-                >
-                  <Text className="text-base font-semibold text-ink-80">
-                    Cancel
-                  </Text>
-                </Pressable>
+                <Button label="Cancel" onPress={onClose} className="flex-1" />
                 <CommitButton
                   onPress={submit}
                   label="Set ISO"

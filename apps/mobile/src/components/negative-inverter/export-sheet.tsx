@@ -1,6 +1,7 @@
 import { formatMegapixels, type PixelRect } from '@dorkroom/logic';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { Alert, Text, View } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
+import { Button } from '@/components/button';
 import { SectionLabel } from '@/components/section-label';
 import { SegmentedControl } from '@/components/segmented-control';
 import {
@@ -81,7 +82,9 @@ export function ExportSheet({
             </Text>
           ))}
         </View>
-        <Pressable
+        <Button
+          label="Close Photo"
+          variant="destructive"
           onPress={() =>
             Alert.alert(
               'Close this photo?',
@@ -97,17 +100,8 @@ export function ExportSheet({
             )
           }
           disabled={exporting}
-          accessibilityRole="button"
           accessibilityHint="Forgets this photo's edits"
-          accessibilityState={{ disabled: exporting }}
-          className="min-h-11 items-center justify-center rounded-xl border-hw border-line bg-surface active:opacity-70"
-        >
-          <Text
-            className={`font-semibold ${exporting ? 'text-rose-400/40' : 'text-rose-400'}`}
-          >
-            Close Photo
-          </Text>
-        </Pressable>
+        />
       </View>
     </BottomSheet>
   );

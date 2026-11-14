@@ -1,15 +1,16 @@
-import {
-  formatCameraFormat,
-  rollLabel,
-  rollStatusLabel,
-  shotCountLabel,
-} from '@/lib/film-log-options';
+import { rollRowText } from '@/lib/film-log-list';
+import { formatCameraFormat } from '@/lib/film-log-options';
 import type { Camera, FilmRoll, Lens } from '@/schemas/film-log.schema';
 
 export interface RollMatch {
   rollId: string;
   title: string;
+  /** The Film Log list's detail line: camera, film (when named), EI, frames. */
   subtitle: string;
+  /** The Film Log list's status word ("In camera"), shown as a `StatusPill`. */
+  status: string;
+  /** In camera: the pill takes the phase tint, as in the Film Log list. */
+  inCamera: boolean;
 }
 
 export interface CameraMatch {
@@ -51,19 +52,6 @@ function matchesAll(haystack: readonly string[], tokens: readonly string[]) {
 function time(iso: string): number {
   const ms = Date.parse(iso);
   return Number.isNaN(ms) ? 0 : ms;
-}
-
-function matchSubtitle(roll: FilmRoll, camera: Camera | undefined): string {
-  return [
-    // A named roll's title hides its film, so say it: it may be why it matched.
-    roll.name?.trim() ? roll.filmStockName : undefined,
-    camera?.name,
-    roll.iso !== undefined ? `EI ${roll.iso}` : undefined,
-    rollStatusLabel(roll.status),
-    shotCountLabel(roll.shots.length),
-  ]
-    .filter(Boolean)
-    .join(' · ');
 }
 
 /**
@@ -115,11 +103,16 @@ export function matchFilmLog(
         a.index - b.index
     )
     .slice(0, MAX_ROLLS)
-    .map(({ roll }) => ({
-      rollId: roll.id,
-      title: rollLabel(roll),
-      subtitle: matchSubtitle(roll, cameraById.get(roll.cameraId)),
-    }));
+    .map(({ roll }) => {
+      const text = rollRowText(roll, cameraById.get(roll.cameraId)?.name, '');
+      return {
+        rollId: roll.id,
+        title: text.title,
+        subtitle: text.detail,
+        status: text.status,
+        inCamera: roll.status === 'active',
+      };
+    });
 
   const cameras = data.cameras
     .map((camera) => ({

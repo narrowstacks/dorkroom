@@ -14,7 +14,6 @@ import {
 } from 'react';
 import { Text, View } from 'react-native';
 import { SearchBar } from '@/components/development/search-bar';
-import { GlassCard } from '@/components/glass-card';
 import { AnswerCard } from '@/components/home/answer-card';
 import { ResultGroups } from '@/components/home/result-groups';
 import { ResumeSections } from '@/components/home/resume-sections';
@@ -23,6 +22,7 @@ import { SuggestionList } from '@/components/home/suggestion-list';
 import { TryChips } from '@/components/home/try-chips';
 import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
+import { Surface } from '@/components/surface';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { useCameras, useLenses, useRolls } from '@/hooks/use-film-log';
 import { useHomeSearchData } from '@/hooks/use-home-search-data';
@@ -204,7 +204,7 @@ export function HomeScreen() {
       ) : null}
 
       {cameraLink ? (
-        <GlassCard className="gap-2">
+        <Surface className="gap-2">
           <Text className="text-base font-semibold text-white">
             {cameraLink.title}
           </Text>
@@ -220,15 +220,15 @@ export function HomeScreen() {
           >
             {cameraLink.link.label}
           </Text>
-        </GlassCard>
+        </Surface>
       ) : null}
 
       {result && !answer && result.pending ? (
-        <GlassCard>
+        <Surface>
           <Text className="text-sm text-ink-60">
             {loadError ?? 'Loading recipes and films…'}
           </Text>
-        </GlassCard>
+        </Surface>
       ) : null}
 
       {result &&
@@ -237,13 +237,13 @@ export function HomeScreen() {
       result.groups.length === 0 &&
       toolIds.length === 0 &&
       !hasFilmLogMatches ? (
-        <GlassCard className="gap-3">
+        <Surface className="gap-3">
           <Text className="text-sm text-ink-60">
             Nothing matches that yet. Name a film, a developer or a size, or try
             one of these.
           </Text>
           <TryChips onTry={setQuery} />
-        </GlassCard>
+        </Surface>
       ) : null}
 
       {result ? (

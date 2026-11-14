@@ -9,7 +9,6 @@ import {
 import { Text, View } from 'react-native';
 import { SaveToRollAction } from '@/components/film-log/save-to-roll-action';
 import { FormulaRow } from '@/components/formula-row';
-import { GlassCard } from '@/components/glass-card';
 import { InsetGroup, InsetRow } from '@/components/inset-group';
 import { NextStepRow } from '@/components/next-step-row';
 import { PresetChipRow } from '@/components/preset-chip-row';
@@ -21,6 +20,7 @@ import { ScrubRow } from '@/components/scrub/scrub-row';
 import { adaptiveTimeStep } from '@/components/scrub/scrub-value';
 import { SectionLabel } from '@/components/section-label';
 import { ShareButton } from '@/components/share-button';
+import { Surface } from '@/components/surface';
 import { useLinkOverrides } from '@/hooks/use-link-overrides';
 import { useTimerRunActive } from '@/hooks/use-timer-run-active';
 import { readingFromValues } from '@/lib/log-frame';
@@ -215,7 +215,7 @@ function ReciprocityScreenBody({ overrides }: ReciprocityScreenBodyProps) {
               factor: calculation.factor,
             })}
           />
-          <GlassCard>
+          <Surface>
             <ReciprocityChart
               originalTime={calculation.originalTime}
               adjustedTime={calculation.adjustedTime}
@@ -223,7 +223,7 @@ function ReciprocityScreenBody({ overrides }: ReciprocityScreenBodyProps) {
               filmName={calculation.filmName}
               formatTime={formatTime}
             />
-          </GlassCard>
+          </Surface>
         </>
       ) : null}
     </Screen>

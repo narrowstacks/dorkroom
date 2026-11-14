@@ -111,10 +111,6 @@ export function rollLabel(
   return roll.name?.trim() ? roll.name : (roll.filmStockName ?? 'Roll');
 }
 
-export function shotCountLabel(count: number): string {
-  return `${count} ${count === 1 ? 'shot' : 'shots'}`;
-}
-
 /** "1 frame", "24 frames": the word the Film Log, roll page, hubs and Save to
  * roll use. */
 export function frameCountLabel(count: number): string {
