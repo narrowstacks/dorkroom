@@ -8,7 +8,8 @@ export const unstable_settings = { initialRouteName: 'index' };
 
 /**
  * The stack behind the Search tab: Home, with no native header (it has its own
- * search row), and the app's one Settings screen pushed on top of it.
+ * search row), and the app's one Settings screen and Edit favorites pushed on
+ * top of it.
  */
 export default function HomeLayout() {
   const { on } = useSafelight();
@@ -24,6 +25,12 @@ export default function HomeLayout() {
       <Stack.Screen
         name="settings"
         options={{ title: 'Settings', ...STANDARD_TITLE }}
+      />
+      {/* Edit favorites (#734), pushed from Home's favorites row the same
+          way. It takes no params, so an outside link can only open it. */}
+      <Stack.Screen
+        name="favorites"
+        options={{ title: 'Edit favorites', ...STANDARD_TITLE }}
       />
     </Stack>
   );

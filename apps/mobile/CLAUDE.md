@@ -1266,7 +1266,8 @@ Back; the exported GPX validates against the GPX 1.1 schema.
 - **Surfaces.** Glass is for chrome and for controls that float over media:
   header items, the tab bar and its accessory, sheet chrome, and controls over
   a photo, the camera, a map or a drawing (Meter pills, the Inverter's editor,
-  the stage `DetentPanel`). Content sits on the flat `Surface`
+  the stage `DetentPanel`), and Home's favorites row, which floats over
+  scrolling content in the tab bar's band. Content sits on the flat `Surface`
   (`components/surface.tsx`): one fill (`bg-surface`), radius 16, no blur, no
   rim; under safelight the fill drops and the hairline carries the shape, so it
   needs no branch. It takes `GlassCard`'s props (`compact`, `flush`, `style`),
@@ -1284,8 +1285,9 @@ Back; the exported GPX validates against the GPX 1.1 schema.
   `WarningsCard` (which keeps an amber outline and its warning mark, so a
   warning stays distinct without glass). A card with an accent outline (a
   result, the dev time) is a `Surface` with a `borderColor` style. `GlassCard`
-  stays only in the stage `DetentPanel` and the Inverter's editor chrome,
-  adjustment panel and focus panel (controls over a photo or drawing). The
+  stays only in the stage `DetentPanel`, Home's favorites row and the
+  Inverter's editor chrome, adjustment panel and focus panel (controls over a
+  photo, a drawing or scrolling content). The
   Inverter's start screen (`InverterEmpty`) and no-camera card are `Surface`. It is Liquid Glass on iOS
   26 with a translucent fallback, its capability check computed **once at
   import**, never per render.
@@ -1674,7 +1676,7 @@ second (or the stage or status) changes, so they redraw at 1 Hz.
 
 ### Widgets (Home Screen and Lock Screen)
 
-Three WidgetKit widgets from the hub tiles, declared in the `expo-widgets`
+Four WidgetKit widgets (three from the hub tiles, and Favorites), declared in the `expo-widgets`
 entry's `widgets[]` in `app.json` (each becomes a generated
 `StaticConfiguration` in the extension; `widget-config.test.ts` pins the names
 and families to the code):
@@ -1684,6 +1686,7 @@ and families to the code):
 | Roll in the camera (`RollWidget`) | `systemSmall`, `accessoryRectangular`, `accessoryInline` | the roll the Meter logs to (`pickMeterRoll`, as `useMeterRoll`): `rollLabel`, `EI <iso>` and push/pull, camera, frames shot; else "No roll in the camera" | that roll (`/shoot/film-log/roll/<id>`), else the film log |
 | Last answers (`LastResultWidget`) | `systemSmall`, `accessoryRectangular` | the last result of each tool that records one, in hub order | the Shoot hub (`/shoot`) |
 | Process timer (`TimerWidget`) | `systemSmall`, `systemMedium`, `accessoryRectangular` | the stage, "Stage n of N", a ticking stage countdown, "ends 7:42 PM" (small, medium), run left, next stage (medium); paused frozen; Done; idle "No timer running" and "Last: <title>" | the timer |
+| Favorites (`FavoritesWidget`) | `systemSmall` (2 x 2, first 4), `systemMedium` (4 x 2, all 8) | the favorite tools in the app's order: an SF Symbol in the phase hue and a short name per cell; none: "No favorites yet" | each cell a `Link` to its tool (`dorkroom://<route>`); elsewhere Home (`dorkroom://search`), or Edit favorites (`dorkroom://favorites`) while empty |
 
 - **Frames SHOT, not left.** A roll has no capacity field (24, 36, bulk loads),
   so the widget counts up ("23 frames shot"). Do not invent a capacity.
@@ -1695,7 +1698,7 @@ and families to the code):
   link). If a Print tool starts recording, revisit its link and name
   (`last-result-widget-props.test.ts` fails then).
 - **Isolated runtime.** Each layout (`src/lib/widgets/roll-widget.tsx`,
-  `last-result-widget.tsx`, `timer-widget.tsx`) follows the Live Activity's
+  `last-result-widget.tsx`, `timer-widget.tsx`, `favorites-widget.tsx`) follows the Live Activity's
   rules exactly: a `'widget'` function compiled to a string, every helper
   inside it, colours as literal hex props (`widget-palette.ts`), no clock. The
   root view of every family carries `containerBackground(bg, 'widget')` and the
@@ -1712,15 +1715,16 @@ and families to the code):
   `last-result-widget-props.ts` and the timer's `src/lib/timer/widget-timeline.ts`.
   Strings arrive formatted and cut (`cutText`, an ellipsis within the limit).
 - **Sync** (`src/lib/widgets/widgets.ts`): loads expo-widgets only once its
-  native module exists, builds the three `Widget` objects ONCE at module load
+  native module exists, builds the four `Widget` objects ONCE at module load
   (each constructor stores its layout in the App Group, so a placed widget
   never shows "No layout found" once the app has run), and falls back to a
   no-op with one development warning when the bundle or dev client is stale
   (`selectWidgetNative`, `widgets-missing-native.test.ts`). It is first
-  imported by `TimerRunEffects`, so it loads at app start. Pushes: all three at
+  imported by `TimerRunEffects`, so it loads at app start. Pushes: all four at
   load and on every `AppState` `active`; the roll on MMKV value changes of the
-  film log's `rolls` and `cameras` and the Meter's `meterRollId`, and last
-  answers on the last-result store's key, both coalesced for 300 ms so a burst
+  film log's `rolls` and `cameras` and the Meter's `meterRollId`, last
+  answers on the last-result store's key, and favorites on `favoriteToolIds`
+  in `dorkroom-home`, all coalesced for 300 ms so a burst
   of writes parses the store once (`createCoalescer`); the timer from
   `TimerRunEffects` (every render and on foreground, beside
   `syncLiveActivity`). `createWidgetPusher` (`widget-sync.ts`) takes a KEY and
@@ -1801,7 +1805,7 @@ and families to the code):
   off from Control Center with the app closed. The Live Activity's red look
   (drawn while a run is going, refreshed on every mode change while the app
   runs) does not carry over to widgets the user leaves on the Home Screen for
-  weeks. All three are consistent.
+  weeks. All four are consistent.
 - **Data stays put.** The widgets read only what is pushed through
   expo-widgets; the film log stays in the app's container. Never add the
   Info.plist key `AppGroupIdentifier` (see "The shared module").
@@ -1848,6 +1852,125 @@ background; `accessoryInline` and the
 last-answers `accessoryRectangular` placed on a Lock Screen (only previewed);
 the Lock Screen's vibrant rendering of the palette; a run that reaches its
 natural end showing Done (unit-tested only).
+
+### Favorites (#734)
+
+The user's favorite tools, in two places built for speed: a row pinned at the
+bottom of Home (the Search tab) and the Favorites widget. **Status:
+Simulator-verified (iOS 27.0, iPhone 18 Pro, Debug dev build); device
+behaviour unverified.** Seen there: the hub menu, star and full state; Edit
+favorites; the row above the tab bar and above the timer pill, hidden with the
+keyboard, scrolling sideways, Safelight max G and B 0; both widget sizes with
+every cell opening its own tool cold and warm, a tap between cells opening
+Home, the empty prompt opening Edit favorites, and an edit reaching the widgets
+within a few seconds.
+
+- **Storage.** `favoriteToolIds` in the `dorkroom-home` MMKV instance (the one
+  `recent-store.ts` uses, exported as `homeStorage`): one JSON array of tool
+  ids, in the user's order. No user text. The pure rules are
+  `src/lib/favorites.ts`: `parseFavoriteIds` (malformed JSON is empty, entries
+  are read one by one through `parseRecentIds`, unknown ids and duplicates are
+  dropped, capped at `MAX_FAVORITES`, 8: the medium widget's grid), `addFavorite`
+  (at the end, never past the cap), `removeFavorite`, `toggleFavorite`,
+  `moveFavorite` (clamped at the ends) and `favoritesEditorSections`.
+  `favorites-store.ts` reads and writes it (a write that changes nothing is
+  skipped, so no listener fires), `subscribeFavorites`, and `useFavoriteIds`
+  (`useMMKVString`, so every screen follows a change). Any tool in the manifest
+  can be a favorite, sections included.
+- **Marking one.** A hub tile (`ToolTile`) is an expo-router `Link` with
+  `Link.Menu`, like a frame row: a tap pushes the tool, a long press shows "Add
+  to favorites" or "Remove from favorites" (disabled with "Favorites are full
+  (8). Remove one first." when full). The VoiceOver element is the wrapper
+  `View` around the `Link` (the frame row's pattern: `Link.Menu`'s trigger sits
+  in a `display: contents` view the accessibility tree skips), with the toggle
+  as a custom action (`tool-tile.test.ts` checks the wiring in the source). A
+  favorite tile shows a small star (the text column is padded clear of it,
+  `favoriteStarClearance`) and VoiceOver says "favorite". When the list is
+  full the custom action stays: the tile's hint gives the reason, and
+  activating it announces it, as the menu's disabled item does with its
+  subtitle.
+- **Edit favorites** (`/favorites`, `FAVORITES_ROUTE`, `favorites-screen.tsx`)
+  is pushed in the `(home)` stack beside Settings (standard title, Back reads
+  "Search", no phase: the neutral glow). The favorites in order with up, down
+  and remove (44pt glyph buttons: a drag list would need a new dependency),
+  then the other tools by phase with an add button. It reads no route params,
+  so `dorkroom://favorites` can open it but pass nothing (the manifest test
+  checks both). It belongs to no tool, so it is never "recently used".
+- **Home's row** (`FavoritesBar`, `components/home/favorites-bar.tsx`; pure
+  half `favorites-bar-layout.ts`): each favorite as a tile (Lucide icon in its
+  phase hue, label), then "Edit"; with none, one quiet "Add favorites". Both
+  open Edit favorites; a tool tile opens the tool with `openToolPath`, the
+  `navigate` + anchor that Home's "Recently used" rows use. **Back from a
+  favorite goes to the tool's phase hub, by design**: tools have routes only
+  in their phase stacks, never in Search's, so Search cannot be underneath
+  (the same as "Recently used"). More tiles than fit scroll sideways (a horizontal `FlatList`, no bounce
+  when they fit); the row is capped at 560pt and centred on a wide window
+  (`favoritesBarFrame`, the stage panel's `PANEL_MAX_WIDTH`);
+  labels follow Dynamic Type up to 2x (`FAVORITE_TILE_MAX_FONT_SCALE`), the
+  glyph with them.
+  **Placement rule:** the row is rendered AFTER `Screen` in a fragment, as an
+  absolutely positioned sibling, never before the scroll view or around it, so
+  `Screen`'s `ScrollView` stays the screen's first subview (see "Large titles":
+  Home has no header today, but `useSearchTabFocus`, the keyboard handling and
+  any future large title rely on that chain). It is a full-window
+  `SafeAreaListener` with `pointerEvents="box-none"`: this screen's own bottom
+  inset includes the tab bar, the timer pill while a run is going (the tab's
+  safe area grows with it) and the home indicator, so the row sits
+  `FAVORITES_BAR_GAP` (8pt) above whichever is topmost, and nothing is drawn
+  until the insets arrive. **The row's room is a content inset, not
+  content.** Home passes the row's LAST measured height plus the gap
+  (`favoritesContentInset`) to `Screen`'s `contentBottomInset`, which becomes
+  `contentInset` and `scrollIndicatorInsets` `{ bottom: room }` on top of the
+  automatic insets (`bottomRoomProps`, `screen-insets.ts`; no props at all
+  for 0, so every other screen is unchanged). React Native's keyboard handler
+  (`_keyboardWillChangeFrame` in `RCTScrollViewComponentView.mm`) sets both
+  insets to the larger of the keyboard overlap and `props.contentInset`, puts
+  the room back on hide, and its offset clamp counts it. A `contentInset`
+  prop change sets only the content inset (and overwrites the keyboard's), so
+  the room has no keyboard term and must not change while Home's keyboard is
+  up: Home keeps the last measured height while the row is unmounted. An
+  earlier spacer at the end of the content went with the row, and failed two
+  ways: the commit that dropped its indicator inset wiped the keyboard's
+  indicator inset while typing, and on hide the handler clamped the offset
+  against the content without the spacer, leaving the last results under the
+  returning row. While the keyboard is up AND Home is the focused screen
+  (`useKeyboardHeight`, `keyboardWillShow`/`WillHide`, shared with the form
+  sheets, with `useIsFocused`) the row is unmounted: it never floats over the
+  keyboard, and a keyboard in another tab or a pushed screen leaves Home's row
+  alone.
+  **Surface:** glass (`GlassCard flush`, radius 24), as a control floating over
+  scrolling content in the tab bar's band, beside the timer pill; over a dark
+  underlay (`rgba(7,7,8,0.72)`, the stage panel's) so results never show
+  through the text. Under safelight the underlay is true black and the glass
+  gives way to `GlassCard`'s hairline; the root overlay covers it.
+- **The widget** (`FavoritesWidget`, `favorites-widget.tsx`, props from
+  `favorites-widget-props.ts`): see the table under "Widgets". Each cell is an
+  `@expo/ui` `Link` (expo-widgets 57.0.27 renders `LinkView` in widgets, its
+  changelog "Add support for `Link` view"); the root keeps the one
+  `widgetURL` (Home, or Edit favorites while empty). The cells carry only the
+  tool id, a fixed short name (`toolWidgetName`: "Camera EV", "Timer", else
+  the label), the SF Symbol from `TOOL_WIDGET_SYMBOLS` (a test checks every
+  tool has one), the phase hue as literal hex and the link. Normal palette
+  always, like the other widgets. It is pushed at load, on every `active`, and
+  on a change of the key (coalesced 300 ms, never twice with equal props).
+  `widget-links.test.ts` checks every tool's cell link, Home and Edit
+  favorites, cold and warm. **Needs a native build**: the `widgets[]` entry is
+  a new `StaticConfiguration` in the extension, and the generated bundle now
+  lists four widgets, still one chunk ending in `WidgetLiveActivity()`, so the
+  `with-widget-controls` anchor is unchanged (`widget-controls-patch.test.ts`
+  has the four-widget text, which matched the clean prebuild's generated
+  `index.swift` byte for byte). Apple's "Linking to specific app scenes from your widget
+  or Live Activity" says a widget with room for more than one target,
+  `systemSmall` included, can use one `widgetURL` plus additional `Link`
+  controls; a tap on a `Link` opens its URL and any other tap the
+  `widgetURL`. Confirmed on the iOS 27.0 Simulator: in `systemSmall` and
+  `systemMedium` each cell opened its own tool, cold and warm, and a tap on
+  the widget's margin opened Home. Per-cell `Link` in `systemSmall` is
+  confirmed on the iOS 27.0 Simulator only and UNVERIFIED on iOS 26, the
+  deployment target. Each glyph sits in a fixed 22pt frame:
+  without it the taller symbols (`sun.max`, `timer`, `scope`) squeezed their
+  cell's name, which shrank; names scale down to 0.6, which "Reciprocity"
+  needs in a small widget's quarter (`favorites-widget.test.ts` pins both).
 
 ### Control Center controls
 

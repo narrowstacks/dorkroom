@@ -36,6 +36,8 @@ export interface ElementProps {
   date?: Date;
   dateStyle?: string;
   countsDown?: boolean;
+  /** A `Link`'s URL. */
+  destination?: string;
 }
 export interface El {
   type: string;

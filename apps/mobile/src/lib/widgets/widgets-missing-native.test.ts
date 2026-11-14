@@ -23,6 +23,7 @@ describe('widgets.ts without the ExpoWidgets native module', () => {
     const { addRoll } = await import('@/lib/film-log-storage');
     expect(() => widgets.syncRollWidget()).not.toThrow();
     expect(() => widgets.syncLastResultWidget()).not.toThrow();
+    expect(() => widgets.syncFavoritesWidget()).not.toThrow();
     timerStore.dispatch({ type: 'START' });
     expect(() => widgets.syncTimerWidget()).not.toThrow();
     timerStore.dispatch({ type: 'RESET' });
@@ -36,6 +37,8 @@ describe('widgets.ts without the ExpoWidgets native module', () => {
         startedAt: new Date(0).toISOString(),
       })
     ).not.toThrow();
+    const { addFavoriteTool } = await import('@/lib/favorites-store');
+    expect(() => addFavoriteTool('timer')).not.toThrow();
     // still exactly one warning
     expect(warn.mock.calls).toHaveLength(1);
   });
