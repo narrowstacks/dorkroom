@@ -23,6 +23,7 @@ import {
   SafelightProvider,
   useSafelight,
 } from '@/components/safelight/safelight-provider';
+import { SpotlightEffects } from '@/components/spotlight-effects';
 import { clearLegacyPins } from '@/lib/legacy-pins';
 import { calculatorStorage } from '@/lib/mmkv-storage';
 import { queryClient } from '@/providers/query-client';
@@ -78,6 +79,8 @@ export default function RootLayout() {
                 <ThemeProvider value={DarkTheme}>
                   <RootStack />
                   <TimerRunEffects />
+                  {/* Keeps rolls and recent recipes in the on-device Spotlight index. */}
+                  <SpotlightEffects />
                   {/* Asks before the system photo picker opens under safelight mode. */}
                   <PhotoPickerGateHost />
                 </ThemeProvider>

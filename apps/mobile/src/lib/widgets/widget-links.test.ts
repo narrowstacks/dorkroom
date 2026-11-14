@@ -3,7 +3,8 @@
 // warm, like the Control Center controls' links in tool-manifest.test.ts.
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { setRolls } from '@/lib/film-log-storage';
 import { takePendingLink } from '@/lib/link-handoff';
 import { TIMER_WIDGET_URL } from '@/lib/timer/widget-timeline';
 import { MOBILE_ROOT } from '@/test/widget-runtime';
@@ -14,6 +15,26 @@ import { FILM_LOG_URL, rollUrl } from './roll-widget-props';
 const TABS = join(MOBILE_ROOT, 'app', '(tabs)');
 
 describe('widget links', () => {
+  // The roll link opens the roll only while it exists (a deleted roll lands on
+  // the film log list, `resolveMissingRollLink`).
+  beforeAll(() => {
+    setRolls([
+      {
+        id: 'r1',
+        cameraId: 'cam1',
+        process: 'bw',
+        status: 'active',
+        shots: [],
+        startedAt: '2026-01-01T00:00:00.000Z',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]);
+  });
+  afterAll(() => {
+    setRolls([]);
+  });
+
   const cases: Array<[string, string, string]> = [
     // url, expected path, route file that serves it
     [

@@ -65,7 +65,7 @@ function screenToolPath(id: string): string | undefined {
  * - `/film-log...` to `/shoot/film-log...`, `/development...` to `/develop/recipes...`
  * - `/more/settings` and the retired per-phase Settings paths to `/settings`;
  *   `/more` and `/more/edit` to Home
- * - `/search?q=...` (App Intents and Spotlight's "search in app" will send it) to Home with
+ * - `/search?q=...` (the Ask Dorkroom App Intent sends it) to Home with
  *   the query string, `/?q=...`; `redirectSystemPath` then strips `q` and
  *   records it as a search event (`splitSearchLink`), which Home applies
  *
@@ -266,6 +266,38 @@ export function resolveLogFrameLink(
     rollId = undefined;
   }
   return logFrameTarget(rollId);
+}
+
+const ROLL_PATH = /^\/shoot\/film-log\/roll\/([^/]+)\/?$/i;
+
+/**
+ * A link to one roll (`/shoot/film-log/roll/<id>`: a Spotlight result, the
+ * roll widget) whose roll no longer exists lands on the film log list instead
+ * of an empty roll screen. `rollExists` is only asked for such a link; if it
+ * throws (unreadable film log storage) the link also lands on the list. Any
+ * other link, and a link to a roll that exists, comes back unchanged. Pure.
+ */
+export function resolveMissingRollLink(
+  link: string,
+  rollExists: (id: string) => boolean
+): string {
+  const parts = appLinkParts(link);
+  if (parts === null) return link;
+  const match = ROLL_PATH.exec(parts.path);
+  if (match === null) return link;
+  let id = match[1];
+  try {
+    id = decodeURIComponent(id);
+  } catch {
+    // A malformed escape is looked up as written.
+  }
+  let exists = false;
+  try {
+    exists = rollExists(id);
+  } catch {
+    exists = false;
+  }
+  return exists ? link : (getTool('film-log')?.route ?? '/shoot/film-log');
 }
 
 /** A query-string key or value as text: `+` is a space, bad escapes stay as written. */

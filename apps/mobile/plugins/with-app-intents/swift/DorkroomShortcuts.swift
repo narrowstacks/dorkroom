@@ -60,5 +60,17 @@ struct DorkroomShortcuts: AppShortcutsProvider {
             shortTitle: "Negative Inverter",
             systemImageName: "circle.lefthalf.filled"
         )
+        // A phrase cannot include a String parameter, so Siri asks for the
+        // question (the parameter's request dialog) after the phrase.
+        AppShortcut(
+            intent: AskDorkroomIntent(),
+            phrases: [
+                "Ask \(.applicationName)",
+                "Ask \(.applicationName) a darkroom question",
+                "Ask \(.applicationName) a question",
+            ],
+            shortTitle: "Ask Dorkroom",
+            systemImageName: "questionmark.bubble"
+        )
     }
 }
