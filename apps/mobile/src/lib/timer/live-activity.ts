@@ -8,6 +8,7 @@ import { requireOptionalNativeModule } from 'expo';
 import type { LiveActivity } from 'expo-widgets';
 import { AppState } from 'react-native';
 import { getSafelight, subscribeSafelight } from '@/lib/safelight-store';
+import { flushTimerWidget, syncTimerWidget } from '@/lib/widgets/widgets';
 import { backgroundAlerts } from './background-alerts-native';
 import { createFirstActive } from './first-active';
 import {
@@ -38,6 +39,16 @@ const ACTIVITY_NAME = 'ProcessTimer';
  * to ship a display-only activity (the buttons are not drawn).
  */
 const SHOW_CONTROLS = true;
+
+/**
+ * The Home Screen timer widget, flushed after the activity by every button
+ * press. Exported for `live-activity-missing-native.test.ts`, which runs the
+ * runner with it directly (`runTimerAction` swallows errors).
+ */
+export const TIMER_WIDGET = {
+  sync: syncTimerWidget,
+  flushNow: flushTimerWidget,
+};
 
 /** Lets the rest of the app (the alert effect, the idle clean-up) wait for the first foreground. */
 export const firstActive = createFirstActive(AppState);
@@ -146,6 +157,7 @@ function runtimeActions(
     store: timerStore,
     alerts: backgroundAlerts,
     activity: { sync, flushNow: controller.flushNow },
+    widget: TIMER_WIDGET,
   });
   return { sync, runAction };
 }
@@ -188,6 +200,7 @@ function createRuntime(): LiveActivityRuntime {
         store: timerStore,
         alerts: backgroundAlerts,
         activity: { sync, flushNow: controller.flushNow },
+        widget: TIMER_WIDGET,
       });
       loaded.widgets.addUserInteractionListener((event) => {
         handle(event).catch(() => {

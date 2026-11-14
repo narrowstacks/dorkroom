@@ -98,7 +98,41 @@
           "bundleIdentifier": "art.dorkroom.mobile.widgets",
           "groupIdentifier": "group.art.dorkroom.mobile",
           "enablePushNotifications": false,
-          "frequentUpdates": false
+          "frequentUpdates": false,
+          "widgets": [
+            {
+              "name": "RollWidget",
+              "displayName": "Roll in the camera",
+              "description": "The roll the meter logs to: its film, EI, camera and how many frames you have shot.",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "accessoryRectangular",
+                  "accessoryInline"
+                ]
+              }
+            },
+            {
+              "name": "LastResultWidget",
+              "displayName": "Last answers",
+              "description": "The last answer from Camera Exposure and Lenses.",
+              "ios": {
+                "supportedFamilies": ["systemSmall", "accessoryRectangular"]
+              }
+            },
+            {
+              "name": "TimerWidget",
+              "displayName": "Process timer",
+              "description": "The current stage and the time left while a run is going, or the last run.",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "systemMedium",
+                  "accessoryRectangular"
+                ]
+              }
+            }
+          ]
         }
       ]
     ],
