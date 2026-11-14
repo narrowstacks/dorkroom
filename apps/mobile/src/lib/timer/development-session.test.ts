@@ -44,6 +44,12 @@ function setup() {
       t += totalSeconds(timer.getSnapshot().timer.stages) * 1000 + 1000;
       timer.sync();
     },
+    /** What "Start last timer" does: end the session, then load the stored run. */
+    restoreLastRun(stages: TimerStage[]) {
+      session.end();
+      timer.setSelectedPresetId('');
+      timer.dispatch({ type: 'LOAD', stages });
+    },
     selectPreset() {
       timer.setSelectedPresetId(DEFAULT_BW_PRESET.id);
       timer.dispatch({ type: 'LOAD', stages: DEFAULT_BW_PRESET.stages });
@@ -171,6 +177,28 @@ describe('development session', () => {
       )
     );
     expect(s.session.getState().active?.rollId).toBe('roll-1');
+  });
+
+  it('ends when a stored run is restored over a loaded recipe (Start last timer)', () => {
+    const s = setup();
+    s.openRecipe('roll-1');
+    // Recipe B's stages, as the last run holds them: develop stage kept.
+    const other = stagesFromCombination(combo({ uuid: 'c-7', timeMinutes: 6 }));
+    s.restoreLastRun(other);
+    expect(s.session.getState().active).toBeNull();
+    s.runToEnd();
+    expect(s.session.getState().active).toBeNull();
+  });
+
+  it('keeps the session through an ordinary edit after a recipe load', () => {
+    const s = setup();
+    s.openRecipe('roll-1');
+    s.edit((stages) =>
+      stages.map((stage) =>
+        stage.kind === 'dev' ? { ...stage, durationSeconds: 400 } : stage
+      )
+    );
+    expect(s.session.getState().active?.recipe).toEqual(snapshot);
   });
 
   it('ends on Reset, mid-run or after completion', () => {
