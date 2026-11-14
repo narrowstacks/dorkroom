@@ -5,7 +5,7 @@ import { developedDateText } from '@/components/film-log/developed-date';
 import { SectionLabel } from '@/components/section-label';
 import { Surface } from '@/components/surface';
 import { useRolls } from '@/hooks/use-film-log';
-import { rollLabel } from '@/lib/film-log-options';
+import { rollLabel, spokenText } from '@/lib/film-log-options';
 import { markRollDeveloped } from '@/lib/film-log-storage';
 import {
   defaultRollToDevelop,
@@ -103,7 +103,7 @@ export function SaveToRollCard() {
                 key={roll.id}
                 onPress={() => setPicked({ run, rollId: roll.id })}
                 accessibilityRole="button"
-                accessibilityLabel={`${title}, ${detail}`}
+                accessibilityLabel={`${title}, ${spokenText(detail)}`}
                 accessibilityState={{ selected }}
                 className="min-h-11 flex-row items-center justify-between gap-3 rounded-xl border px-4 py-3"
                 style={selectableRowStyle(tint, selected)}

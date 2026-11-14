@@ -8,7 +8,8 @@ import {
   pushPullDisplay,
 } from '@/components/development/recipe-format';
 import {
-  frameCountLabel,
+  frameCountDisplay,
+  joinFacts,
   rollLabel,
   rollStatusLabel,
 } from '@/lib/film-log-options';
@@ -128,17 +129,16 @@ export function pushPullLabel(stops: number | undefined): string | undefined {
   return `${display.direction === 'push' ? 'Push' : 'Pull'} ${display.label}`;
 }
 
-/** The line under a roll waiting to be developed: EI, push/pull, frames. */
+/** The line under a roll waiting to be developed: EI, push/pull, frames. A
+ * display string (see `joinFacts`); use `spokenText` for a label. */
 export function rollToDevelopLine(
   roll: Pick<FilmRoll, 'iso' | 'pushPull' | 'shots'>
 ): string {
-  return [
+  return joinFacts([
     roll.iso !== undefined ? `EI ${roll.iso}` : undefined,
     pushPullLabel(roll.pushPull),
-    frameCountLabel(roll.shots.length),
-  ]
-    .filter(Boolean)
-    .join(' · ');
+    frameCountDisplay(roll.shots.length),
+  ]);
 }
 
 /** What a roll was developed in: the recipe's name, else developer and

@@ -6,7 +6,10 @@ import type {
   TopEntry,
 } from '@/lib/film-log-collection';
 import {
+  frameCountDisplay,
   frameCountLabel,
+  joinFacts,
+  keepTogether,
   rollLabel,
   rollStatusLabel,
 } from '@/lib/film-log-options';
@@ -43,7 +46,7 @@ export function filmLogCaption(
   const yearPart =
     stats.rollsThisYear === 0
       ? `No rolls started in ${year} yet.`
-      : `${year}: ${plural(stats.rollsThisYear, 'roll')}, ${frameCountLabel(stats.framesThisYear)}.`;
+      : `${year}: ${plural(stats.rollsThisYear, 'roll')}, ${frameCountDisplay(stats.framesThisYear)}.`;
   const film = clearWinner(stats.topFilm);
   const camera = clearWinner(stats.topCamera);
   const facts = [
@@ -120,11 +123,6 @@ export interface RollRowText {
   accessibilityLabel: string;
 }
 
-/** Joins a short fact's words with no-break spaces. */
-function keepTogether(text: string): string {
-  return text.replace(/ /g, '\u00a0');
-}
-
 /**
  * A roll row's text. `cameraName` is undefined when the camera was deleted:
  * the row then leaves it out rather than say "Unknown camera".
@@ -142,14 +140,12 @@ export function rollRowText(
   const status = rollStatusLabel(roll.status);
   // "EI 400" and "3 frames" never break inside, so a long detail line wraps
   // between facts ("0" alone at a line end read as a broken row).
-  const detail = [
+  const detail = joinFacts([
     cameraName,
     film,
     ei && keepTogether(ei),
     keepTogether(frames),
-  ]
-    .filter(Boolean)
-    .join(' · ');
+  ]);
   const accessibilityLabel = [
     title,
     film,

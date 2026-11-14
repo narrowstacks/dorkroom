@@ -9,7 +9,7 @@ import type { Phase } from '@/lib/tools';
  *
  * | Role              | Color                                   | Treatment |
  * |-------------------|------------------------------------------|-----------|
- * | Commit            | the phase hue, dark ink (`commitColors`); brand rose `#e11d48` with white ink outside a phase | SOLID FILL, reserved exclusively for buttons that commit or create (Start roll, Add shot, Start). Nothing else gets a solid accent fill, ever. Brand rose is also the inline link colour (`text-rose-400`) on Home. |
+ * | Commit            | the phase hue, dark ink (`commitColors`); brand rose `#e11d48` with white ink outside a phase | SOLID FILL, reserved exclusively for buttons that commit or create (Start roll, Add frame, Start). Nothing else gets a solid accent fill, ever. Brand rose is also the inline link colour (`text-rose-400`) on Home. |
  * | Phase hue         | yellow (Shoot) · teal (Develop) · rose (Print) | TINTED GLASS: results/charts, and selected states inside that phase's tools (chips, segmented controls) as alpha-tint background + accent-colored label + subtle accent border. Controls read the hue from the surrounding `PhaseProvider` unless given one; with none (Home, Settings) the selected state is a neutral white tint. Also the switch on-tint and slider tracks. |
  * | Destructive       | `text-rose-400`                           | TEXT ONLY, on a neutral/transparent surface, verb labels (Delete, Remove). Never filled. Distinguished from commit by treatment (text vs fill), not by hue. |
  * | Warning           | amber `#f59e0b` (`tokens.color.warning`)  | Inline warning text/border only. Calculator warnings lead with a `⚠` glyph, so they stay distinct from Shoot's yellow by shape as well as hue. |

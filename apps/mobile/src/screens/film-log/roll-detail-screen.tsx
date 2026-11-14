@@ -175,7 +175,7 @@ export function RollDetailScreen() {
 
   const onDelete = useCallback(() => {
     if (!rollId) return;
-    Alert.alert('Delete roll?', 'This removes the roll and all its shots.', [
+    Alert.alert('Delete roll?', 'This removes the roll and all its frames.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',

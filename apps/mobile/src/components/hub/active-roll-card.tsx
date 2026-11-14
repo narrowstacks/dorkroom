@@ -9,6 +9,7 @@ import {
   rollLabel,
   rollStatusLabel,
   rollSubtitle,
+  spokenText,
 } from '@/lib/film-log-options';
 import { toHref } from '@/lib/href';
 
@@ -32,7 +33,7 @@ export function ActiveRollCard() {
         detail={subtitle}
         status={{ label: rollStatusLabel('active'), tinted: true }}
         onPress={() => router.push(toHref(`/shoot/film-log/roll/${roll.id}`))}
-        accessibilityLabel={`In camera, ${title}, ${subtitle}. Open roll`}
+        accessibilityLabel={`In camera, ${title}, ${spokenText(subtitle)}. Open roll`}
       />
       <View key="mark" className="items-start">
         <Button

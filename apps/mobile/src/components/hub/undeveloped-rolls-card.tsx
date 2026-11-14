@@ -5,7 +5,7 @@ import { Button } from '@/components/button';
 import { HubRollRow } from '@/components/hub/hub-roll-row';
 import { LabeledGroup } from '@/components/labeled-group';
 import { useRolls } from '@/hooks/use-film-log';
-import { rollLabel } from '@/lib/film-log-options';
+import { rollLabel, spokenText } from '@/lib/film-log-options';
 import { toHref } from '@/lib/href';
 import { LINK_OPENED_PARAM } from '@/lib/link-prefill';
 import { openToolPath } from '@/lib/open-tool-path';
@@ -43,7 +43,7 @@ export function UndevelopedRollsCard() {
             onPress={() =>
               router.push(toHref(recipesPathForRoll(roll, Date.now())))
             }
-            accessibilityLabel={`${title}, ${detail}`}
+            accessibilityLabel={`${title}, ${spokenText(detail)}`}
             accessibilityHint="Opens recipes for this roll"
           />
         );

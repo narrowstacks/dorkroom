@@ -33,7 +33,7 @@ describe('recentNegativeLine', () => {
         NOW,
         'en-US'
       )
-    ).toBe('Developed Nov 13 · 2 frames');
+    ).toBe('Developed Nov 13 \u00b7\u00a02\u00a0frames');
   });
 
   it('shows what it was developed in when the roll has a recipe', () => {
@@ -46,7 +46,7 @@ describe('recentNegativeLine', () => {
         NOW,
         'en-US'
       )
-    ).toBe('HP5+ in DD-X · 1 frame');
+    ).toBe('HP5+ in DD-X \u00b7\u00a01\u00a0frame');
   });
 
   it('never invents a date or leads with zero frames', () => {
@@ -76,7 +76,7 @@ describe('recentNegativeLine', () => {
         NOW,
         'en-US'
       )
-    ).toBe('Kodak D-76 1+1 · 1 frame');
+    ).toBe('Kodak D-76 1+1 \u00b7\u00a01\u00a0frame');
   });
 
   it('includes the year for an earlier year', () => {
@@ -88,6 +88,21 @@ describe('recentNegativeLine', () => {
         'en-US'
       )
     ).toBe('Developed Oct 2, 2025');
+  });
+
+  it('speaks the count with plain spaces', () => {
+    expect(
+      recentNegativeLabel(
+        {
+          name: 'Test Roll B',
+          filmStockName: undefined,
+          shots: [shot, shot],
+          development: { developedAt },
+        },
+        NOW,
+        'en-US'
+      )
+    ).toBe('Test Roll B, Developed Nov 13 · 2 frames');
   });
 
   it('reads as one spoken label with the roll name', () => {

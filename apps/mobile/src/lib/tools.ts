@@ -74,7 +74,7 @@ const TOOL_LIST = [
     label: 'Film Log',
     icon: 'film',
     phase: 'shoot',
-    blurb: 'Rolls and shots',
+    blurb: 'Rolls and frames',
     kind: 'section',
     path: 'film-log',
   },
