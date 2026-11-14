@@ -17,6 +17,9 @@ import { spokenDuration } from '@/lib/spoken-time';
 /** The Process Timer's params for a one-stage exposure. */
 export const TIMER_EXPOSURE_PARAM = 'exposure';
 export const TIMER_LABEL_PARAM = 'label';
+/** `start=last` (the Control Center "Start last timer"): load the last run's stages and start. */
+export const TIMER_START_PARAM = 'start';
+export const TIMER_START_LAST = 'last';
 /** The stage's name when a link names none. */
 export const EXPOSURE_STAGE_NAME = 'Exposure';
 

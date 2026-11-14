@@ -1,5 +1,5 @@
 import { LINK_OPENED_PARAM } from '@/lib/link-prefill';
-import { TIMER_EXPOSURE_PARAM } from '@/lib/next-step';
+import { TIMER_EXPOSURE_PARAM, TIMER_START_PARAM } from '@/lib/next-step';
 import {
   getTool,
   getToolPhase,
@@ -168,40 +168,104 @@ export function resolveIncomingLink(input: string): string {
   return resolved === path && path === original ? input : resolved;
 }
 
+interface AppLinkParts {
+  /** Everything before the query: the app-scheme URL's head or the bare path. */
+  head: string;
+  /** The path, `/develop/recipes/timer` for `dorkroom://develop/recipes/timer`. */
+  path: string;
+  query: string;
+  hash: string;
+}
+
 /**
- * Gives an incoming link to the Process Timer that carries an exposure but no
- * `at` the time it arrived (`at=<now ms>`), so every opening is ordered and an
- * older timer screen can never re-apply a stale one. This is the form an App
- * Intent builds (`dorkroom://develop/recipes/timer?exposure=60`); the same URL
- * opened twice is two openings. Accepts the app-scheme URL or a bare path; any
- * other link comes back unchanged. Pure: `now` is passed in.
+ * Splits an app-scheme URL or a bare path into its parts; null for a link with
+ * another scheme (`https://`, `exp+dorkroom://`).
  */
-export function stampTimerExposureLink(link: string, now: number): string {
+function appLinkParts(link: string): AppLinkParts | null {
   const hashIndex = link.indexOf('#');
   const beforeHash = hashIndex === -1 ? link : link.slice(0, hashIndex);
   const hash = hashIndex === -1 ? '' : link.slice(hashIndex);
   const queryIndex = beforeHash.indexOf('?');
   const head = queryIndex === -1 ? beforeHash : beforeHash.slice(0, queryIndex);
   const query = queryIndex === -1 ? '' : beforeHash.slice(queryIndex + 1);
-
   const scheme = URL_SCHEME.exec(head);
-  if (scheme !== null && scheme[1].toLowerCase() !== APP_SCHEME) return link;
+  if (scheme !== null && scheme[1].toLowerCase() !== APP_SCHEME) return null;
   const path = scheme === null ? head : `/${scheme[2]}`;
-  const timerRoute = getTool('timer')?.route;
-  if (timerRoute === undefined) return link;
-  if (path.replace(/\/+$/, '').toLowerCase() !== timerRoute.toLowerCase()) {
-    return link;
-  }
+  return { head, path, query, hash };
+}
 
+/** Whether `path` is `route`, ignoring case and trailing slashes. */
+const samePath = (path: string, route: string) =>
+  path.replace(/\/+$/, '').toLowerCase() === route.toLowerCase();
+
+/** Timer link params that make an opening (and so get an `at`). */
+const TIMER_OPENING_PARAMS: readonly string[] = [
+  TIMER_EXPOSURE_PARAM,
+  TIMER_START_PARAM,
+];
+
+/**
+ * Gives an incoming link to the Process Timer that carries an exposure or a
+ * `start` but no `at` the time it arrived (`at=<now ms>`), so every opening is
+ * ordered and an older timer screen can never re-apply a stale one. This is the
+ * form an App Intent or a Control Center control builds
+ * (`dorkroom://develop/recipes/timer?exposure=60`, `...?start=last`); the same
+ * URL opened twice is two openings. Accepts the app-scheme URL or a bare path;
+ * any other link comes back unchanged. Pure: `now` is passed in.
+ */
+export function stampTimerLink(link: string, now: number): string {
+  const parts = appLinkParts(link);
+  const timerRoute = getTool('timer')?.route;
+  if (parts === null || timerRoute === undefined) return link;
+  if (!samePath(parts.path, timerRoute)) return link;
+
+  const { head, query, hash } = parts;
   const keys = query.split('&').map((pair) => pair.split('=')[0]);
   if (
-    !keys.includes(TIMER_EXPOSURE_PARAM) ||
+    !keys.some((key) => TIMER_OPENING_PARAMS.includes(key)) ||
     keys.includes(LINK_OPENED_PARAM)
   ) {
     return link;
   }
   const stamped = `${LINK_OPENED_PARAM}=${Math.floor(now)}`;
   return `${head}?${query === '' ? stamped : `${query}&${stamped}`}${hash}`;
+}
+
+/** The Control Center "Log a frame" link, `dorkroom://log-frame`. */
+export const LOG_FRAME_PATH = '/log-frame';
+
+/**
+ * Where "Log a frame" lands: the add-shot form for the roll the light meter
+ * logs to, or the film log list when there is no active roll (the form would
+ * only say to start one, or pick a finished roll). Pure.
+ */
+export function logFrameTarget(meterRollId: string | undefined): string {
+  const filmLog = getTool('film-log')?.route ?? '/shoot/film-log';
+  return meterRollId === undefined
+    ? filmLog
+    : `${filmLog}/shot?rollId=${encodeURIComponent(meterRollId)}`;
+}
+
+/**
+ * Rewrites the "Log a frame" link (app-scheme URL or bare path, any query is
+ * dropped) to `logFrameTarget`; any other link comes back unchanged.
+ * `meterRollId` is only asked for when the link is this one, and if it throws
+ * (unreadable film log storage) the link lands on the film log list: the raw
+ * `/log-frame` would match no route.
+ */
+export function resolveLogFrameLink(
+  link: string,
+  meterRollId: () => string | undefined
+): string {
+  const parts = appLinkParts(link);
+  if (parts === null || !samePath(parts.path, LOG_FRAME_PATH)) return link;
+  let rollId: string | undefined;
+  try {
+    rollId = meterRollId();
+  } catch {
+    rollId = undefined;
+  }
+  return logFrameTarget(rollId);
 }
 
 /** A query-string key or value as text: `+` is a space, bad escapes stay as written. */

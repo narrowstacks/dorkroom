@@ -1,7 +1,8 @@
 // The Process Timer's "exposure" link (`/develop/recipes/timer?exposure=112`):
 // a one-stage sequence for a timed exposure, such as a reciprocity-corrected
 // long exposure. The pure half of what `TimerScreen` does with the link, plus
-// the one module-level memory of which opening was handled last.
+// the one module-level memory of which opening was handled last, which every
+// timer link shares (the `start=last` link too, see `last-run.ts`).
 import {
   EXPOSURE_STAGE_NAME,
   MAX_TIMER_EXPOSURE_SECONDS,
@@ -45,20 +46,48 @@ export function exposureStages(seconds: number, label?: string): TimerStage[] {
   ];
 }
 
+/** What a timer link opens with: a one-stage exposure, or "start the last run". */
+export type TimerLinkKind = 'exposure' | 'start';
+
 /**
- * Identity of one opening of the link: its `at` marker, else (a link built
- * without one, as an App Intent would) the exposure value, so the same value
- * twice in a row is one opening. Undefined when the link names no exposure.
+ * Identity of one opening of a timer link: its `at` marker, else (a link built
+ * without one, as an App Intent would) its kind and value, so the same value
+ * twice in a row is one opening. Undefined when the link carries no value.
+ */
+export function timerLinkKey(
+  at: string | undefined,
+  kind: TimerLinkKind,
+  value: string | undefined
+): string | undefined {
+  if (value === undefined || value.trim() === '') return undefined;
+  if (at !== undefined && at !== '') return `at:${at}`;
+  return `${kind}:${value.trim()}`;
+}
+
+/**
+ * The exposure link's identity: its `at` marker, else the exposure value.
+ * Undefined when the link names no exposure.
  */
 export function exposureLinkKey(
   at: string | undefined,
   exposure: string | undefined
 ): string | undefined {
   if (at !== undefined && at !== '') return `at:${at}`;
-  if (exposure !== undefined && exposure.trim() !== '') {
-    return `exposure:${exposure.trim()}`;
-  }
-  return undefined;
+  return timerLinkKey(undefined, 'exposure', exposure);
+}
+
+/**
+ * The key of the opening a timer screen's params describe: a `start` link
+ * (with no exposure) is keyed as one, anything else as an exposure link.
+ */
+export function timerOpeningKey(
+  at: string | undefined,
+  exposure: string | undefined,
+  start: string | undefined
+): string | undefined {
+  return exposure === undefined && start !== undefined
+    ? timerLinkKey(at, 'start', start)
+    : exposureLinkKey(at, exposure);
 }
 
 /** How far ahead of now an `at` may be before it is not trusted (clock skew). */
@@ -80,11 +109,33 @@ function openedOf(key: string | undefined, now: number): number | undefined {
 }
 
 /**
- * Whether a link seen now should load its stage: it names a usable time, it is
- * a different opening from the last one handled, no run is in progress (a link
- * never replaces a run), and, for an `at` that can be trusted, it is newer than
- * the newest opening handled (`lastOpened`): an older one is a stale link (an
- * older timer screen, or params that came back) and never applies over it.
+ * Whether a timer link seen now is an opening not handled yet: it has a key, it
+ * is a different opening from the last one handled, and, for an `at` that can be
+ * trusted, it is newer than the newest opening handled (`lastOpened`): an older
+ * one is a stale link (an older timer screen, or params that came back) and
+ * never applies over it. Shared by every kind of timer link.
+ */
+export function isNewTimerOpening(input: {
+  key: string | undefined;
+  lastAppliedKey: string | undefined;
+  /** The newest trusted `at` handled so far. */
+  lastOpened?: number;
+  now: number;
+}): boolean {
+  const { key, lastAppliedKey, lastOpened, now } = input;
+  if (key === undefined || key === lastAppliedKey) return false;
+  const opened = openedOf(key, now);
+  return !(
+    opened !== undefined &&
+    lastOpened !== undefined &&
+    opened <= lastOpened
+  );
+}
+
+/**
+ * Whether an exposure link seen now should load its stage: a new opening
+ * (`isNewTimerOpening`) that names a usable time, with no run in progress (a
+ * link never replaces a run).
  */
 export function shouldApplyExposureLink(input: {
   key: string | undefined;
@@ -95,18 +146,12 @@ export function shouldApplyExposureLink(input: {
   runActive: boolean;
   seconds: number;
 }): boolean {
-  const { key, lastAppliedKey, lastOpened, now, runActive, seconds } = input;
-  if (key === undefined || key === lastAppliedKey) return false;
-  const opened = openedOf(key, now);
-  if (
-    opened !== undefined &&
-    lastOpened !== undefined &&
-    opened <= lastOpened
-  ) {
-    return false;
-  }
-  if (runActive) return false;
-  return Number.isFinite(seconds) && seconds >= MIN_TIMER_EXPOSURE_SECONDS;
+  if (!isNewTimerOpening(input)) return false;
+  if (input.runActive) return false;
+  return (
+    Number.isFinite(input.seconds) &&
+    input.seconds >= MIN_TIMER_EXPOSURE_SECONDS
+  );
 }
 
 // Module level, like the recipe prefill queue: a screen that re-mounts with the

@@ -1,11 +1,13 @@
 import {
   APP_SCHEME,
   resolveIncomingLink,
+  resolveLogFrameLink,
   splitSearchLink,
-  stampTimerExposureLink,
+  stampTimerLink,
 } from '@/lib/deep-link';
 import { noteInitialUrl, pushSearchLink } from '@/lib/home/search-link-store';
 import { handOffWarmLink } from '@/lib/link-handoff';
+import { currentMeterRollId } from '@/lib/meter-roll';
 
 // Rewrites incoming external URLs so they land on a route that exists now.
 // expo-router passes the FULL URL here (`dorkroom://meter`), not a path, and
@@ -21,10 +23,12 @@ export function redirectSystemPath({
   initial: boolean;
 }): string {
   try {
-    // A timer exposure link without `at` is stamped with the arrival time so
-    // every opening is ordered (see `stampTimerExposureLink`).
-    const resolved = stampTimerExposureLink(
-      resolveIncomingLink(path),
+    // "Log a frame" (a Control Center control) becomes the add-shot form for
+    // the meter's roll, or the film log list without an active roll. A timer
+    // link with an exposure or a start and no `at` is stamped with the arrival
+    // time so every opening is ordered (see `stampTimerLink`).
+    const resolved = stampTimerLink(
+      resolveLogFrameLink(resolveIncomingLink(path), currentMeterRollId),
       Date.now()
     );
     const asPath = resolved

@@ -41,7 +41,8 @@ src/
   polyfills/             # Hermes polyfills, MMKV localStorage shim
   theme/tokens.ts        # palette mirrored from web, for non-className values
   test/                  # vitest mocks for native modules
-plugins/                 # local config plugins (with-app-intents, with-ios-scene-lifecycle, with-ios-status-bar-forwarding, with-local-notifications-only)
+plugins/                 # local config plugins (with-app-intents, with-ios-scene-lifecycle, with-ios-status-bar-forwarding, with-local-notifications-only, with-widget-interaction-hold, with-widget-controls)
+modules/dorkroom-shared/ # local Expo module: App Group UserDefaults + Control Center reloads
 scripts/                 # ios.sh, nativewind tailwind link
 ```
 
@@ -102,6 +103,14 @@ and old shares still carry pre-phase paths (`/more/meter`, `/lenses`,
 `resolveLegacyPath` (`src/lib/deep-link.ts`) maps them to canonical paths and
 passes everything else through (`/search` is Home; legacy `/settings` and `/more/settings`, and the retired per-phase
 `/shoot/settings`, `/develop/settings` and `/print/settings`, open `/settings`).
+Two links come from the Control Center controls (below). `dorkroom://log-frame`
+is rewritten in `redirectSystemPath` by `resolveLogFrameLink` (`deep-link.ts`,
+pure, the roll passed in) to the add-shot form for the roll the Meter logs to
+(`/shoot/film-log/shot?rollId=<id>`, from `currentMeterRollId` in
+`src/lib/meter-roll.ts`, the same pick as `useMeterRoll`), or to the film log
+list when no roll is active (`logFrameTarget`). `?start=last` on the timer
+(`dorkroom://develop/recipes/timer?start=last`) is stamped with `at` like an
+exposure link and starts the last run (see "The timer takes" below).
 **Search link.** `dorkroom://search?q=...` (the App Intent "how long for HP5 at 800
 in DD-X?" and Spotlight's "search in app" will send it; nothing in the repo produces
 it yet) is an EVENT, not route params.
@@ -361,7 +370,7 @@ never replaces a run in progress (Reciprocity's row then reads "Timer running"
 and just opens the timer); a queued recipe wins over it. An opening is its `at`, a timestamp. An incoming link
 with an `exposure` and no `at` (what an App Intent builds, such as
 `dorkroom://develop/recipes/timer?exposure=60`) is stamped with `at=<now ms>` in
-`redirectSystemPath` (`stampTimerExposureLink`, pure), so every opening is
+`redirectSystemPath` (`stampTimerLink`, pure), so every opening is
 ordered and the same URL opened twice applies twice. The newest `at` handled is
 remembered at module level (`src/lib/timer/exposure-link.ts`): an opening older
 than it never applies and never moves the memory back, so an older timer screen
@@ -371,6 +380,19 @@ where it put the old time back right after a newer link) changes nothing. An
 link could otherwise block every later one until restart). `exposureLinkKey`
 keeps an at-less identity branch for safety; no deep link reaches it. The
 exposure effect follows only the route params.
+
+`?start=last&at=<opened>` shares that ordered, once-only memory (`timerOpeningKey`,
+`isNewTimerOpening`; one effect in `TimerScreen` handles both kinds). A new opening
+with no run going loads the last STARTED run's stages and starts it through
+`startTimerRun` (`use-timer.ts`), the Start button's own path, so the
+notification prompt, the alerts and the Live Activity behave as on a press. With
+a run going it only shows it; with no last run the timer stays idle
+(`startLastDecision`). The last run is saved by `startTimerRun` whenever a run
+really starts (`src/lib/timer/last-run.ts`, key `lastRun` in the `dorkroom-timer`
+MMKV, Zod-validated on read; stages, preset id and the preset's name). The
+preset chip is restored only when that preset still has the same stages
+(`restoredPresetId`). A recipe run has no title (the timer does not keep the
+recipe's name after the prefill).
 
 ### Routing and screens
 
@@ -737,6 +759,27 @@ may still show the bar.
 - The home indicator auto-hides through the native-stack `autoHideHomeIndicator`
   option, which has not been confirmed on a device.
 
+**App Group mirror.** The mode is also in the App Group's UserDefaults
+(`safelightOn`, `safelightChangedAt` in ms), where the Control Center toggle
+reads and writes it from the widget extension. `setSafelight` writes MMKV and the
+App Group and reloads the control; the store's `reconcile` (in
+`safelight-store.ts`) adopts the shared value when its stamp is newer (and
+reloads the control, which may show a stale state), or writes the app's value
+and stamp there when the shared copy is missing, stale or differs in stamp only
+(`reconcileSafelight`, pure). A stamp never moves backwards: a shared stamp left
+without its value is kept (the publish uses the newer stamp and the app raises
+its own to match). Originating writes (`setSafelight`, a publish, the control)
+write the stamp first, so a crash between the two leaves a newer stamp over the
+old value, which the next reconcile settles. An adopt writes the value first, so
+a crash leaves the adopted value under the old stamp and the shared copy is
+adopted again (stamp first would leave equal stamps over different values, and
+the app would publish its old value over the press). `setSafelight` reconciles
+first, so a press that landed while the app stayed active is never overwritten
+from a stale view. It runs when the store module is first imported and on every
+`AppState` change to `active`. One race is accepted: UserDefaults has no
+compare-and-swap, so a control press landing in the instant between the app's
+read of the shared stamp and its write can be overwritten. See "Control Center controls".
+
 **Controls.** `SafelightButton` (a `switch` with a visible on-state) is the
 `headerRight` of every Print screen, and of every Shoot and Develop screen while
 the mode is on (`offersSafelightButton`), the hubs included. Settings has a
@@ -951,6 +994,134 @@ second (or the stage or status) changes, so they redraw at 1 Hz.
   the hue comes from `useAccentColor(PHASE_ACCENT.develop)`, not the phase, since
   it sits outside every `PhaseProvider`.
 
+### Control Center controls
+
+Four controls (iOS 18 `ControlWidget`s, Swift in
+`plugins/with-widget-controls/swift/`), all in the expo-widgets extension:
+
+| Control | Kind | Does |
+| --- | --- | --- |
+| Safelight mode (toggle, `lightbulb.fill`, red when on) | `art.dorkroom.mobile.control.safelight` | flips the App Group copy of the mode, in the extension |
+| Start last timer (`timer`) | `...control.start-last-timer` | opens `dorkroom://develop/recipes/timer?start=last` |
+| Log a frame (`film`) | `...control.log-frame` | opens `dorkroom://log-frame` |
+| Open meter (`camera.aperture`) | `...control.open-meter` | opens `dorkroom://meter` |
+
+`src/lib/control-kinds.ts` repeats the kinds for `reloadControls`
+(`control-kinds.test.ts` compares them with the Swift), and
+`tool-manifest.test.ts` parses the three URLs out of `ControlLinkIntent.swift`
+and checks each resolves cold and warm.
+
+**Why hand-written Swift, patched into the generated extension.** expo-widgets
+(57.0.27) has no Control Center support, and it deletes and regenerates
+`ios/ExpoWidgetsTarget/` on every prebuild, ending its `@main` `WidgetBundle`
+with `WidgetLiveActivity()`. `plugins/with-widget-controls` (listed BEFORE
+`expo-widgets` in `app.json`, so its mods run after it; `app-plugin-order.test.ts`
+pins it):
+
+- copies the Swift files into `ios/ExpoWidgetsTarget/` and adds
+  `DorkroomControlsBundle().body` under the `WidgetLiveActivity()` line of
+  `index.swift` (`patch-index-swift.js`, pure, tested against the real generated
+  text). The anchor is strict: if that line is missing or appears more than
+  once the prebuild THROWS, so an expo-widgets upgrade that changes the
+  generated file fails loudly instead of shipping without the controls. Update
+  the anchor (and the test's fixture) then.
+- adds the files to the `ExpoWidgetsTarget` target's Sources phase (found by
+  name and checked to be an app extension), `ControlLinkIntent.swift` to the
+  app target too, and `DORKROOM_WIDGET_EXTENSION` to the extension's
+  `SWIFT_ACTIVE_COMPILATION_CONDITIONS`. The file references go in the
+  PBXGroup named AND pathed `ExpoWidgetsTarget`: after `pod install` the
+  project has a second group of that name (under `ExpoModulesProviders`, no
+  path), and a lookup by name alone can pick it, which puts the files at
+  `ios/<file>` and fails the build with "Build input file cannot be found".
+  Idempotent over a project that already has them: no second reference, build
+  file or flag (`widget-controls-project.test.ts`, against a reused-project
+  fixture with both groups).
+
+**Prebuild and `ios/`.** In this Expo CLI (`@expo/cli` for SDK 57) plain
+`expo prebuild` CLEANS by default (`clean: !args['--no-clean']`): it deletes
+`ios/` and recreates it ("Clearing ios" in the log), which is safe here only
+because `ios/` is generated and gitignored. `expo prebuild --no-clean` keeps
+`ios/` and applies the mods to the existing project, Pods groups included, which
+is the case the group lookup above guards. Use the default (clean) after
+changing plugins, `app.json` or native dependencies, or when the project looks
+wrong; `--no-clean` to keep local edits in `ios/` or to save the template copy.
+Either way `pod install` runs afterwards.
+
+The extension is built for iOS 26 because `app.json` sets `ios.deploymentTarget`
+(`"26.0"`), the field expo-widgets reads for the extension (it falls back to 16.4
+otherwise; it has no plugin option). A test keeps it equal to the
+`expo-build-properties` value. So no availability guards in the Swift.
+
+**The shared module.** `modules/dorkroom-shared` is a local Expo module
+(autolinking scans `apps/mobile/modules/` by default: `expo-module.config.json`,
+`ios/DorkroomShared.podspec`, `ios/DorkroomSharedModule.swift`, `index.ts`).
+Synchronous `getSharedBool`, `setSharedBool`, `getSharedNumber`,
+`setSharedNumber` on `UserDefaults(suiteName:)` for the group named by the app's
+Info.plist key `ExpoWidgetsAppGroupIdentifier` (written by expo-widgets), and
+`reloadControls(kind?)`. Every App Group call throws when that key is absent OR
+the build lacks the App Group entitlement: without it `UserDefaults(suiteName:)`
+still succeeds but returns a store private to the app that the extension never
+sees, so the module checks
+`FileManager.containerURL(forSecurityApplicationGroupIdentifier:)` first. Use it through
+`src/lib/shared-defaults.ts`, which degrades to null reads and no-op writes, with
+one development warning, when the native module is missing (a stale dev client,
+vitest) or the group is unavailable. **Never add the Info.plist key
+`AppGroupIdentifier`**: react-native-mmkv would move every MMKV store into the
+App Group and the film log and every other store would be orphaned.
+
+**Safelight.** The toggle's `SetValueIntent` runs in the extension and writes
+`safelightOn` and `safelightChangedAt`, so it works with the app killed. The app
+reconciles before the first render (see Safelight mode). Stamps are monotonic on
+both sides so a press made after the device clock was set back still wins: the
+extension writes `max(now, shared + 1)` and the app `max(now, local + 1,
+shared + 1)` (`nextSafelightStamp`, tested end to end through
+`reconcileSafelight`). The store is `createSafelightStore` (storage, shared
+defaults and the app-state source injected; `safelight-store.test.ts`). Verified on the iOS
+27.0 Simulator: with the app terminated, the shared value set to on with a newer
+stamp, the next launch's first rendered frame after the launch screen was
+already red (max G and B 0); the same set to off while the app was in the
+background was adopted on foreground. The launch screen itself is not red.
+
+**How the buttons open the app.** An extension cannot call `UIApplication`. The
+buttons run `OpenControlLinkIntent` (`ControlLinkIntent.swift`), compiled into
+BOTH targets with `supportedModes = .foreground(.immediate)`: because the app
+has the intent and it runs in the foreground, the system launches or foregrounds
+the app and runs `perform()` there, which opens the link with
+`UIApplication.shared.open` (the extension's copy is compiled without it, behind
+`DORKROOM_WIDGET_EXTENSION`). Tried first and rejected: an extension-only intent
+returning `.result(opensIntent: OpenURLIntent(url))`; on the iOS 27.0 Simulator
+the action "succeeded" but AppIntents logged `Prepared url to URL(nil)` and the
+app never opened, for a `dorkroom://` URL. With the dual-target intent, on the same Simulator: Open
+meter and Start last timer opened the app at the right screen from a killed app
+(Start last timer then started the run), and Log a frame and Start last timer did
+so with the app in the background.
+
+**Simulator build used** (no signing team; the Simulator's ad-hoc signing carries
+the App Group entitlement, so do not pass `CODE_SIGNING_ALLOWED=NO`):
+
+```bash
+cd apps/mobile
+CI=1 bunx expo prebuild --platform ios   # cleans ios/ (see "Prebuild and ios/")
+xcodebuild -workspace ios/Dorkroom.xcworkspace -scheme Dorkroom \
+  -configuration Debug -destination 'platform=iOS Simulator,id=<udid>' \
+  -derivedDataPath ios/build build 2>&1 | tee /tmp/dorkroom-sim-build.log
+xcrun simctl install <udid> ios/build/Build/Products/Debug-iphonesimulator/Dorkroom.app
+```
+
+Install over the existing app (never uninstall: that deletes the film log).
+The Simulator's Control Center does list third-party controls: swipe down from
+the top-right, tap `+`, "Add a Control", and Dorkroom's four are in the gallery.
+To fake a control write from the host, use
+`xcrun simctl spawn <udid> defaults write <group container>/Library/Preferences/group.art.dorkroom.mobile.plist safelightChangedAt -int <ms>`
+(`-int`: `-float` is single precision and rounds a millisecond stamp by
+minutes, which can make it older than the app's).
+
+**Unverified on a device:** the controls in a real phone's Control Center and
+on the Lock Screen, the Action button bound to a control, the Safelight toggle
+and the buttons with the app killed on a device (the Simulator does not kill or
+suspend apps the way iOS does), and the control's red tint under the system's
+own appearance settings.
+
 ### Components
 
 - PascalCase names, kebab-case files; props interface named `ComponentNameProps`;
@@ -1117,7 +1288,9 @@ config**, because Metro can't hot-reload native:
 - adding, removing, or upgrading a dependency with **native iOS code** (e.g.
   `expo-quick-actions`, `react-native-vision-camera`, anything with a config plugin)
 - editing the **`plugins`** array in `app.json` or a plugin's options, including
-  the local plugins in `plugins/` (`with-app-intents`, `with-ios-scene-lifecycle`, `with-ios-status-bar-forwarding`, `with-local-notifications-only`) and the `expo-widgets` entry
+  the local plugins in `plugins/` (`with-app-intents`, `with-ios-scene-lifecycle`, `with-ios-status-bar-forwarding`, `with-local-notifications-only`, `with-widget-interaction-hold`, `with-widget-controls`) and the `expo-widgets` entry
+- the local Expo module in `modules/` (`dorkroom-shared`), or the control Swift in
+  `plugins/with-widget-controls/swift/`
 - changing native iOS config: `Info.plist` keys, **permission/usage strings**,
   the **URL scheme**, bundle id, **deployment target**, app icon / splash
 - **home-screen quick actions / SF Symbol shortcut items**, entitlements
