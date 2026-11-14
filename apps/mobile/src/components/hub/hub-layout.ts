@@ -1,10 +1,24 @@
 import type { LastResults } from '@/lib/last-result-store';
 import type { Tool } from '@/lib/tools';
 
-/** Splits items into rows of two for the tile grid. The last row may hold one. */
-export function chunkPairs<T>(items: readonly T[]): T[][] {
-  const rows: T[][] = [];
-  for (let i = 0; i < items.length; i += 2) rows.push(items.slice(i, i + 2));
+/** One row of the tile grid. */
+export interface TileRow<T> {
+  items: T[];
+  /** A lone last tile spans both columns as a wide row, so an odd count
+   * leaves no empty cell. */
+  wide: boolean;
+}
+
+/**
+ * Splits items into rows of two for the tile grid. With an odd count the last
+ * row holds one item and is `wide`: it spans both columns.
+ */
+export function tileRows<T>(items: readonly T[]): TileRow<T>[] {
+  const rows: TileRow<T>[] = [];
+  for (let i = 0; i < items.length; i += 2) {
+    const pair = items.slice(i, i + 2);
+    rows.push({ items: pair, wide: pair.length === 1 });
+  }
   return rows;
 }
 

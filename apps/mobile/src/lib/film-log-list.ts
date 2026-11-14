@@ -5,16 +5,18 @@ import type {
   RollFilter,
   TopEntry,
 } from '@/lib/film-log-collection';
-import { rollLabel, rollStatusLabel } from '@/lib/film-log-options';
+import {
+  frameCountLabel,
+  rollLabel,
+  rollStatusLabel,
+} from '@/lib/film-log-options';
 import type { FilmRoll } from '@/schemas/film-log.schema';
 
 function plural(count: number, word: string): string {
   return `${count} ${word}${count === 1 ? '' : 's'}`;
 }
 
-export function frameCountLabel(count: number): string {
-  return plural(count, 'frame');
-}
+export { frameCountLabel };
 
 /** A "most shot" claim needs a clear winner: two rolls or more, and no tie. */
 function clearWinner(entry: TopEntry | undefined): string | undefined {

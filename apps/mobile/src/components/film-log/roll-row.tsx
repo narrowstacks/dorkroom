@@ -14,7 +14,14 @@ interface RollRowProps {
   onPress: () => void;
 }
 
-function StatusPill({ label, tinted }: { label: string; tinted: boolean }) {
+/** The status pill: tinted for In camera, neutral otherwise. Shared with the hubs. */
+export function StatusPill({
+  label,
+  tinted,
+}: {
+  label: string;
+  tinted: boolean;
+}) {
   const tint = useSelectionTint();
   if (tinted) {
     return (
