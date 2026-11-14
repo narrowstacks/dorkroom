@@ -207,7 +207,75 @@ from `filmLogEmptyState`: no rolls at all shows the guided "Load a roll"
 `firstRollHint`: "Add your cameras and lenses first, in the More menu." while
 there is no camera, since the roll form then only offers Cameras & lenses,
 else "Your cameras and lenses are in the More menu."); a filter that
-hides every roll shows one line naming it and "Show all rolls". `film-log-csv.ts` (pure) writes one roll as CSV: no metadata
+hides every roll shows one line naming it and "Show all rolls".
+
+**A roll's page** (`roll-detail-screen.tsx`, #732). The header's right side is
+native bar items, as on the list: `+` (Add frame, always shown; the empty
+state keeps its own button too) and a More menu
+(`ellipsis`): "Edit roll" (also the only way back a step: the roll form's
+status control), "Show map" (only when a frame has a location), a "Share"
+submenu with "Export CSV" (disabled with "Log a frame to export." while there
+are no frames) and "Export GPX" (disabled with "Add a location to a frame to
+export GPX."), then "Delete roll", destructive, in an inline section so a
+separator sets it apart, behind the same "Delete roll?" alert. The exports go
+through `shareRollAsCsv` and `shareRollAsGpx`, so the tap guard applies. The
+safelight switch is re-added as a `Stack.Toolbar.View`. The body starts with
+`RollSummary` (`components/film-log/roll-summary.tsx`), one flat `Surface`:
+the setup line (`rollSetupLine`: camera, the film when the title is the
+roll's name or "No film set" when it has none, EI with "(Push +1)", process), the dates the roll stores
+(`rollDatesLine`: "Started Nov 1 · 12 days in camera", then "Shot Nov 10" and
+"Developed Nov 12"; days only from the second day), a developed roll's record
+in one line (`developmentSummaryLine`: recipe, dilution, °C (°F), "Time set",
+the recipe's EI when it differs) and its notes, the roll's back and notes;
+then the lifecycle track (`lifecycleTrack`: In camera, Shot, Developed, each
+with a glyph for done, current or to come, so it never rests on colour; one
+VoiceOver element, `lifecycleTrackLabel`) and under it ONE tinted button for
+`nextLifecycleAction` ("Mark as shot", "Mark as developed", none for a
+developed roll) through `confirm-roll-status.ts`; then the frame count, "N
+with a location", a map thumbnail and the Meter shortcut. The thumbnail is
+DRAWN, not a map (`FrameMapThumbnail`, dots from `thumbnailDots` in
+`frame-map-thumbnail.ts`, pure: one scale for both axes, north up,
+antimeridian-aware through `longitudeArc`, one dot per 6-decimal point, at
+most 24): a live map would be a native view in a scrolling list header,
+would fetch tiles from Apple on every visit and cannot be dimmed under
+safelight. It shows when a frame has a location and the build has the map
+(`loadAppleMaps`), and a tap opens the roll map. **The Meter shortcut** (a
+secondary "Open Meter" button, spoken "Open the Meter for this roll", only for a roll in
+the camera, `offersMeterShortcut`) sets the Meter's roll with `useMeterRoll`'s
+`setRoll` (the persisted pick its roll pill writes, so later visits to the
+Meter keep logging to this roll until another is picked) and opens the Meter
+with `openToolPath`, pushed on the Shoot stack, so Back returns to the roll.
+The track becomes a column from iOS XXL (`stacksLifecycleTrack`, 1.2: in a
+row it needs about 320pt, more than a 375pt phone has there) and its labels
+can wrap; at the accessibility text sizes (`stacksSummary`) the counts,
+thumbnail and Meter stack too. Under it, "Frames" and the frames
+as one grouped list of `FrameRow`s (`groupRowClassName`, virtualized): the
+edge number (`frameNumberLabel`, "07") in a fixed column in the phase hue
+(`frameNumberColumnWidth`: three digits, scaled with the text size, so rows
+stay aligned past frame 99),
+a thumbnail with an outline only when the frame has a photo, the exposure
+(no ISO: a frame stores none, it is the roll's EI), lens, back and place,
+the first line of the notes (one line, wrapping at the accessibility sizes),
+and grey `mappin` and
+`camera.metering.center.weighted` glyphs for a location and a frame logged
+from the Meter. `frameRowText` (pure) builds the text and the one VoiceOver
+label ("Frame 7, f/8, 1/125, Color Skopar, Embarcadero, has location, logged
+from the Meter", notes included; never coordinates). A tap opens the shot
+form; the row is an expo-router `Link` with `Link.Menu`, so a long press shows
+a native context menu with Edit frame, View photo (with a photo) and Show
+roll map (located; it opens the whole roll's map, not that frame). The
+VoiceOver element is a plain `View` around the `Link` (`accessible`, role
+button, the label, `onAccessibilityTap` opening the frame), not the
+`Pressable`: `Link.Menu` mounts its trigger inside a native view styled
+`display: contents`, and the accessibility tree skips that view's subtree,
+so a label on the `Pressable` reached nobody (the frame rows were missing
+from the tree on the Simulator). View photo and Show roll map are
+also offered to VoiceOver as custom actions. There is no Delete frame:
+`removeShot` exists in storage but nothing in the app calls it yet. A roll
+with no frames shows one sentence (`noFramesMessage`, pointing a roll in the
+camera at the Meter) and the page's one commit, "Add frame".
+
+`film-log-csv.ts` (pure) writes one roll as CSV: no metadata
 preamble (EXIF tools want a clean header row, so roll facts go in the file name,
 `csvFileName`, which uses the local start date), RFC 4180 quoting, CRLF, rows by
 frame number, and no photo file column (an internal name). "Taken at" is local
@@ -777,17 +845,17 @@ Back; the exported GPX validates against the GPX 1.1 schema.
   `film-log-share.ts`: the cache folder, its cleanup, and the double-tap flag
   and window, shared by both formats). RN's `Share.share` takes no MIME type on
   iOS; the sheet types the file from `.gpx` (`application/gpx+xml`). On a
-  roll's page Export GPX sits beside Export CSV and, like it, is disabled with
-  a line under the label ("Add a location to a frame to export GPX.") until a
-  frame has a location (`hasLocatedFrame`).
+  roll's page Export GPX sits beside Export CSV in the More menu's Share
+  submenu and, like it, is disabled with a subtitle ("Add a location to a
+  frame to export GPX.") until a frame has a location.
 - **The map.** `/shoot/film-log/roll-map?rollId=<id>`
   (`app/(tabs)/shoot/film-log/roll-map.tsx`, `RollMapScreen`), flat in the
   Shoot stack, standard header titled "Map" (Back reads "Roll"), no in-page
   title, and `gestureResponseDistance: { end: BACK_SWIPE_ZONE }` so a drag
   right pans the map and Back starts only in the left 24pt. It takes the roll id and nothing else: coordinates never go in route
   params, logs, analytics, widgets or Spotlight, and an unknown id shows "Roll
-  not found." The roll's page shows a Map button only when a frame has a
-  location. The map is pinned above a list of the located frames
+  not found." The roll's page offers it ("Show map" in the More menu, and
+  the summary's drawn thumbnail) only when a frame has a location. The map is pinned above a list of the located frames
   (`locatedFrames` and `locatedFrameLabel` in `frame-map-items.ts`: number,
   place, coordinates as the shot form shows them, coarse accuracy), each row a
   button that opens the frame's shot form, so VoiceOver never depends on the
@@ -908,15 +976,17 @@ Back; the exported GPX validates against the GPX 1.1 schema.
   radius 16, an `edge` line between rows; tokens in `surface-style.ts`): use
   `InsetGroup` / `InsetRow` for a few rows laid out at once, and
   `groupRowClassName(index, count)` on each row of a `FlatList`, where an
-  `InsetGroup` would defeat virtualization. A tinted fill is for state only (a selected chip, the In
-  camera pill). Most screens still use `GlassCard` for content; they move to
+  `InsetGroup` would defeat virtualization. A tinted fill is for state (a selected chip, the In camera
+  pill) and for a roll's one next step (`Button variant="tinted"`). Most screens still use `GlassCard` for content; they move to
   `Surface` in follow-up PRs (#732). `GlassCard` itself is Liquid Glass on iOS
   26 with a translucent fallback, its capability check computed **once at
   import**, never per render.
 - **Buttons.** One system, `Button` (`components/button.tsx`, classes in the
   pure `button-style.ts`): `commit` (the solid phase hue, one per screen at
-  most), `secondary` (the flat fill, white), `plain` (phase-hue text, no fill)
-  and `destructive` (the flat fill, rose text). All share a 44pt minimum
+  most), `secondary` (the flat fill, white), `plain` (phase-hue text, no fill),
+  `tinted` (the selection tint as a fill, hue text: only the one next step on
+  a roll's page, Mark as shot or Mark as developed) and `destructive` (the
+  flat fill, rose text). All share a 44pt minimum
   height, radius 12, semibold label that wraps rather than truncates,
   `active:opacity-70` and `opacity-40` with `accessibilityState.disabled`.
   `CommitButton` and `NeutralButton` are `Button` with the variant fixed. An
@@ -1041,8 +1111,10 @@ may still show the bar.
   `ActionSheetIOS` (the Inverter's photo chooser), `Share.share` (share buttons,
   film log export, Inverter share) and the **photo picker** (gated, above). They
   stay full colour and the Settings footnote says so.
-- **Header menus** (the Film Log's More menu, a native `UIMenu`) may draw
-  above the overlay like the sheets; not yet checked under the mode.
+- **Header menus** (the More menus of the Film Log and of a roll's page,
+  and a frame row's context menu, all native `UIMenu`s) draw above the
+  overlay in full colour like the sheets (checked on the Simulator), and a
+  frame row lifted by its context menu shows its first line in white.
 - A roll's **map** (Apple Maps) is hidden behind "Show map anyway" while the
   mode is on; once shown it is tinted red like a photo, not dimmed.
 - The **photo viewer and camera previews** become full-brightness red images

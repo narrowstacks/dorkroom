@@ -47,7 +47,7 @@ function wrapLongitude(value: number): number {
  * its largest empty gap, so frames on both sides of the antimeridian (179 and
  * -179) span 2 degrees, not 358.
  */
-function longitudeArc(longitudes: readonly number[]): LongitudeArc {
+export function longitudeArc(longitudes: readonly number[]): LongitudeArc {
   const sorted = longitudes.map(wrapLongitude).sort((a, b) => a - b);
   const first = sorted[0] ?? 0;
   const last = sorted[sorted.length - 1] ?? 0;
