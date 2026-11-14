@@ -12,6 +12,7 @@ import {
 } from '@/lib/tools';
 import { PhaseProvider } from '@/theme/phase-context';
 import { chromeOptions } from '@/theme/stack-chrome';
+import { STANDARD_TITLE } from '@/theme/stack-header-options';
 
 /** How far from the left edge a Back swipe may start on a fixed-layout tool. */
 const BACK_SWIPE_EDGE = { end: BACK_SWIPE_ZONE } as const;
@@ -67,7 +68,7 @@ export function PhaseStack({ phase, children }: PhaseStackProps) {
             const tool = getScreenToolForPhase(phase, params.tool);
             return {
               title: tool?.label ?? 'Not found',
-              headerLargeTitle: usesLargeTitle(tool),
+              ...(usesLargeTitle(tool) ? undefined : STANDARD_TITLE),
               // iOS 26 lets Back start anywhere on the screen. A fixed-layout
               // tool is a drawing, an editor or a camera, so a sideways drag
               // belongs to it: Back may only start in the left edge zone.

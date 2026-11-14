@@ -13,7 +13,7 @@ import { developedDateText } from '@/components/film-log/developed-date';
 import { PhotoViewer } from '@/components/film-log/photo-viewer';
 import { RollDevelopmentSection } from '@/components/film-log/roll-development-section';
 import { GlassCard } from '@/components/glass-card';
-import { GradientBackground } from '@/components/gradient-background';
+import { useBackdropStyle } from '@/components/gradient-background';
 import { NeutralButton } from '@/components/neutral-button';
 import { TabBarScrollView } from '@/components/tab-bar-scroll-view';
 import { useCameras, useLenses, useRoll } from '@/hooks/use-film-log';
@@ -71,6 +71,7 @@ function ExportButton({
 }
 
 export function RollDetailScreen() {
+  const backdrop = useBackdropStyle();
   const hue = usePhaseHue();
   const { rollId } = useLocalSearchParams<{ rollId: string }>();
   const roll = useRoll(rollId);
@@ -277,11 +278,13 @@ export function RollDetailScreen() {
   );
 
   return (
-    <View className="flex-1">
+    // A fragment, not a wrapper view: the list must be the root native view
+    // for the large title to collapse (see `Screen`).
+    <>
       <Stack.Screen options={{ title }} />
-      <GradientBackground />
       <TabBarScrollView>
         <FlatList
+          style={backdrop}
           contentInsetAdjustmentBehavior="automatic"
           contentContainerStyle={{ padding: 16, gap: 12 }}
           data={roll.shots}
@@ -300,6 +303,6 @@ export function RollDetailScreen() {
         fileName={viewerFile}
         onClose={() => setViewerFile(null)}
       />
-    </View>
+    </>
   );
 }
