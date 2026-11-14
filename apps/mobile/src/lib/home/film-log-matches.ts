@@ -1,5 +1,5 @@
 import { rollRowText } from '@/lib/film-log-list';
-import { formatCameraFormat } from '@/lib/film-log-options';
+import { formatCameraFormat, joinFacts } from '@/lib/film-log-options';
 import type { Camera, FilmRoll, Lens } from '@/schemas/film-log.schema';
 
 export interface RollMatch {
@@ -128,10 +128,10 @@ export function matchFilmLog(
       return {
         cameraId: camera.id,
         title: camera.name,
-        subtitle: [
+        subtitle: joinFacts([
           formatCameraFormat(camera.format),
           used === 0 ? 'No rolls' : `${used} ${used === 1 ? 'roll' : 'rolls'}`,
-        ].join(' · '),
+        ]),
       };
     });
 

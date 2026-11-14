@@ -6,6 +6,7 @@ import { SectionLabel } from '@/components/section-label';
 import { Surface } from '@/components/surface';
 import { ToolIcon } from '@/components/tool-icon';
 import { stacksRollRow } from '@/lib/film-log-list';
+import { spokenText } from '@/lib/film-log-options';
 import type { FilmLogMatches } from '@/lib/home/film-log-matches';
 import { getTool } from '@/lib/tools';
 
@@ -45,7 +46,12 @@ function ResultRow({
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={[title, detail, status?.label, meta]
+      accessibilityLabel={[
+        title,
+        detail === undefined ? undefined : spokenText(detail),
+        status?.label,
+        meta,
+      ]
         .filter(Boolean)
         .join(', ')}
       className="flex-row items-center justify-between gap-3 px-4 py-3 active:opacity-60"

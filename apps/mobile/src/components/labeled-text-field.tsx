@@ -4,6 +4,8 @@ import { useDimInk } from '@/theme/use-phase-accent';
 
 interface LabeledTextFieldProps {
   label: string;
+  /** Spoken name when `label` is empty or not enough. */
+  accessibilityLabel?: string;
   value: string;
   onChangeText: (value: string) => void;
   keyboardType?: 'default' | 'numeric' | 'decimal-pad';
@@ -20,6 +22,7 @@ interface LabeledTextFieldProps {
 
 export function LabeledTextField({
   label,
+  accessibilityLabel,
   value,
   onChangeText,
   keyboardType = 'default',
@@ -36,7 +39,7 @@ export function LabeledTextField({
       {label ? <Text className="text-sm text-ink-60">{label}</Text> : null}
       <TextInput
         ref={inputRef}
-        accessibilityLabel={label}
+        accessibilityLabel={accessibilityLabel ?? label}
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType}

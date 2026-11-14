@@ -10,7 +10,7 @@ export function ShutterButton({ onPress }: ShutterButtonProps) {
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel="Capture a photo and log a shot"
+      accessibilityLabel="Capture a photo and log a frame"
       // A style callback is ignored by NativeWind's interop; pressed feedback
       // is a class.
       className="active:opacity-70"

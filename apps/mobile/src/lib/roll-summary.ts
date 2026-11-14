@@ -130,3 +130,18 @@ export const TRACK_STACK_FONT_SCALE = 1.2;
 export function stacksLifecycleTrack(fontScale: number): boolean {
   return fontScale >= TRACK_STACK_FONT_SCALE;
 }
+
+/** A lifecycle step glyph's size at the default text size. */
+export const LIFECYCLE_GLYPH_SIZE = 14;
+
+/** The glyph keeps pace with the step's label up to 2x text (28pt), past which
+ * it stops: it is content, so it may grow past the 1.3x the app caps chrome at,
+ * but a glyph larger than the line of text beside it only crowds the track. */
+export const LIFECYCLE_GLYPH_MAX_SCALE = 2;
+
+export function lifecycleGlyphSize(fontScale: number): number {
+  const scale = Number.isFinite(fontScale) && fontScale > 0 ? fontScale : 1;
+  return Math.round(
+    LIFECYCLE_GLYPH_SIZE * Math.min(scale, LIFECYCLE_GLYPH_MAX_SCALE)
+  );
+}

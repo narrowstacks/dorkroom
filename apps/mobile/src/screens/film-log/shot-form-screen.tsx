@@ -274,10 +274,10 @@ export function ShotFormScreen() {
   if (rolls.length === 0) {
     return (
       <Screen>
-        <Stack.Screen options={{ title: 'Add shot' }} />
+        <Stack.Screen options={{ title: 'Add frame' }} />
         <Surface className="gap-3">
           <Text className="text-base text-white">
-            Start a roll before logging a shot.
+            Start a roll before logging a frame.
           </Text>
           <NeutralButton
             onPress={() => router.replace('/shoot/film-log/roll-form')}
@@ -298,7 +298,9 @@ export function ShotFormScreen() {
 
   return (
     <Screen>
-      <Stack.Screen options={{ title: existing ? 'Edit shot' : 'Add shot' }} />
+      <Stack.Screen
+        options={{ title: existing ? 'Edit frame' : 'Add frame' }}
+      />
       {isoMismatch ? (
         <IsoMismatchCard meteredIso={meteredIso} rollIso={roll.iso} />
       ) : null}
@@ -388,7 +390,7 @@ export function ShotFormScreen() {
       <CommitButton
         onPress={onSave}
         disabled={isCommitDisabled({ locating })}
-        label={existing ? 'Save shot' : 'Add shot'}
+        label={existing ? 'Save frame' : 'Add frame'}
       />
     </Screen>
   );
