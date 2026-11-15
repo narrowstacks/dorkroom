@@ -3,11 +3,14 @@ import {
   exposureLinkKey,
   exposureSecondsFromParam,
   exposureStages,
+  isNewTimerOpening,
   lastHandledExposureKey,
   lastHandledExposureOpened,
   markExposureLinkHandled,
   resetExposureLinkMemory,
   shouldApplyExposureLink,
+  timerLinkKey,
+  timerOpeningKey,
 } from './exposure-link';
 
 describe('exposureStages', () => {
@@ -227,5 +230,72 @@ describe('the handled-link memory', () => {
     expect(run(t1, '112')).toBe(false); // A re-runs with its stale params
     expect(lastHandledExposureKey()).toBe(`at:${t2}`);
     expect(lastHandledExposureOpened()).toBe(t2);
+  });
+});
+
+describe('timerLinkKey and timerOpeningKey', () => {
+  it('keys a start link by its at, else by kind and value', () => {
+    expect(timerLinkKey('9', 'start', 'last')).toBe('at:9');
+    expect(timerLinkKey(undefined, 'start', 'last')).toBe('start:last');
+    expect(timerLinkKey('9', 'start', undefined)).toBeUndefined();
+  });
+
+  it('keys an opening as a start link only without an exposure', () => {
+    expect(timerOpeningKey(undefined, undefined, 'last')).toBe('start:last');
+    expect(timerOpeningKey('3', undefined, 'last')).toBe('at:3');
+    expect(timerOpeningKey(undefined, '60', 'last')).toBe('exposure:60');
+    expect(timerOpeningKey('3', undefined, undefined)).toBe('at:3');
+    expect(timerOpeningKey(undefined, undefined, undefined)).toBeUndefined();
+  });
+});
+
+describe('isNewTimerOpening', () => {
+  const NOW_MS = 1_000_000;
+
+  it('is new for an unseen key that is not older than the newest handled', () => {
+    expect(
+      isNewTimerOpening({ key: 'at:5', lastAppliedKey: undefined, now: NOW_MS })
+    ).toBe(true);
+    expect(
+      isNewTimerOpening({
+        key: 'at:7',
+        lastAppliedKey: 'at:5',
+        lastOpened: 5,
+        now: NOW_MS,
+      })
+    ).toBe(true);
+  });
+
+  it('is not new for no key, the same key, or an older at', () => {
+    expect(
+      isNewTimerOpening({
+        key: undefined,
+        lastAppliedKey: undefined,
+        now: NOW_MS,
+      })
+    ).toBe(false);
+    expect(
+      isNewTimerOpening({ key: 'at:5', lastAppliedKey: 'at:5', now: NOW_MS })
+    ).toBe(false);
+    expect(
+      isNewTimerOpening({
+        key: 'at:4',
+        lastAppliedKey: 'at:5',
+        lastOpened: 5,
+        now: NOW_MS,
+      })
+    ).toBe(false);
+  });
+
+  it('shares the order memory between exposure and start links', () => {
+    // A start link handled at 10 makes an exposure link from 8 stale.
+    expect(
+      isNewTimerOpening({
+        key: timerOpeningKey('8', '60', undefined),
+        lastAppliedKey: timerOpeningKey('10', undefined, 'last'),
+        lastOpened: 10,
+        now: NOW_MS,
+      })
+    ).toBe(false);
   });
 });

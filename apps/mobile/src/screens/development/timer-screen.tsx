@@ -13,17 +13,29 @@ import { PresetChipRow } from '@/components/preset-chip-row';
 import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
 import { LINK_OPENED_PARAM, linkSearchFromParams } from '@/lib/link-prefill';
-import { TIMER_EXPOSURE_PARAM, TIMER_LABEL_PARAM } from '@/lib/next-step';
+import {
+  TIMER_EXPOSURE_PARAM,
+  TIMER_LABEL_PARAM,
+  TIMER_START_PARAM,
+} from '@/lib/next-step';
+import { developmentSession } from '@/lib/timer/development-session';
 import { totalRemainingSeconds } from '@/lib/timer/engine';
 import {
-  exposureLinkKey,
   exposureSecondsFromParam,
   exposureStages,
+  isNewTimerOpening,
   lastHandledExposureKey,
   lastHandledExposureOpened,
   markExposureLinkHandled,
   shouldApplyExposureLink,
+  timerOpeningKey,
 } from '@/lib/timer/exposure-link';
+import {
+  getLastRun,
+  isStartLast,
+  restoredPresetId,
+  startLastDecision,
+} from '@/lib/timer/last-run';
 import { consumeTimerPrefill } from '@/lib/timer/prefill';
 import { stagesFromCombination } from '@/lib/timer/presets';
 import { addPreset, listPresets } from '@/lib/timer/presets-storage';
@@ -47,6 +59,7 @@ export function TimerScreen() {
     setSelectedPresetId,
     selectedPresetId,
     stages,
+    start: startRun,
   } = timer;
   const idle = timer.status === 'idle';
 
@@ -75,26 +88,33 @@ export function TimerScreen() {
   const search = linkSearchFromParams(useLocalSearchParams());
   const exposureParam = search[TIMER_EXPOSURE_PARAM];
   const labelParam = search[TIMER_LABEL_PARAM];
+  const startParam = search[TIMER_START_PARAM];
   const openedAt = search[LINK_OPENED_PARAM];
-  // One-shot exposure link (`?exposure=<seconds>&label=&at=`, from Reciprocity's
-  // "Start a ... exposure"): load a single stage, once per opening (its `at`,
-  // else its value), and never over a run in progress. It does not start: the user presses Start.
+  // One-shot timer links, once per opening (its `at`, else its value), never
+  // over a run in progress:
+  // - `?exposure=<seconds>&label=&at=` (Reciprocity's "Start a ... exposure"):
+  //   load a single stage. It does not start: the user presses Start.
+  // - `?start=last&at=` (the Control Center "Start last timer"): load the last
+  //   started run's stages and START it, through the Start button's own path
+  //   (notification permission, Live Activity). With a run going it just shows
+  //   it; with no last run the timer stays as it is.
   // The screen may already be mounted when a new link arrives, so this follows
   // the params rather than mounting once.
   useEffect(() => {
     const seconds = exposureSecondsFromParam(exposureParam);
     // A run that ended while the app was suspended must not count as active.
     timerStore.sync();
-    const key = exposureLinkKey(openedAt, exposureParam);
+    const key = timerOpeningKey(openedAt, exposureParam, startParam);
     const now = Date.now();
-    const apply = shouldApplyExposureLink({
+    const opening = {
       key,
       lastAppliedKey: lastHandledExposureKey(),
       lastOpened: lastHandledExposureOpened(),
       now,
-      runActive: isRunActive(timerStore.getSnapshot().timer),
-      seconds,
-    });
+    };
+    const runActive = isRunActive(timerStore.getSnapshot().timer);
+    const isNewOpening = isNewTimerOpening(opening);
+    const apply = shouldApplyExposureLink({ ...opening, runActive, seconds });
     // Handled either way, so a link dropped for a run (or a recipe) does not
     // load later, and a re-mount with the same params never re-applies it.
     markExposureLinkHandled(key, now);
@@ -105,8 +125,31 @@ export function TimerScreen() {
     if (apply) {
       setSelectedPresetId('');
       applyStages(exposureStages(seconds, labelParam));
+      return;
     }
-  }, [exposureParam, labelParam, openedAt, applyStages, setSelectedPresetId]);
+    if (exposureParam !== undefined || !isStartLast(startParam)) return;
+    const lastRun = getLastRun();
+    const decision = startLastDecision({
+      isNewOpening,
+      runActive,
+      hasLastRun: lastRun !== null,
+    });
+    if (decision !== 'start' || lastRun === null) return;
+    // The stored run carries no recipe: end the loaded recipe's session so the
+    // run is not saved to its roll with its developer.
+    developmentSession.end();
+    setSelectedPresetId(restoredPresetId(lastRun, listPresets()));
+    applyStages(lastRun.stages);
+    startRun();
+  }, [
+    exposureParam,
+    labelParam,
+    startParam,
+    openedAt,
+    applyStages,
+    setSelectedPresetId,
+    startRun,
+  ]);
 
   const handleSelectPreset = useCallback(
     (id: string) => {

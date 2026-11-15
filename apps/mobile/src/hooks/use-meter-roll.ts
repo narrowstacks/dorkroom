@@ -1,10 +1,9 @@
 import { useCallback, useMemo } from 'react';
 import { useMMKVString } from 'react-native-mmkv';
 import { useRolls } from '@/hooks/use-film-log';
+import { METER_ROLL_KEY, pickMeterRoll } from '@/lib/meter-roll';
 import { meterStorage } from '@/lib/meter-settings';
 import type { FilmRoll } from '@/schemas/film-log.schema';
-
-const METER_ROLL_KEY = 'meterRollId';
 
 /**
  * The roll the light meter logs shots to. The user picks among their active
@@ -19,7 +18,7 @@ export function useMeterRoll() {
   );
   const [storedId, setStoredId] = useMMKVString(METER_ROLL_KEY, meterStorage);
   const roll: FilmRoll | undefined = useMemo(
-    () => activeRolls.find((r) => r.id === storedId) ?? activeRolls[0],
+    () => pickMeterRoll(activeRolls, storedId),
     [activeRolls, storedId]
   );
   const setRoll = useCallback((id: string) => setStoredId(id), [setStoredId]);
