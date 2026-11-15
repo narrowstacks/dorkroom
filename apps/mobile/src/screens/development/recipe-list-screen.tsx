@@ -29,6 +29,7 @@ import { RecipeCard } from '@/components/development/recipe-card';
 import { SearchBar } from '@/components/development/search-bar';
 import { GradientBackground } from '@/components/gradient-background';
 import { NeutralButton } from '@/components/neutral-button';
+import { TabBarScrollView } from '@/components/tab-bar-scroll-view';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { resolveRecipeTarget } from '@/lib/home/recipe-target';
 import { LINK_OPENED_PARAM } from '@/lib/link-prefill';
@@ -272,28 +273,30 @@ export function RecipeListScreen() {
   return (
     <View className="flex-1">
       <GradientBackground />
-      <FlatList
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={{ padding: 16, gap: 12 }}
-        data={deferredVisible}
-        keyExtractor={keyExtractor}
-        ListHeaderComponent={header}
-        ListEmptyComponent={
-          <EmptyState
-            unavailable={unavailable}
-            showClearAll={
-              unavailable !== null || activeFilterCount > 0 || query !== ''
-            }
-            onClearAll={clearEverything}
-          />
-        }
-        renderItem={renderItem}
-        windowSize={7}
-        maxToRenderPerBatch={8}
-        initialNumToRender={8}
-        updateCellsBatchingPeriod={50}
-        removeClippedSubviews
-      />
+      <TabBarScrollView>
+        <FlatList
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerStyle={{ padding: 16, gap: 12 }}
+          data={deferredVisible}
+          keyExtractor={keyExtractor}
+          ListHeaderComponent={header}
+          ListEmptyComponent={
+            <EmptyState
+              unavailable={unavailable}
+              showClearAll={
+                unavailable !== null || activeFilterCount > 0 || query !== ''
+              }
+              onClearAll={clearEverything}
+            />
+          }
+          renderItem={renderItem}
+          windowSize={7}
+          maxToRenderPerBatch={8}
+          initialNumToRender={8}
+          updateCellsBatchingPeriod={50}
+          removeClippedSubviews
+        />
+      </TabBarScrollView>
       <FiltersSheet
         recipes={recipes}
         tagFilter={tagFilter}

@@ -3,7 +3,7 @@ import {
   getToolPhase,
   HOME_ROUTE,
   isPhase,
-  settingsRoute,
+  SETTINGS_ROUTE,
   TOOLS,
 } from '@/lib/tools';
 
@@ -26,9 +26,14 @@ const join = (segments: readonly string[], suffix: string) =>
  */
 const LEGACY_TAB_ROUTE_IDS = new Map([['lenses', 'lens']]);
 
-// Settings lives in each phase stack now. A legacy link has no phase, so it
-// opens Shoot's, with the Shoot hub underneath for Back to return to.
-const LEGACY_SETTINGS_ROUTE = settingsRoute('shoot');
+// Settings was once a root screen, then one per phase stack
+// (`/shoot/settings`, `/develop/settings`, `/print/settings`). It is one screen
+// in the Search tab's stack now, so every one of those paths lands there.
+const RETIRED_PHASE_SETTINGS = new Set([
+  '/shoot/settings',
+  '/develop/settings',
+  '/print/settings',
+]);
 
 /**
  * Section tools that were once reachable as a pinned tab root (`/timer`) or a
@@ -56,7 +61,8 @@ function screenToolPath(id: string): string | undefined {
  * - `/more/<id>` and the old tab roots (`/exposure`, `/lenses`...) to `/<phase>/<id>`;
  *   `/more/timer` and `/timer` to `/develop/recipes/timer`
  * - `/film-log...` to `/shoot/film-log...`, `/development...` to `/develop/recipes...`
- * - `/more/settings` and `/settings` to Shoot's Settings; `/more` and `/more/edit` to Home
+ * - `/more/settings` and the retired per-phase Settings paths to `/settings`;
+ *   `/more` and `/more/edit` to Home
  *
  * Query, hash and any sub-path are kept. Canonical and unknown paths come back
  * unchanged.
@@ -69,7 +75,7 @@ export function resolveLegacyPath(path: string): string {
   if (first === 'more') {
     if (second === undefined || second === 'edit')
       return `${HOME_ROUTE}${suffix}`;
-    if (second === 'settings') return `${LEGACY_SETTINGS_ROUTE}${suffix}`;
+    if (second === 'settings') return `${SETTINGS_ROUTE}${suffix}`;
     const toolPath = screenToolPath(second);
     return toolPath === undefined ? path : join([toolPath, ...rest], suffix);
   }
@@ -78,7 +84,13 @@ export function resolveLegacyPath(path: string): string {
     return join(['develop', 'recipes', ...segments.slice(1)], suffix);
   }
 
-  if (first === 'settings') return `${LEGACY_SETTINGS_ROUTE}${suffix}`;
+  if (first === 'settings') return `${SETTINGS_ROUTE}${suffix}`;
+  if (
+    segments.length === 2 &&
+    RETIRED_PHASE_SETTINGS.has(`/${first}/${second}`)
+  ) {
+    return `${SETTINGS_ROUTE}${suffix}`;
+  }
   const toolPath = screenToolPath(LEGACY_TAB_ROUTE_IDS.get(first) ?? first);
   if (toolPath === undefined) return path;
   return join([toolPath, ...segments.slice(1)], suffix);
