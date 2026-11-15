@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import { useRef, useState } from 'react';
 import { Pressable, Text, type TextInput, View } from 'react-native';
 import { DetentSheet } from '@/components/detent-sheet/detent-sheet';
+import { FrameLocationField } from '@/components/film-log/frame-location-field';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import { useCameras, useLensesForCamera } from '@/hooks/use-film-log';
 import {
@@ -12,15 +13,22 @@ import {
 } from '@/lib/film-log-options';
 import { photoUri } from '@/lib/film-log-photos';
 import { addShot } from '@/lib/film-log-storage';
+import { isCommitDisabled } from '@/lib/frame-location-format';
 import {
   buildLoggedShot,
   formatReading,
   type FrameReading,
   isoMismatchNote,
   needsLens,
+  placeCardValue,
   rollSummary,
 } from '@/lib/log-frame';
-import type { FilmRoll, Shot, ShotPhoto } from '@/schemas/film-log.schema';
+import type {
+  FilmRoll,
+  Shot,
+  ShotLocationFields,
+  ShotPhoto,
+} from '@/schemas/film-log.schema';
 import { selectableRowStyle, useSelectionTint } from '@/theme/use-phase-accent';
 
 interface LogFrameSheetProps {
@@ -40,6 +48,8 @@ interface LogFrameSheetProps {
     place: string;
     /** Always present, empty when the user cleared it. */
     notes: string;
+    /** Only when the user added one in this sheet. */
+    location?: ShotLocationFields;
   }) => void;
 }
 
@@ -107,6 +117,9 @@ function LogFrameSheetBody({
     lastUsedLensId(roll.shots)
   );
   const [place, setPlace] = useState(() => lastUsedPlace(roll.shots) ?? '');
+  // Never inherited from the previous frame: coordinates belong to one frame.
+  const [location, setLocation] = useState<ShotLocationFields | undefined>();
+  const [locating, setLocating] = useState(false);
   const [notes, setNotes] = useState(defaultNotes ?? '');
   const [expandSignal, setExpandSignal] = useState(0);
   const [rollGone, setRollGone] = useState(false);
@@ -121,6 +134,7 @@ function LogFrameSheetBody({
   const readingLine = formatReading(reading, source);
   const mismatch = isoMismatchNote(reading, roll, source);
   const trimmedPlace = place.trim();
+  const placeValue = placeCardValue(place, location);
 
   // Whether Place is focused is decided on arrival (`onSettled`), whatever the
   // sheet was doing when the card was tapped.
@@ -131,7 +145,7 @@ function LogFrameSheetBody({
 
   /** Returns false when nothing was logged, so the sheet stays usable. */
   const commit = (): boolean => {
-    if (blocked) return false;
+    if (blocked || locating) return false;
     const created = addShot(
       roll.id,
       buildLoggedShot({
@@ -139,6 +153,7 @@ function LogFrameSheetBody({
         reading,
         lensId,
         place,
+        location,
         notes,
         photo,
         source,
@@ -166,7 +181,7 @@ function LogFrameSheetBody({
       title={`Frame ${frame}`}
       commitLabel="Log"
       onCommit={commit}
-      commitDisabled={blocked || rollGone}
+      commitDisabled={isCommitDisabled({ blocked, rollGone, locating })}
       onClose={onCancel}
       expandSignal={expandSignal}
       onSettled={(isExpanded) => {
@@ -214,6 +229,11 @@ function LogFrameSheetBody({
             placeholder="Where you are"
             inputRef={placeRef}
           />
+          <FrameLocationField
+            location={location}
+            onChange={setLocation}
+            onBusyChange={setLocating}
+          />
           <LabeledTextField
             label="Notes"
             value={notes}
@@ -235,15 +255,20 @@ function LogFrameSheetBody({
           ) : null}
           {onMoreOptions ? (
             <Pressable
-              onPress={() =>
+              onPress={() => {
+                // A pending fix is not on the draft yet: wait for it.
+                if (locating) return;
                 onMoreOptions({
                   lensId,
                   place: trimmedPlace,
                   notes: notes.trim(),
-                })
-              }
+                  location,
+                });
+              }}
+              disabled={locating}
               accessibilityRole="button"
-              className="min-h-11 items-center justify-center rounded-xl border-hw border-line bg-surface px-4 py-3 active:opacity-80"
+              accessibilityState={{ disabled: locating }}
+              className={`min-h-11 items-center justify-center rounded-xl border-hw border-line bg-surface px-4 py-3 ${locating ? 'opacity-40' : 'active:opacity-80'}`}
             >
               <Text className="text-base text-white">More options…</Text>
             </Pressable>
@@ -273,11 +298,16 @@ function LogFrameSheetBody({
           />
           <SummaryCard
             label="Place"
-            value={trimmedPlace || 'Add a place'}
-            placeholder={!trimmedPlace}
+            value={placeValue ?? 'Add a place'}
+            placeholder={placeValue === null}
             onPress={() => expand(true)}
           />
         </View>
+        {locating ? (
+          <Text className="text-xs text-ink-60">
+            Finding location… Log is available once it is found.
+          </Text>
+        ) : null}
         {blocked ? (
           <Text className="text-xs text-amber-300">
             ⚠ Pick the lens you shot this frame on to save.

@@ -3,7 +3,12 @@
 // Pure so the rules are tested: an existing shot is never pre-filled.
 import { sanitizeText } from '@dorkroom/logic';
 import { lastUsedLensId, lastUsedPlace } from '@/lib/film-log-options';
-import type { Lens, Shot, ShotPhoto } from '@/schemas/film-log.schema';
+import type {
+  Lens,
+  Shot,
+  ShotLocation,
+  ShotPhoto,
+} from '@/schemas/film-log.schema';
 
 /** A route param, which expo-router may hand over as one string or several. */
 export type RouteParam = string | string[] | undefined;
@@ -33,6 +38,8 @@ export interface ShotFormDefaults {
   aperture: number | undefined;
   shutterSpeed: number | undefined;
   back: string | undefined;
+  /** An existing shot's own location. A new shot never inherits one. */
+  location: ShotLocation | undefined;
 }
 
 /**
@@ -44,11 +51,21 @@ export interface ShotFormDefaults {
  * `prefill` is the metered aperture and shutter, already snapped to stops.
  */
 export function shotFormDefaults(
-  params: { lensId?: RouteParam; place?: RouteParam; notes?: RouteParam },
+  params: {
+    lensId?: RouteParam;
+    place?: RouteParam;
+    notes?: RouteParam;
+  },
   existing:
     | Pick<
         Shot,
-        'lensId' | 'place' | 'notes' | 'aperture' | 'shutterSpeed' | 'back'
+        | 'lensId'
+        | 'place'
+        | 'notes'
+        | 'aperture'
+        | 'shutterSpeed'
+        | 'back'
+        | 'location'
       >
     | undefined,
   roll: { shots: readonly Shot[]; back?: string } | undefined,
@@ -63,6 +80,7 @@ export function shotFormDefaults(
       aperture: existing.aperture,
       shutterSpeed: existing.shutterSpeed,
       back: existing.back,
+      location: existing.location,
     };
   }
   const shots = roll?.shots ?? [];
@@ -83,6 +101,10 @@ export function shotFormDefaults(
     aperture: prefill.aperture ?? DEFAULT_APERTURE,
     shutterSpeed: prefill.shutterSpeed ?? DEFAULT_SHUTTER_SPEED,
     back: roll?.back,
+    // Coordinates belong to one frame, unlike the place name, and never come
+    // from a route param (a link could plant them). The log sheet's draft is
+    // handed over in memory: see frame-location-handoff.ts.
+    location: undefined,
   };
 }
 
@@ -95,6 +117,7 @@ export interface ShotFormValues {
   notes: string;
   place: string;
   photo: ShotPhoto | undefined;
+  location: ShotLocation | undefined;
 }
 
 /**
@@ -118,5 +141,7 @@ export function shotFormFields(
     place: sanitizeText(form.place, 200) || undefined,
     source: context.source,
     photo: form.photo,
+    // Undefined removes it from a stored shot on update, which is what Remove does.
+    location: form.location,
   };
 }

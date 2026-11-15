@@ -5,6 +5,7 @@ import {
   formatReading,
   isoMismatchNote,
   needsLens,
+  placeCardValue,
   readingFromValues,
   rollSummary,
 } from './log-frame';
@@ -209,5 +210,52 @@ describe('readingFromValues', () => {
       })
     ).toEqual({});
     expect(readingFromValues({ aperture: -2, iso: 100 })).toEqual({ iso: 100 });
+  });
+});
+
+describe('buildLoggedShot location', () => {
+  const base = { roll: roll(), reading: {}, source: 'manual' as const, now };
+
+  it('stores a usable location as given', () => {
+    const location = { latitude: 37.7749, longitude: -122.4194 };
+    expect(buildLoggedShot({ ...base, location }).location).toEqual(location);
+  });
+
+  it('writes no location key when none was added', () => {
+    expect('location' in buildLoggedShot(base)).toBe(false);
+  });
+
+  it('drops an unusable location', () => {
+    const built = buildLoggedShot({
+      ...base,
+      location: { latitude: 120, longitude: 0 },
+    });
+    expect('location' in built).toBe(false);
+  });
+
+  it('keeps place text and location independent', () => {
+    const built = buildLoggedShot({
+      ...base,
+      place: 'Pier 4',
+      location: { latitude: 1, longitude: 2 },
+    });
+    expect(built.place).toBe('Pier 4');
+    expect(built.location).toEqual({ latitude: 1, longitude: 2 });
+  });
+});
+
+describe('placeCardValue', () => {
+  const location = { latitude: 37.7749, longitude: -122.4194 };
+
+  it('prefers the place text', () => {
+    expect(placeCardValue(' Pier 4 ', location)).toBe('Pier 4');
+  });
+
+  it('falls back to compact coordinates', () => {
+    expect(placeCardValue('  ', location)).toBe('37.77 N 122.42 W');
+  });
+
+  it('is null with neither', () => {
+    expect(placeCardValue('', undefined)).toBeNull();
   });
 });

@@ -65,6 +65,31 @@ export const shotPhotoSchema = z.object({
   grayscale: z.boolean().optional(),
 });
 
+/** An optional field that reads as absent when its stored value is malformed,
+ * so one bad value costs only that value. */
+const tolerant = <T extends z.ZodType>(schema: T) =>
+  schema.optional().catch(undefined);
+
+/**
+ * Where a frame was taken, recorded only when the user asked for it. Same rules
+ * as `development`: tolerant per optional field, loose so a key a newer build
+ * adds survives, and the shot's `.catch` below makes a location without a valid
+ * latitude and longitude read as no location. A shot is nested in its roll, so
+ * anything that could fail a shot would fail the whole roll; this cannot.
+ */
+const shotLocationFields = {
+  /** Degrees, WGS 84. */
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  /** Horizontal accuracy radius in meters. */
+  accuracyMeters: tolerant(z.number().nonnegative()),
+  altitudeMeters: tolerant(z.number()),
+  /** ISO instant the fix was taken. */
+  capturedAt: tolerant(z.string()),
+};
+
+export const shotLocationSchema = z.looseObject(shotLocationFields);
+
 export const shotSchema = z.object({
   id: z.string(),
   frameNumber: z.number(),
@@ -77,19 +102,13 @@ export const shotSchema = z.object({
   /** Per-shot holder/back override (defaults to the roll's `back`). */
   back: z.string().optional(),
   notes: z.string().optional(),
-  /**
-   * Free-text place name. GPS coordinates are a later, separate field: they need
-   * a location module, which is a native build.
-   */
+  /** Free-text place name. Independent of `location`: a frame can have either, both or neither. */
   place: z.string().optional(),
+  /** GPS fix, only when the user added one to this frame. Tolerant: a malformed one reads as none. */
+  location: shotLocationSchema.optional().catch(undefined),
   takenAt: z.string().optional(),
   source: z.enum(['manual', 'meter']),
 });
-
-/** An optional field that reads as absent when its stored value is malformed,
- * so one bad value costs only that value. */
-const tolerant = <T extends z.ZodType>(schema: T) =>
-  schema.optional().catch(undefined);
 
 /**
  * How a roll was developed, recorded when it is marked developed (from the
@@ -166,6 +185,13 @@ export type FilmStock = z.infer<typeof filmStockSchema>;
 export type Camera = z.infer<typeof cameraSchema>;
 export type Lens = z.infer<typeof lensSchema>;
 export type ShotPhoto = z.infer<typeof shotPhotoSchema>;
+/** A stored location: the fields below plus any key a newer build added. Read it. */
+export type ShotLocation = z.infer<typeof shotLocationSchema>;
+/** The location's known fields only, with no index signature, so a misspelled
+ * key is a compile error where one is built. */
+export type ShotLocationFields = z.output<
+  z.ZodObject<typeof shotLocationFields>
+>;
 export type Shot = z.infer<typeof shotSchema>;
 /** A stored record: the fields below plus any key a newer build added (the
  * schema is loose). Read it; build new records as {@link RollDevelopmentFields}. */

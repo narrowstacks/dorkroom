@@ -7,10 +7,15 @@ import {
   sanitizeText,
 } from '@dorkroom/logic';
 import { nextFrameNumber, rollLabel } from '@/lib/film-log-options';
+import {
+  formatCoordinatesCompact,
+  isUsableLocation,
+} from '@/lib/frame-location-format';
 import type {
   FilmRoll,
   Lens,
   Shot,
+  ShotLocationFields,
   ShotPhoto,
 } from '@/schemas/film-log.schema';
 
@@ -34,7 +39,8 @@ function cleaned(text: string | undefined, max: number): string | undefined {
 /**
  * The shot to store for a reading on a roll: the next frame number, the
  * reading's aperture and shutter, and the sheet's lens, place and notes (the
- * last two trimmed and dropped when empty). ISO is a roll-level property, so
+ * last two trimmed and dropped when empty). A location is stored only when the
+ * caller passes one with usable coordinates. ISO is a roll-level property, so
  * the reading's ISO is never written.
  */
 export function buildLoggedShot(input: {
@@ -42,6 +48,7 @@ export function buildLoggedShot(input: {
   reading: FrameReading;
   lensId?: string;
   place?: string;
+  location?: ShotLocationFields;
   notes?: string;
   photo?: ShotPhoto;
   source: 'meter' | 'manual';
@@ -60,10 +67,28 @@ export function buildLoggedShot(input: {
   if (input.lensId) shot.lensId = input.lensId;
   const place = cleaned(input.place, PLACE_MAX);
   if (place) shot.place = place;
+  if (input.location && isUsableLocation(input.location)) {
+    shot.location = input.location;
+  }
   const notes = cleaned(input.notes, NOTES_MAX);
   if (notes) shot.notes = notes;
   if (input.photo) shot.photo = input.photo;
   return shot;
+}
+
+/**
+ * What the sheet's Place card shows: the place text, else the compact
+ * coordinates when the frame has a location, else null (the card prompts).
+ */
+export function placeCardValue(
+  place: string,
+  location: ShotLocationFields | undefined
+): string | null {
+  const text = place.trim();
+  if (text) return text;
+  return location && isUsableLocation(location)
+    ? formatCoordinatesCompact(location)
+    : null;
 }
 
 const positive = (n: number): number | undefined =>

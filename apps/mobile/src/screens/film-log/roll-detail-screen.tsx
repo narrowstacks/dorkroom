@@ -1,6 +1,7 @@
 import { formatAperture, formatShutterSpeed } from '@dorkroom/logic';
 import { Image } from 'expo-image';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, FlatList, Pressable, Text, View } from 'react-native';
 import { CommitButton } from '@/components/commit-button';
@@ -20,6 +21,7 @@ import { formatProcess, rollStatusLabel } from '@/lib/film-log-options';
 import { photoUri } from '@/lib/film-log-photos';
 import { shareRollAsCsv } from '@/lib/film-log-share';
 import { deleteRoll } from '@/lib/film-log-storage';
+import { isUsableLocation } from '@/lib/frame-location-format';
 import { markDevelopedCopy } from '@/lib/roll-lifecycle';
 import type { Shot } from '@/schemas/film-log.schema';
 import { usePhaseHue } from '@/theme/use-phase-accent';
@@ -73,7 +75,7 @@ export function RollDetailScreen() {
             )
           }
           accessibilityRole="button"
-          accessibilityLabel={`Edit frame ${item.frameNumber}`}
+          accessibilityLabel={`Edit frame ${item.frameNumber}${isUsableLocation(item.location) ? ', has location' : ''}`}
         >
           <GlassCard className="flex-row items-center gap-3">
             {item.photo ? (
@@ -116,6 +118,9 @@ export function RollDetailScreen() {
                 </Text>
               ) : null}
             </View>
+            {isUsableLocation(item.location) ? (
+              <SymbolView name="location.fill" size={14} tintColor={hue} />
+            ) : null}
             {item.source === 'meter' ? (
               <Text className="text-xs uppercase text-ink-40">meter</Text>
             ) : null}
