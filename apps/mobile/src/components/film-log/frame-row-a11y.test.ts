@@ -23,4 +23,22 @@ describe('FrameRow accessibility', () => {
     const trigger = source.slice(source.indexOf('<Link.Trigger>'));
     expect(trigger).not.toMatch(/accessibilityLabel/);
   });
+
+  it('handles both custom actions by the names it declares', () => {
+    const handler = source.slice(source.indexOf('onAccessibilityAction='));
+    expect(handler).toMatch(/name === 'viewPhoto'\)\s*onViewPhoto\(\)/);
+    expect(handler).toMatch(/name === 'showOnMap'\)\s*onShowOnMap\(\)/);
+    expect(source).toMatch(/name: 'viewPhoto', label: 'View photo'/);
+    expect(source).toMatch(/name: 'showOnMap', label: 'Show roll map'/);
+  });
+
+  it('passes the custom actions to the VoiceOver element', () => {
+    expect(source).toMatch(/accessibilityActions=\{actions\}/);
+  });
+
+  it("opens the frame's href on an accessibility tap", () => {
+    expect(source).toMatch(
+      /onAccessibilityTap=\{\(\) => router\.push\(href\)\}/
+    );
+  });
 });

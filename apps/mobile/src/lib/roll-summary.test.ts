@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { FilmRoll } from '@/schemas/film-log.schema';
 import {
   daysInCamera,
+  lifecycleGlyphSize,
   locatedCountLabel,
   noFramesMessage,
   offersMeterShortcut,
@@ -201,5 +202,19 @@ describe('stacksLifecycleTrack', () => {
     expect(stacksLifecycleTrack(1.12)).toBe(false);
     expect(stacksLifecycleTrack(1.2)).toBe(true);
     expect(stacksLifecycleTrack(1.35)).toBe(true);
+  });
+});
+
+describe('lifecycleGlyphSize', () => {
+  it('is 14pt at the default text size and scales with it', () => {
+    expect(lifecycleGlyphSize(1)).toBe(14);
+    expect(lifecycleGlyphSize(1.5)).toBe(21);
+  });
+
+  it('stops growing at 2x, and ignores a bad scale', () => {
+    expect(lifecycleGlyphSize(2)).toBe(28);
+    expect(lifecycleGlyphSize(3.1)).toBe(28);
+    expect(lifecycleGlyphSize(0)).toBe(14);
+    expect(lifecycleGlyphSize(Number.NaN)).toBe(14);
   });
 });

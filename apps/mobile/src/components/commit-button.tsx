@@ -11,7 +11,7 @@ interface CommitButtonProps {
 }
 
 /**
- * The solid button that commits or creates (Start roll, Add shot, Save): the
+ * The solid button that commits or creates (Start roll, Add frame, Save): the
  * surrounding phase's hue with dark ink, brand rose with white outside a phase.
  * `Button` with `variant="commit"`, so the fill can't drift per screen.
  */

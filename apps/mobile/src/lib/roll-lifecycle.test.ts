@@ -165,9 +165,9 @@ describe('row labels', () => {
 
   it('builds the line under a roll waiting to be developed', () => {
     expect(rollToDevelopLine({ iso: 1600, pushPull: 2, shots: [] })).toBe(
-      'EI 1600 · Push +2 · 0 frames'
+      'EI 1600 \u00b7\u00a0Push +2 \u00b7\u00a00\u00a0frames'
     );
-    expect(rollToDevelopLine({ shots: [] })).toBe('0 frames');
+    expect(rollToDevelopLine({ shots: [] })).toBe('0\u00a0frames');
   });
 
   it('says what a roll was developed in', () => {

@@ -34,7 +34,7 @@ export default function ShootLayout() {
       <Stack.Screen
         name="film-log/shot"
         options={({ route, navigation }) => ({
-          title: 'Shot',
+          title: 'Frame',
           // A roll's title is its name, which may not fit a Back label.
           headerBackTitle: backTitleAfter(
             navigation.getState(),

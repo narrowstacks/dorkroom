@@ -10,7 +10,11 @@ import {
   lifecycleTrack,
   lifecycleTrackLabel,
 } from '@/lib/roll-lifecycle';
-import { stacksLifecycleTrack, stacksSummary } from '@/lib/roll-summary';
+import {
+  lifecycleGlyphSize,
+  stacksLifecycleTrack,
+  stacksSummary,
+} from '@/lib/roll-summary';
 import type { RollStatus } from '@/schemas/film-log.schema';
 import { useDimInk, usePhaseHue } from '@/theme/use-phase-accent';
 
@@ -33,6 +37,7 @@ function LifecycleTrack({
 }) {
   const hue = usePhaseHue();
   const dim = useDimInk('rgba(255,255,255,0.5)');
+  const { fontScale } = useWindowDimensions();
   const steps = lifecycleTrack(status);
   return (
     <View
@@ -56,7 +61,7 @@ function LifecycleTrack({
             ) : null}
             <SymbolView
               name={STEP_SYMBOL[step.state]}
-              size={14}
+              size={lifecycleGlyphSize(fontScale)}
               tintColor={ink}
             />
             {/* `shrink`, so a label wraps rather than clips. */}

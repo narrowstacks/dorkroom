@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { Shot } from '@/schemas/film-log.schema';
 import {
+  frameCountDisplay,
   frameCountLabel,
+  joinFacts,
   lastUsedLensId,
   lastUsedPlace,
   nextFrameNumber,
@@ -9,6 +11,7 @@ import {
   rollLabel,
   rollStatusLabel,
   rollSubtitle,
+  spokenText,
 } from './film-log-options';
 
 const shot = (frameNumber: number, lensId?: string, place?: string): Shot => ({
@@ -59,10 +62,26 @@ describe('rollSubtitle', () => {
   it('names the film only when the label is a roll name', () => {
     expect(
       rollSubtitle({ name: 'Iceland', filmStockName: 'HP5+', shots: [shot(1)] })
-    ).toBe('HP5+ · 1 frame');
+    ).toBe('HP5+ \u00b7\u00a01\u00a0frame');
     expect(
       rollSubtitle({ name: undefined, filmStockName: 'HP5+', shots: [] })
-    ).toBe('0 frames');
+    ).toBe('0\u00a0frames');
+  });
+});
+
+describe('keeping a line together', () => {
+  it('joins facts with a dot bound to the fact after it', () => {
+    expect(joinFacts(['FM2', undefined, 'EI 400', false, '7 frames'])).toBe(
+      'FM2 \u00b7\u00a0EI 400 \u00b7\u00a07 frames'
+    );
+    expect(joinFacts([undefined])).toBe('');
+  });
+
+  it('turns a display string back into plain words for VoiceOver', () => {
+    expect(spokenText(joinFacts(['FM2', frameCountDisplay(2)]))).toBe(
+      'FM2 · 2 frames'
+    );
+    expect(frameCountDisplay(1)).toBe('1\u00a0frame');
   });
 });
 
