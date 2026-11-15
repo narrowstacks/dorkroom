@@ -160,6 +160,36 @@ hub-first handoff. Cold links skip all of this: they build the stack fresh and w
 Because the hub is the page underneath, a handed-off link's Back button names the
 phase hub, never the tool that happened to be open.
 
+**Film log collection and export.** `film-log-collection.ts` (pure) holds the
+list's smart filters (`filterRolls`, `rollCounts`: In camera is `active`, To
+develop is `finished`, This year is by `startedAt` in local time), `sortRolls`
+(active, finished, developed; newest first; unparseable dates last) and the
+stats strip (`filmLogStats`: this year by `startedAt`, top film and camera over
+all time, ties to the most recent). The chip row is `PresetChipRow`, selection
+is screen state. `film-log-csv.ts` (pure) writes one roll as CSV: no metadata
+preamble (EXIF tools want a clean header row, so roll facts go in the file name,
+`csvFileName`, which uses the local start date), RFC 4180 quoting, CRLF, rows by
+frame number, and no photo file column (an internal name). "Taken at" is local
+wall-clock time with its offset for that instant (`2026-11-13T15:04:05-08:00`,
+what EXIF `DateTimeOriginal` wants); the capture time zone is not stored, so a
+file exported in another zone shows that zone's local time. The file is UTF-8
+without a BOM on purpose (a BOM can corrupt the first header for naive parsers),
+so Excel opened by double-click may misread accented characters: use its import
+dialog. One `COLUMNS` table builds the header and every row. A text cell gets a
+leading apostrophe only when a spreadsheet could read it as a formula: it starts
+with `=`, `@`, a tab or CR, or `+`/`-` directly followed by a letter, `(` or `=`
+(`-1 stop` and `+1 Main St` are left alone). Sharing it (`shareRollAsCsv` in
+`film-log-share.ts`) writes to the cache folder `film-log-exports/`, removes the
+other files there first (a share extension may still be reading the last one),
+and passes the file URL to RN's `Share.share`, so `expo-sharing` is not needed.
+A module flag blocks a double tap; it is cleared once `Share.share` has been
+called, never when it settles, because on iOS picking a target and cancelling
+inside it settles neither callback. A one second window after the call also
+ignores taps (`shouldIgnoreExportTap` in `export-tap-guard.ts`, pure), covering
+the gap before iOS presents the sheet; a negative elapsed time (the clock set
+back) never counts as inside it. A map of frames and GPX export wait for
+coordinates (a later native build); "Expiring" waits for film inventory.
+
 **Film log in Search.** Home also searches the on-device film log (mobile-only
 MMKV data, so `@dorkroom/logic`'s `searchHome` cannot see it). `matchFilmLog`
 (`src/lib/home/film-log-matches.ts`, pure) ANDs the query words, ignoring

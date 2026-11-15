@@ -1,11 +1,21 @@
 import { router } from 'expo-router';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Alert, FlatList, Pressable, Text, View } from 'react-native';
 import { CommitButton } from '@/components/commit-button';
+import { FilmLogStatsStrip } from '@/components/film-log/film-log-stats-strip';
 import { GlassCard } from '@/components/glass-card';
 import { GradientBackground } from '@/components/gradient-background';
+import { PresetChipRow } from '@/components/preset-chip-row';
 import { TabBarScrollView } from '@/components/tab-bar-scroll-view';
 import { useCameras, useRolls } from '@/hooks/use-film-log';
+import {
+  filmLogStats,
+  filterRolls,
+  ROLL_FILTERS,
+  rollCounts,
+  type RollFilter,
+  sortRolls,
+} from '@/lib/film-log-collection';
 import { formatProcess } from '@/lib/film-log-options';
 import { shareRollsAsJson } from '@/lib/film-log-share';
 import type { FilmRoll } from '@/schemas/film-log.schema';
@@ -25,9 +35,56 @@ const EMPTY_STATE = (
   </View>
 );
 
+const FILTER_EMPTY_TEXT = {
+  'in-camera': 'No film in a camera right now.',
+  'to-develop': 'Nothing waiting to be developed.',
+  'this-year': 'No rolls started this year.',
+} satisfies Record<Exclude<RollFilter, 'all'>, string>;
+
+function filterEmptyState(filter: Exclude<RollFilter, 'all'>) {
+  return (
+    <View className="items-center gap-2 px-6 py-16">
+      <Text className="text-center text-base text-ink-60">
+        {FILTER_EMPTY_TEXT[filter]}
+      </Text>
+    </View>
+  );
+}
+
 export function FilmListScreen() {
   const rolls = useRolls();
   const cameras = useCameras();
+  const [filter, setFilter] = useState<RollFilter>('all');
+
+  // Only the calendar year matters to counts and stats, so it is the memo key:
+  // they stay put when the filter changes and refresh across New Year. The
+  // anchor date sits mid-year, which every local zone agrees is that year.
+  const year = new Date().getFullYear();
+  const { counts, stats } = useMemo(() => {
+    const anchor = new Date(year, 6, 1);
+    return {
+      counts: rollCounts(rolls, anchor),
+      stats: filmLogStats(rolls, cameras, anchor),
+    };
+  }, [rolls, cameras, year]);
+  const visible = useMemo(
+    () => filterRolls(sortRolls(rolls), filter, new Date(year, 6, 1)),
+    [rolls, filter, year]
+  );
+
+  const chipOptions = useMemo(
+    () =>
+      ROLL_FILTERS.map(({ value, label }) => {
+        const count = counts[value];
+        return {
+          value,
+          label: `${label} ${count}`,
+          accessibilityLabel: `${label}, ${count} ${count === 1 ? 'roll' : 'rolls'}`,
+          dimmed: count === 0,
+        };
+      }),
+    [counts]
+  );
 
   const cameraName = useMemo(() => {
     const map = new Map(cameras.map((camera) => [camera.id, camera.name]));
@@ -113,6 +170,16 @@ export function FilmListScreen() {
           <Text className="text-base text-white">Export data</Text>
         </Pressable>
       </View>
+      {rolls.length > 0 ? (
+        <>
+          <PresetChipRow
+            options={chipOptions}
+            value={filter}
+            onSelect={setFilter}
+          />
+          <FilmLogStatsStrip stats={stats} />
+        </>
+      ) : null}
     </View>
   );
 
@@ -123,10 +190,14 @@ export function FilmListScreen() {
         <FlatList
           contentInsetAdjustmentBehavior="automatic"
           contentContainerStyle={{ padding: 16, gap: 12 }}
-          data={rolls}
+          data={visible}
           keyExtractor={(roll) => roll.id}
           ListHeaderComponent={header}
-          ListEmptyComponent={EMPTY_STATE}
+          ListEmptyComponent={
+            rolls.length === 0 || filter === 'all'
+              ? EMPTY_STATE
+              : filterEmptyState(filter)
+          }
           renderItem={renderRoll}
         />
       </TabBarScrollView>
