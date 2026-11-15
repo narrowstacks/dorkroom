@@ -8,6 +8,9 @@ interface ToggleRowProps {
   label: string;
   value: boolean;
   onChange: (value: boolean) => void;
+  /** A row of an `InsetGroup`: no fill or outline of its own, the group draws
+   * them. */
+  grouped?: boolean;
 }
 
 /** On-track outside a phase: a soft white (opacity lives in the colour, so it
@@ -19,7 +22,12 @@ const ON_THUMB = '#0b0b0c';
 const OFF_THUMB = '#ffffff';
 
 /** A labelled on/off switch row. */
-export function ToggleRow({ label, value, onChange }: ToggleRowProps) {
+export function ToggleRow({
+  label,
+  value,
+  onChange,
+  grouped = false,
+}: ToggleRowProps) {
   const accent = usePhaseAccent();
   const { on: safelight } = useSafelight();
   const onTrack = safelight
@@ -34,9 +42,19 @@ export function ToggleRow({ label, value, onChange }: ToggleRowProps) {
       onPress={() => onChange(!value)}
       accessibilityRole="switch"
       accessibilityState={{ checked: value }}
-      className="flex-row items-center justify-between rounded-xl border-hw border-line bg-surface px-4 py-3"
+      className={
+        grouped
+          ? 'min-h-11 flex-row items-center justify-between gap-3 px-4 py-3'
+          : 'flex-row items-center justify-between rounded-xl border-hw border-line bg-surface px-4 py-3'
+      }
     >
-      <Text className="text-base text-white">{label}</Text>
+      <Text
+        className={
+          grouped ? 'flex-1 text-base text-white' : 'text-base text-white'
+        }
+      >
+        {label}
+      </Text>
       <View
         className="h-6 w-11 justify-center rounded-full"
         style={{ backgroundColor: value ? onTrack : offTrack }}

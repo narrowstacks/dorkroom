@@ -1,9 +1,8 @@
 import Constants from 'expo-constants';
-import { Linking, Text } from 'react-native';
-import { GlassCard } from '@/components/glass-card';
+import { Linking, View } from 'react-native';
+import { LabeledGroup } from '@/components/labeled-group';
 import { useSafelight } from '@/components/safelight/safelight-provider';
 import { Screen } from '@/components/screen';
-import { SectionLabel } from '@/components/section-label';
 import { SegmentedControl } from '@/components/segmented-control';
 import { ToggleRow } from '@/components/toggle-row';
 import { ToolListRow } from '@/components/tool-list-row';
@@ -24,59 +23,62 @@ export function SettingsScreen() {
     // the neutral backdrop glow.
     <PhaseProvider value={null}>
       <Screen>
-        <GlassCard className="gap-2">
-          <SectionLabel>Units</SectionLabel>
-          <SegmentedControl
-            options={[
-              { label: 'Imperial (in)', value: 'imperial' },
-              { label: 'Metric (cm)', value: 'metric' },
-            ]}
-            value={unit}
-            onChange={setUnit}
-            accessibilityHint="Units for lengths in Border and Resize"
-          />
-          <Text className="text-xs text-ink-50">
-            Applies to Border and Resize. Mat stays in inches for now.
-          </Text>
-        </GlassCard>
+        <LabeledGroup
+          title="Units"
+          footer="Applies to Border and Resize. Mat stays in inches for now."
+        >
+          <View key="unit" className="p-3">
+            <SegmentedControl
+              options={[
+                { label: 'Imperial (in)', value: 'imperial' },
+                { label: 'Metric (cm)', value: 'metric' },
+              ]}
+              value={unit}
+              onChange={setUnit}
+              accessibilityHint="Units for lengths in Border and Resize"
+            />
+          </View>
+        </LabeledGroup>
 
-        <GlassCard>
+        <LabeledGroup
+          title="Camera and timer"
+          footer="Timer sounds are off in silent mode by default, so the silent switch mutes the beeps. Alerts while Dorkroom is in the background always follow the switch."
+        >
           <ToggleRow
+            key="photos"
+            grouped
             label="Also save meter photos to Photos"
             value={savePhotos}
             onChange={setSavePhotos}
           />
-        </GlassCard>
-
-        <GlassCard className="gap-2">
           <ToggleRow
+            key="cues"
+            grouped
             label="Timer sounds in silent mode"
             value={cuesInSilent}
             onChange={setCuesInSilent}
           />
-          <Text className="text-xs text-ink-50">
-            Off by default, so the silent switch mutes the timer beeps. Alerts
-            while Dorkroom is in the background always follow the switch.
-          </Text>
-        </GlassCard>
+        </LabeledGroup>
 
-        <GlassCard className="gap-2">
+        <LabeledGroup
+          title="Safelight"
+          footer="Turns the app deep red on black and hides the status bar. The keyboard, photo picker, system alerts and sheets stay bright, and camera and photo previews show as bright red images. Not tested as safe for photographic paper. Red light is not safe for film or colour paper."
+        >
           <ToggleRow
+            key="safelight"
+            grouped
             label="Safelight mode"
             value={safelight.on}
             onChange={safelight.setOn}
           />
-          <Text className="text-xs text-ink-50">
-            Turns the app deep red on black for working under a safelight and
-            hides the status bar. The keyboard, photo picker and system alerts
-            and sheets stay bright. Camera and photo previews show as bright red
-            images. Not tested as safe for photographic paper. Red light is not
-            safe for film or colour paper.
-          </Text>
-        </GlassCard>
+        </LabeledGroup>
 
-        <GlassCard>
+        <LabeledGroup
+          title="About"
+          footer={version ? `Dorkroom v${version}` : undefined}
+        >
           <ToolListRow
+            key="github"
             label="GitHub"
             accessoryText="›"
             onPress={() =>
@@ -84,17 +86,12 @@ export function SettingsScreen() {
             }
           />
           <ToolListRow
+            key="newsletter"
             label="Newsletter"
             accessoryText="›"
             onPress={() => Linking.openURL('https://news.dorkroom.art')}
           />
-        </GlassCard>
-
-        {version ? (
-          <Text className="text-center text-xs text-ink-40">
-            Dorkroom v{version}
-          </Text>
-        ) : null}
+        </LabeledGroup>
       </Screen>
     </PhaseProvider>
   );

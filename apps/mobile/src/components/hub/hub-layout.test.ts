@@ -1,22 +1,38 @@
 import { describe, expect, it } from 'vitest';
 import { getTool } from '@/lib/tools';
 import {
-  chunkPairs,
   HUB_MAX_WIDTH,
   hubWidth,
   TILE_GAP,
+  tileRows,
   tileSecondaryLine,
   tileWidth,
 } from './hub-layout';
 
-describe('chunkPairs', () => {
-  it('makes rows of two with a short last row', () => {
-    expect(chunkPairs([1, 2, 3, 4, 5])).toEqual([[1, 2], [3, 4], [5]]);
-    expect(chunkPairs([1, 2, 3, 4])).toEqual([
-      [1, 2],
-      [3, 4],
+describe('tileRows', () => {
+  it('makes rows of two and spans the lone last tile', () => {
+    expect(tileRows([1, 2, 3, 4, 5])).toEqual([
+      { items: [1, 2], wide: false },
+      { items: [3, 4], wide: false },
+      { items: [5], wide: true },
     ]);
-    expect(chunkPairs([])).toEqual([]);
+  });
+
+  it('has no wide tile for an even count', () => {
+    expect(tileRows([1, 2, 3, 4]).some((row) => row.wide)).toBe(false);
+    expect(tileRows([])).toEqual([]);
+  });
+
+  it('keeps exactly two tiles as one normal row', () => {
+    expect(tileRows(['a', 'b'])).toEqual([{ items: ['a', 'b'], wide: false }]);
+  });
+
+  it('spans a hub of three (Develop) and of one', () => {
+    expect(tileRows(['a', 'b', 'c']).map((row) => row.wide)).toEqual([
+      false,
+      true,
+    ]);
+    expect(tileRows(['a'])).toEqual([{ items: ['a'], wide: true }]);
   });
 });
 
