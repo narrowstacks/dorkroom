@@ -86,14 +86,20 @@ export function shotFormDefaults(
   const shots = roll?.shots ?? [];
   // Present-but-empty means cleared (no fallback); absent falls back.
   const paramLens = presentParam(params.lensId);
+  // The last-used lens counts only while the camera still offers it (a lens
+  // deleted, or no longer fitting, is no hidden default), as in the log sheet.
+  const lastUsed = lastUsedLensId(shots);
+  const offeredLastUsed = lenses.some((lens) => lens.id === lastUsed)
+    ? lastUsed
+    : undefined;
   const lensFromParams =
     paramLens === undefined
-      ? lastUsedLensId(shots)
+      ? offeredLastUsed
       : lenses.some((lens) => lens.id === paramLens)
         ? paramLens
         : paramLens === ''
           ? undefined
-          : lastUsedLensId(shots);
+          : offeredLastUsed;
   return {
     lensId: lensFromParams,
     place: presentParam(params.place) ?? lastUsedPlace(shots) ?? '',

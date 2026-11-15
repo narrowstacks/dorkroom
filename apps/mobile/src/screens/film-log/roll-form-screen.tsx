@@ -20,6 +20,7 @@ import {
   ROLL_STATUS_OPTIONS,
 } from '@/lib/film-log-options';
 import { addRoll, updateRoll } from '@/lib/film-log-storage';
+import { cameraDisplayName } from '@/lib/gear-display';
 import { rollFormStatusPatch } from '@/lib/roll-lifecycle';
 import type { FilmStock } from '@/schemas/film-log.schema';
 import { usePhaseHue } from '@/theme/use-phase-accent';
@@ -57,7 +58,7 @@ export function RollFormScreen() {
     films.find((f) => f.id === id);
 
   const cameraOptions = useMemo(
-    () => cameras.map((c) => ({ label: c.name, value: c.id })),
+    () => cameras.map((c) => ({ label: cameraDisplayName(c), value: c.id })),
     [cameras]
   );
   const backOptions = useMemo(

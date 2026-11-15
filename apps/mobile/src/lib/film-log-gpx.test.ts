@@ -36,6 +36,16 @@ const waypointLines = (gpx: string) =>
   gpx.split('\n').filter((line) => line.startsWith('  <wpt '));
 
 describe('buildRollGpx', () => {
+  it("names a fixed-lens camera's frame by its lens snapshot (#733)", () => {
+    const { gpx } = build([
+      shot(1, {
+        fixedLensName: '90mm f/3.5',
+        location: { latitude: 1, longitude: 2 },
+      }),
+    ]);
+    expect(gpx).toContain('Lens: 90mm f/3.5');
+  });
+
   it('writes a GPX 1.1 document with metadata and one waypoint', () => {
     const { gpx, waypoints } = build([
       shot(12, {

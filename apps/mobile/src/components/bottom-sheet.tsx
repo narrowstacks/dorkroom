@@ -12,6 +12,7 @@ import {
   SafelightRoot,
 } from '@/components/safelight/safelight-overlay';
 import { useSafelight } from '@/components/safelight/safelight-provider';
+import { SHEET_TITLE_MAX_FONT_SCALE } from './bottom-sheet-layout';
 
 interface BottomSheetProps {
   visible: boolean;
@@ -32,6 +33,12 @@ interface BottomSheetProps {
 // Scrim fade and panel slide share this duration so they ramp up in lockstep —
 // the scrim never darkens ahead of the panel arriving.
 const ENTER_MS = 260;
+
+// Sizes without a line height: a Tailwind text size class also sets one, and
+// that line height is not held to `maxFontSizeMultiplier`, so at the largest
+// text sizes it made the header several times taller than its text.
+const TITLE_TEXT = { fontSize: 18 } as const;
+const DISMISS_TEXT = { fontSize: 16 } as const;
 
 /**
  * A bottom-anchored sheet on RN Modal. The Modal itself does no animation
@@ -90,15 +97,27 @@ export function BottomSheet({
               safelight ? { overflow: 'hidden', isolation: 'isolate' } : null,
             ]}
           >
-            <View className="mb-4 flex-row items-center justify-between">
-              <Text className="text-lg font-semibold text-white">{title}</Text>
+            <View className="mb-4 flex-row items-center justify-between gap-3">
+              {/* Shrinks and wraps, so a large text size never runs the title
+                  under the dismiss action. */}
+              <Text
+                maxFontSizeMultiplier={SHEET_TITLE_MAX_FONT_SCALE}
+                className="flex-1 font-semibold text-white"
+                style={TITLE_TEXT}
+              >
+                {title}
+              </Text>
               <Pressable
                 className="min-h-11 min-w-11 items-center justify-center"
                 onPress={onClose}
                 accessibilityRole="button"
                 accessibilityLabel={dismissLabel}
               >
-                <Text className="text-base font-semibold text-ink-70">
+                <Text
+                  maxFontSizeMultiplier={SHEET_TITLE_MAX_FONT_SCALE}
+                  className="font-semibold text-ink-70"
+                  style={DISMISS_TEXT}
+                >
                   {dismissLabel}
                 </Text>
               </Pressable>

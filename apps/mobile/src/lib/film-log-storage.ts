@@ -3,18 +3,28 @@
 // lib/stored-collection.ts: records that fail their schema are skipped on read
 // and moved to `<key>.quarantine` before a write replaces them (issue #532).
 import { createMMKV } from 'react-native-mmkv';
+import {
+  cleanGearName,
+  knownBrand,
+  knownMount,
+  type PendingMount,
+} from '@/lib/custom-gear';
 import { deletePhotoFile } from '@/lib/film-log-photos';
 import { generateId } from '@/lib/id';
 import { rollStatusPatch } from '@/lib/roll-lifecycle';
 import { parseCollection, writeCollection } from '@/lib/stored-collection';
 import {
   cameraSchema,
+  customBrandSchema,
+  customMountSchema,
   filmRollSchema,
   filmStockSchema,
   lensSchema,
 } from '@/schemas/film-log.schema';
 import type {
   Camera,
+  CustomBrand,
+  CustomMount,
   FilmRoll,
   FilmStock,
   Lens,
@@ -30,6 +40,8 @@ export const KEYS = {
   cameras: 'cameras',
   lenses: 'lenses',
   customFilms: 'customFilms',
+  customBrands: 'customBrands',
+  customMounts: 'customMounts',
 } as const;
 
 function nowIso(): string {
@@ -47,6 +59,10 @@ export const parseLenses = (raw: string | undefined): Lens[] =>
   parseCollection(raw, lensSchema);
 export const parseCustomFilms = (raw: string | undefined): FilmStock[] =>
   parseCollection(raw, filmStockSchema);
+export const parseCustomBrands = (raw: string | undefined): CustomBrand[] =>
+  parseCollection(raw, customBrandSchema);
+export const parseCustomMounts = (raw: string | undefined): CustomMount[] =>
+  parseCollection(raw, customMountSchema);
 
 // --- Rolls -----------------------------------------------------------------
 
@@ -283,4 +299,57 @@ export function addCustomFilm(film: Omit<FilmStock, 'id'>): FilmStock {
 
 export function deleteCustomFilm(id: string): void {
   setCustomFilms(getCustomFilms().filter((film) => film.id !== id));
+}
+
+// --- Custom brands and mounts (#733) ---------------------------------------
+// Brands and lens mounts the user added because the built-in lists
+// (`gear-catalog.ts`) lack them. Kept like custom films: their own key, read
+// per record, never deleted in this version (nothing offers it, since a camera
+// or lens may use one). Adding a name that is already there, built-in or
+// custom (ignoring case and accents), returns the existing entry.
+
+export function getCustomBrands(): CustomBrand[] {
+  return parseCustomBrands(storage.getString(KEYS.customBrands));
+}
+
+export function setCustomBrands(brands: CustomBrand[]): void {
+  writeCollection(storage, KEYS.customBrands, customBrandSchema, brands);
+}
+
+export function getCustomMounts(): CustomMount[] {
+  return parseCustomMounts(storage.getString(KEYS.customMounts));
+}
+
+export function setCustomMounts(mounts: CustomMount[]): void {
+  writeCollection(storage, KEYS.customMounts, customMountSchema, mounts);
+}
+
+/** Stores a brand the user typed (when the camera or lens form is saved) and
+ * returns the name to store on the item: the built-in or existing custom
+ * spelling when one matches, else the cleaned name. Empty input stores
+ * nothing and returns undefined. */
+export function addCustomBrand(typed: string): string | undefined {
+  const name = cleanGearName(typed);
+  if (!name) return undefined;
+  const brands = getCustomBrands();
+  const known = knownBrand(name, brands);
+  if (known) return known;
+  setCustomBrands([
+    ...brands,
+    { id: `custom-brand-${generateId()}`, name, createdAt: nowIso() },
+  ]);
+  return name;
+}
+
+/** Stores a mount typed in a form (when the form is saved) and returns the id
+ * to store in `mountId`: an existing built-in or custom mount's id when the
+ * name matches one (case, accents and spacing ignored), else the pending id. */
+export function addCustomMount(pending: PendingMount): string | undefined {
+  const name = cleanGearName(pending.name);
+  if (!name) return undefined;
+  const mounts = getCustomMounts();
+  const known = knownMount(name, mounts);
+  if (known) return known;
+  setCustomMounts([...mounts, { id: pending.id, name, createdAt: nowIso() }]);
+  return pending.id;
 }

@@ -7,7 +7,13 @@ import { DetentSheet } from '@/components/detent-sheet/detent-sheet';
 import { FrameLocationField } from '@/components/film-log/frame-location-field';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import { PresetChipRow } from '@/components/preset-chip-row';
-import { useCameras, useLensesForCamera } from '@/hooks/use-film-log';
+import { useCameraLenses, useCameras } from '@/hooks/use-film-log';
+import {
+  FIXED_LENS_CHOICE,
+  frameLensFields,
+  lensChoices,
+  needsLensChoice,
+} from '@/lib/camera-lenses';
 import {
   lastUsedLensId,
   lastUsedPlace,
@@ -16,13 +22,13 @@ import {
 import { photoUri } from '@/lib/film-log-photos';
 import { addShot } from '@/lib/film-log-storage';
 import { isCommitDisabled } from '@/lib/frame-location-format';
+import { cameraDisplayName } from '@/lib/gear-display';
 import {
   buildLoggedShot,
   type FrameReading,
   frameReadout,
   isoMismatchNote,
   lensChipOptions,
-  needsLens,
   placeCardValue,
   placeRowLabel,
   selectedLens,
@@ -93,14 +99,19 @@ function LogFrameSheetBody({
   onMoreOptions,
 }: LogFrameSheetProps) {
   const cameras = useCameras();
-  const lenses = useLensesForCamera(roll.cameraId);
+  const cameraLenses = useCameraLenses(roll.cameraId);
+  // A fixed-lens camera offers its one lens, preselected (#733).
+  const lenses = lensChoices(cameraLenses, []);
   const hue = usePhaseHue();
   const placeholderColor = useDimInk('#71717a');
-  const cameraName = cameras.find((c) => c.id === roll.cameraId)?.name;
+  const camera = cameras.find((c) => c.id === roll.cameraId);
+  const cameraName = camera ? cameraDisplayName(camera) : undefined;
   const frame = nextFrameNumber(roll.shots);
 
   const [pickedLens, setPickedLens] = useState(() =>
-    lastUsedLensId(roll.shots)
+    cameraLenses.kind === 'fixed'
+      ? FIXED_LENS_CHOICE
+      : lastUsedLensId(roll.shots)
   );
   const [place, setPlace] = useState(() => lastUsedPlace(roll.shots) ?? '');
   // Never inherited from the previous frame: coordinates belong to one frame.
@@ -121,7 +132,7 @@ function LogFrameSheetBody({
   // The lens selected at opening leads the chips, so it is on screen however
   // many lenses there are; later taps do not reorder them.
   const [leadLensId] = useState(lensId);
-  const blocked = needsLens(lenses, lensId);
+  const blocked = needsLensChoice(cameraLenses, lensId);
 
   const readout = frameReadout({
     frameNumber: frame,
@@ -148,7 +159,7 @@ function LogFrameSheetBody({
       buildLoggedShot({
         roll,
         reading,
-        lensId,
+        ...frameLensFields(lensId, cameraLenses, undefined),
         place,
         location,
         notes,
@@ -238,7 +249,8 @@ function LogFrameSheetBody({
                 // A pending fix is not on the draft yet: wait for it.
                 if (locating) return;
                 onMoreOptions({
-                  lensId,
+                  // The fixed lens is not an id: the shot form preselects it.
+                  lensId: lensId === FIXED_LENS_CHOICE ? undefined : lensId,
                   place: place.trim(),
                   notes: notes.trim(),
                   location,

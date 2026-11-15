@@ -3,10 +3,13 @@
 // re-render after any add/update/delete.
 import { useMemo } from 'react';
 import { useMMKVString } from 'react-native-mmkv';
+import { type CameraLenses, lensesForCamera } from '@/lib/camera-lenses';
 import {
   KEYS,
   parseCameras,
+  parseCustomBrands,
   parseCustomFilms,
+  parseCustomMounts,
   parseLenses,
   parseRolls,
   storage,
@@ -14,6 +17,8 @@ import {
 import { useFilmStocks } from '@/lib/film-stocks';
 import type {
   Camera,
+  CustomBrand,
+  CustomMount,
   FilmRoll,
   FilmStock,
   Lens,
@@ -79,11 +84,25 @@ export function useFilmCatalog(): FilmCatalog {
   };
 }
 
-/** Lenses usable on a camera: those bound to it plus any unassigned (global) lenses. */
-export function useLensesForCamera(cameraId: string | undefined): Lens[] {
+/** The brands the user added (#733). */
+export function useCustomBrands(): CustomBrand[] {
+  const [raw] = useMMKVString(KEYS.customBrands, storage);
+  return useMemo(() => parseCustomBrands(raw), [raw]);
+}
+
+/** The lens mounts the user added (#733). */
+export function useCustomMounts(): CustomMount[] {
+  const [raw] = useMMKVString(KEYS.customMounts, storage);
+  return useMemo(() => parseCustomMounts(raw), [raw]);
+}
+
+/** The lenses a frame on this camera can be shot with: `lensesForCamera`
+ * (its fixed lens, or the lenses its mount, a pin or no camera at all give it). */
+export function useCameraLenses(cameraId: string | undefined): CameraLenses {
+  const cameras = useCameras();
   const lenses = useLenses();
   return useMemo(
-    () => lenses.filter((lens) => !lens.cameraId || lens.cameraId === cameraId),
-    [lenses, cameraId]
+    () => lensesForCamera(cameraId, cameras, lenses),
+    [cameraId, cameras, lenses]
   );
 }

@@ -1,12 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import type { FilmRoll, Lens, Shot } from '@/schemas/film-log.schema';
+import {
+  frameLensFields,
+  initialLensChoice,
+  needsLensChoice,
+} from '@/lib/camera-lenses';
+import {
+  type FilmRoll,
+  type Lens,
+  type Shot,
+  shotSchema,
+} from '@/schemas/film-log.schema';
 import {
   buildLoggedShot,
   formatShutter,
   frameReadout,
   isoMismatchNote,
   lensChipOptions,
-  needsLens,
   placeCardValue,
   placeRowLabel,
   readingFromValues,
@@ -115,6 +124,26 @@ describe('buildLoggedShot', () => {
     expect(built.photo).toEqual(photo);
     expect('aperture' in built).toBe(false);
     expect(built.shutterSpeed).toBe(30);
+    expect('fixedLensName' in built).toBe(false);
+  });
+
+  it("logs a fixed-lens camera's frame with its lens snapshot (#733)", () => {
+    const cameraLenses = { kind: 'fixed', label: '90mm f/3.5' } as const;
+    const choice = initialLensChoice(cameraLenses, undefined, 'lens1');
+    expect(needsLensChoice(cameraLenses, choice)).toBe(false);
+    const built = buildLoggedShot({
+      roll: roll(),
+      reading: { aperture: 8, shutterSpeed: 1 / 125 },
+      ...frameLensFields(choice, cameraLenses, undefined),
+      source: 'meter',
+      now,
+    });
+    expect(built.fixedLensName).toBe('90mm f/3.5');
+    expect('lensId' in built).toBe(false);
+    // And it is a valid stored frame.
+    expect(shotSchema.parse({ ...built, id: 's1' }).fixedLensName).toBe(
+      '90mm f/3.5'
+    );
   });
 });
 
@@ -276,16 +305,6 @@ describe('isoMismatchNote', () => {
     expect(isoMismatchNote({ iso: 800 }, { iso: 800 }, 'meter')).toBeNull();
     expect(isoMismatchNote({}, { iso: 800 }, 'meter')).toBeNull();
     expect(isoMismatchNote({ iso: 400 }, {}, 'manual')).toBeNull();
-  });
-});
-
-describe('needsLens', () => {
-  const lens: Lens = { id: 'l1', name: '50mm', createdAt: 'x' };
-
-  it('needs a pick only when lenses exist and none is chosen', () => {
-    expect(needsLens([lens], undefined)).toBe(true);
-    expect(needsLens([lens], 'l1')).toBe(false);
-    expect(needsLens([], undefined)).toBe(false);
   });
 });
 

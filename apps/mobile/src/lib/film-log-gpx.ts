@@ -111,7 +111,7 @@ function describeShot(shot: Shot, roll: FilmRoll, context: GpxContext): string {
   if (roll.iso !== undefined && Number.isFinite(roll.iso)) {
     lines.push(`ISO: ${roll.iso}`);
   }
-  const lens = context.lensName(shot.lensId)?.trim();
+  const lens = (context.lensName(shot.lensId) ?? shot.fixedLensName)?.trim();
   if (lens) lines.push(`Lens: ${lens}`);
   const place = shot.place?.trim();
   if (place) lines.push(`Place: ${place}`);

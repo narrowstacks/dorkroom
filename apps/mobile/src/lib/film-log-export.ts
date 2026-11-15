@@ -5,7 +5,15 @@
 // TODO(export): a real `.json` *file* share (expo-file-system + expo-sharing,
 // needs a dev build) and Lightroom/XMP/CSV formats are deferred follow-ups.
 import { formatAperture, formatShutterSpeed } from '@dorkroom/logic';
-import type { Camera, FilmRoll, Lens } from '@/schemas/film-log.schema';
+import { frameLensName } from '@/lib/camera-lenses';
+import { cameraDisplayName } from '@/lib/gear-display';
+import type {
+  Camera,
+  CustomBrand,
+  CustomMount,
+  FilmRoll,
+  Lens,
+} from '@/schemas/film-log.schema';
 
 export const FILM_LOG_EXPORT_VERSION = 1;
 
@@ -13,6 +21,9 @@ interface ExportInput {
   rolls: FilmRoll[];
   cameras: Camera[];
   lenses: Lens[];
+  /** Brands and mounts the user added (#733); absent in older exports. */
+  customBrands?: CustomBrand[];
+  customMounts?: CustomMount[];
   exportedAt: string;
 }
 
@@ -21,12 +32,15 @@ export function buildRollsExport({
   rolls,
   cameras,
   lenses,
+  customBrands = [],
+  customMounts = [],
   exportedAt,
 }: ExportInput) {
-  const cameraName = (id: string | undefined) =>
-    cameras.find((camera) => camera.id === id)?.name;
-  const lensName = (id: string | undefined) =>
-    lenses.find((lens) => lens.id === id)?.name;
+  const cameraName = (id: string | undefined) => {
+    const camera = cameras.find((candidate) => candidate.id === id);
+    return camera ? cameraDisplayName(camera) : undefined;
+  };
+  const lensName = (id: string) => lenses.find((lens) => lens.id === id)?.name;
 
   return {
     app: 'dorkroom',
@@ -35,12 +49,14 @@ export function buildRollsExport({
     exportedAt,
     cameras,
     lenses,
+    customBrands,
+    customMounts,
     rolls: rolls.map((roll) => ({
       ...roll,
       cameraName: cameraName(roll.cameraId),
       shots: roll.shots.map((shot) => ({
         ...shot,
-        lensName: lensName(shot.lensId),
+        lensName: frameLensName(shot, lensName),
         apertureLabel:
           shot.aperture !== undefined
             ? formatAperture(shot.aperture)
