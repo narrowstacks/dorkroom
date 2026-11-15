@@ -26,7 +26,10 @@ export const TOOL_ID_BY_HOME_ROUTE = {
   '/films': 'recipes',
 } as const satisfies Record<HomeRoute, string>;
 
-function queryOf(search: Readonly<Record<string, string | undefined>>): string {
+/** A `?key=value&...` suffix (empty when nothing is set), percent-encoded. */
+export function queryOf(
+  search: Readonly<Record<string, string | undefined>>
+): string {
   const pairs = Object.entries(search).flatMap(([key, value]) =>
     value === undefined
       ? []
