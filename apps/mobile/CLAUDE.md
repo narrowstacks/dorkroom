@@ -98,8 +98,36 @@ shows the previous scene's title (the phase name on a hub, "Search" on Home).
 and old shares still carry pre-phase paths (`/more/meter`, `/lenses`,
 `/film-log`, `/development`) and can't change without a native build.
 `resolveLegacyPath` (`src/lib/deep-link.ts`) maps them to canonical paths and
-passes everything else through (legacy `/settings` and `/more/settings`, and the retired per-phase
+passes everything else through (`/search` is Home; legacy `/settings` and `/more/settings`, and the retired per-phase
 `/shoot/settings`, `/develop/settings` and `/print/settings`, open `/settings`).
+**Search link.** `dorkroom://search?q=...` (the App Intent "how long for HP5 at 800
+in DD-X?" and Spotlight's "search in app" will send it; nothing in the repo produces
+it yet) is an EVENT, not route params.
+`redirectSystemPath` splits it with `splitSearchLink` (`deep-link.ts`), records
+`pushSearchLink(q)` in `src/lib/home/search-link-store.ts` (an increasing `seq`, so
+the same query twice is two events) and carries on with plain Home (`/`, other
+params such as `ref` kept). `HomeScreen` reads the store with `useSyncExternalStore`
+and applies a new `seq` during render; EVERY mounted Home does, so whichever one is
+visible shows the query. It also reads the `q` route param (the in-app route,
+`nextQueryLink` in `home/query-link.ts`, applied when its identity changes), both
+through `normalizeLinkQuery` (first value, trimmed, 200 characters). An empty or
+missing query never wipes the box, and typing afterwards is left alone. An event is consumed
+once (`consumedSeq` in the store): the first Home of a cold start applies the pending
+one, a Home that mounts later starts from `consumedSeq` and does not replay it. Only the
+FIRST `redirectSystemPath({ initial: true })` call of a session can record a search
+(`noteInitialUrl`, whatever its URL): expo-router re-runs the hook on any
+`ContextNavigator` re-render and expo-linking overwrites the initial URL on each
+warm open, so a later initial call can carry the latest opened URL and must not
+replay it. Home marks an event consumed in a commit effect, not in render (a tab
+can render at transition priority and discard a render). A warm link
+to Home needs no special case for Settings: the linking action carries `pop` down to
+the Search tab's stack (the `(home)` config has nested `screens`), so with Settings
+open, from the Search tab or from ANY other tab, the stack pops to the existing Home
+instead of pushing a second one. Verified in the Simulator: after the link there is
+one Home showing the query, the gear opens exactly one Settings (Back reads
+"Search"), and an edge swipe from Home does nothing. Do not add a `dismissTo` for
+it: `router.dismissTo('/')` would drop kept params such as `ref`.
+
 `app/+native-intent.ts` applies `resolveIncomingLink` to incoming URLs
 (`redirectSystemPath`): expo-router hands that hook the FULL URL
 (`dorkroom://meter`, host as the first path segment), so only the app's own
@@ -634,7 +662,12 @@ and background audio is not used to keep JS alive). Only the system's own timer
 text ticks. So each stage has its own `Text(timerInterval:)` and
 `ProgressView(timerInterval:)`: a finished stage reads 0:00, the current one
 counts down and later ones show their full length, with no updates, and the total
-is a countdown to the run's end (the island's compact trailing). What cannot
+is a countdown to the run's end (the island's compact trailing, and the minimal
+region, which shows the same countdown at 11pt bold in a fixed 34pt frame that
+scales to half; while paused, done or stale it keeps the pause or check glyph
+instead of a frozen time). The minimal layout is unverified on a device: the
+Simulator does not draw the island regions, and only the isolated-runtime test
+covers it. What cannot
 update while suspended: which row is highlighted and which stage the header
 and the agitation note name (as of the last update; refreshed on foreground, on a
 button press and on any state change), and the window of rows. A run that ends

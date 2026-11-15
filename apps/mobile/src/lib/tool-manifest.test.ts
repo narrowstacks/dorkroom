@@ -251,6 +251,13 @@ describe('legacy entry points still land on a tool', () => {
     }
   });
 
+  it('the Search link resolves to Home, keeping its query', () => {
+    expect(resolveLegacyPath('/search?q=hp5%20at%20800')).toBe(
+      '/?q=hp5%20at%20800'
+    );
+    expect(resolveLegacyPath('/search')).toBe('/');
+  });
+
   it('every quick action href resolves to an existing tool', () => {
     const config: unknown = JSON.parse(read('app.json'));
     const hrefs = [

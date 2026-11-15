@@ -39,6 +39,7 @@ const MODIFIERS = [
   'frame',
   'labelsHidden',
   'lineLimit',
+  'minimumScaleFactor',
   'monospacedDigit',
   'padding',
   'progressViewStyle',
@@ -64,6 +65,7 @@ interface ElementProps {
   alignment?: string;
   children?: Node;
   target?: string;
+  systemName?: string;
   timerInterval?: { lower: Date; upper: Date };
   countsDown?: boolean;
 }
@@ -278,6 +280,57 @@ describe('timer live activity widget', () => {
     expect(el.props.countsDown).toBe(true);
   });
 
+  it('counts the whole run down in the minimal island while running', () => {
+    const props = propsFor(run({ type: 'NEXT_STAGE' }));
+    const layout = render(props, ENV);
+    const [el] = [...walk(layout.minimal)];
+    expect(el.type).toBe('Text');
+    expect(el.props.timerInterval?.upper.getTime()).toBe(props.endMs);
+    expect(el.props.timerInterval?.lower.getTime()).toBe(props.startMs);
+    expect(el.props.countsDown).toBe(true);
+    const mods = el.props.modifiers ?? [];
+    const argsOf = (name: string) =>
+      mods.find((m) => m.modifier === name)?.args;
+    expect(argsOf('frame')).toEqual([{ width: 34, alignment: 'center' }]);
+    expect(argsOf('minimumScaleFactor')).toEqual([0.5]);
+    expect(argsOf('lineLimit')).toEqual([1]);
+    expect(mods.map((m) => m.modifier)).toContain('monospacedDigit');
+  });
+
+  it('keeps a glyph, not a time, in the minimal island when paused, done or stale', () => {
+    const glyphOf = (
+      props: TimerActivityProps,
+      env: LiveActivityEnvironment,
+      systemName: string
+    ) => {
+      const nodes = [...walk(render(props, env).minimal)];
+      expect(nodes.map((el) => el.type)).toEqual(['Image']);
+      expect(nodes[0].props.systemName).toBe(systemName);
+      expect(nodes.some((el) => el.props.timerInterval)).toBe(false);
+    };
+    glyphOf(
+      propsFor(timerReducer(run(), { type: 'PAUSE' })),
+      ENV,
+      'pause.circle.fill'
+    );
+    glyphOf(
+      propsFor(run()),
+      { ...ENV, isStale: true },
+      'checkmark.circle.fill'
+    );
+    glyphOf(
+      propsFor(
+        run(
+          { type: 'NEXT_STAGE' },
+          { type: 'NEXT_STAGE' },
+          { type: 'NEXT_STAGE' }
+        )
+      ),
+      ENV,
+      'checkmark.circle.fill'
+    );
+  });
+
   it('draws Pause and Skip when running, and Resume when paused', () => {
     const targets = (timer: TimerState) =>
       [...walk(render(propsFor(timer), ENV).banner)]
@@ -396,6 +449,7 @@ describe('timer live activity widget', () => {
       const regions = [
         layout.banner,
         layout.compactTrailing,
+        layout.minimal,
         layout.expandedLeading,
         layout.expandedTrailing,
         layout.expandedBottom,
