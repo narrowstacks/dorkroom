@@ -58,20 +58,28 @@ export function GrabStrip({ gesture, stripHeight, resizable }: GrabStripProps) {
   );
 }
 
+/**
+ * The header row is a fixed 44pt, like a navigation bar, so its labels stop
+ * growing at this text scale (as UIKit's bar items do); past it, Cancel ran
+ * into the title and both were cut off at the top.
+ */
+const HEADER_MAX_FONT_SCALE = 1.3;
+
 interface DetentHeaderProps {
   gesture: Gesture;
   title: string;
   cancelLabel: string;
-  commitLabel: string;
+  /** Omitted when the footer's button is the only commit. */
+  commitLabel?: string;
   commitDisabled?: boolean;
   onCancel: () => void;
   onCommit: () => void;
 }
 
 /**
- * Cancel, the title and the commit action, which is also a drag handle. The
- * title stays centred whatever the two labels' widths: the sides share the
- * remaining room equally.
+ * Cancel, the title and the commit action (when the header has one), which is
+ * also a drag handle. The title stays centred whatever the two labels' widths:
+ * the sides share the remaining room equally, an empty side included.
  */
 export function DetentHeader({
   gesture,
@@ -96,29 +104,43 @@ export function DetentHeader({
             accessibilityRole="button"
             accessibilityLabel={cancelLabel}
           >
-            <Text className="text-base text-ink-70">{cancelLabel}</Text>
+            <Text
+              className="text-base text-ink-70"
+              numberOfLines={1}
+              maxFontSizeMultiplier={HEADER_MAX_FONT_SCALE}
+            >
+              {cancelLabel}
+            </Text>
           </Pressable>
         </View>
         <Text
           accessibilityRole="header"
           numberOfLines={1}
+          maxFontSizeMultiplier={HEADER_MAX_FONT_SCALE}
           className="shrink text-center text-base font-semibold text-white"
         >
           {title}
         </Text>
         <View className="flex-1 items-end">
-          <Pressable
-            className={`min-h-11 min-w-11 items-end justify-center ${commitDisabled ? 'opacity-40' : ''}`}
-            onPress={onCommit}
-            disabled={commitDisabled}
-            accessibilityRole="button"
-            accessibilityLabel={commitLabel}
-            accessibilityState={{ disabled: commitDisabled ?? false }}
-          >
-            <Text className="text-base font-semibold" style={{ color: hue }}>
-              {commitLabel}
-            </Text>
-          </Pressable>
+          {commitLabel === undefined ? null : (
+            <Pressable
+              className={`min-h-11 min-w-11 items-end justify-center ${commitDisabled ? 'opacity-40' : ''}`}
+              onPress={onCommit}
+              disabled={commitDisabled}
+              accessibilityRole="button"
+              accessibilityLabel={commitLabel}
+              accessibilityState={{ disabled: commitDisabled ?? false }}
+            >
+              <Text
+                className="text-base font-semibold"
+                style={{ color: hue }}
+                numberOfLines={1}
+                maxFontSizeMultiplier={HEADER_MAX_FONT_SCALE}
+              >
+                {commitLabel}
+              </Text>
+            </Pressable>
+          )}
         </View>
       </View>
     </GestureDetector>

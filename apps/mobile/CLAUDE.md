@@ -720,8 +720,11 @@ Three bottom surfaces, by what they are for:
   drag down still dismisses. `expandSignal` snaps it to large; `onSettled` is
   told each time a spring arrives at a detent, and also when a signal could not
   move a sheet that is at rest (a running spring reports its own arrival, so
-  nothing is reported twice). The footer's commit button (`footerCommitLabel`)
-  is rendered by the sheet itself, so it shares the header's guarded action.
+  nothing is reported twice). The commit is the header's trailing action
+  (`commitLabel`), the footer's button (`footerCommitLabel`, rendered by the
+  sheet itself) or both, sharing one guarded action and disabled state; the
+  props type requires at least one. Without a header commit the title stays
+  centred.
   Its insets come from its own `SafeAreaProvider` inside the `Modal` (seeded with
   the window's launch metrics): a tab's provider includes the tab bar, which
   would leave blank space under the footer. `BottomSheet` does not do this yet.
@@ -744,10 +747,36 @@ Three bottom surfaces, by what they are for:
 
 `LogFrameSheet` (`src/components/film-log/log-frame-sheet.tsx`) is the one way
 to log a frame to a roll from a reading: the Meter's shutter (with the photo)
-and `SaveToRollAction` on Reciprocity and Camera Exposure. Its pure half is
-`src/lib/log-frame.ts` (`buildLoggedShot`, `formatReading`, `rollSummary`,
-`isoMismatchNote`, `needsLens`). The frame number is always `nextFrameNumber`;
-the reading's ISO is never stored (ISO is the roll's EI). `Readout` takes an
+and `SaveToRollAction` on Reciprocity and Camera Exposure. It leads with the
+reading (#732). Header: Cancel and the title "Log frame", NO commit. The one
+commit is the footer's `Button variant="commit"` "Log frame N", pinned above
+the safe area and the keyboard; the lines that explain a disabled commit
+(finding a location, a lens needed, the roll gone) sit in the sheet's `footer`
+just above it. Medium, top to bottom: the readout (one VoiceOver element,
+`frameReadout().spoken`, e.g. "Frame 8, f/8 at 1/125 second, Ilford XP2 Super
+on Bessa R, EI 400"): the frame number as a muted two-digit figure, aperture
+and shutter large in the phase hue with tabular figures (capped at 1.4x
+Dynamic Type, then shrunk to fit), a subtitle with the roll (`rollLabel`),
+camera and EI (the reading's own ISO only when the roll has none), the Meter
+photo as a small thumbnail beside it, then the ISO mismatch note and "Photo
+saved in B&W" when they apply; the lens chips (`PresetChipRow`, the lenses of
+`useLensesForCamera`, last-used lens preselected and moved first so it is on
+screen, no "No lens" chip because a camera with lenses needs one, `needsLens`),
+or "No saved lenses. Add one under Cameras & lenses."; the Place row. Place is
+ONE always-editable `TextInput` inside a row `Pressable`: at medium the row is
+the button (spoken by `placeRowLabel`, never coordinates; the input is hidden
+from touch and VoiceOver) that expands the sheet and focuses the input on
+arrival (`onSettled`); at large the input takes touches itself. The row goes
+back to a button only on a settle at medium with the input not focused: a real
+collapse has already dropped the keyboard, while a sheet with no room to grow
+nudged mid-typing keeps the field. Large adds the location row,
+Notes and "More options…" (`Button variant="plain"`). Pure half:
+`src/lib/log-frame.ts` (`buildLoggedShot`, `frameReadout`, `formatShutter`,
+`spokenShutter`, `placeCardValue`, `placeRowLabel`, `lensChipOptions`,
+`selectedLens`, `isoMismatchNote`, `needsLens`). The frame number is always
+`nextFrameNumber`; the reading's ISO is never stored (ISO is the roll's EI).
+For a visual check without a camera, open it from Reciprocity's "Save to roll"
+with an active roll (no photo, no "More options…"). `Readout` takes an
 `actions` slot under its `note`, outside the spoken summary, for next-step rows
 like "Save to roll".
 
@@ -771,7 +800,7 @@ strict type for building one (a misspelled key is a compile error);
   accuracy raced against an 8 s timer that is always cleared. It resolves
   `ok`, `denied`, `servicesOff`, `unavailable` or `timeout` and never throws. The pure half,
   `frame-location-format.ts`, maps the fix (6 decimals) and formats it.
-  `FrameLocationField` is the row (log sheet, large detent, under Place, and the
+  `FrameLocationField` is the row (log sheet, first in the large block, under the Place row, and the
   shot form): "Add location", "Finding location…", the coordinates with
   "Remove", an inline line for denied (with "Open Settings", `Linking.openSettings`),
   one for Location Services off for the whole phone ("Location Services are off
@@ -797,10 +826,10 @@ strict type for building one (a misspelled key is a compile error);
   photo file name, read once, cleared on unmount), never as a route param: the
   shot route is reachable by an outside link that could plant coordinates, and
   navigation state would carry them. The form ignores any `location` param.
-- **Busy rule.** While a fix is being found (`onBusyChange`), the sheet's Log
-  (header and footer), its "More options..." and the shot form's Save are disabled (`isCommitDisabled`),
+- **Busy rule.** While a fix is being found (`onBusyChange`), the sheet's
+  "Log frame N", its "More options..." and the shot form's Save are disabled (`isCommitDisabled`),
   because a commit would drop the location; the 8 s timeout bounds the wait. The
-  sheet's medium block says why. VoiceOver is told "Location added" or the
+  sheet's footer says why, above the button. VoiceOver is told "Location added" or the
   failure line (`announceForAccessibility`), never the coordinates.
 - **Accuracy.** `capturedAt` is the fix's own timestamp. With "Precise
   Location" off a fix can be kilometers out, so when `accuracyMeters` is over

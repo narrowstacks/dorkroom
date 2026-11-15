@@ -49,14 +49,12 @@ const RESIZE_MS = 140;
 const ENTER_MS = 260;
 const FOOTER_PAD_TOP = 8;
 
-interface DetentSheetProps {
+interface DetentSheetBaseProps {
   visible: boolean;
   /** Centred in the header, whatever the two actions' widths. */
   title: string;
   /** The header's leading action. */
   cancelLabel?: string;
-  /** The header's trailing action, in the phase's hue. */
-  commitLabel: string;
   /**
    * Called once when the commit action is pressed. Return false when nothing
    * was committed (a refusal): the sheet then stays open and usable. Otherwise
@@ -75,9 +73,6 @@ interface DetentSheetProps {
   children: ReactNode;
   /** Extra content revealed at the large detent. Without it the sheet has one detent. */
   expanded?: ReactNode;
-  /** The footer's commit button: the same guarded action and disabled state as
-   * the header's, so only one commit can ever fire. */
-  footerCommitLabel?: string;
   /** Extra pinned content above the footer's commit button (not a commit). */
   footer?: ReactNode;
   /** When this number changes the sheet snaps to the large detent. */
@@ -85,6 +80,23 @@ interface DetentSheetProps {
   /** Told each time the sheet comes to rest at a detent. */
   onSettled?: (expanded: boolean) => void;
 }
+
+/**
+ * Where the commit lives: the header's trailing action, the footer's button, or
+ * both. Both share one guarded action and disabled state, so only one commit
+ * can ever fire. A sheet with a footer button may leave the header without one
+ * (the log-frame sheet does): the title stays centred.
+ */
+type DetentSheetCommit =
+  | {
+      /** The header's trailing action, in the phase's hue. */
+      commitLabel: string;
+      /** The footer's commit button. */
+      footerCommitLabel?: string;
+    }
+  | { commitLabel?: undefined; footerCommitLabel: string };
+
+type DetentSheetProps = DetentSheetBaseProps & DetentSheetCommit;
 
 /**
  * A bottom sheet with two detents, on a transparent RN `Modal`: medium shows
