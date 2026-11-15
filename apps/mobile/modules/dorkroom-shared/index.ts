@@ -1,6 +1,7 @@
-// The JS face of the local Expo module in ./ios. Import it through
-// `src/lib/shared-defaults.ts`, which falls back to a no-op when the native
-// module is missing (a dev client built before this module, or vitest).
+// The JS face of the local Expo modules in ./ios. Import them through
+// `src/lib/shared-defaults.ts` and `src/lib/spotlight.ts`, which fall back to a
+// no-op when the native module is missing (a dev client built before it, or
+// vitest).
 import { requireOptionalNativeModule } from 'expo';
 
 export interface DorkroomSharedModule {
@@ -16,4 +17,32 @@ export interface DorkroomSharedModule {
 /** The native module, or null when this build does not include it. */
 export function loadDorkroomShared(): DorkroomSharedModule | null {
   return requireOptionalNativeModule<DorkroomSharedModule>('DorkroomShared');
+}
+
+/** One Core Spotlight item. `id` is the app path it opens. */
+export interface NativeSpotlightItem {
+  id: string;
+  domain: string;
+  title: string;
+  description?: string;
+  keywords?: string[];
+}
+
+export interface DorkroomSpotlightModule {
+  /** Indexes (or replaces) items in the on-device Spotlight index. */
+  indexSpotlightItems(items: NativeSpotlightItem[]): Promise<void>;
+  removeSpotlightItems(ids: string[]): Promise<void>;
+  removeSpotlightDomain(domain: string): Promise<void>;
+  removeAllSpotlightItems(): Promise<void>;
+}
+
+/**
+ * The Spotlight module, or null when this build does not include it. A
+ * separate native module from `DorkroomShared`, so a dev client built before
+ * it existed reports it missing instead of lacking its functions.
+ */
+export function loadDorkroomSpotlight(): DorkroomSpotlightModule | null {
+  return requireOptionalNativeModule<DorkroomSpotlightModule>(
+    'DorkroomSpotlight'
+  );
 }

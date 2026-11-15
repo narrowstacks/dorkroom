@@ -2,7 +2,7 @@
   "name": "dorkroom-shared",
   "version": "1.0.0",
   "private": true,
-  "description": "App Group UserDefaults and Control Center reloads for the Dorkroom iOS app",
+  "description": "App Group UserDefaults, Control Center reloads and Spotlight indexing for the Dorkroom iOS app",
   "license": "AGPL-3.0-only",
   "main": "index.ts"
 }

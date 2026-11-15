@@ -3,7 +3,7 @@
 Pod::Spec.new do |s|
   s.name           = 'DorkroomShared'
   s.version        = '1.0.0'
-  s.summary        = 'App Group UserDefaults and Control Center reloads for Dorkroom'
+  s.summary        = 'App Group UserDefaults, Control Center reloads and Spotlight indexing for Dorkroom'
   s.description    = s.summary
   s.license        = 'AGPL-3.0-only'
   s.author         = 'Dorkroom'

@@ -9,6 +9,7 @@ const SWIFT_FILES = [
   'OpenLightMeterIntent.swift',
   'DorkroomShortcuts.swift',
   'CalculateReciprocityIntent.swift',
+  'AskDorkroomIntent.swift',
 ];
 
 const GROUP = 'AppIntents';
