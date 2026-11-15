@@ -36,7 +36,11 @@ interface GlassCardProps {
   flush?: boolean;
 }
 
-/** A Liquid Glass card on iOS 26; a translucent NativeWind card elsewhere. */
+/**
+ * A Liquid Glass card on iOS 26; a translucent NativeWind card elsewhere. Glass
+ * is for chrome and for controls floating over media (a photo, the camera, a
+ * map, a drawing). Content cards use the flat `Surface` instead.
+ */
 export function GlassCard({
   children,
   className,
