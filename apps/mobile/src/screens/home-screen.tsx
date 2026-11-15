@@ -9,10 +9,11 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
 } from 'react';
-import { Text, View } from 'react-native';
+import { Text, type TextInput, View } from 'react-native';
 import { SearchBar } from '@/components/development/search-bar';
 import { AnswerCard } from '@/components/home/answer-card';
 import { ResultGroups } from '@/components/home/result-groups';
@@ -27,6 +28,7 @@ import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { useCameras, useLenses, useRolls } from '@/hooks/use-film-log';
 import { useHomeSearchData } from '@/hooks/use-home-search-data';
 import { useMeasurementUnit } from '@/hooks/use-measurement-unit';
+import { useSearchTabFocus } from '@/hooks/use-search-tab-focus';
 import {
   homeDestination,
   type HomeRoute,
@@ -106,6 +108,10 @@ export function HomeScreen() {
   // priority and discard a render, and the retry must still see the event.
   useEffect(() => consumeSearchLink(seenSeq), [seenSeq]);
   const [focused, setFocused] = useState(false);
+  // Tapping the Search tab again while Home shows at its top puts the cursor
+  // in the box.
+  const searchInput = useRef<TextInput>(null);
+  const onScroll = useSearchTabFocus(searchInput);
   const settled = useDebouncedValue(query, 150);
   const searching = settled.trim() !== '';
   const [unit] = useMeasurementUnit();
@@ -178,10 +184,11 @@ export function HomeScreen() {
   const card = answer && !cameraLink ? answer : null;
 
   return (
-    <Screen>
+    <Screen onScroll={onScroll}>
       <View className="flex-row items-center gap-2">
         <View className="flex-1">
           <SearchBar
+            ref={searchInput}
             value={query}
             onChangeText={setQuery}
             onFocus={() => setFocused(true)}

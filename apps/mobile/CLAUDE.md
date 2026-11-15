@@ -546,8 +546,54 @@ recipe's name after the prefill).
   re-registers the film log list underneath and the bar stops minimizing on that
   roll until you leave and return (library behaviour, no app-side fix). The bar
   comes back only after enough upward scroll, and the bounce at the end of a
-  short list counts as one (seen on the Simulator, not from the library source). Home is a plain last tab, not `role="search"`: that role is only
-  the legacy system item (stock title and icon) and adds nothing here.
+  short list counts as one (seen on the Simulator, not from the library source).
+  **The Search trigger has `role="search"` (#732, item 7).** The role maps
+  to react-native-screens' `systemItem: 'search'`, a legacy
+  `UITabBarItem(tabBarSystemItem: .search)` on a `viewControllers` tab bar
+  controller; react-native-screens 4.26.2 has no `UITab`/`UISearchTab` and
+  never sets `prominentTabIdentifier`. On iOS 27 (Simulator): the full bar is
+  pixel-identical to the bar without the role (Search stays inside the
+  capsule), but the MINIMIZED bar (Recipes, the film log, a roll) shows a
+  separate Search circle at the trailing side, beside the selected tab's
+  circle. Tapping the selected tab's circle expands the bar, tapping the
+  Search circle switches to Search, and the full bar returns on scrolling
+  back up. A running timer's pill sits between the two circles without
+  overlapping, Safelight draws both circles black and red, and nothing clips
+  at the largest text size. `tabPress` still fires for the system item, so
+  the re-tap focus below works through it. The trigger keeps its own Icon and
+  Label: without them the item shows the stock icon and the route name
+  "(home)" as its title (`tool-manifest.test.ts` pins all three). On iOS 26
+  the system item is expected to detach into the separate trailing Search
+  button in the full bar too (react-native-screens' `systemItem` docs, Apple's
+  iOS 26 tab bar), but this is UNVERIFIED until checked on a device, as is
+  whether the system then adds a search field of its own (Home has no native
+  search controller, so it should not). A full Photos-style split bar on
+  iOS 27 needs react-native-screens to support `prominentTabIdentifier` or
+  `UISearchTab` (a native change and a rebuild).
+  **Tapping Search again types** (`useSearchTabFocus`, `src/hooks/`, deciding
+  in `searchTabPressAction`, `src/lib/home/search-tab-press.ts`, pure). A tap
+  on a tab reaches JS as the tab navigator's `tabPress` for every tap, first
+  or repeated (react-native-screens' `onTabSelected`, which expo-router
+  turns into `tabPress` and then `JUMP_TO`; the `isRepeated` flag is not
+  forwarded). JS emits it before it applies the selection to JS state, so
+  `isFocused()` in the listener still answers for the moment of the tap, but
+  natively the selection, the pop to root (a screen pushed) or the animated
+  scroll to the top has already started. Home focuses its field only when
+  the Search tab was already selected, Home itself was showing, and Home was
+  at its top: a switch from another tab only switches (so the second tap of a
+  double tap types), a tap over Settings only pops, a tap on a scrolled Home
+  only scrolls to the top (the next tap types), and a focused field stays
+  focused. Focusing during the scroll would raise the keyboard, whose frame
+  change re-applies the current mid-animation offset (`scrollTo`, not
+  animated) and can stop the scroll part-way with the field off screen.
+  "At top" comes from `Screen`'s `onScroll` passthrough (no other screen
+  passes it), kept in a ref so scrolling never re-renders Home; `isAtTop`
+  measures from the resting offset, minus the top safe-area inset (Home has
+  no header, so that is its adjusted inset), with 4pt of slack, so the
+  offset 0 that Return can leave (first rows under the status bar) is not
+  the top. The keyboard covers the tab bar, so the focused case is reachable
+  only in theory. Search links (`dorkroom://search?q=`, Ask Dorkroom) never
+  focus.
 - **Dark only.** Don't add light-mode branches. `app/_layout.tsx` forces
   `Appearance.setColorScheme('dark')`, uses `DarkTheme`, and `headerShown: false`. The light status bar comes from the
   stack's `statusBarStyle` option (`statusBarOptions` in `theme/stack-chrome.ts`);
