@@ -19,13 +19,22 @@ import { ResultRow } from '@/components/result-row';
 import { Screen } from '@/components/screen';
 import { recordRecipeOpen } from '@/lib/recent-store';
 import { agitationSummary, patternFromRecipe } from '@/lib/timer/agitation';
+import {
+  developmentSession,
+  recipeSnapshotFrom,
+} from '@/lib/timer/development-session';
 import { setTimerPrefill } from '@/lib/timer/prefill';
 import { useAccentColor, useAccentLine } from '@/theme/use-phase-accent';
 
 export function RecipeDetailScreen() {
   const teal = useAccentColor('teal');
   const tealLine = useAccentLine('teal', '40');
-  const { id } = useLocalSearchParams<{ id: string }>();
+  // `roll`: the roll waiting to be developed this recipe was opened for (the
+  // Develop hub's To develop card, through the recipe browser).
+  const { id, roll: rollId } = useLocalSearchParams<{
+    id: string;
+    roll?: string;
+  }>();
   const recipes = useDevelopmentRecipes();
 
   const combination = recipes.allCombinations.find(
@@ -179,6 +188,15 @@ export function RecipeDetailScreen() {
           // Hand the recipe to the timer screen (it consumes this on mount and
           // prefills the dev stage from the recipe's time/temp/agitation).
           setTimerPrefill(combination);
+          // What the run develops, so its end can offer "Save to roll".
+          developmentSession.start(combination, {
+            rollId: rollId || undefined,
+            recipe: recipeSnapshotFrom(combination, {
+              filmName: film ? filmName : undefined,
+              developerName: developer ? developerName : undefined,
+              dilution,
+            }),
+          });
           router.push('/develop/recipes/timer');
         }}
         accessibilityLabel="Start process timer for this recipe"

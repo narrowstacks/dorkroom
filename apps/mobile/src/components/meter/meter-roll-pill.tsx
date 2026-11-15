@@ -14,7 +14,7 @@ export function MeterRollPill() {
   const { roll, activeRolls, setRoll } = useMeterRoll();
   const [open, setOpen] = useState(false);
   const tint = useSelectionTint();
-  const label = roll ? rollLabel(roll) : 'No active roll';
+  const label = roll ? rollLabel(roll) : 'No roll in the camera';
 
   return (
     <>
@@ -45,7 +45,7 @@ export function MeterRollPill() {
           {activeRolls.length === 0 ? (
             <>
               <Text className="text-ink-60">
-                No active rolls. Start one to log shots from the meter.
+                No roll in the camera. Start one to log shots from the meter.
               </Text>
               <NeutralButton
                 onPress={() => {

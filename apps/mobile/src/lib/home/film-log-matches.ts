@@ -1,7 +1,7 @@
 import {
   formatCameraFormat,
-  ROLL_STATUS_OPTIONS,
   rollLabel,
+  rollStatusLabel,
   shotCountLabel,
 } from '@/lib/film-log-options';
 import type { Camera, FilmRoll, Lens } from '@/schemas/film-log.schema';
@@ -53,18 +53,13 @@ function time(iso: string): number {
   return Number.isNaN(ms) ? 0 : ms;
 }
 
-/** The status word the rest of the app uses for a roll. */
-function statusLabel(status: FilmRoll['status']): string | undefined {
-  return ROLL_STATUS_OPTIONS.find((option) => option.value === status)?.label;
-}
-
 function matchSubtitle(roll: FilmRoll, camera: Camera | undefined): string {
   return [
     // A named roll's title hides its film, so say it: it may be why it matched.
     roll.name?.trim() ? roll.filmStockName : undefined,
     camera?.name,
     roll.iso !== undefined ? `EI ${roll.iso}` : undefined,
-    statusLabel(roll.status),
+    rollStatusLabel(roll.status),
     shotCountLabel(roll.shots.length),
   ]
     .filter(Boolean)

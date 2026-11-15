@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, FlatList, Pressable, Text, View } from 'react-native';
 import { CommitButton } from '@/components/commit-button';
@@ -14,17 +14,17 @@ import {
   ROLL_FILTERS,
   rollCounts,
   type RollFilter,
+  rollFilterFromParam,
   sortRolls,
 } from '@/lib/film-log-collection';
-import { formatProcess } from '@/lib/film-log-options';
+import {
+  formatProcess,
+  rollLabel,
+  rollStatusLabel,
+} from '@/lib/film-log-options';
 import { shareRollsAsJson } from '@/lib/film-log-share';
+import { LINK_OPENED_PARAM } from '@/lib/link-prefill';
 import type { FilmRoll } from '@/schemas/film-log.schema';
-
-const STATUS_LABEL = {
-  active: 'Active',
-  finished: 'Finished',
-  developed: 'Developed',
-} satisfies Record<FilmRoll['status'], string>;
 
 // Static — hoisted so it isn't rebuilt on every render.
 const EMPTY_STATE = (
@@ -55,6 +55,18 @@ export function FilmListScreen() {
   const rolls = useRolls();
   const cameras = useCameras();
   const [filter, setFilter] = useState<RollFilter>('all');
+  // A link may open the list on a filter (`?filter=to-develop&at=`, the Develop
+  // hub's "N more"). Applied once per opening, during render, so the user's
+  // own chip choice afterwards is left alone.
+  const { filter: filterParam, [LINK_OPENED_PARAM]: openedParam } =
+    useLocalSearchParams<{ filter?: string; at?: string }>();
+  const linkedFilter = rollFilterFromParam(filterParam);
+  const opening = linkedFilter ? `${linkedFilter}|${openedParam ?? ''}` : null;
+  const [appliedOpening, setAppliedOpening] = useState<string | null>(null);
+  if (linkedFilter && opening !== appliedOpening) {
+    setAppliedOpening(opening);
+    setFilter(linkedFilter);
+  }
 
   // Only the calendar year matters to counts and stats, so it is the memo key:
   // they stay put when the filter changes and refresh across New Year. The
@@ -118,7 +130,7 @@ export function FilmListScreen() {
         <Pressable
           onPress={() => router.push(`/shoot/film-log/roll/${item.id}`)}
           accessibilityRole="button"
-          accessibilityLabel={`Open roll ${item.name ?? film}`}
+          accessibilityLabel={`Open roll ${rollLabel(item)}, ${rollStatusLabel(item.status)}`}
         >
           <GlassCard className="gap-1">
             <View className="flex-row items-center justify-between">
@@ -129,7 +141,7 @@ export function FilmListScreen() {
                 {item.name?.trim() ? item.name : film}
               </Text>
               <Text className="text-xs uppercase tracking-wide text-ink-50">
-                {STATUS_LABEL[item.status]}
+                {rollStatusLabel(item.status)}
               </Text>
             </View>
             <Text className="text-sm text-ink-60" numberOfLines={1}>

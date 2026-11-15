@@ -8,7 +8,9 @@ import {
   tileSecondaryLine,
   tileWidth,
 } from '@/components/hub/hub-layout';
+import { RecentNegativesCard } from '@/components/hub/recent-negatives-card';
 import { ToolTile } from '@/components/hub/tool-tile';
+import { UndevelopedRollsCard } from '@/components/hub/undeveloped-rolls-card';
 import { Screen, SCREEN_PADDING } from '@/components/screen';
 import { toHref } from '@/lib/href';
 import { useLastResults } from '@/lib/last-result-store';
@@ -17,7 +19,9 @@ import { type Phase, toolsForPhase } from '@/lib/tools';
 /**
  * The first screen of a phase tab: a two-column grid with one tile per tool,
  * each showing its last result (or what it is for). The phase name is the
- * stack header's large title; Shoot adds the active roll above the grid.
+ * stack header's large title. Above the grid each phase shows where the
+ * user's rolls are: Shoot the roll in the camera, Develop the shot rolls
+ * waiting for the tank, Print the rolls developed last.
  */
 export function PhaseHub({ phase }: { phase: Phase }) {
   const results = useLastResults();
@@ -35,6 +39,8 @@ export function PhaseHub({ phase }: { phase: Phase }) {
         }}
       >
         {phase === 'shoot' ? <ActiveRollCard /> : null}
+        {phase === 'develop' ? <UndevelopedRollsCard /> : null}
+        {phase === 'print' ? <RecentNegativesCard /> : null}
         {rows.map((row) => (
           <View
             key={row.map((tool) => tool.id).join()}

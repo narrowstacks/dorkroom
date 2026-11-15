@@ -9,6 +9,7 @@ import type {
   FilmRoll,
   FilmStock,
   Lens,
+  RollDevelopment,
   Shot,
   ShotPhoto,
 } from '@/schemas/film-log.schema';
@@ -25,6 +26,9 @@ import {
   getLenses,
   getRolls,
   KEYS,
+  markRollDeveloped,
+  markRollDevelopedByHand,
+  markRollShot,
   parseRolls,
   removeShot,
   setCameras,
@@ -36,6 +40,7 @@ import {
   updateRoll,
   updateShot,
 } from './film-log-storage';
+import { rollFormStatusPatch } from './roll-lifecycle';
 import { getQuarantined } from './stored-collection';
 
 function newRoll() {
@@ -95,6 +100,18 @@ const fullShot = {
   source: 'meter',
 } satisfies Required<Shot>;
 
+const fullDevelopment = {
+  developedAt: '2026-06-26T18:00:00.000Z',
+  recipeId: 'c-uuid-1',
+  recipeName: 'Kodak Tri-X 400 in Kodak D-76',
+  developer: 'Kodak D-76',
+  dilution: '1+1',
+  temperatureF: 68,
+  timeSeconds: 585,
+  shootingIso: 800,
+  notes: 'fresh stock',
+} satisfies Required<RollDevelopment>;
+
 const fullRoll = {
   id: 'r1',
   name: 'Trip',
@@ -109,6 +126,7 @@ const fullRoll = {
   shots: [fullShot],
   startedAt: '2026-06-20T00:00:00.000Z',
   finishedAt: '2026-06-25T00:00:00.000Z',
+  development: fullDevelopment,
   notes: 'pushed one stop',
   createdAt: '2026-06-20T00:00:00.000Z',
   updatedAt: '2026-06-25T00:00:00.000Z',
@@ -372,5 +390,200 @@ describe('film-log storage', () => {
     });
     expect((await getInfoAsync(photoUri('old.jpg'))).exists).toBe(false);
     expect((await getInfoAsync(photoUri('new.jpg'))).exists).toBe(true);
+  });
+});
+
+describe('roll development record (hydration)', () => {
+  beforeEach(() => {
+    storage.clearAll();
+  });
+
+  /** A roll as an older build stored it: no `development` key at all. */
+  const { development: _omit, ...oldRoll } = { ...fullRoll, id: 'old' };
+
+  const stored = (rolls: unknown[]) =>
+    storage.set(KEYS.rolls, JSON.stringify(rolls));
+
+  it('reads a roll stored before the record existed unchanged', () => {
+    stored([oldRoll]);
+    const [roll] = getRolls();
+    expect(roll).toEqual(oldRoll);
+    expect(roll?.development).toBeUndefined();
+  });
+
+  it('round-trips a full and a partial record', () => {
+    const partial = {
+      ...fullRoll,
+      id: 'partial',
+      development: { developedAt: '2026-07-01T00:00:00.000Z' },
+    };
+    setRolls([fullRoll, partial]);
+    expect(getRolls()).toEqual([fullRoll, partial]);
+  });
+
+  it('drops only the bad value of a malformed field, keeping the rest', () => {
+    stored([
+      {
+        ...fullRoll,
+        development: { ...fullDevelopment, timeSeconds: 'nine', dilution: 4 },
+      },
+    ]);
+    const { timeSeconds: _t, dilution: _d, ...rest } = fullDevelopment;
+    expect(getRolls()[0]?.development).toEqual(rest);
+    expect(getRolls()[0]?.status).toBe('finished');
+  });
+
+  it('keeps a key a newer build added through a read, an unrelated write and a read', () => {
+    stored([{ ...fullRoll, development: { ...fullDevelopment, rating: 4 } }]);
+    updateRoll('r1', { name: 'Renamed' });
+    const [roll] = getRolls();
+    expect(roll?.name).toBe('Renamed');
+    expect(roll?.development).toEqual({ ...fullDevelopment, rating: 4 });
+    // It is the parsed value that is written back, so the key is in storage.
+    expect(storage.getString(KEYS.rolls)).toContain('"rating":4');
+  });
+
+  it('reads a record without a valid developedAt as no record, keeping the roll', () => {
+    const { developedAt: _a, ...undated } = fullDevelopment;
+    stored([
+      { ...fullRoll, id: 'a', development: 'yesterday' },
+      {
+        ...fullRoll,
+        id: 'b',
+        development: { ...fullDevelopment, developedAt: 42 },
+      },
+      { ...fullRoll, id: 'c', development: undated },
+      { ...fullRoll, id: 'd', development: null },
+      fullRoll,
+    ]);
+    const rolls = getRolls();
+    expect(rolls.map((r) => r.id)).toEqual(['a', 'b', 'c', 'd', 'r1']);
+    for (const roll of rolls.slice(0, 4)) {
+      expect(roll.development).toBeUndefined();
+      expect(roll.shots).toEqual(fullRoll.shots);
+    }
+    expect(rolls[4]).toEqual(fullRoll);
+    newRoll();
+    // Nothing is quarantined: every roll decoded.
+    expect(getQuarantined(storage, KEYS.rolls)).toEqual([]);
+  });
+
+  it('documents the intended loss: an undated record is gone after the next write', () => {
+    stored([
+      { ...fullRoll, development: { ...fullDevelopment, developedAt: 42 } },
+    ]);
+    updateRoll('r1', { name: 'Renamed' });
+    // Neither the roll list nor the quarantine keeps it: the roll decoded,
+    // so only the record (which had no usable date) is lost.
+    expect(storage.getString(KEYS.rolls)).not.toContain('Kodak D-76');
+    expect(getQuarantined(storage, KEYS.rolls)).toEqual([]);
+  });
+
+  it('still skips a roll whose other fields are invalid (unchanged behaviour)', () => {
+    const bad = { ...fullRoll, id: 'bad', status: 'printing' };
+    stored([bad, fullRoll]);
+    expect(getRolls()).toEqual([fullRoll]);
+  });
+});
+
+describe('roll lifecycle', () => {
+  beforeEach(() => {
+    storage.clearAll();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-08-01T12:00:00.000Z'));
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('marks an active roll shot and sets finishedAt', () => {
+    const roll = newRoll();
+    expect(markRollShot(roll.id)).toBe(true);
+    const [shot] = getRolls();
+    expect(shot?.status).toBe('finished');
+    expect(shot?.finishedAt).toBe('2026-08-01T12:00:00.000Z');
+  });
+
+  it('keeps an existing finishedAt and ignores a roll that is not in the camera', () => {
+    const roll = newRoll();
+    updateRoll(roll.id, { finishedAt: '2026-07-01T00:00:00.000Z' });
+    markRollShot(roll.id);
+    expect(getRolls()[0]?.finishedAt).toBe('2026-07-01T00:00:00.000Z');
+    expect(markRollShot(roll.id)).toBe(false);
+    expect(markRollShot('missing')).toBe(false);
+  });
+
+  it('saves a run to a roll with its record', () => {
+    const roll = newRoll();
+    markRollShot(roll.id);
+    expect(markRollDeveloped(roll.id, fullDevelopment)).toBe(true);
+    const [developed] = getRolls();
+    expect(developed?.status).toBe('developed');
+    expect(developed?.development).toEqual(fullDevelopment);
+    expect(developed?.finishedAt).toBe('2026-08-01T12:00:00.000Z');
+  });
+
+  it('does not develop a roll twice or one that is gone', () => {
+    const roll = newRoll();
+    markRollDeveloped(roll.id, { developedAt: 'first' });
+    expect(markRollDeveloped(roll.id, { developedAt: 'second' })).toBe(false);
+    expect(markRollDevelopedByHand(roll.id)).toBe(false);
+    expect(getRolls()[0]?.development?.developedAt).toBe('first');
+    expect(markRollDeveloped('missing', { developedAt: 'x' })).toBe(false);
+    expect(markRollDevelopedByHand('missing')).toBe(false);
+  });
+
+  it('marks a roll developed by hand with only the date', () => {
+    const roll = newRoll();
+    markRollShot(roll.id);
+    expect(markRollDevelopedByHand(roll.id)).toBe(true);
+    expect(getRolls()[0]?.development).toEqual({
+      developedAt: '2026-08-01T12:00:00.000Z',
+    });
+  });
+
+  it('keeps a timer record when the form sets the roll back to Shot and it is marked developed by hand', () => {
+    const roll = newRoll();
+    markRollDeveloped(roll.id, fullDevelopment);
+    // The roll form, opened on a developed roll, saved with "Shot".
+    const opened = getRolls()[0];
+    updateRoll(
+      roll.id,
+      rollFormStatusPatch(opened, 'developed', 'finished', 'later')
+    );
+    expect(getRolls()[0]?.status).toBe('finished');
+    markRollDevelopedByHand(roll.id);
+    const [developed] = getRolls();
+    expect(developed?.status).toBe('developed');
+    expect(developed?.development).toEqual(fullDevelopment);
+  });
+
+  it('lets Save to roll replace a kept record', () => {
+    const roll = newRoll();
+    markRollDeveloped(roll.id, fullDevelopment);
+    updateRoll(
+      roll.id,
+      rollFormStatusPatch(getRolls()[0], 'developed', 'finished', 'later')
+    );
+    const newer = { developedAt: '2026-08-02T00:00:00.000Z', dilution: '1+3' };
+    expect(markRollDeveloped(roll.id, newer)).toBe(true);
+    expect(getRolls()[0]?.development).toEqual(newer);
+  });
+
+  it('does not let an open form undo Save to roll from the timer', () => {
+    const roll = newRoll();
+    markRollShot(roll.id);
+    // The form opens on the shot roll; meanwhile the timer saves to it.
+    const openedStatus = getRolls()[0]?.status;
+    markRollDeveloped(roll.id, fullDevelopment);
+    const current = getRolls()[0];
+    updateRoll(roll.id, {
+      name: 'Renamed',
+      ...rollFormStatusPatch(current, openedStatus, 'finished', 'later'),
+    });
+    const [saved] = getRolls();
+    expect(saved?.name).toBe('Renamed');
+    expect(saved?.status).toBe('developed');
+    expect(saved?.development).toEqual(fullDevelopment);
   });
 });
