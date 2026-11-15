@@ -4,6 +4,7 @@ import { createTimerState, timerReducer } from './engine';
 import {
   actionForTarget,
   createInteractionHandler,
+  createTimerActionRunner,
 } from './live-activity-interaction';
 import type { TimerStoreSnapshot } from './timer-store';
 import type { TimerAction, TimerStage, TimerState } from './types';
@@ -208,5 +209,56 @@ describe('interaction handler when the alerts fail', () => {
     failing = false;
     await handler({ source: 'a', target: 'pause' });
     expect(calls.filter((c) => c === 'cancel')).toHaveLength(1);
+  });
+});
+
+describe('timer action runner (the tab bar accessory)', () => {
+  it('runs the same steps as a Live Activity button, with no ownership check', async () => {
+    const log: string[] = [];
+    let timer: TimerState = timerReducer(
+      createTimerState([stage('a', 60), stage('b', 30)]),
+      START
+    );
+    const run = createTimerActionRunner({
+      store: {
+        dispatch: (action) => {
+          log.push(`dispatch:${action.type}`);
+          timer = timerReducer(timer, action);
+        },
+        sync: () => log.push('sync'),
+        getSnapshot: () => ({
+          timer,
+          selectedPresetId: '',
+          alertsDenied: false,
+          anchorMs: T0,
+        }),
+      },
+      alerts: {
+        ensure: async (state) => {
+          log.push(`alerts:${state.timer.status}`);
+        },
+      },
+      activity: {
+        sync: () => log.push('activity-sync'),
+        flushNow: async () => {
+          log.push('flush');
+        },
+      },
+    });
+    await run({ type: 'PAUSE' });
+    await run({ type: 'RESUME' });
+    expect(log).toEqual([
+      'dispatch:PAUSE',
+      'sync',
+      'alerts:paused',
+      'activity-sync',
+      'flush',
+      'dispatch:RESUME',
+      'sync',
+      'alerts:running',
+      'activity-sync',
+      'flush',
+    ]);
+    expect(timer.status).toBe('running');
   });
 });
