@@ -51,6 +51,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Changed
 
+- **Titles shrink as you scroll.** The big title at the top of the Shoot, Develop and Print screens, the Film Log, a roll, Recipes, a recipe, the Process Timer and the film log forms now shrinks into the bar as you scroll down and grows back at the top, like other iPhone apps. (#732)
 - **New words for where a roll is.** A roll in the camera is now "In camera" (was Active), and a roll waiting to be developed is "Shot" (was Finished), in the roll list, the roll form, Search and the Meter's roll picker. Developed stays the same. (#719)
 - **Settings moved to the Search tab.** There is now one Settings screen, moved here from More and opened from the gear button beside the search box on Home. Back returns to Home. (#719)
 - **Back by swipe starts at the left edge.** On the Meter, Inverter, Border, Mat Cut and Resize, a sideways drag on the screen no longer goes back; swipe from the left edge of the screen instead. (#712)
@@ -66,6 +67,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Fixed
 
+- **Hubs and other screens no longer open with their first row hidden after you type somewhere else.** Typing in a form or search could leave the Shoot, Develop or Print screen, Home or another screen you had open scrolled up, with its first row under the title. (#732)
 - **Editing a shot with no lens or back keeps it that way.** It no longer fills in the roll's last-used lens or back, or an f/8 aperture and 1/125 shutter a shot never had. (#719)
 - **The Meter's shutter button shows its outer ring.** The ring was missing. (#712)
 - **Holding + or − on a stepper keeps changing the value.** It used to move once while the haptic kept ticking. Holding now steps repeatedly, and stops at the end of the range. This covers the volume mixer, the Process Timer preset editor and the film log's frame number. (fixes #317)

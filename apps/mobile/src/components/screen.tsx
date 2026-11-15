@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import { ScrollView, View } from 'react-native';
-import { GradientBackground } from '@/components/gradient-background';
+import { useBackdropStyle } from '@/components/gradient-background';
 import { useHeaderClearance } from '@/hooks/use-header-clearance';
+import { useKeyboardInsetsGate } from '@/hooks/use-keyboard-insets-gate';
 
 interface ScreenProps {
   children: ReactNode;
@@ -35,20 +36,40 @@ function PinnedHeader({ children }: { children: ReactNode }) {
 }
 
 export function Screen({ children, header }: ScreenProps) {
+  const backdrop = useBackdropStyle();
+  const adjustsForKeyboard = useKeyboardInsetsGate();
+  const scroll = (
+    <ScrollView
+      // The backdrop is the scroll view's own background (it does not scroll)
+      // when the scroll view is the root, below.
+      style={header ? undefined : backdrop}
+      contentInsetAdjustmentBehavior="automatic"
+      // Inset for the keyboard so a focused text field scrolls into view
+      // instead of being covered (e.g. Notes on the shot/roll forms). Only on
+      // the screen in view, and not for a keyboard it inherited: React
+      // Native's handler runs in every mounted scroll view, in other tabs and
+      // under the stack too, and re-applies the offset through a `scrollTo`
+      // that clamps at `-contentInset.top`, which is 0 here (the header's
+      // inset is UIKit's adjusted inset, which it does not count; with Prefer
+      // Cross-Fade Transitions it sets 0 outright). So a keyboard anywhere
+      // moved every other Screen to offset 0, its first rows under the header.
+      automaticallyAdjustKeyboardInsets={adjustsForKeyboard}
+      keyboardShouldPersistTaps="handled"
+      contentContainerStyle={{ padding: SCREEN_PADDING, gap: 16 }}
+    >
+      {children}
+    </ScrollView>
+  );
+  // With no pinned header the scroll view IS the screen's root view, so it
+  // heads the first-subview chain UIKit and react-native-screens search for
+  // the scroll view a large title collapses with. Nothing may come before it
+  // there (a backdrop view did); a plain wrapper View with it first was not
+  // picked up either on the Simulator, so there is none.
+  if (!header) return scroll;
   return (
-    <View className="flex-1">
-      <GradientBackground />
-      {header ? <PinnedHeader>{header}</PinnedHeader> : null}
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        // Inset for the keyboard so a focused text field scrolls into view
-        // instead of being covered (e.g. Notes on the shot/roll forms).
-        automaticallyAdjustKeyboardInsets
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ padding: SCREEN_PADDING, gap: 16 }}
-      >
-        {children}
-      </ScrollView>
+    <View className="flex-1" style={backdrop}>
+      <PinnedHeader>{header}</PinnedHeader>
+      {scroll}
     </View>
   );
 }
