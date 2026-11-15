@@ -17,9 +17,10 @@ import { GradientBackground } from '@/components/gradient-background';
 import { NeutralButton } from '@/components/neutral-button';
 import { TabBarScrollView } from '@/components/tab-bar-scroll-view';
 import { useCameras, useLenses, useRoll } from '@/hooks/use-film-log';
+import { hasLocatedFrame } from '@/lib/film-log-gpx';
 import { formatProcess, rollStatusLabel } from '@/lib/film-log-options';
 import { photoUri } from '@/lib/film-log-photos';
-import { shareRollAsCsv } from '@/lib/film-log-share';
+import { shareRollAsCsv, shareRollAsGpx } from '@/lib/film-log-share';
 import { deleteRoll } from '@/lib/film-log-storage';
 import { isUsableLocation } from '@/lib/frame-location-format';
 import { markDevelopedCopy } from '@/lib/roll-lifecycle';
@@ -33,6 +34,40 @@ function exposureSummary(shot: Shot, rollIso: number | undefined): string {
     parts.push(formatShutterSpeed(shot.shutterSpeed));
   if (rollIso !== undefined) parts.push(`ISO ${rollIso}`);
   return parts.length > 0 ? parts.join(' · ') : 'No exposure set';
+}
+
+interface ExportButtonProps {
+  label: string;
+  /** Shown under the label when the export is not possible yet; disables it. */
+  disabledLine: string | undefined;
+  hint: string;
+  onPress: () => void;
+}
+
+function ExportButton({
+  label,
+  disabledLine,
+  hint,
+  onPress,
+}: ExportButtonProps) {
+  const disabled = disabledLine !== undefined;
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      accessibilityHint={hint}
+      className="flex-1 items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
+    >
+      <Text className={`text-base text-white ${disabled ? 'opacity-40' : ''}`}>
+        {label}
+      </Text>
+      {disabled ? (
+        <Text className="text-center text-xs text-ink-60">{disabledLine}</Text>
+      ) : null}
+    </Pressable>
+  );
 }
 
 export function RollDetailScreen() {
@@ -141,6 +176,8 @@ export function RollDetailScreen() {
 
   const cameraName =
     cameras.find((c) => c.id === roll.cameraId)?.name ?? 'Unknown camera';
+  const hasShots = roll.shots.length > 0;
+  const located = hasLocatedFrame(roll.shots);
   const title = roll.name?.trim() ? roll.name : (roll.filmStockName ?? 'Roll');
 
   const header = (
@@ -198,29 +235,40 @@ export function RollDetailScreen() {
           <Text className="text-base text-rose-400">Delete</Text>
         </Pressable>
       </View>
-      <Pressable
-        onPress={() => void shareRollAsCsv(roll.id)}
-        disabled={roll.shots.length === 0}
-        accessibilityRole="button"
-        accessibilityState={{ disabled: roll.shots.length === 0 }}
-        accessibilityHint={
-          roll.shots.length === 0
-            ? 'Log a shot first. There is nothing to export yet.'
-            : 'Opens the share sheet with a CSV file of this roll'
-        }
-        className="items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
-      >
-        <Text
-          className={`text-base text-white ${
-            roll.shots.length === 0 ? 'opacity-40' : ''
-          }`}
-        >
-          Export CSV
-        </Text>
-        {roll.shots.length === 0 ? (
-          <Text className="text-xs text-ink-60">Log a shot to export.</Text>
-        ) : null}
-      </Pressable>
+      {located ? (
+        <NeutralButton
+          onPress={() =>
+            router.push(`/shoot/film-log/roll-map?rollId=${roll.id}`)
+          }
+          label="Map"
+          accessibilityLabel="Map"
+          accessibilityHint="Shows the frames that have a location"
+        />
+      ) : null}
+      <View className="flex-row gap-3">
+        <ExportButton
+          label="Export CSV"
+          disabledLine={hasShots ? undefined : 'Log a shot to export.'}
+          hint={
+            hasShots
+              ? 'Opens the share sheet with a CSV file of this roll'
+              : 'Log a shot first. There is nothing to export yet.'
+          }
+          onPress={() => void shareRollAsCsv(roll.id)}
+        />
+        <ExportButton
+          label="Export GPX"
+          disabledLine={
+            located ? undefined : 'Add a location to a frame to export GPX.'
+          }
+          hint={
+            located
+              ? 'Opens the share sheet with a GPX file of the frames that have a location'
+              : 'No frame has a location yet. Add one from a frame.'
+          }
+          onPress={() => void shareRollAsGpx(roll.id)}
+        />
+      </View>
       <CommitButton
         onPress={() => router.push(`/shoot/film-log/shot?rollId=${roll.id}`)}
         label="+ Add shot"

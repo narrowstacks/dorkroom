@@ -148,9 +148,13 @@ bunx expo start --dev-client --host lan         # Metro; phone must be on same W
   and developer), time, dilution, EI and temperature. It never holds notes,
   places or coordinates. The index is on the device only: nothing is made
   public or sent anywhere, and a deleted roll is removed from it.
-- Exports contain what you choose to export: a roll's CSV or the whole log as
-  JSON includes any frame locations you added. Sharing one sends it where you
-  choose to send it.
+- Exports contain what you choose to export: a roll's CSV or GPX file, or the
+  whole log as JSON, includes any frame locations you added. Sharing one sends
+  it where you choose to send it.
+- A roll's map shows its frame locations on Apple Maps. When you open it, iOS
+  fetches the map tiles for the area in view from Apple, as any map does; the
+  app itself sends your coordinates nowhere. The map does not show or ask for
+  your current location.
 
 ## Out of scope (v1)
 
