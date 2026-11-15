@@ -3,8 +3,11 @@ import type { FilmRoll } from '@/schemas/film-log.schema';
 import {
   defaultRollToDevelop,
   developedInLabel,
-  developmentDetails,
+  developmentSummaryLine,
+  lifecycleTrack,
+  lifecycleTrackLabel,
   markDevelopedCopy,
+  nextLifecycleAction,
   pushPullLabel,
   recentDevelopedRolls,
   recipesPathForRoll,
@@ -187,35 +190,6 @@ describe('row labels', () => {
   });
 });
 
-describe('developmentDetails', () => {
-  it('lists the recipe, dilution, temperature (°C then °F), time and EI', () => {
-    expect(
-      developmentDetails({
-        developedAt: 'x',
-        recipeName: 'Ilford HP5 Plus in Ilford DD-X',
-        developer: 'Ilford DD-X',
-        dilution: '1+4',
-        temperatureF: 68,
-        timeSeconds: 690,
-        shootingIso: 400,
-      })
-    ).toEqual([
-      { label: 'Recipe', value: 'Ilford HP5 Plus in Ilford DD-X' },
-      { label: 'Dilution', value: '1+4' },
-      { label: 'Temperature', value: '20°C · 68°F' },
-      { label: 'Time set', value: '11m 30s' },
-      { label: 'Shooting ISO', value: '400' },
-    ]);
-  });
-
-  it('falls back to the developer and leaves unknown fields out', () => {
-    expect(
-      developmentDetails({ developedAt: 'x', developer: 'Kodak D-76' })
-    ).toEqual([{ label: 'Developer', value: 'Kodak D-76' }]);
-    expect(developmentDetails({ developedAt: 'x' })).toEqual([]);
-  });
-});
-
 describe('recipesPathForRoll', () => {
   it('filters to the film by slug and the EI, and carries the roll', () => {
     expect(
@@ -334,5 +308,91 @@ describe('markDevelopedCopy', () => {
     expect(copy.accessibilityLabel).toBe(
       'Mark as developed. Keeps the development saved on <2026-07-01>.'
     );
+  });
+});
+
+describe('lifecycleTrack', () => {
+  it('marks the steps before the status done and the rest upcoming', () => {
+    expect(lifecycleTrack('finished')).toEqual([
+      { status: 'active', label: 'In camera', state: 'done' },
+      { status: 'finished', label: 'Shot', state: 'current' },
+      { status: 'developed', label: 'Developed', state: 'upcoming' },
+    ]);
+  });
+
+  it('starts at In camera and ends at Developed', () => {
+    expect(lifecycleTrack('active').map((step) => step.state)).toEqual([
+      'current',
+      'upcoming',
+      'upcoming',
+    ]);
+    expect(lifecycleTrack('developed').map((step) => step.state)).toEqual([
+      'done',
+      'done',
+      'current',
+    ]);
+  });
+});
+
+describe('lifecycleTrackLabel', () => {
+  it('names the status, its step and the whole track', () => {
+    expect(lifecycleTrackLabel('finished')).toBe(
+      'Status: Shot, step 2 of 3. In camera, then Shot, then Developed.'
+    );
+  });
+});
+
+describe('nextLifecycleAction', () => {
+  it('offers the one next step, and nothing at the last', () => {
+    expect(nextLifecycleAction('active')).toEqual({
+      kind: 'mark-shot',
+      label: 'Mark as shot',
+    });
+    expect(nextLifecycleAction('finished')).toEqual({
+      kind: 'mark-developed',
+      label: 'Mark as developed',
+    });
+    expect(nextLifecycleAction('developed')).toBeNull();
+  });
+});
+
+describe('developmentSummaryLine', () => {
+  const record = { developedAt: NOW };
+
+  it('joins recipe, dilution, temperature and the time set', () => {
+    expect(
+      developmentSummaryLine(
+        {
+          ...record,
+          recipeName: 'Ilford HP5 Plus in Ilford DD-X',
+          developer: 'Ilford DD-X',
+          dilution: '1+4',
+          temperatureF: 68,
+          timeSeconds: 570,
+        },
+        400
+      )
+    ).toBe(
+      'Ilford HP5 Plus in Ilford DD-X · 1+4 · 20°C (68°F) · Time set 9m 30s'
+    );
+  });
+
+  it('names developer and dilution once without a recipe', () => {
+    expect(
+      developmentSummaryLine(
+        { ...record, developer: 'Rodinal', dilution: '1+50' },
+        undefined
+      )
+    ).toBe('Rodinal 1+50');
+  });
+
+  it("adds the recipe's EI only when it differs from the roll's", () => {
+    const run = { ...record, developer: 'D-76', shootingIso: 800 };
+    expect(developmentSummaryLine(run, 800)).toBe('D-76');
+    expect(developmentSummaryLine(run, 400)).toBe('D-76 · for EI 800');
+  });
+
+  it('is undefined for a record with only its date', () => {
+    expect(developmentSummaryLine(record, 400)).toBeUndefined();
   });
 });

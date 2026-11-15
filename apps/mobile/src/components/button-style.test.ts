@@ -9,6 +9,7 @@ const VARIANTS: ButtonVariant[] = [
   'commit',
   'secondary',
   'plain',
+  'tinted',
   'destructive',
 ];
 
@@ -32,7 +33,7 @@ describe('buttonClassName', () => {
         'border-hw border-line bg-surface'
       );
     }
-    for (const variant of ['commit', 'plain'] as const) {
+    for (const variant of ['commit', 'plain', 'tinted'] as const) {
       expect(buttonClassName(variant, false)).not.toContain('bg-');
     }
     for (const variant of VARIANTS) {
@@ -51,5 +52,6 @@ describe('buttonLabelClassName', () => {
     expect(buttonLabelClassName('secondary')).toContain('text-white');
     expect(buttonLabelClassName('commit')).not.toMatch(/text-(white|rose)/);
     expect(buttonLabelClassName('plain')).not.toMatch(/text-(white|rose)/);
+    expect(buttonLabelClassName('tinted')).not.toMatch(/text-(white|rose)/);
   });
 });

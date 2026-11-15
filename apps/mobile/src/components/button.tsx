@@ -1,5 +1,9 @@
 import { Pressable, Text } from 'react-native';
-import { useCommitStyle, usePhaseHue } from '@/theme/use-phase-accent';
+import {
+  useCommitStyle,
+  usePhaseHue,
+  useSelectionTint,
+} from '@/theme/use-phase-accent';
 import {
   buttonClassName,
   buttonLabelClassName,
@@ -11,7 +15,8 @@ export type { ButtonVariant } from './button-style';
 interface ButtonProps {
   label: string;
   onPress: () => void;
-  /** Commit, secondary (the default), plain or destructive; see `button-style.ts`. */
+  /** Commit, secondary (the default), plain, tinted or destructive; see
+   * `button-style.ts`. */
   variant?: ButtonVariant;
   /** Blocks the press, dims the button and tells VoiceOver. */
   disabled?: boolean;
@@ -37,11 +42,24 @@ export function Button({
 }: ButtonProps) {
   const commit = useCommitStyle();
   const hue = usePhaseHue();
+  const tint = useSelectionTint();
   const labelStyle =
     variant === 'commit'
       ? commit.label
       : variant === 'plain'
         ? { color: hue }
+        : variant === 'tinted'
+          ? { color: tint.color }
+          : undefined;
+  const fillStyle =
+    variant === 'commit'
+      ? commit.fill
+      : variant === 'tinted'
+        ? {
+            backgroundColor: tint.backgroundColor,
+            borderColor: tint.borderColor,
+            borderWidth: 1,
+          }
         : undefined;
   return (
     <Pressable
@@ -52,7 +70,7 @@ export function Button({
       accessibilityHint={accessibilityHint}
       accessibilityState={disabled === undefined ? undefined : { disabled }}
       className={buttonClassName(variant, disabled === true, className)}
-      style={variant === 'commit' ? commit.fill : undefined}
+      style={fillStyle}
     >
       <Text className={buttonLabelClassName(variant)} style={labelStyle}>
         {label}

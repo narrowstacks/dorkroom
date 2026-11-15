@@ -165,8 +165,3 @@ export function buildRollGpx(
   ];
   return { gpx: `${lines.join('\n')}\n`, waypoints: located.length };
 }
-
-/** Whether any frame of the roll has a usable location (GPX export, the map). */
-export function hasLocatedFrame(shots: readonly Shot[]): boolean {
-  return shots.some((shot) => isUsableLocation(shot.location));
-}
