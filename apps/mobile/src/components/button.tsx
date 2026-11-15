@@ -1,10 +1,12 @@
-import { Pressable, Text } from 'react-native';
+import type { ReactNode } from 'react';
+import { Pressable, Text, View } from 'react-native';
 import {
   useCommitStyle,
   usePhaseHue,
   useSelectionTint,
 } from '@/theme/use-phase-accent';
 import {
+  buttonAccessibilityState,
   buttonClassName,
   buttonLabelClassName,
   type ButtonVariant,
@@ -22,6 +24,10 @@ interface ButtonProps {
   disabled?: boolean;
   accessibilityLabel?: string;
   accessibilityHint?: string;
+  /** A glyph before the label (a pencil, a plus), drawn by the caller. */
+  icon?: ReactNode;
+  /** For a button that opens or closes something below it: tells VoiceOver. */
+  expanded?: boolean;
   /** Layout only, e.g. `flex-1`. */
   className?: string;
 }
@@ -38,6 +44,8 @@ export function Button({
   disabled,
   accessibilityLabel,
   accessibilityHint,
+  icon,
+  expanded,
   className,
 }: ButtonProps) {
   const commit = useCommitStyle();
@@ -68,13 +76,25 @@ export function Button({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       accessibilityHint={accessibilityHint}
-      accessibilityState={disabled === undefined ? undefined : { disabled }}
+      accessibilityState={buttonAccessibilityState(disabled, expanded)}
       className={buttonClassName(variant, disabled === true, className)}
       style={fillStyle}
     >
-      <Text className={buttonLabelClassName(variant)} style={labelStyle}>
-        {label}
-      </Text>
+      {icon ? (
+        <View className="shrink flex-row items-center justify-center gap-2">
+          {icon}
+          <Text
+            className={buttonLabelClassName(variant, true)}
+            style={labelStyle}
+          >
+            {label}
+          </Text>
+        </View>
+      ) : (
+        <Text className={buttonLabelClassName(variant)} style={labelStyle}>
+          {label}
+        </Text>
+      )}
     </Pressable>
   );
 }

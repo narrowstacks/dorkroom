@@ -1,6 +1,6 @@
 import type { HomeSuggestion, HomeSuggestionHint } from '@dorkroom/logic';
 import { Pressable, Text, View } from 'react-native';
-import { GlassCard } from '@/components/glass-card';
+import { Surface } from '@/components/surface';
 
 const HINT_LABELS = {
   film: 'Film',
@@ -25,7 +25,7 @@ export function SuggestionList({
 }) {
   if (suggestions.length === 0) return null;
   return (
-    <GlassCard className="px-0 py-1">
+    <Surface className="px-0 py-1">
       {suggestions.map((suggestion) => (
         <Pressable
           key={suggestion.query}
@@ -40,13 +40,13 @@ export function SuggestionList({
           >
             {suggestion.label}
           </Text>
-          <View className="rounded-lg border-hw border-line bg-surface px-2 py-0.5">
-            <Text className="text-xs text-ink-60">
+          <View className="rounded-lg border-hw border-line bg-surface-strong px-2 py-0.5">
+            <Text className="text-xs text-ink-70">
               {HINT_LABELS[suggestion.hint]}
             </Text>
           </View>
         </Pressable>
       ))}
-    </GlassCard>
+    </Surface>
   );
 }

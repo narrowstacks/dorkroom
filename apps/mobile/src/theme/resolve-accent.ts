@@ -90,3 +90,11 @@ export function resolveDirection(safelight: boolean): {
     ? { up: SAFELIGHT_HUE, down: SAFELIGHT_HUE }
     : { up: DIRECTION_COLOR.up, down: DIRECTION_COLOR.down };
 }
+
+/** The amber of a warning's outline. */
+export const WARNING_LINE = 'rgba(251, 191, 36, 0.4)';
+
+/** A warning's outline: amber, or the selected safelight outline. */
+export function resolveWarningLine(safelight: boolean): string {
+  return safelight ? SAFELIGHT.outlineSelected : WARNING_LINE;
+}

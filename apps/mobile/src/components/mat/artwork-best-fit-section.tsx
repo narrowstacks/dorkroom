@@ -3,10 +3,10 @@ import {
   type MatCalculatorState,
   type UseMatCalculatorReturn,
 } from '@dorkroom/logic';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { Button } from '@/components/button';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import { ToggleRow } from '@/components/toggle-row';
-import { useAccentColor, useSelectionTint } from '@/theme/use-phase-accent';
 import { FlipButton } from './flip-button';
 
 interface ArtworkBestFitSectionProps {
@@ -22,9 +22,6 @@ export function ArtworkBestFitSection({
   applyBestFit,
   bestFitPreview,
 }: ArtworkBestFitSectionProps) {
-  const tint = useSelectionTint('rose');
-  const rose = useAccentColor('rose');
-
   return (
     <View className="gap-4">
       <View className="flex-row items-end gap-3">
@@ -71,32 +68,13 @@ export function ArtworkBestFitSection({
           {matBorderToInput(bestFitPreview.right)} R
         </Text>
       ) : null}
-      <Pressable
+      <Button
+        label="Apply best fit"
+        variant={bestFitPreview ? 'tinted' : 'secondary'}
         onPress={applyBestFit}
         disabled={!bestFitPreview}
-        accessibilityRole="button"
         accessibilityLabel="Apply best fit borders"
-        accessibilityState={{ disabled: !bestFitPreview }}
-        className="min-h-12 items-center justify-center rounded-xl border-hw border-line bg-surface px-4 py-3"
-        style={
-          bestFitPreview
-            ? {
-                backgroundColor: tint.backgroundColor,
-                borderColor: tint.borderColor,
-                borderWidth: 1,
-              }
-            : undefined
-        }
-      >
-        <Text
-          className={bestFitPreview ? undefined : 'text-ink-40'}
-          style={
-            bestFitPreview ? { color: rose, fontWeight: '600' } : undefined
-          }
-        >
-          Apply best fit
-        </Text>
-      </Pressable>
+      />
     </View>
   );
 }

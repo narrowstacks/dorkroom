@@ -16,7 +16,7 @@ import {
   useCameraDevice,
   useCameraPermission,
 } from 'react-native-vision-camera';
-import { GlassCard } from '@/components/glass-card';
+import { Surface } from '@/components/surface';
 import { type LiveCapture, useLiveInverter } from '@/hooks/use-live-inverter';
 import { AdjustmentPanel } from './adjustment-panel';
 import { EditorButton } from './editor-button';
@@ -65,7 +65,7 @@ export function LiveCamera(props: LiveCameraProps) {
       <EditorFrame>
         {() => (
           <View className="flex-1 justify-center">
-            <GlassCard className="gap-4">
+            <Surface className="gap-4">
               <Text className="text-base text-ink-80">
                 {!device
                   ? 'No camera is available on this device.'
@@ -90,7 +90,7 @@ export function LiveCamera(props: LiveCameraProps) {
                 ) : null}
                 <InverterButton label="Back" onPress={props.onClose} />
               </View>
-            </GlassCard>
+            </Surface>
           </View>
         )}
       </EditorFrame>

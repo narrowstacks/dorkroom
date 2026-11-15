@@ -24,11 +24,12 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { GlassCard } from '@/components/glass-card';
 import { GradientBackground } from '@/components/gradient-background';
 import { NeutralButton } from '@/components/neutral-button';
 import { useSafelight } from '@/components/safelight/safelight-provider';
 import { SectionLabel } from '@/components/section-label';
+import { Surface } from '@/components/surface';
+import { groupRowClassName } from '@/components/surface-style';
 import { useRoll } from '@/hooks/use-film-log';
 import { useHeaderClearance } from '@/hooks/use-header-clearance';
 import {
@@ -37,6 +38,7 @@ import {
   type LocatedFrame,
   locatedFrameLabel,
   locatedFrames,
+  locatedFrameTitle,
   selectedPoint,
 } from '@/lib/frame-map-items';
 import {
@@ -46,6 +48,7 @@ import {
   MAP_NEEDS_BUILD,
 } from '@/lib/frame-map-native';
 import { type FrameMapCamera, frameMapCamera } from '@/lib/frame-map-region';
+import { frameNumberLabel } from '@/lib/frame-row-text';
 import { usePhaseHue } from '@/theme/use-phase-accent';
 
 /** The map's share of the window height, and its bounds in points. The map
@@ -148,7 +151,7 @@ function FrameMap({
 }
 
 function Notice({ children }: { children: ReactNode }) {
-  return <GlassCard className="gap-3">{children}</GlassCard>;
+  return <Surface className="gap-3">{children}</Surface>;
 }
 
 interface SelectedPointProps {
@@ -174,8 +177,8 @@ function PointFrame({ frame, showNumber, onOpen }: PointFrameProps) {
           Frame {frame.frameNumber}
         </Text>
       ) : null}
-      {frame.place ? (
-        <Text className="text-base text-white">{frame.place}</Text>
+      {locatedFrameTitle(frame) ? (
+        <Text className="text-base text-white">{locatedFrameTitle(frame)}</Text>
       ) : null}
       <Text className="text-sm text-ink-60">
         {frame.coordinatesText}
@@ -214,7 +217,7 @@ function SelectedPoint({
   // is left above the tab bar. Their text is capped at twice its size so the
   // largest Dynamic Type leaves room for the frames.
   return (
-    <GlassCard compact className="gap-3">
+    <Surface compact className="gap-3">
       <View
         className="flex-row items-center justify-between gap-3"
         onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}
@@ -248,7 +251,7 @@ function SelectedPoint({
         keyExtractor={(frame) => frame.shotId}
         renderItem={renderFrame}
       />
-    </GlassCard>
+    </Surface>
   );
 }
 
@@ -298,30 +301,37 @@ export function RollMapScreen() {
   );
 
   const renderFrame = useCallback(
-    ({ item }: { item: LocatedFrame }) => (
+    ({ item, index }: { item: LocatedFrame; index: number }) => (
       <Pressable
         onPress={() => roll && openFrame(roll.id, item.shotId)}
         accessibilityRole="button"
         accessibilityLabel={locatedFrameLabel(item)}
         accessibilityHint="Opens the frame"
+        className={`${groupRowClassName(index, frames.length)} active:opacity-70`}
       >
-        <GlassCard className="flex-row items-center gap-3" compact>
-          <Text className="w-12 text-lg font-semibold" style={{ color: hue }}>
-            #{item.frameNumber}
+        <View className="flex-row items-center gap-3 px-4 py-3">
+          <Text
+            className="w-12 text-lg font-semibold tabular-nums"
+            style={{ color: hue }}
+          >
+            {/* The roll page's edge number, "07". */}
+            {frameNumberLabel(item.frameNumber)}
           </Text>
           <View className="flex-1 gap-0.5">
-            {item.place ? (
-              <Text className="text-base text-white">{item.place}</Text>
+            {locatedFrameTitle(item) ? (
+              <Text className="text-base text-white">
+                {locatedFrameTitle(item)}
+              </Text>
             ) : null}
             <Text className="text-sm text-ink-60">
               {item.coordinatesText}
               {item.accuracyText ? ` (${item.accuracyText})` : ''}
             </Text>
           </View>
-        </GlassCard>
+        </View>
       </Pressable>
     ),
-    [hue, roll]
+    [hue, roll, frames.length]
   );
 
   if (!roll) {
@@ -416,11 +426,11 @@ export function RollMapScreen() {
         <FlatList
           className="flex-1"
           contentInsetAdjustmentBehavior="automatic"
-          contentContainerStyle={{ padding: 16, gap: 12 }}
+          contentContainerStyle={{ padding: 16 }}
           data={frames}
           keyExtractor={(frame) => frame.shotId}
           ListHeaderComponent={
-            <View className="gap-3">
+            <View className="gap-3 pb-3">
               {notice}
               <SectionLabel>Frames with a location</SectionLabel>
             </View>

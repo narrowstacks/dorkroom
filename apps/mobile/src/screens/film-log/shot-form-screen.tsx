@@ -13,11 +13,11 @@ import { CommitButton } from '@/components/commit-button';
 import { FrameLocationField } from '@/components/film-log/frame-location-field';
 import { SelectField } from '@/components/film-log/select-field';
 import { ShotPhotoRow } from '@/components/film-log/shot-photo-row';
-import { GlassCard } from '@/components/glass-card';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import { NeutralButton } from '@/components/neutral-button';
 import { Screen } from '@/components/screen';
 import { Stepper } from '@/components/stepper';
+import { Surface } from '@/components/surface';
 import {
   useCameras,
   useLensesForCamera,
@@ -45,6 +45,7 @@ import {
   shotFormFields,
 } from '@/lib/shot-form-defaults';
 import type { ShotPhoto } from '@/schemas/film-log.schema';
+import { useWarningLine } from '@/theme/use-phase-accent';
 
 const APERTURE_OPTIONS = STANDARD_APERTURES.map((a) => ({
   value: a.value,
@@ -74,6 +75,30 @@ function parseNum(value: string | undefined): number | undefined {
   if (value === undefined) return undefined;
   const n = Number(value);
   return Number.isFinite(n) ? n : undefined;
+}
+
+function IsoMismatchCard({
+  meteredIso,
+  rollIso,
+}: {
+  meteredIso: number | undefined;
+  rollIso: number | undefined;
+}) {
+  const warningLine = useWarningLine();
+  return (
+    <Surface
+      className="gap-1"
+      style={{ borderWidth: 1, borderColor: warningLine }}
+    >
+      <Text className="text-sm font-semibold text-amber-300">
+        ⚠ ISO doesn't match this roll
+      </Text>
+      <Text className="text-sm text-ink-70">
+        Metered at ISO {meteredIso}, but this roll is rated EI {rollIso}. The
+        aperture and shutter were solved for ISO {meteredIso}.
+      </Text>
+    </Surface>
+  );
 }
 
 export function ShotFormScreen() {
@@ -250,7 +275,7 @@ export function ShotFormScreen() {
     return (
       <Screen>
         <Stack.Screen options={{ title: 'Add shot' }} />
-        <GlassCard className="gap-3">
+        <Surface className="gap-3">
           <Text className="text-base text-white">
             Start a roll before logging a shot.
           </Text>
@@ -258,7 +283,7 @@ export function ShotFormScreen() {
             onPress={() => router.replace('/shoot/film-log/roll-form')}
             label="Start a roll"
           />
-        </GlassCard>
+        </Surface>
       </Screen>
     );
   }
@@ -275,17 +300,9 @@ export function ShotFormScreen() {
     <Screen>
       <Stack.Screen options={{ title: existing ? 'Edit shot' : 'Add shot' }} />
       {isoMismatch ? (
-        <GlassCard className="gap-1 border border-amber-400/40">
-          <Text className="text-sm font-semibold text-amber-300">
-            ⚠ ISO doesn't match this roll
-          </Text>
-          <Text className="text-sm text-ink-70">
-            Metered at ISO {meteredIso}, but this roll is rated EI {roll.iso}.
-            The aperture and shutter were solved for ISO {meteredIso}.
-          </Text>
-        </GlassCard>
+        <IsoMismatchCard meteredIso={meteredIso} rollIso={roll.iso} />
       ) : null}
-      <GlassCard className="gap-4">
+      <Surface className="gap-4">
         {showRollPicker ? (
           <SelectField
             label="Roll"
@@ -366,7 +383,7 @@ export function ShotFormScreen() {
           onChoose={() => void onChoosePhoto()}
           onRemove={onRemovePhoto}
         />
-      </GlassCard>
+      </Surface>
 
       <CommitButton
         onPress={onSave}

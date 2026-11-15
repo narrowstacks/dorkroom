@@ -2,8 +2,8 @@ import { useMemo, useState, useSyncExternalStore } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { CommitButton } from '@/components/commit-button';
 import { developedDateText } from '@/components/film-log/developed-date';
-import { GlassCard } from '@/components/glass-card';
 import { SectionLabel } from '@/components/section-label';
+import { Surface } from '@/components/surface';
 import { useRolls } from '@/hooks/use-film-log';
 import { rollLabel } from '@/lib/film-log-options';
 import { markRollDeveloped } from '@/lib/film-log-storage';
@@ -90,7 +90,7 @@ export function SaveToRollCard() {
   };
 
   return (
-    <GlassCard className="gap-3">
+    <Surface className="gap-3">
       <SectionLabel>Save to roll</SectionLabel>
       {showPicker ? (
         <View className="gap-2">
@@ -145,6 +145,6 @@ export function SaveToRollCard() {
       >
         <Text className="text-sm text-ink-60">Not now</Text>
       </Pressable>
-    </GlassCard>
+    </Surface>
   );
 }

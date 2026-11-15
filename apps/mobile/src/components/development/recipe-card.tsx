@@ -6,7 +6,7 @@ import {
 } from '@dorkroom/logic';
 import { ArrowDown, ArrowUp, Flame, Snowflake } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
-import { GlassCard } from '@/components/glass-card';
+import { Surface } from '@/components/surface';
 import { useAccentColor, useDirectionColors } from '@/theme/use-phase-accent';
 import { Badge } from './badge';
 import { OfficialTagPill } from './official-tag-pill';
@@ -87,7 +87,7 @@ export function RecipeCard({
       accessibilityLabel={`${filmName} in ${developerName}, ${formatRecipeTime(combination.timeMinutes)}${isoTempAccessibilityExtra}`}
       className="active:opacity-70"
     >
-      <GlassCard className="flex-row items-center gap-4">
+      <Surface className="flex-row items-center gap-4">
         {/* Context column */}
         <View className="flex-1 gap-1.5">
           <Text
@@ -182,7 +182,7 @@ export function RecipeCard({
             dev time
           </Text>
         </View>
-      </GlassCard>
+      </Surface>
     </Pressable>
   );
 }

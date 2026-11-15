@@ -2,7 +2,8 @@ import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams } from 'expo-router';
 import { Pencil } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { Button } from '@/components/button';
 import { Countdown } from '@/components/development/timer/countdown';
 import { PresetEditor } from '@/components/development/timer/preset-editor';
 import { SaveToRollCard } from '@/components/development/timer/save-to-roll-card';
@@ -250,21 +251,15 @@ export function TimerScreen() {
       />
 
       {idle ? (
-        <Pressable
+        <Button
+          label={editing ? 'Done editing' : 'Edit stages'}
+          icon={<Pencil size={16} color="#ffffff" />}
           onPress={() => {
             Haptics.selectionAsync();
             setEditing((open) => !open);
           }}
-          accessibilityRole="button"
-          accessibilityLabel="Edit stages"
-          accessibilityState={{ expanded: editing }}
-          className="flex-row items-center justify-center gap-2 rounded-xl border-hw border-line bg-surface py-3"
-        >
-          <Pencil size={16} color="#ffffff" />
-          <Text className="text-base font-semibold text-white">
-            {editing ? 'Done editing' : 'Edit stages'}
-          </Text>
-        </Pressable>
+          expanded={editing}
+        />
       ) : (
         <Text className="text-center text-xs text-ink-40">
           Reset to edit stages

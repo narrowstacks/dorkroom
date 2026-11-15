@@ -1,6 +1,7 @@
 import { sanitizeText } from '@dorkroom/logic';
 import { Pressable, Text, View } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
+import { Button } from '@/components/button';
 import { CommitButton } from '@/components/commit-button';
 import { SelectField } from '@/components/film-log/select-field';
 import { LabeledTextField } from '@/components/labeled-text-field';
@@ -109,14 +110,12 @@ export function CameraForm({ visible, camera, onClose }: CameraFormProps) {
                 placeholder="e.g. A12 #1 or Holder 3"
               />
             </View>
-            <Pressable
+            <Button
+              label="Add"
               onPress={addBack}
-              accessibilityRole="button"
               accessibilityLabel="Add holder"
-              className="self-end rounded-xl border-hw border-line bg-surface px-4 py-3"
-            >
-              <Text className="text-base text-white">Add</Text>
-            </Pressable>
+              className="self-end"
+            />
           </View>
         </View>
 
@@ -131,13 +130,11 @@ export function CameraForm({ visible, camera, onClose }: CameraFormProps) {
           label={camera ? 'Save camera' : 'Add camera'}
         />
         {camera ? (
-          <Pressable
+          <Button
+            label="Delete camera"
+            variant="destructive"
             onPress={onDelete}
-            accessibilityRole="button"
-            className="items-center rounded-xl border-hw border-line bg-surface px-4 py-3"
-          >
-            <Text className="text-base text-rose-400">Delete camera</Text>
-          </Pressable>
+          />
         ) : null}
       </View>
     </BottomSheet>

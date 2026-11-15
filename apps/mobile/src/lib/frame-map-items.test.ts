@@ -4,6 +4,7 @@ import {
   framePoints,
   locatedFrameLabel,
   locatedFrames,
+  locatedFrameTitle,
   pointMonogram,
   selectedPoint,
 } from './frame-map-items';
@@ -65,6 +66,28 @@ describe('locatedFrameLabel', () => {
     expect(coarse && locatedFrameLabel(coarse)).toBe(
       'Frame 13, 0.00° N, 0.00° E, accuracy ±500 m'
     );
+  });
+});
+
+describe('locatedFrameTitle', () => {
+  const at = { location: { latitude: 0, longitude: 0 } };
+  it('leads with the exposure, then the place', () => {
+    const [frame] = locatedFrames([
+      shot(7, { aperture: 8, shutterSpeed: 1 / 125, place: 'Mission', ...at }),
+    ]);
+    expect(frame && locatedFrameTitle(frame)).toBe('f/8 · 1/125 · Mission');
+    expect(frame && locatedFrameLabel(frame)).toBe(
+      'Frame 7, f/8, 1/125, Mission, 0.0000° N, 0.0000° E'
+    );
+  });
+
+  it('falls back to what is set, and to nothing', () => {
+    const [placeOnly, bare] = locatedFrames([
+      shot(1, { place: 'Pier', ...at }),
+      shot(2, at),
+    ]);
+    expect(placeOnly && locatedFrameTitle(placeOnly)).toBe('Pier');
+    expect(bare && locatedFrameTitle(bare)).toBe('');
   });
 });
 

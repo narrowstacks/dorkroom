@@ -8,6 +8,8 @@ import {
   resolveDirection,
   resolveHue,
   resolveSelectionTint,
+  resolveWarningLine,
+  WARNING_LINE,
 } from './resolve-accent';
 import {
   contrastOnBlack,
@@ -406,5 +408,12 @@ describe('SafelightRoot always passes a vars() style (B1 regression)', () => {
     walk('src');
     walk('app');
     expect(offenders).toEqual([]);
+  });
+});
+
+describe('resolveWarningLine', () => {
+  it('is amber normally and a red outline under safelight', () => {
+    expect(resolveWarningLine(false)).toBe(WARNING_LINE);
+    expect(resolveWarningLine(true)).toBe(SAFELIGHT.outlineSelected);
   });
 });
