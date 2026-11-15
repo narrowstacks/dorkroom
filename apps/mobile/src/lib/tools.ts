@@ -227,6 +227,13 @@ export const HOME_ROUTE = '/';
  */
 export const SETTINGS_ROUTE = '/settings';
 
+/**
+ * Edit favorites (#734): pushed in the Search tab's stack beside Settings,
+ * from the favorites row at the bottom of Home (and the Favorites widget while
+ * it is empty). It takes no params.
+ */
+export const FAVORITES_ROUTE = '/favorites';
+
 const TOOL_BY_ID = new Map(TOOLS.map((t) => [t.id, t]));
 
 export function getTool(id: string): Tool | undefined {

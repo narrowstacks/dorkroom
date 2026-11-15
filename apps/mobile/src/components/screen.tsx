@@ -3,6 +3,7 @@ import { ScrollView, type ScrollViewProps, View } from 'react-native';
 import { useBackdropStyle } from '@/components/gradient-background';
 import { useHeaderClearance } from '@/hooks/use-header-clearance';
 import { useKeyboardInsetsGate } from '@/hooks/use-keyboard-insets-gate';
+import { bottomRoomProps } from './screen-insets';
 
 interface ScreenProps {
   children: ReactNode;
@@ -13,10 +14,22 @@ interface ScreenProps {
   header?: ReactNode;
   /** Passed to the scroll view; Home reads its offset from it. */
   onScroll?: ScrollViewProps['onScroll'];
+  /**
+   * Room at the bottom of the scroll view for something pinned over it
+   * (Home's favorites row), as a bottom `contentInset` and indicator inset on
+   * top of the automatic ones. React Native's keyboard handler takes the
+   * larger of the keyboard and this, and restores this on hide, so it must
+   * not change while the keyboard is up (a prop change overwrites the
+   * keyboard's inset). Unset or 0: no inset props at all.
+   */
+  contentBottomInset?: number;
 }
 
 /** Side padding of the scrolling content. */
 export const SCREEN_PADDING = 16;
+
+/** Space between the scrolling content's children. */
+const CONTENT_GAP = 16;
 
 /** Breathing room under a navigation bar, and under the status bar at a tab root. */
 const BELOW_NAV_BAR = 12;
@@ -37,7 +50,12 @@ function PinnedHeader({ children }: { children: ReactNode }) {
   );
 }
 
-export function Screen({ children, header, onScroll }: ScreenProps) {
+export function Screen({
+  children,
+  header,
+  onScroll,
+  contentBottomInset = 0,
+}: ScreenProps) {
   const backdrop = useBackdropStyle();
   const adjustsForKeyboard = useKeyboardInsetsGate();
   const scroll = (
@@ -57,7 +75,8 @@ export function Screen({ children, header, onScroll }: ScreenProps) {
       // moved every other Screen to offset 0, its first rows under the header.
       automaticallyAdjustKeyboardInsets={adjustsForKeyboard}
       keyboardShouldPersistTaps="handled"
-      contentContainerStyle={{ padding: SCREEN_PADDING, gap: 16 }}
+      contentContainerStyle={{ padding: SCREEN_PADDING, gap: CONTENT_GAP }}
+      {...bottomRoomProps(contentBottomInset)}
       onScroll={onScroll}
     >
       {children}

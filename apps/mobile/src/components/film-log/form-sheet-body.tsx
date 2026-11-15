@@ -1,29 +1,13 @@
-import { type ReactNode, useEffect, useState } from 'react';
-import { Keyboard, ScrollView, useWindowDimensions, View } from 'react-native';
+import { type ReactNode, useState } from 'react';
+import { ScrollView, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
 import { formBodyMaxHeight } from './form-sheet-layout';
 
 interface FormSheetBodyProps {
   children: ReactNode;
   /** Pinned under the scrolling fields: the commit. */
   footer: ReactNode;
-}
-
-/** The keyboard's height while it is up, else 0 (`keyboardWillShow`, so the
- * body shrinks as the keyboard rises and the sheet rides up on it). */
-function useKeyboardHeight(): number {
-  const [height, setHeight] = useState(0);
-  useEffect(() => {
-    const show = Keyboard.addListener('keyboardWillShow', (event) =>
-      setHeight(event.endCoordinates.height)
-    );
-    const hide = Keyboard.addListener('keyboardWillHide', () => setHeight(0));
-    return () => {
-      show.remove();
-      hide.remove();
-    };
-  }, []);
-  return height;
 }
 
 /** The tallest a sheet's scrolling part may be, given the height of what is

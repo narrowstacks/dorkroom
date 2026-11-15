@@ -47,7 +47,7 @@ struct LogFrameControl: ControlWidget {
       }
     }
     .displayName("Log a frame")
-    .description("Adds a shot to the roll the light meter logs to.")
+    .description("Adds a frame to the roll the light meter logs to.")
   }
 }
 

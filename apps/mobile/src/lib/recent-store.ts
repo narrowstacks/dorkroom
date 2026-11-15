@@ -4,7 +4,10 @@ import { parseRecentIds, recordRecentId } from './recent-list';
 
 // What the Home screen resumes from: the tools and recipes last opened, and
 // whether Home has been shown before. Local to the device, never sent anywhere.
-const storage = createMMKV({ id: 'dorkroom-home' });
+// The favorites (`favorites-store.ts`) live in the same instance under their
+// own key, so it is exported for that one store.
+export const homeStorage = createMMKV({ id: 'dorkroom-home' });
+const storage = homeStorage;
 
 const RECENT_TOOLS_KEY = 'recentToolIds';
 const RECENT_RECIPES_KEY = 'recentRecipeIds';
