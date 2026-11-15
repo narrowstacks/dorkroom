@@ -26,6 +26,7 @@ const rolls: FilmRoll[] = [
         aperture: 8,
         shutterSpeed: 0.008,
         lensId: 'lens1',
+        place: 'Harbor',
         source: 'meter',
       },
     ],
@@ -50,6 +51,10 @@ describe('buildRollsExport', () => {
   it('resolves camera and lens names for portability', () => {
     expect(result.rolls[0]?.cameraName).toBe('Hasselblad 500C/M');
     expect(result.rolls[0]?.shots[0]?.lensName).toBe('Planar 80mm');
+  });
+
+  it("carries each shot's place through", () => {
+    expect(result.rolls[0]?.shots[0]?.place).toBe('Harbor');
   });
 
   it('adds human-readable exposure labels', () => {

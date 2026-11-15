@@ -15,6 +15,8 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 - **The tab bar tucks away as you scroll.** On the recipe list, the Film Log list and a roll's shots the tab bar shrinks when you scroll down and comes back when you scroll up. Everywhere else it stays put. (#719)
 
+- **Log a frame from the Meter, with a place.** Pressing the shutter now opens a sheet that leaves the viewfinder visible: it shows the roll, the settings and the lens and place, and Log saves the frame. Pull it up to pick the lens, add a place and notes, or open More options; pull it down to cancel. Each shot can now carry a place (the shot form has a Place field too), shown in the roll and included in the export, and a new frame starts with the place from the last one. Reciprocity and Camera Exposure get a Save to roll row under the answer that logs it the same way when you have an active roll. (#719)
+
 - **Safelight mode.** A switch that turns the app deep red on black, with outlines in place of glass, for working under a safelight. Turn it on from the light bulb button at the top right of any Print screen, or from Settings; while it is on the same button appears in Shoot and Develop so you can turn it off wherever you are. The status bar is hidden; the keyboard, photo picker and system alerts and sheets stay bright (the app asks before opening the photo picker while the mode is on), and camera and photo previews show as bright red images. It has not been tested as safe for photographic paper, and red light is not safe for film or colour paper. (#712)
 
 - **Shoot, Develop and Print tabs.** The tab bar now follows where you are standing: Shoot (Meter, Film Log, Reciprocity, Camera Exposure, Lenses), Develop (Recipes, Process Timer, Inverter) and Print (Border, Exposure, Resize, Mat Cut). Each opens on a hub of tiles, so every tool is at most two taps away with nothing to set up. Lenses and Camera Exposure tiles show the last answer you got; the other tiles say what the tool does. Shoot also shows your active roll at the top; tap it to open the roll. (#712)
@@ -45,6 +47,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Fixed
 
+- **Editing a shot with no lens or back keeps it that way.** It no longer fills in the roll's last-used lens or back, or an f/8 aperture and 1/125 shutter a shot never had. (#719)
 - **The Meter's shutter button shows its outer ring.** The ring was missing. (#712)
 - **Holding + or − on a stepper keeps changing the value.** It used to move once while the haptic kept ticking. Holding now steps repeatedly, and stops at the end of the range. This covers the volume mixer, the Process Timer preset editor and the film log's frame number. (fixes #317)
 - **One unreadable record no longer erases the rest of the film log.** If a single roll, camera, lens, custom film or timer preset couldn't be read, the whole list showed as empty, and the next change saved that empty list over everything. Readable records now load as usual, and anything unreadable is kept aside on the device instead of being deleted. (fixes #532)

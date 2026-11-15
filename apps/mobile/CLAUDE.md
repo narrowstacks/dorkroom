@@ -302,6 +302,61 @@ moves the print LEFT in the model, so a right drag lowers it:
 coarsens on a small drawing (`matDragStep`), through the same tables
 (`matEdgeTrack`).
 
+### Sheets, and logging a frame
+
+Three bottom surfaces, by what they are for:
+
+- `BottomSheet` is a transparent `Modal` for a short list or form with one
+  detent (pickers, the Custom ISO dialog). Its scrim is dark, so the page
+  behind is out of the picture.
+- `DetentSheet` (`src/components/detent-sheet/`) is a `Modal` with two detents,
+  for a form that should leave the page behind it visible (the Meter's
+  viewfinder). Medium shows `children` and a 0.2 scrim; large also shows
+  `expanded` and darkens toward 0.6. Resize, dismiss and the keyboard lift
+  follow the `DetentPanel` rules: one shared height moved by a UI-thread pan on
+  the grab strip and header, a clipped and VoiceOver-hidden `expanded` block at
+  medium. JS is told when a drag starts (to unclip the expanded block) and when
+  it is released, never per frame. A drag more than 80pt below medium
+  (`DISMISS_DRAG`), or a fling down from medium, dismisses; a drag that began at
+  large with the keyboard up never does (it settles at medium or back at large). With no `expanded`,
+  or no room to grow, it has one detent: no grabber and no "Details" button, and
+  drag down still dismisses. `expandSignal` snaps it to large; `onSettled` is
+  told each time a spring arrives at a detent, and also when a signal could not
+  move a sheet that is at rest (a running spring reports its own arrival, so
+  nothing is reported twice). The footer's commit button (`footerCommitLabel`)
+  is rendered by the sheet itself, so it shares the header's guarded action.
+  Its insets come from its own `SafeAreaProvider` inside the `Modal` (seeded with
+  the window's launch metrics): a tab's provider includes the tab bar, which
+  would leave blank space under the footer. `BottomSheet` does not do this yet.
+
+  **The latch contract.** An opening ends in at most one of `onClose` (Cancel,
+  scrim, hardware close or the dismiss drag) or an accepted `onCommit`; the
+  first takes the latch and every later close or commit is ignored
+  (`sheet-latch.ts`, pure and tested). `onCommit` returns `false` to refuse
+  (nothing committed; the sheet stays open and usable); anything else spends the
+  sheet, so the parent must then hide or unmount it, and `onClose` must likewise
+  close it. A parent that unmounts the sheet itself (the roll is gone) or leaves
+  by another route ("More options…" handing the draft to the shot form) delivers
+  neither. The body is mounted only while `visible`, so each opening starts
+  fresh. Files: `detent-sheet.tsx` (the sheet), `detent-sheet-chrome.tsx` (grab
+  strip, header, scroll area), `detent-sheet-layout.ts` (heights, release,
+  keyboard maths), `use-detent-phase.ts`, `use-detent-gestures.ts`,
+  `use-detent-styles.ts`, `use-sheet-latch.ts` and `sheet-latch.ts`.
+- `DetentPanel` is the in-screen panel of a stage screen (above). It is not a
+  `Modal`; use it when the controls belong to the screen's layout.
+
+`LogFrameSheet` (`src/components/film-log/log-frame-sheet.tsx`) is the one way
+to log a frame to a roll from a reading: the Meter's shutter (with the photo)
+and `SaveToRollAction` on Reciprocity and Camera Exposure. Its pure half is
+`src/lib/log-frame.ts` (`buildLoggedShot`, `formatReading`, `rollSummary`,
+`isoMismatchNote`, `needsLens`). The frame number is always `nextFrameNumber`;
+the reading's ISO is never stored (ISO is the roll's EI). `Readout` takes an
+`actions` slot under its `note`, outside the spoken summary, for next-step rows
+like "Save to roll".
+
+`Shot.place` is free text. There are no GPS coordinates yet: they need a
+location module, which is a native build, and will be a separate field.
+
 ### Styling
 
 - **NativeWind v4 with Tailwind v3 syntax** via `className`. This is Tailwind

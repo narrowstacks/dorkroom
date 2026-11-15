@@ -20,6 +20,9 @@ interface ReadoutProps {
   toolId?: RecordingToolId;
   /** Below the readout, outside the spoken summary: warnings and hints. */
   note?: ReactNode;
+  /** Under the note, outside the spoken summary: next-step actions, such as
+   * "Save to roll", stacked with a gap. */
+  actions?: ReactNode;
   /** The whole spoken answer after the label, facts included, e.g.
    * "15.12 seconds, plus one third stop, times 1.26". Defaults to the value
    * and unit as written followed by the facts. */
@@ -40,6 +43,7 @@ export function Readout({
   accent,
   toolId,
   note,
+  actions,
   accessibilityValueText,
   className,
 }: ReadoutProps) {
@@ -107,6 +111,7 @@ export function Readout({
         ) : null}
       </View>
       {note}
+      {actions ? <View className="gap-2 pt-1">{actions}</View> : null}
     </View>
   );
 }

@@ -90,6 +90,7 @@ const fullShot = {
   lensId: 'lens1',
   back: 'A12 #2',
   notes: 'backlit',
+  place: 'Harbor',
   takenAt: '2026-06-24T00:00:00.000Z',
   source: 'meter',
 } satisfies Required<Shot>;

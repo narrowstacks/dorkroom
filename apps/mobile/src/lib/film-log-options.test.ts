@@ -2,16 +2,19 @@ import { describe, expect, it } from 'vitest';
 import type { Shot } from '@/schemas/film-log.schema';
 import {
   lastUsedLensId,
+  lastUsedPlace,
+  nextFrameNumber,
   rollLabel,
   rollSubtitle,
   shotCountLabel,
 } from './film-log-options';
 
-const shot = (frameNumber: number, lensId?: string): Shot => ({
+const shot = (frameNumber: number, lensId?: string, place?: string): Shot => ({
   id: `s${frameNumber}`,
   frameNumber,
   source: 'manual',
   lensId,
+  place,
 });
 
 describe('lastUsedLensId', () => {
@@ -58,5 +61,44 @@ describe('rollSubtitle', () => {
     expect(
       rollSubtitle({ name: undefined, filmStockName: 'HP5+', shots: [] })
     ).toBe('0 shots');
+  });
+});
+
+describe('lastUsedPlace', () => {
+  it('returns undefined for no shots or no recorded place', () => {
+    expect(lastUsedPlace([])).toBeUndefined();
+    expect(lastUsedPlace([shot(1), shot(2)])).toBeUndefined();
+  });
+
+  it('returns the place of the most recent shot that has one', () => {
+    expect(
+      lastUsedPlace([
+        shot(1, undefined, 'Harbor'),
+        shot(2, undefined, 'Market'),
+        shot(3),
+      ])
+    ).toBe('Market');
+  });
+
+  it('trims and skips a blank place', () => {
+    expect(
+      lastUsedPlace([
+        shot(1, undefined, 'Harbor'),
+        shot(2, undefined, '   '),
+        shot(3, undefined, ''),
+      ])
+    ).toBe('Harbor');
+    expect(lastUsedPlace([shot(1, undefined, '  Pier 4 ')])).toBe('Pier 4');
+  });
+});
+
+describe('nextFrameNumber', () => {
+  it('is 1 for an empty roll', () => {
+    expect(nextFrameNumber([])).toBe(1);
+  });
+
+  it('is one past the highest frame, not the count', () => {
+    expect(nextFrameNumber([shot(1), shot(2), shot(3)])).toBe(4);
+    expect(nextFrameNumber([shot(7), shot(2)])).toBe(8);
   });
 });
