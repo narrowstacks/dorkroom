@@ -345,4 +345,17 @@ describe('withEnvelope', () => {
     expect(legacyGetter).not.toHaveBeenCalled();
     expect(seen).toEqual({ a: ['1', '2'], b: 'x y', c: '' });
   });
+
+  it('keeps prototype-named query keys as ordinary own keys', async () => {
+    const { parseQuery } = await import('../../utils/requestEnvelope');
+    const query = parseQuery('/api/q?__proto__=x&constructor=y&toString=z');
+
+    expect(Object.keys(query).sort()).toEqual([
+      '__proto__',
+      'constructor',
+      'toString',
+    ]);
+    expect(query.constructor).toBe('y');
+    expect(Object.getPrototypeOf(query)).toBeNull();
+  });
 });

@@ -108,7 +108,10 @@ const CORS_MAX_AGE_SECONDS = '86400';
  * before any handler runs, so that getter never fires.
  */
 export function parseQuery(url: string | undefined): VercelRequestQuery {
-  const query: VercelRequestQuery = {};
+  // Null prototype, as `querystring.parse` returns: a key like `__proto__` or
+  // `constructor` must land as an ordinary own key, not hit an inherited one
+  // (which would hide it from `Object.keys` and the unknown-param checks).
+  const query: VercelRequestQuery = Object.create(null);
   const { searchParams } = new URL(url || '/', 'http://localhost');
   searchParams.forEach((value, key) => {
     const existing = query[key];
