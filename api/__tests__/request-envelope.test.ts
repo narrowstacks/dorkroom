@@ -310,4 +310,52 @@ describe('withEnvelope', () => {
     expect(rejected._status).toBe(405);
     expect(served._status).toBe(200);
   });
+
+  it('builds req.query from the URL without running the runtime getter', async () => {
+    const withEnvelope = await load();
+    let seen: Record<string, string | string[]> | undefined;
+    const handler = withEnvelope(
+      { name: 'q', methods: ['GET'], cors: 'none' },
+      (req, res) => {
+        seen = req.query;
+        res.status(200).end();
+      }
+    );
+
+    // Vercel's runtime defines `query` as a lazy getter backed by the legacy
+    // `url.parse()` (DEP0169), with a setter that stores an assigned value.
+    const req = createMockRequest({ url: '/api/q?a=1&b=x+y&a=2&c=' });
+    const legacyGetter = vi.fn(() => ({}));
+    Object.defineProperty(req, 'query', {
+      configurable: true,
+      enumerable: true,
+      get: legacyGetter,
+      set(value: Record<string, string | string[]>) {
+        Object.defineProperty(req, 'query', {
+          configurable: true,
+          enumerable: true,
+          writable: true,
+          value,
+        });
+      },
+    });
+
+    await handler(req, createMockResponse());
+
+    expect(legacyGetter).not.toHaveBeenCalled();
+    expect(seen).toEqual({ a: ['1', '2'], b: 'x y', c: '' });
+  });
+
+  it('keeps prototype-named query keys as ordinary own keys', async () => {
+    const { parseQuery } = await import('../../utils/requestEnvelope');
+    const query = parseQuery('/api/q?__proto__=x&constructor=y&toString=z');
+
+    expect(Object.keys(query).sort()).toEqual([
+      '__proto__',
+      'constructor',
+      'toString',
+    ]);
+    expect(query.constructor).toBe('y');
+    expect(Object.getPrototypeOf(query)).toBeNull();
+  });
 });

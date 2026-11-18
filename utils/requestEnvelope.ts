@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type {
   VercelApiHandler,
   VercelRequest,
+  VercelRequestQuery,
   VercelResponse,
 } from '@vercel/node';
 import {
@@ -97,6 +98,34 @@ export const CORS_ALLOW_HEADERS =
   'Content-Type, Authorization, X-Requested-With, X-API-Key, X-Client-Id';
 const CORS_MAX_AGE_SECONDS = '86400';
 
+/**
+ * Parses a request URL's query string with the WHATWG URL API, in the same
+ * shape as Vercel's `req.query`: a repeated key becomes an array.
+ *
+ * Vercel's runtime builds `req.query` lazily with the legacy `url.parse()`,
+ * which on Node 24 prints `[DEP0169] DeprecationWarning` the first time a
+ * function instance reads it. The envelope assigns this result to `req.query`
+ * before any handler runs, so that getter never fires.
+ */
+export function parseQuery(url: string | undefined): VercelRequestQuery {
+  // Null prototype, as `querystring.parse` returns: a key like `__proto__` or
+  // `constructor` must land as an ordinary own key, not hit an inherited one
+  // (which would hide it from `Object.keys` and the unknown-param checks).
+  const query: VercelRequestQuery = Object.create(null);
+  const { searchParams } = new URL(url || '/', 'http://localhost');
+  searchParams.forEach((value, key) => {
+    const existing = query[key];
+    if (existing === undefined) {
+      query[key] = value;
+    } else if (Array.isArray(existing)) {
+      existing.push(value);
+    } else {
+      query[key] = [existing, value];
+    }
+  });
+  return query;
+}
+
 export function getHeaderValue(value: string | string[] | undefined): string {
   if (Array.isArray(value)) {
     return value[0] ?? '';
@@ -190,6 +219,10 @@ export function withEnvelope(
   ) {
     const startTime = Date.now();
     const requestId = randomUUID();
+    // Replaces Vercel's lazy `req.query` (legacy `url.parse()`, DEP0169) before
+    // anything reads it. Assigning goes through the helper's setter, which
+    // stores the value without ever running the deprecated parser.
+    req.query = parseQuery(req.url);
     const userAgent =
       getHeaderValue(req.headers['user-agent']) || 'DorkroomReact-API';
 

@@ -7,6 +7,27 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 export type JsonValue =
   string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
+/**
+ * Appends `query` to `url`, the way a real request carries it. The envelope
+ * rebuilds `req.query` from `req.url` (see `parseQuery`), so a mock's query
+ * has to live in its URL to reach the handler.
+ */
+function withQuery(
+  url: string,
+  query: Record<string, string | string[]> | undefined
+): string {
+  if (!query) return url;
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    for (const item of Array.isArray(value) ? value : [value]) {
+      params.append(key, item);
+    }
+  }
+  const search = params.toString();
+  if (!search) return url;
+  return `${url}${url.includes('?') ? '&' : '?'}${search}`;
+}
+
 export function createMockRequest(
   overrides: {
     method?: string;
@@ -23,7 +44,7 @@ export function createMockRequest(
   const req = Object.assign(new IncomingMessage(new Socket()), vercelFields);
 
   req.method = overrides.method ?? 'GET';
-  req.url = overrides.url ?? '/api/test';
+  req.url = withQuery(overrides.url ?? '/api/test', overrides.query);
   req.headers = {
     host: 'dorkroom.art',
     'user-agent': 'TestAgent/1.0',
