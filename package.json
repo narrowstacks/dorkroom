@@ -48,7 +48,7 @@
   "devDependencies": {
     "@babel/core": "^7.29.7",
     "@babel/preset-env": "^7.29.7",
-    "@csstools/css-color-parser": "4.2.6",
+    "@csstools/css-color-parser": "4.2.8",
     "@csstools/css-parser-algorithms": "4.0.2",
     "@csstools/css-tokenizer": "4.0.2",
     "@csstools/postcss-cascade-layers": "6.0.2",

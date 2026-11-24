@@ -19,7 +19,7 @@
       "devDependencies": {
         "@babel/core": "^7.29.7",
         "@babel/preset-env": "^7.29.7",
-        "@csstools/css-color-parser": "4.2.6",
+        "@csstools/css-color-parser": "4.2.8",
         "@csstools/css-parser-algorithms": "4.0.2",
         "@csstools/css-tokenizer": "4.0.2",
         "@csstools/postcss-cascade-layers": "6.0.2",
@@ -448,11 +448,11 @@
 
     "@corvu/utils": ["@corvu/utils@0.4.2", "", { "dependencies": { "@floating-ui/dom": "^1.6.11" }, "peerDependencies": { "solid-js": "^1.8" } }, "sha512-Ox2kYyxy7NoXdKWdHeDEjZxClwzO4SKM8plAaVwmAJPxHMqA0rLOoAsa+hBDwRLpctf+ZRnAd/ykguuJidnaTA=="],
 
-    "@csstools/color-helpers": ["@csstools/color-helpers@6.1.2", "", {}, "sha512-grhRy3OKmniaAEKXMjua5z/EODX0MSqBGjunw8+j/3HQjOnahs2AGhvEOIYVUWcU6ScApbhLhVrQTX8XqrMrow=="],
+    "@csstools/color-helpers": ["@csstools/color-helpers@6.1.3", "", {}, "sha512-c6CpX5G1pvuOKTXiRFJ54Lzc8zQrZ3qUjp44QC5DJNt1OmA1vmfUxOMCcKdDqsvffVDG0/MHnY63J+Mn0nmdUg=="],
 
-    "@csstools/css-calc": ["@csstools/css-calc@3.4.3", "", { "peerDependencies": { "@csstools/css-parser-algorithms": "^4.0.2", "@csstools/css-tokenizer": "^4.0.2" } }, "sha512-iex20d8CHVkyvg6B7UKV7uHnI2Bqo9g+EFfT9E0y+GvTvhZ/DwONJ+9aKb1dlqm0ZiGsL5RXjp0fCoJYnkeDjA=="],
+    "@csstools/css-calc": ["@csstools/css-calc@3.4.4", "", { "peerDependencies": { "@csstools/css-parser-algorithms": "^4.0.3", "@csstools/css-tokenizer": "^4.0.3" } }, "sha512-Jwo1Z8DUsZ8xVOLBdLMfhjJFvWD6pqaUTlBNQZ+qIB2i9g7yG8kd/UBJj2c9J9Twr+u87cjy9BjkmfvMbyOk3Q=="],
 
-    "@csstools/css-color-parser": ["@csstools/css-color-parser@4.2.6", "", { "dependencies": { "@csstools/color-helpers": "^6.1.2", "@csstools/css-calc": "^3.4.3" }, "peerDependencies": { "@csstools/css-parser-algorithms": "^4.0.2", "@csstools/css-tokenizer": "^4.0.2" } }, "sha512-iiPQ3iRWwnJkeEn6RIu6SJPr7hYrLz6XZ9s/QZl+2/LI5KQVjpl2fdmDSZKuD4xP6GMmMPgHFFXg6k1Wkz0Trg=="],
+    "@csstools/css-color-parser": ["@csstools/css-color-parser@4.2.8", "", { "dependencies": { "@csstools/color-helpers": "^6.1.3", "@csstools/css-calc": "^3.4.4" }, "peerDependencies": { "@csstools/css-parser-algorithms": "^4.0.3", "@csstools/css-tokenizer": "^4.0.3" } }, "sha512-JLsKBee9dmnA3L+H+vYK4lQ6n5CoY3yEnh33zdlMutRfrTxtqt+hFeoZ1maHRt5vLw67huDLpOkDb3rl9A51MQ=="],
 
     "@csstools/css-parser-algorithms": ["@csstools/css-parser-algorithms@4.0.2", "", { "peerDependencies": { "@csstools/css-tokenizer": "^4.0.2" } }, "sha512-40cSKyMvK+tq4qz6Awrlye2WGuOKt3FwPgtGg6KTfbHOWNw+Rk1rzbAtZnZ6IBhsY491HLRnDXwoyBAijmmILA=="],
 
@@ -2575,6 +2575,8 @@
     "@apm-js-collab/code-transformer-bundler-plugins/es-module-lexer": ["es-module-lexer@2.3.1", "", {}, "sha512-shc1dbU90Yl/xq1QrC7QRtfcwURZuVRfPhZbDoldJ1cn1gzDvBaBWlv0eFolj5+0znnPJz5TXLxsN77X/12KTA=="],
 
     "@apm-js-collab/code-transformer-bundler-plugins/magic-string": ["magic-string@0.30.21", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.5" } }, "sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ=="],
+
+    "@asamuzakjp/css-color/@csstools/css-calc": ["@csstools/css-calc@3.4.3", "", { "peerDependencies": { "@csstools/css-parser-algorithms": "^4.0.2", "@csstools/css-tokenizer": "^4.0.2" } }, "sha512-iex20d8CHVkyvg6B7UKV7uHnI2Bqo9g+EFfT9E0y+GvTvhZ/DwONJ+9aKb1dlqm0ZiGsL5RXjp0fCoJYnkeDjA=="],
 
     "@babel/helper-compilation-targets/lru-cache": ["lru-cache@5.1.1", "", { "dependencies": { "yallist": "^3.0.2" } }, "sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w=="],
 
