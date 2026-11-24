@@ -74,10 +74,7 @@ export {
   type CustomRecipeFilter,
   useDevelopmentRecipes,
 } from './hooks/development-recipes/use-development-recipes';
-export {
-  type DevelopmentCombinationView,
-  useDevelopmentTable,
-} from './hooks/development-recipes/use-development-table';
+export { useDevelopmentTable } from './hooks/development-recipes/use-development-table';
 export { useFavorites } from './hooks/development-recipes/use-favorites';
 export {
   type RecipeShareResult,
@@ -179,6 +176,7 @@ export {
 export * from './types/border-calculator';
 export * from './types/camera-exposure-calculator';
 export * from './types/custom-recipes';
+export * from './types/development-recipe-view';
 export * from './types/development-recipes-url';
 export * from './types/exposure-calculator';
 export * from './types/lens-calculator';
@@ -223,6 +221,7 @@ export * from './utils/object-comparison';
 export * from './utils/persisted-calculator';
 export * from './utils/precision';
 export * from './utils/preset-sharing';
+export * from './utils/recipe-selection';
 export * from './utils/recipe-sharing';
 export * from './utils/reciprocity-calculations';
 export * from './utils/resize-calculations';

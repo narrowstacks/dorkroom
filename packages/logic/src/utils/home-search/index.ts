@@ -4,6 +4,7 @@
  * `suggestHome` offers completions and query templates while typing. Both
  * are pure and platform-free, shared by the web home page and the iOS app.
  */
+export { formatClock } from './format';
 export { searchHome } from './search';
 export { suggestHome } from './suggest';
 export type {

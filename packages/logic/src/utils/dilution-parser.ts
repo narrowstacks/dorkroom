@@ -120,6 +120,17 @@ export function parseDilution(dilution: string): DilutionParsed | null {
   return null;
 }
 
+/** Same mix, however it is written: "1+31" matches "1:31", "stock" matches "Stock". */
+export function sameDilution(a: string, b: string): boolean {
+  const x = parseDilution(a);
+  const y = parseDilution(b);
+  if (!x || !y) return a.trim().toLowerCase() === b.trim().toLowerCase();
+  return (
+    x.type === y.type &&
+    x.concentrateParts * y.totalParts === y.concentrateParts * x.totalParts
+  );
+}
+
 /**
  * Calculate the volumes of concentrate and water needed for a given total volume.
  *

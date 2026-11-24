@@ -9,7 +9,7 @@ import { isRecipeUrlDilution } from '../../constants/development-recipes';
 import { RECIPROCITY_FILM_TYPES } from '../../constants/reciprocity';
 import { reciprocityCalculatorLink } from '../../schemas/reciprocity-calculator.schema';
 import { getCombinationDilution } from '../combination-dilution';
-import { parseDilution } from '../dilution-parser';
+import { sameDilution } from '../dilution-parser';
 import { calculatePushPull } from '../exposure-calculations';
 import { calculateReciprocity } from '../reciprocity-calculations';
 import {
@@ -361,17 +361,6 @@ export function matchCatalog(
  * ------------------------------------------------------------------ */
 
 type RecipeAnswer = Extract<HomeAnswer, { kind: 'recipe' | 'no_recipe' }>;
-
-/** Same mix, however it is written: "1+31" matches "1:31", "stock" matches "Stock". */
-function sameDilution(a: string, b: string): boolean {
-  const x = parseDilution(a);
-  const y = parseDilution(b);
-  if (!x || !y) return a.trim().toLowerCase() === b.trim().toLowerCase();
-  return (
-    x.type === y.type &&
-    x.concentrateParts * y.totalParts === y.concentrateParts * x.totalParts
-  );
-}
 
 function recipeLink(
   combination: Combination,
